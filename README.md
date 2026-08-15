@@ -58,7 +58,9 @@ openadr accept <name>                   Accept a proposal (assigns NNNN)
 openadr reject <name> --reason <text>   Reject a proposal
 openadr list [--json]                   List all records
 openadr show <name>                     Show a record
-openadr validate [name] [--json]        Validate one record or the repository
+openadr status [--json]                 Show lifecycle counts and validity
+openadr instructions [--json]           Print the next workflow step
+openadr validate [name] [--all] [--json] Validate one record or the repository
 openadr version                         Print the version
 ```
 

@@ -70,6 +70,19 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
     }
   }
 
+  const meaningfulHeadings = record.folder === 'decisions'
+    ? ['Problem', 'Decision']
+    : ['Problem', 'Proposal'];
+  for (const heading of meaningfulHeadings) {
+    const body = record.sections.find((section) => section.heading === heading)?.body;
+    if (!hasMeaningfulBody(body)) {
+      issues.push({
+        path,
+        message: `section "## ${heading}" must contain written content`,
+      });
+    }
+  }
+
   const seen = new Set<string>();
   for (const section of record.sections) {
     if (seen.has(section.heading)) {
