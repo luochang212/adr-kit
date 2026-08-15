@@ -23,7 +23,7 @@ must say what problem it solves, what it chose, and what it gave up.
 Requires Node.js 20.19 or later.
 
 ```bash
-npm install -g openadr
+npm install -g @luochang212/openadr
 cd your-project
 openadr init
 openadr propose "Use SQLite for session storage"

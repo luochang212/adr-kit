@@ -1,5 +1,5 @@
 {
-  "name": "openadr",
+  "name": "@luochang212/openadr",
   "version": "0.1.0",
   "description": "Open Architecture Decision Records — a lightweight ADR workflow for humans and agents.",
   "type": "module",

@@ -20,7 +20,7 @@ agent 原生代码库的决策记录纪律：每条记录都必须说明它解�
 需要 Node.js 20.19 或更高版本。
 
 ```bash
-npm install -g openadr
+npm install -g @luochang212/openadr
 cd your-project
 openadr init
 openadr propose "使用 SQLite 存储会话"
