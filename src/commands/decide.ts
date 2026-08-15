@@ -10,6 +10,9 @@ export function decideCommand(title: string, cwd: string): string {
   if (trimmed.length === 0) {
     throw new Error('title must not be empty');
   }
+  if (/^\d{4}\s+/.test(trimmed)) {
+    throw new Error('title must not start with a four-digit number; OpenADR assigns decision numbers');
+  }
   const root = requireRoot(cwd);
   const number = nextDecisionNumber(root);
   const padded = String(number).padStart(4, '0');

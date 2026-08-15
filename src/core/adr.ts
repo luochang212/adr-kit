@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { basename } from 'node:path';
 
 export type AdrStatus = 'proposed' | 'accepted' | 'rejected';
 export type AdrFolder = 'proposed' | 'decisions' | 'rejected';
@@ -119,7 +120,11 @@ export function parseAdrFile(filePath: string): AdrRecord {
   for (const line of lines.slice(3)) {
     if (line.startsWith('## ')) {
       if (current !== null) sections.push(current);
-      current = { heading: line.slice(3).trim(), body: '' };
+      const heading = line.slice(3).trim();
+      if (heading.length === 0) {
+        throw new AdrFormatError('section heading must not be empty', filePath);
+      }
+      current = { heading, body: '' };
     } else if (current !== null) {
       current.body += `${line}\n`;
     }
@@ -130,7 +135,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
   const parsed: AdrRecord = {
     folder: 'proposed',
     path: filePath,
-    fileName: filePath.split('/').pop() ?? filePath,
+    fileName: basename(filePath),
     title,
     status,
     sections,

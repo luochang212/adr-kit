@@ -110,7 +110,7 @@ ${alternatives.trim() || '_No alternatives recorded._'}
 
 ## Consequences
 
-${consequences.join('\n')}`;
+${consequences.join('\n')}\n`;
 }
 
 function sectionBody(record: AdrRecord, heading: string): string {

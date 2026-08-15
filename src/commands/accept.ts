@@ -16,6 +16,9 @@ export function acceptCommand(query: string, cwd: string): string {
   if (record.folder !== 'proposed') {
     throw new Error(`"${query}" is not a proposal (it is in ${record.folder})`);
   }
+  if (/^\d{4}\s+/.test(record.title)) {
+    throw new Error('proposal title must not start with a four-digit number; OpenADR assigns decision numbers');
+  }
 
   const issues = validateRecord(root, record);
   if (issues.length > 0) {

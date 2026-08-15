@@ -130,7 +130,9 @@ export function resolveRecord(root: string, query: string): AdrRecord {
   const records = listRecords(root);
   const normalized = query.trim();
   const candidates = records.filter((record) => {
-    if (record.fileName === normalized || record.fileName === `${normalized}.md`) {
+    const bareName = record.fileName.replace(/\.md$/, '');
+    const slug = bareName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/^\d{4}-/, '');
+    if (record.fileName === normalized || bareName === normalized || slug === normalized) {
       return true;
     }
     if (record.title === normalized || `# ADR: ${record.title}` === normalized) {
@@ -152,7 +154,11 @@ export function resolveRecord(root: string, query: string): AdrRecord {
     const paths = candidates.map((record) => relative(root, record.path)).join(', ');
     throw new Error(`"${query}" is ambiguous; matches: ${paths}`);
   }
-  return candidates[0]!;
+  const first = candidates[0];
+  if (first === undefined) {
+    throw new Error(`no ADR matches "${query}"`);
+  }
+  return first;
 }
 
 export function nextDecisionNumber(root: string): number {
@@ -188,10 +194,12 @@ export function readRecord(record: AdrRecord): string {
 }
 
 export function displayName(record: AdrRecord): string {
-  const label = record.folder === 'decisions' && record.number !== undefined
-    ? `[${String(record.number).padStart(4, '0')}] ${record.title}`
-    : `[${record.fileName.replace(/\.md$/, '')}] ${record.title}`;
-  return label;
+  if (record.folder === 'decisions' && Number.isInteger(record.number)) {
+    const padded = String(record.number).padStart(4, '0');
+    const titleWithoutNumber = record.title.replace(/^\d{4}\s+/, '');
+    return `[${padded}] ${titleWithoutNumber}`;
+  }
+  return record.title;
 }
 
 export function relativePath(root: string, record: AdrRecord): string {

@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { hasMeaningfulBody, parseAdrFile, type AdrRecord } from './adr.js';
+import { hasMeaningfulBody, statusForFolder, type AdrRecord } from './adr.js';
 import { ADR_DIR, CONFIG_FILE, readConfig } from './config.js';
 import { FOLDERS, listRecords } from './repository.js';
 
@@ -18,8 +18,15 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   const issues: ValidationIssue[] = [];
   const path = relative(root, record.path);
 
+  if (record.status !== statusForFolder(record.folder)) {
+    issues.push({
+      path,
+      message: `status "${record.status}" does not match folder "${record.folder}"`,
+    });
+  }
+
   if (record.folder === 'decisions') {
-    if (!/^\d{4}-[a-z0-9-]+\.md$/.test(record.fileName)) {
+    if (!/^\d{4}-[a-z0-9\u4e00-\u9fff-]+\.md$/.test(record.fileName)) {
       issues.push({ path, message: 'decision file name must be "NNNN-slug.md"' });
     }
     if (record.number === undefined) {
@@ -31,14 +38,21 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
       }
     }
   } else {
-    const datePattern = /^(\d{4})-(\d{2})-(\d{2})-[a-z0-9-]+\.md$/;
+    const datePattern = /^(\d{4})-(\d{2})-(\d{2})-[a-z0-9\u4e00-\u9fff-]+\.md$/;
     const match = record.fileName.match(datePattern);
     if (match === null) {
       issues.push({ path, message: 'file name must be "YYYY-MM-DD-slug.md"' });
     } else {
-      const date = new Date(`${match[1]!}-${match[2]!}-${match[3]!}`);
-      if (Number.isNaN(date.getTime())) {
-        issues.push({ path, message: 'file name contains an invalid date' });
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const date = new Date(year, month - 1, day);
+      if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+      ) {
+        issues.push({ path, message: 'file name contains an invalid calendar date' });
       }
     }
   }
@@ -54,6 +68,14 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
     if (!headings.has(heading)) {
       issues.push({ path, message: `missing required section "## ${heading}"` });
     }
+  }
+
+  const seen = new Set<string>();
+  for (const section of record.sections) {
+    if (seen.has(section.heading)) {
+      issues.push({ path, message: `duplicate section "## ${section.heading}"` });
+    }
+    seen.add(section.heading);
   }
 
   if (record.folder === 'decisions') {
