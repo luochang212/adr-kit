@@ -1,4 +1,5 @@
 import { parseArgs } from 'node:util';
+import { pathToFileURL } from 'node:url';
 import { VERSION } from './version.js';
 import { acceptCommand } from './commands/accept.js';
 import { decideCommand } from './commands/decide.js';
@@ -21,6 +22,8 @@ Usage:
   openadr show <name>                         Show a decision record
   openadr validate [name] [--json]            Validate one record or the whole repo
   openadr version                             Print the version
+  openadr -h, --help                          Print this help
+  openadr -V, --version                       Print the version
 
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
@@ -33,10 +36,20 @@ export function main(argv: string[]): void {
       json: { type: 'boolean', default: false },
       reason: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
+      version: { type: 'boolean', short: 'V', default: false },
     },
   });
 
-  const command = positionals[0] ?? (values.help ? 'help' : '');
+  if (values.version) {
+    console.log(VERSION);
+    return;
+  }
+  if (values.help) {
+    console.log(HELP);
+    return;
+  }
+
+  const command = positionals[0] ?? '';
   const rest = positionals.slice(1);
 
   try {
@@ -112,4 +125,8 @@ function requireTitle(rest: string[], command: string): void {
   if (rest.length === 0 || rest[0]!.trim().length === 0) {
     throw new Error(`${command} requires a title or name`);
   }
+}
+
+if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main(process.argv.slice(2));
 }
