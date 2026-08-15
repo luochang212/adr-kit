@@ -61,6 +61,9 @@ openadr show <name>                     Show a record
 openadr status [--json]                 Show lifecycle counts and validity
 openadr instructions [--json]           Print the next workflow step
 openadr validate [name] [--all] [--json] Validate one record or the repository
+openadr update [--tools <list>]          Rewrite AI tool integrations
+openadr config [--json]                 Print the current configuration
+openadr completion <bash|zsh|fish>      Print a shell completion script
 openadr version                         Print the version
 ```
 

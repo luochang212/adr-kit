@@ -10,6 +10,8 @@ export interface OpenAdrConfig {
   context?: string;
   /** Optional per-status rules, e.g. `rules.proposal: ["Keep it short"]`. */
   rules?: Record<string, string[]>;
+  /** AI tool integrations selected at init time, e.g. `["claude", "codex"]`. */
+  tools?: string[];
   /** The raw parsed YAML document (for forward compatibility). */
   raw: Record<string, unknown>;
 }
@@ -61,6 +63,10 @@ export function readConfig(root: string): OpenAdrConfig {
   if (typeof raw.context === 'string') {
     config.context = raw.context;
   }
+  if (Array.isArray(raw.tools) && raw.tools.every((entry) => typeof entry === 'string')) {
+    config.tools = raw.tools as string[];
+  }
+
   if (raw.rules !== null && typeof raw.rules === 'object' && !Array.isArray(raw.rules)) {
     const rules: Record<string, string[]> = {};
     for (const [key, value] of Object.entries(raw.rules as Record<string, unknown>)) {

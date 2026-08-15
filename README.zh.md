@@ -58,6 +58,9 @@ openadr show <name>                    查看记录
 openadr status [--json]                查看生命周期计数与校验状态
 openadr instructions [--json]          查看下一步该做什么
 openadr validate [name] [--all] [--json] 校验单条记录或整个仓库
+openadr update [--tools <list>]         重写 AI 工具集成文件
+openadr config [--json]                查看当前配置
+openadr completion <bash|zsh|fish>     打印 shell 补全脚本
 openadr version                        查看版本
 ```
 

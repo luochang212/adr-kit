@@ -2,6 +2,8 @@ import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { VERSION } from './version.js';
 import { acceptCommand } from './commands/accept.js';
+import { completionCommand } from './commands/completion.js';
+import { configCommand } from './commands/config.js';
 import { decideCommand } from './commands/decide.js';
 import { initCommand } from './commands/init.js';
 import { instructionsCommand } from './commands/instructions.js';
@@ -10,12 +12,13 @@ import { proposeCommand } from './commands/propose.js';
 import { rejectCommand } from './commands/reject.js';
 import { showCommand } from './commands/show.js';
 import { statusCommand } from './commands/status.js';
+import { updateCommand } from './commands/update.js';
 import { validateCommand } from './commands/validate.js';
 
 const HELP = `openadr ${VERSION} — Open Architecture Decision Records
 
 Usage:
-  openadr init [path]                        Initialize an OpenADR repository
+  openadr init [path] [--tools <list>]        Initialize an OpenADR repository
   openadr propose <title>                     Create a proposed decision
   openadr decide <title>                      Create an accepted decision draft
   openadr accept <name>                       Accept a proposal (assigns NNNN)
@@ -25,6 +28,9 @@ Usage:
   openadr status [--json]                     Show lifecycle counts and validity
   openadr instructions [--json]               Print the next workflow step
   openadr validate [name] [--all] [--json]    Validate one record or the whole repo
+  openadr update [--tools <list>]             Rewrite AI tool integrations
+  openadr config [--json]                     Print the current configuration
+  openadr completion <bash|zsh|fish>          Print a shell completion script
   openadr version                             Print the version
   openadr -h, --help                          Print this help
   openadr -V, --version                       Print the version
@@ -40,6 +46,7 @@ export function main(argv: string[]): void {
       all: { type: 'boolean', default: false },
       json: { type: 'boolean', default: false },
       reason: { type: 'string' },
+      tools: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
       version: { type: 'boolean', short: 'V', default: false },
     },
@@ -74,7 +81,7 @@ export function main(argv: string[]): void {
       }
       case 'init': {
         const target = rest[0] ?? process.cwd();
-        console.log(initCommand(target));
+        console.log(initCommand(target, values.tools));
         return;
       }
       case 'propose': {
@@ -118,6 +125,19 @@ export function main(argv: string[]): void {
       }
       case 'instructions': {
         console.log(instructionsCommand(process.cwd(), values.json));
+        return;
+      }
+      case 'update': {
+        console.log(updateCommand(process.cwd(), values.tools));
+        return;
+      }
+      case 'config': {
+        console.log(configCommand(process.cwd(), values.json));
+        return;
+      }
+      case 'completion': {
+        const shell = rest[0] ?? '';
+        console.log(completionCommand(shell));
         return;
       }
       case 'validate': {

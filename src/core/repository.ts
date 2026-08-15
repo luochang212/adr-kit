@@ -17,12 +17,18 @@ export interface InitResult {
   created: string[];
 }
 
-const INIT_CONFIG = `# OpenADR configuration
+function initConfig(tools: string[]): string {
+  const toolsYaml = tools.length === 0
+    ? '# tools: [claude, codex, cursor, github-copilot, agents]\n'
+    : `tools: [${tools.join(', ')}]\n`;
+  return `# OpenADR configuration
 # Project context is shown to agents and humans when they create records.
 context: |
   <!-- Describe the project: tech stack, conventions, domain, and any
        standing rules that a decision record should respect. -->
 
+# AI tool integrations written by openadr init --tools.
+${toolsYaml}
 # Optional per-status rules. Example:
 # rules:
 #   proposal:
@@ -30,6 +36,7 @@ context: |
 #   decision:
 #     - Always name the owning team.
 `;
+}
 
 const INIT_README = `# Architecture Decision Records
 
@@ -62,7 +69,7 @@ Proposals require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
 Run \`openadr validate\` to check every record.
 `;
 
-export function initRepository(targetDir: string): InitResult {
+export function initRepository(targetDir: string, tools: string[] = []): InitResult {
   const root = resolve(targetDir);
   const adrRoot = join(root, ADR_DIR);
   if (existsSync(adrRoot)) {
@@ -80,7 +87,7 @@ export function initRepository(targetDir: string): InitResult {
   }
 
   const config = configPath(root);
-  writeFileSync(config, INIT_CONFIG);
+  writeFileSync(config, initConfig(tools));
   created.push(`${ADR_DIR}/${CONFIG_FILE}`);
 
   const readme = join(adrRoot, 'README.md');
