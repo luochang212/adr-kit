@@ -3,6 +3,8 @@
 **Open Architecture Decision Records** — a lightweight ADR workflow for
 humans and agents.
 
+[English](README.md) | [中文](README.zh.md)
+
 OpenADR turns architecture decisions into plain Markdown files with a
 machine-checkable lifecycle: **proposed → accepted / rejected**. It borrows
 the spec-driven spirit of [OpenSpec](https://github.com/Fission-AI/OpenSpec)

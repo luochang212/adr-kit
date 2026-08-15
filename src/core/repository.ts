@@ -75,6 +75,7 @@ export function initRepository(targetDir: string): InitResult {
   for (const folder of FOLDERS) {
     const path = join(adrRoot, folder);
     mkdirSync(path, { recursive: true });
+    writeFileSync(join(path, '.gitkeep'), '');
     created.push(`${ADR_DIR}/${folder}`);
   }
 
