@@ -1,0 +1,23 @@
+{
+  "name": "openadr",
+  "version": "0.1.0",
+  "description": "Open Architecture Decision Records — a lightweight ADR workflow for humans and agents.",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=20.19" },
+  "bin": { "openadr": "bin/openadr.js" },
+  "files": ["bin", "dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": { "yaml": "^2.8.3" },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
