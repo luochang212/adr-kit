@@ -55,7 +55,9 @@ openadr accept <name>                  接受提案（分配 NNNN 编号）
 openadr reject <name> --reason <text>  拒绝提案
 openadr list [--json]                  列出所有记录
 openadr show <name>                    查看记录
-openadr validate [name] [--json]       校验单条记录或整个仓库
+openadr status [--json]                查看生命周期计数与校验状态
+openadr instructions [--json]          查看下一步该做什么
+openadr validate [name] [--all] [--json] 校验单条记录或整个仓库
 openadr version                        查看版本
 ```
 
