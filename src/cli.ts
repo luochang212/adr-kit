@@ -4,10 +4,12 @@ import { VERSION } from './version.js';
 import { acceptCommand } from './commands/accept.js';
 import { decideCommand } from './commands/decide.js';
 import { initCommand } from './commands/init.js';
+import { instructionsCommand } from './commands/instructions.js';
 import { listCommand } from './commands/list.js';
 import { proposeCommand } from './commands/propose.js';
 import { rejectCommand } from './commands/reject.js';
 import { showCommand } from './commands/show.js';
+import { statusCommand } from './commands/status.js';
 import { validateCommand } from './commands/validate.js';
 
 const HELP = `openadr ${VERSION} — Open Architecture Decision Records
@@ -20,7 +22,9 @@ Usage:
   openadr reject <name> --reason <reason>     Reject a proposal
   openadr list [--json]                       List all decision records
   openadr show <name>                         Show a decision record
-  openadr validate [name] [--json]            Validate one record or the whole repo
+  openadr status [--json]                     Show lifecycle counts and validity
+  openadr instructions [--json]               Print the next workflow step
+  openadr validate [name] [--all] [--json]    Validate one record or the whole repo
   openadr version                             Print the version
   openadr -h, --help                          Print this help
   openadr -V, --version                       Print the version
@@ -33,6 +37,7 @@ export function main(argv: string[]): void {
     args: argv,
     allowPositionals: true,
     options: {
+      all: { type: 'boolean', default: false },
       json: { type: 'boolean', default: false },
       reason: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
@@ -103,6 +108,16 @@ export function main(argv: string[]): void {
       case 'show': {
         requireTitle(rest, 'show');
         console.log(showCommand(rest[0]!, process.cwd()));
+        return;
+      }
+      case 'status': {
+        const result = statusCommand(process.cwd(), values.json);
+        console.log(result.output);
+        if (result.valid === false) process.exitCode = 1;
+        return;
+      }
+      case 'instructions': {
+        console.log(instructionsCommand(process.cwd(), values.json));
         return;
       }
       case 'validate': {

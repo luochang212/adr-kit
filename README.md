@@ -64,6 +64,13 @@ openadr version                         Print the version
 
 `<name>` resolves by title, file name, or decision number (`0001`).
 
+## Docs
+
+- [CLI reference](docs/cli.md)
+- [Record format](docs/record-format.md)
+- [Workflow](docs/workflow.md)
+- [Agent skills](skills/README.md)
+
 ## Record format
 
 Every record is plain Markdown with a three-line header:

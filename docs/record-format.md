@@ -1,0 +1,56 @@
+# Record Format
+
+Every ADR is plain Markdown. The first three lines are fixed:
+
+```markdown
+# ADR: <title>
+
+Status: proposed | accepted | rejected — <reason>
+```
+
+No front matter. No special syntax.
+
+## Proposed records
+
+File name: `YYYY-MM-DD-slug.md`. Required sections:
+
+```markdown
+## Problem
+## Proposal
+## Alternatives considered
+## Acceptance criteria
+## Risks
+```
+
+`## Alternatives considered` must contain at least one written alternative
+after HTML comments are stripped.
+
+## Accepted decisions
+
+File name: `NNNN-slug.md`. Title: `# ADR: NNNN <title>`. Required sections:
+
+```markdown
+## Problem
+## Decision
+## Alternatives considered
+## Consequences
+```
+
+Proposal-era sections (`Proposal`, `Acceptance criteria`, `Risks`, `Plan`,
+`Migration plan`) are rejected in accepted decisions.
+
+## Rejected proposals
+
+File name: `YYYY-MM-DD-slug.md`. The status line carries the reason:
+
+```markdown
+Status: rejected — we chose JSON files instead
+```
+
+Required sections: `Problem`, `Proposal`, `Alternatives considered`.
+Rejected records are frozen history.
+
+## Slug rules
+
+Slugs keep ASCII letters, digits, and CJK characters. Everything else
+becomes a dash. The result is capped at 80 characters.

@@ -1,7 +1,7 @@
 {
   "name": "@luochang212/openadr",
   "version": "0.1.0",
-  "description": "Open Architecture Decision Records — a lightweight ADR workflow for humans and agents.",
+  "description": "Open Architecture Decision Records \u2014 a lightweight ADR workflow for humans and agents.",
   "type": "module",
   "license": "MIT",
   "engines": {
@@ -21,15 +21,29 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "changeset": "changeset",
+    "release": "changeset publish",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "yaml": "^2.8.3"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.0",
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^3.2.7",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "adr",
+    "architecture-decision-records",
+    "cli",
+    "ai",
+    "development"
+  ]
 }
