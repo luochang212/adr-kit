@@ -30,7 +30,7 @@ jobs:
       - run: npm ci
 
       - name: Create release pull request or publish
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           title: 'chore(release): version packages'
           publish: npm run release
