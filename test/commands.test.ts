@@ -21,7 +21,7 @@ function makeRepo(): string {
 }
 
 function fillProposal(root: string): string {
-  const path = join(root, 'adr/proposed');
+  const path = join(root, 'adr', 'proposed');
   const name = listCommand(root, true);
   const parsed = JSON.parse(name) as Array<{ fileName: string }>;
   const file = join(path, parsed[0]!.fileName);

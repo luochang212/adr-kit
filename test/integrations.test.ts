@@ -41,7 +41,7 @@ describe('initCommand tool integrations', () => {
     const config = configCommand(root, true);
     expect(config).toContain('claude');
     const output = updateCommand(root);
-    expect(output).toContain('.claude/commands/openadr-propose.md');
+    expect(output).toContain(join('.claude', 'commands', 'openadr-propose.md'));
   });
 });
 
