@@ -1,8 +1,9 @@
 name: release
 
+# Manual only for now. The automated changesets PR flow needs the repository
+# setting "Allow GitHub Actions to create and approve pull requests" enabled
+# (Settings -> Actions -> General -> Workflow permissions).
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
