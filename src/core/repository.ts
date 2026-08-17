@@ -18,18 +18,20 @@ export interface InitResult {
 }
 
 function initConfig(tools: string[]): string {
-  const toolsYaml = tools.length === 0
-    ? '# tools: [claude, codex, cursor, github-copilot, agents]\n'
-    : `tools: [${tools.join(', ')}]\n`;
+  // tools 始终作为顶层键输出：全注释的 YAML 文档会被解析为空，
+  // readConfig 的 isMap 检查会报 "top-level value must be a mapping"。
+  const toolsYaml = `tools: [${tools.join(', ')}]\n`;
   return `# OpenADR configuration
-# Project context is shown to agents and humans when they create records.
-context: |
-  <!-- Describe the project: tech stack, conventions, domain, and any
-       standing rules that a decision record should respect. -->
+# Fill in \`context\` and it is injected as a comment into every new
+# proposal/decision draft (openadr propose / openadr decide).
+# context: |
+#   Tech stack: TypeScript
+#   Conventions that decision records should respect.
 
 # AI tool integrations written by openadr init --tools.
 ${toolsYaml}
-# Optional per-status rules. Example:
+# Optional per-status conventions. These are hints for writers and agents;
+# validate does not enforce them (it cannot check prose).
 # rules:
 #   proposal:
 #     - Keep proposals under 500 words.

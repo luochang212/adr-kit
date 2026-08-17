@@ -1,10 +1,25 @@
 import type { AdrRecord } from './adr.js';
 
-export function proposalTemplate(title: string): string {
+/**
+ * 把 config.yaml 的 context 注入模板：放在标题块之后、第一个 section 之前。
+ * 解析器忽略游离文本（current 为 null 时不收集），accept 的机械改写也会
+ * 丢弃它——注释只在草案期可见，正是写作者需要项目上下文的时刻。
+ */
+function contextBlock(context?: string | null): string {
+  const text = context?.trim() ?? '';
+  // 空 context 或纯占位注释（老 init 模板遗留）都不注入
+  if (text.length === 0 || text.startsWith('<!--')) return '';
+  return `<!-- Project context (adr/config.yaml):
+${text}
+-->
+`;
+}
+
+export function proposalTemplate(title: string, context?: string): string {
   return `# ADR: ${title}
 Status: proposed
 
-## Problem
+${contextBlock(context)}## Problem
 
 <!-- What problem or opportunity does this decision address? Why now? -->
 
@@ -27,12 +42,12 @@ Status: proposed
 `;
 }
 
-export function decisionTemplate(number: number, title: string): string {
+export function decisionTemplate(number: number, title: string, context?: string): string {
   const padded = String(number).padStart(4, '0');
   return `# ADR: ${padded} ${title}
 Status: accepted
 
-## Problem
+${contextBlock(context)}## Problem
 
 <!-- What problem or opportunity does this decision address? -->
 

@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -112,5 +112,63 @@ describe('decide and show', () => {
     const shown = showCommand('0001', root);
     expect(shown).toContain('Status: accepted');
     expect(shown).toContain('## Decision');
+  });
+});
+
+describe('config context injection', () => {
+  function withContext(root: string, context: string): void {
+    writeFileSync(join(root, 'adr', 'config.yaml'), `context: |\n${context}\n`);
+  }
+
+  function proposalPath(root: string): string {
+    const listing = JSON.parse(listCommand(root, true)) as Array<{ folder: string; fileName: string }>;
+    const record = listing.find((entry) => entry.folder === 'proposed');
+    if (record === undefined) throw new Error('no proposal found');
+    return join(root, 'adr', 'proposed', record.fileName);
+  }
+
+  it('injects context into a new proposal and stays valid', () => {
+    const root = makeRepo();
+    withContext(root, '  Tech stack: TypeScript\n  Keep records short.\n');
+    proposeCommand('Use SQLite', root);
+
+    const content = readFileSync(proposalPath(root), 'utf8');
+    expect(content).toContain('<!-- Project context (adr/config.yaml):');
+    expect(content).toContain('Tech stack: TypeScript');
+    // 游离注释不破坏解析；填写内容后应通过校验
+    fillProposal(root);
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('injects context into a new decision draft', () => {
+    const root = makeRepo();
+    withContext(root, '  Domain: payments\n');
+    decideCommand('Use Postgres', root);
+
+    const listing = JSON.parse(listCommand(root, true)) as Array<{ folder: string; fileName: string }>;
+    const record = listing.find((entry) => entry.folder === 'decisions');
+    const content = readFileSync(join(root, 'adr', 'decisions', record!.fileName), 'utf8');
+    expect(content).toContain('Domain: payments');
+  });
+
+  it('leaves the template clean when context is unset', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const content = readFileSync(proposalPath(root), 'utf8');
+    expect(content).not.toContain('Project context');
+  });
+
+  it('drops the context comment when a proposal is accepted', () => {
+    const root = makeRepo();
+    withContext(root, '  Tech stack: TypeScript\n');
+    proposeCommand('Use SQLite', root);
+    fillProposal(root);
+    acceptCommand('Use SQLite', root);
+
+    const listing = JSON.parse(listCommand(root, true)) as Array<{ folder: string; fileName: string }>;
+    const record = listing.find((entry) => entry.folder === 'decisions');
+    const content = readFileSync(join(root, 'adr', 'decisions', record!.fileName), 'utf8');
+    expect(content).not.toContain('Project context');
+    expect(validateCommand(root).valid).toBe(true);
   });
 });
