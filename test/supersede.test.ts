@@ -1,0 +1,182 @@
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { afterEach, describe, expect, it } from 'vitest';
+import { acceptCommand } from '../src/commands/accept.js';
+import { initCommand } from '../src/commands/init.js';
+import { listCommand } from '../src/commands/list.js';
+import { proposeCommand } from '../src/commands/propose.js';
+import { statusCommand } from '../src/commands/status.js';
+import { supersedeCommand } from '../src/commands/supersede.js';
+import { validateCommand } from '../src/commands/validate.js';
+
+const tempDirs: string[] = [];
+
+function makeRepo(): string {
+  const dir = mkdtempSync(join(tmpdir(), 'openadr-supersede-'));
+  tempDirs.push(dir);
+  initCommand(dir);
+  return dir;
+}
+
+/** propose → fill → accept，返回分配到的四位编号字符串。 */
+function acceptDecision(root: string, title: string): string {
+  proposeCommand(title, root);
+  const listing = JSON.parse(listCommand(root, true)) as Array<{ fileName: string; folder: string }>;
+  const proposal = listing.find((record) => record.folder === 'proposed');
+  if (proposal === undefined) throw new Error('proposal not found');
+  const slug = proposal.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
+  writeFileSync(join(root, 'adr', 'proposed', proposal.fileName), `# ADR: ${title}
+Status: proposed
+
+## Problem
+
+We need ${title}.
+
+## Proposal
+
+Use ${title}.
+
+## Alternatives considered
+
+- **Do nothing** — rejected because the problem persists.
+
+## Acceptance criteria
+
+It works.
+
+## Risks
+
+Some risk.
+`);
+  acceptCommand(title, root);
+  return slug;
+}
+
+afterEach(() => {
+  for (const dir of tempDirs.splice(0)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+describe('supersedeCommand', () => {
+  it('rewrites the status line and keeps the record in decisions/', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+
+    const message = supersedeCommand('0001', '0002', root);
+    expect(message).toMatch(/superseded adr\/decisions\/0001-.+ by adr\/decisions\/0002-.+/);
+
+    const old = readFileSync(join(root, 'adr', 'decisions', '0001-use-sqlite.md'), 'utf8');
+    expect(old.split(/\r?\n/)[1]).toBe('Status: superseded by 0002');
+
+    const result = validateCommand(root, undefined, false);
+    expect(result.valid).toBe(true);
+  });
+
+  it('counts superseded decisions separately in status', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    supersedeCommand('0001', '0002', root);
+
+    const parsed = JSON.parse(statusCommand(root, true).output) as {
+      counts: { accepted: number; superseded: number };
+    };
+    expect(parsed.counts).toMatchObject({ accepted: 1, superseded: 1 });
+  });
+
+  it('annotates superseded records in the text listing', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    supersedeCommand('0001', '0002', root);
+
+    expect(listCommand(root, false)).toContain('[superseded by 0002]');
+  });
+
+  it('refuses to supersede a proposal', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use Postgres');
+    proposeCommand('Use SQLite', root);
+    expect(() => supersedeCommand('use-sqlite', '0001', root)).toThrow(
+      'is not an accepted decision',
+    );
+  });
+
+  it('refuses to supersede with a missing decision', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    expect(() => supersedeCommand('0001', '9999', root)).toThrow('no ADR matches');
+  });
+
+  it('refuses self-supersede', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    expect(() => supersedeCommand('0001', '0001', root)).toThrow('cannot supersede itself');
+  });
+
+  it('refuses to supersede an already-superseded decision', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    supersedeCommand('0001', '0002', root);
+    expect(() => supersedeCommand('0001', '0002', root)).toThrow('already superseded by 0002');
+  });
+
+  it('refuses superseding with an already-superseded decision', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    acceptDecision(root, 'Use Spanner');
+    supersedeCommand('0002', '0003', root);
+    expect(() => supersedeCommand('0001', '0002', root)).toThrow('is itself superseded');
+  });
+});
+
+describe('validate superseded references', () => {
+  it('flags a dangling superseded-by reference', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    const path = join(root, 'adr', 'decisions', '0001-use-sqlite.md');
+    const lines = readFileSync(path, 'utf8').split(/\r?\n/);
+    lines[1] = 'Status: superseded by 9999';
+    writeFileSync(path, lines.join('\n'));
+
+    const result = validateCommand(root, undefined, false);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('references a missing decision');
+  });
+
+  it('flags a chain that points at another superseded decision', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    supersedeCommand('0001', '0002', root);
+
+    // 手工制造 0003 并让它指向已被取代的 0001，验证 validate 拒绝悬空链
+    writeFileSync(join(root, 'adr', 'decisions', '0003-use-spanner.md'), `# ADR: 0003 Use Spanner
+Status: superseded by 0001
+
+## Problem
+
+We need durability.
+
+## Decision
+
+Use Spanner.
+
+## Alternatives considered
+
+- **Use SQLite** — rejected because it is embedded.
+
+## Consequences
+
+Operational overhead.
+`);
+    const result = validateCommand(root, undefined, false);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('references a superseded decision');
+  });
+});

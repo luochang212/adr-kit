@@ -5,7 +5,7 @@ Every ADR is plain Markdown. The first three lines are fixed:
 ```markdown
 # ADR: <title>
 
-Status: proposed | accepted | rejected — <reason>
+Status: proposed | accepted | rejected — <reason> | superseded by NNNN
 ```
 
 No front matter. No special syntax.
@@ -38,6 +38,16 @@ File name: `NNNN-slug.md`. Title: `# ADR: NNNN <title>`. Required sections:
 
 Proposal-era sections (`Proposal`, `Acceptance criteria`, `Risks`, `Plan`,
 `Migration plan`) are rejected in accepted decisions.
+
+Superseded decisions keep the accepted shape but carry the replacing
+decision number on the status line:
+
+```markdown
+Status: superseded by 0006
+```
+
+`validate` checks that the referenced number exists and is not itself
+superseded. Superseded records stay in `adr/decisions/` as frozen history.
 
 ## Rejected proposals
 

@@ -12,6 +12,7 @@ import { proposeCommand } from './commands/propose.js';
 import { rejectCommand } from './commands/reject.js';
 import { showCommand } from './commands/show.js';
 import { statusCommand } from './commands/status.js';
+import { supersedeCommand } from './commands/supersede.js';
 import { updateCommand } from './commands/update.js';
 import { validateCommand } from './commands/validate.js';
 
@@ -23,6 +24,7 @@ Usage:
   openadr decide <title>                      Create an accepted decision draft
   openadr accept <name>                       Accept a proposal (assigns NNNN)
   openadr reject <name> --reason <reason>     Reject a proposal
+  openadr supersede <name> --by <name>        Mark an accepted decision as superseded
   openadr list [--json]                       List all decision records
   openadr show <name>                         Show a decision record
   openadr status [--json]                     Show lifecycle counts and validity
@@ -44,6 +46,7 @@ export function main(argv: string[]): void {
     allowPositionals: true,
     options: {
       all: { type: 'boolean', default: false },
+      by: { type: 'string' },
       json: { type: 'boolean', default: false },
       reason: { type: 'string' },
       tools: { type: 'string' },
@@ -106,6 +109,15 @@ export function main(argv: string[]): void {
           throw new Error('reject requires --reason <reason>');
         }
         console.log(rejectCommand(rest[0]!, reason, process.cwd()));
+        return;
+      }
+      case 'supersede': {
+        requireTitle(rest, 'supersede');
+        const by = values.by;
+        if (by === undefined) {
+          throw new Error('supersede requires --by <name>');
+        }
+        console.log(supersedeCommand(rest[0]!, by, process.cwd()));
         return;
       }
       case 'list': {

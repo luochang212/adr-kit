@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 
-export type AdrStatus = 'proposed' | 'accepted' | 'rejected';
+export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
 export type AdrFolder = 'proposed' | 'decisions' | 'rejected';
 
 export interface AdrSection {
@@ -16,6 +16,8 @@ export interface AdrRecord {
   title: string;
   status: AdrStatus;
   rejectionReason?: string;
+  /** For superseded decisions: the number of the decision that replaced this one. */
+  supersededBy?: number;
   number?: number;
   sections: AdrSection[];
 }
@@ -44,6 +46,7 @@ export function statusForFolder(folder: AdrFolder): AdrStatus {
 export function folderForStatus(status: AdrStatus): AdrFolder {
   switch (status) {
     case 'accepted':
+    case 'superseded':
       return 'decisions';
     case 'proposed':
       return 'proposed';
@@ -94,6 +97,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
 
   let status: AdrStatus;
   let rejectionReason: string | undefined;
+  let supersededBy: number | undefined;
   if (statusText === 'proposed') {
     status = 'proposed';
   } else if (statusText === 'accepted') {
@@ -104,9 +108,12 @@ export function parseAdrFile(filePath: string): AdrRecord {
     if (rejectionReason.length === 0) {
       throw new AdrFormatError('rejected status must include a reason', filePath);
     }
+  } else if (/^superseded by \d{1,4}$/.test(statusText)) {
+    status = 'superseded';
+    supersededBy = Number(statusText.slice('superseded by '.length));
   } else {
     throw new AdrFormatError(
-      'status must be "proposed", "accepted", or "rejected — <reason>"',
+      'status must be "proposed", "accepted", "rejected — <reason>", or "superseded by NNNN"',
       filePath,
     );
   }
@@ -141,6 +148,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
     sections,
   };
   if (rejectionReason !== undefined) parsed.rejectionReason = rejectionReason;
+  if (supersededBy !== undefined) parsed.supersededBy = supersededBy;
   if (numberMatch !== null) {
     parsed.number = Number(numberMatch[1]);
   }

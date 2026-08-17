@@ -6,7 +6,7 @@ humans and agents.
 [English](README.md) | [中文](README.zh.md)
 
 OpenADR turns architecture decisions into plain Markdown files with a
-machine-checkable lifecycle: **proposed → accepted / rejected**. It borrows
+machine-checkable lifecycle: **proposed → accepted / rejected / superseded**. It borrows
 the spec-driven spirit of [OpenSpec](https://github.com/Fission-AI/OpenSpec)
 and the decision-record discipline of agent-native codebases: every record
 must say what problem it solves, what it chose, and what it gave up.
@@ -56,6 +56,7 @@ openadr propose <title>                 Create a proposed decision
 openadr decide <title>                  Record an already-accepted decision
 openadr accept <name>                   Accept a proposal (assigns NNNN)
 openadr reject <name> --reason <text>   Reject a proposal
+openadr supersede <name> --by <name>    Mark an accepted decision as superseded
 openadr list [--json]                   List all records
 openadr show <name>                     Show a record
 openadr status [--json]                 Show lifecycle counts and validity
@@ -96,6 +97,10 @@ Status: proposed
   `validate`.
 - **Rejected** proposals are frozen with the reason on the status line:
   `Status: rejected — <reason>`.
+- **Superseded** decisions stay in `adr/decisions/` as history, with the
+  replacing decision on the status line: `Status: superseded by NNNN`.
+  `openadr supersede <old> --by <new>` performs the rewrite; `validate`
+  checks that `NNNN` exists and is not itself superseded.
 
 `openadr accept` performs the mechanical rewrite a lifecycle move always
 owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
@@ -108,7 +113,8 @@ owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 - **Alternatives are mandatory.** A decision recorded without what it beat
   invites re-litigation.
 - **Lifecycle is mechanical, not editorial.** Moving a proposal to
-  accepted or rejected is a command, and `validate` enforces the resulting
+  accepted or rejected is a command, retiring an accepted decision via
+  supersede is a command, and `validate` enforces the resulting
   shape.
 - **Agents are first-class users.** The format is plain Markdown, paths are
   predictable, and every command prints machine-readable output when asked.

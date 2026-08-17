@@ -26,6 +26,22 @@ openadr reject "Use SQLite for session storage" --reason "we chose files"
 The proposal is frozen in `adr/rejected/` with the reason on the status
 line.
 
+## Superseding an accepted decision
+
+Decisions get overturned. Record the replacement first, then retire the
+outdated record:
+
+```text
+openadr decide "Use Postgres for session storage"
+# fill in the new decision, validate it
+openadr supersede 0001 --by 0002
+```
+
+The old record stays in `adr/decisions/` with `Status: superseded by 0002`
+on the status line. Only the status line is rewritten; the body is frozen
+history. `validate` checks that the referenced number exists and is not
+itself superseded, so a chain always ends at a currently-accepted decision.
+
 ## Recording an already-made decision
 
 ```text

@@ -14,6 +14,7 @@ export function listCommand(cwd: string, asJson = false): string {
       fileName: record.fileName,
       path: relativePath(root, record),
       rejectionReason: record.rejectionReason,
+      supersededBy: record.supersededBy,
     }));
     return JSON.stringify(payload, null, 2);
   }
@@ -33,7 +34,10 @@ export function listCommand(cwd: string, asJson = false): string {
     if (group.length === 0) continue;
     lines.push(labels[folder] ?? folder, '');
     for (const record of group) {
-      lines.push(`  ${displayName(record)}  (${relativePath(root, record)})`);
+      const supersededNote = record.status === 'superseded' && record.supersededBy !== undefined
+        ? `  [superseded by ${String(record.supersededBy).padStart(4, '0')}]`
+        : '';
+      lines.push(`  ${displayName(record)}${supersededNote}  (${relativePath(root, record)})`);
     }
     lines.push('');
   }

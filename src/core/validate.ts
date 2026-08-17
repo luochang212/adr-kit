@@ -18,11 +18,22 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   const issues: ValidationIssue[] = [];
   const path = relative(root, record.path);
 
-  if (record.status !== statusForFolder(record.folder)) {
+  const statusMatchesFolder = record.folder === 'decisions'
+    ? record.status === 'accepted' || record.status === 'superseded'
+    : record.status === statusForFolder(record.folder);
+  if (!statusMatchesFolder) {
     issues.push({
       path,
       message: `status "${record.status}" does not match folder "${record.folder}"`,
     });
+  }
+
+  if (record.status === 'superseded') {
+    if (record.supersededBy === undefined) {
+      issues.push({ path, message: 'superseded status must reference a decision number' });
+    } else if (record.supersededBy === record.number) {
+      issues.push({ path, message: 'a decision cannot supersede itself' });
+    }
   }
 
   if (record.folder === 'decisions') {
@@ -146,17 +157,35 @@ export function validateRepository(root: string): ValidationIssue[] {
     return issues;
   }
 
-  const decisionNumbers = new Set<number>();
+  const decisionRecords = new Map<number, AdrRecord>();
   for (const record of records) {
     issues.push(...validateRecord(root, record));
     if (record.folder === 'decisions' && record.number !== undefined) {
-      if (decisionNumbers.has(record.number)) {
+      if (decisionRecords.has(record.number)) {
         issues.push({
           path: relative(root, record.path),
           message: `duplicate decision number ${String(record.number).padStart(4, '0')}`,
         });
       }
-      decisionNumbers.add(record.number);
+      decisionRecords.set(record.number, record);
+    }
+  }
+
+  for (const record of records) {
+    if (record.supersededBy === undefined) continue;
+    const path = relative(root, record.path);
+    const padded = String(record.supersededBy).padStart(4, '0');
+    const target = decisionRecords.get(record.supersededBy);
+    if (target === undefined) {
+      issues.push({
+        path,
+        message: `"superseded by ${padded}" references a missing decision`,
+      });
+    } else if (target.status === 'superseded') {
+      issues.push({
+        path,
+        message: `"superseded by ${padded}" references a superseded decision; supersede that decision instead`,
+      });
     }
   }
 

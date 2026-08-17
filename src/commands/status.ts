@@ -18,10 +18,12 @@ export function statusCommand(cwd: string, asJson = false): StatusResult {
     // Validation already reported the parse failure above; keep counts empty.
   }
 
-  const counts = { accepted: 0, proposed: 0, rejected: 0 };
+  const counts = { accepted: 0, superseded: 0, proposed: 0, rejected: 0 };
   for (const record of records) {
-    if (record.folder === 'decisions') counts.accepted += 1;
-    else if (record.folder === 'proposed') counts.proposed += 1;
+    if (record.folder === 'decisions') {
+      if (record.status === 'superseded') counts.superseded += 1;
+      else counts.accepted += 1;
+    } else if (record.folder === 'proposed') counts.proposed += 1;
     else if (record.folder === 'rejected') counts.rejected += 1;
   }
 
@@ -42,6 +44,7 @@ export function statusCommand(cwd: string, asJson = false): StatusResult {
 
   const lines = ['Lifecycle', ''];
   lines.push(`  accepted: ${counts.accepted}`);
+  lines.push(`  superseded: ${counts.superseded}`);
   lines.push(`  proposed: ${counts.proposed}`);
   lines.push(`  rejected: ${counts.rejected}`);
   lines.push('');

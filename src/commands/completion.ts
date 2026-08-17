@@ -4,6 +4,7 @@ const COMMANDS = [
   'decide',
   'accept',
   'reject',
+  'supersede',
   'list',
   'show',
   'status',

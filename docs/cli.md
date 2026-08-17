@@ -47,6 +47,13 @@ sections, and move the file from `adr/proposed/` to `adr/decisions/`.
 Move a proposal to `adr/rejected/` with the reason recorded on the status
 line.
 
+### `openadr supersede <name> --by <name>`
+
+Mark an accepted decision as superseded by a newer accepted decision. The
+status line of the old record becomes `Status: superseded by NNNN`; the file
+stays in `adr/decisions/` as history. `--by` must resolve to an existing
+accepted decision that is not itself superseded.
+
 ### `openadr list [--json]`
 
 List every record grouped by lifecycle folder.

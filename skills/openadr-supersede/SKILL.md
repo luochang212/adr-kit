@@ -1,0 +1,30 @@
+---
+name: openadr-supersede
+description: Use when an accepted decision is replaced by a newer accepted decision and must be retired without deleting history.
+---
+
+# OpenADR Supersede
+
+## Overview
+
+Mark an accepted decision as superseded. The CLI rewrites only its status
+line to `Status: superseded by NNNN` and leaves the record in
+`adr/decisions/` as frozen history.
+
+## Steps
+
+1. Record the replacement first (`openadr decide` or `openadr propose` +
+   `openadr accept`), and make sure it validates.
+2. Run:
+
+```bash
+openadr supersede "<old name or number>" --by "<new name or number>"
+```
+
+## Rules
+
+- `--by` must reference an existing accepted decision that is not itself
+  superseded; the command refuses dangling chains.
+- Never hand-edit a superseded record afterwards; it is history.
+- Mention what it supersedes in the new decision's `## Problem` section so
+  the causal link survives in prose.
