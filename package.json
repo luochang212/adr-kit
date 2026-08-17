@@ -1,6 +1,6 @@
 {
   "name": "@luochang212/openadr",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open Architecture Decision Records \u2014 a lightweight ADR workflow for humans and agents.",
   "type": "module",
   "license": "MIT",
