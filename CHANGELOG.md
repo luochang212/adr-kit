@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.3
+
+### Patch Changes
+
+- b273373: - Decision numbers no longer use zero padding: the first decision is
+    `1-use-sqlite.md` with `# ADR: 1 Use SQLite` (was `0001-...` / `# ADR:
+    0001 ...`). Numbers grow naturally past 9999, and zero-padded titles or
+    `superseded by` references are rejected. Updated the parser, validator,
+    templates, command output, skills, docs, and test fixtures together.
+- 54c7702: - `adrkit validate <name>` now checks that a `superseded by N` reference
+    points at an existing decision that is not itself superseded; previously
+    only a repository-wide `validate` caught dangling references.
+  - Commands without JSON output now reject `--json` with an error instead of
+    silently printing human-readable output.
+  - `adrkit show <name>` and `adrkit validate <name>` now work when an
+    unrelated record fails to parse; the corrupt file is still reported by a
+    repository-wide `validate`.
+
 ## 0.2.2
 
 ### Patch Changes
