@@ -30,5 +30,5 @@ adrkit propose "<title>"
 - Keep the status line exactly `Status: proposed`.
 - Before proposing, run `adrkit list` and check whether this decision
   supersedes or overlaps an existing one; mention that in the record. Re-run
-  it even if you ran it earlier in this conversation — session memory can be
+  it even if you ran it earlier in this conversation: session memory can be
   stale, and the repo may have changed.

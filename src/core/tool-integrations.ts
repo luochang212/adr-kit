@@ -18,7 +18,7 @@ const TOOL_COMMAND_DIR: Record<ToolId, string> = {
 };
 
 /**
- * Agent skills directories per tool (github-copilot is absent — it supports
+ * Agent skills directories per tool (github-copilot is absent: it supports
  * prompts only, not a skills tree). Skills are surfaced at session start,
  * unlike slash-command files which load only when invoked.
  */
@@ -95,7 +95,7 @@ adrkit propose "<title>"
 - Keep the status line exactly \`Status: proposed\`.
 - Before proposing, run \`adrkit list\` and check whether this decision
   supersedes or overlaps an existing one; mention that in the record. Re-run
-  it even if you ran it earlier in this conversation — session memory can be
+  it even if you ran it earlier in this conversation: session memory can be
   stale, and the repo may have changed.`,
   },
   {
@@ -315,7 +315,7 @@ function removeEmptyDir(dir: string): void {
       rmdirSync(dir);
     }
   } catch {
-    // Directory does not exist or is not empty — nothing to clean.
+    // Directory does not exist or is not empty; nothing to clean.
   }
 }
 

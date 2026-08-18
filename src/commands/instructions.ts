@@ -57,7 +57,7 @@ export function instructionsCommand(cwd: string, asJson = false): string {
     const lines = [`${proposed.length} proposal${proposed.length === 1 ? '' : 's'} waiting:`];
     for (const record of proposed) {
       if (readySet.has(record.fileName)) {
-        lines.push(`  ✓ ${record.fileName}   validated — ready to accept`);
+        lines.push(`  ✓ ${record.fileName}   validated - ready to accept`);
       } else {
         const first = needsWork[record.fileName]?.[0] ?? 'validation failed';
         lines.push(`  ✗ ${record.fileName}   ${first}`);

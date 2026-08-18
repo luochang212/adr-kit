@@ -39,7 +39,7 @@ Use ${title}.
 
 ## Alternatives considered
 
-- **Do nothing** — rejected because the problem persists.
+- **Do nothing**: rejected because the problem persists.
 
 ## Acceptance criteria
 
@@ -169,7 +169,7 @@ Use Spanner.
 
 ## Alternatives considered
 
-- **Use SQLite** — rejected because it is embedded.
+- **Use SQLite**: rejected because it is embedded.
 
 ## Consequences
 

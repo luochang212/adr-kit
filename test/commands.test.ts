@@ -39,7 +39,7 @@ Use SQLite.
 
 ## Alternatives considered
 
-- **JSON files** — rejected because they do not scale for queries.
+- **JSON files**: rejected because they do not scale for queries.
 
 ## Acceptance criteria
 

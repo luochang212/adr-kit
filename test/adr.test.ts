@@ -42,7 +42,7 @@ Body.
 
 ## Alternatives considered
 
-- **JSON** — no queries.
+- **JSON**: no queries.
 
 ## Acceptance criteria
 

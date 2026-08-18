@@ -12,7 +12,7 @@ const PRESERVED_SECTIONS = [
 /**
  * 把 config.yaml 的 context 注入模板：放在标题块之后、第一个 section 之前。
  * 解析器忽略游离文本（current 为 null 时不收集），accept 的机械改写也会
- * 丢弃它——注释只在草案期可见，正是写作者需要项目上下文的时刻。
+ * 丢弃它。注释只在草案期可见，正是写作者需要项目上下文的时刻。
  */
 function contextBlock(context?: string | null): string {
   const text = context?.trim() ?? '';

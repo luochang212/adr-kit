@@ -83,7 +83,7 @@ Validate one record, or the whole repository when `name` is omitted or
 
 ### `adrkit update [--tools <list>]`
 
-Write AI tool integrations into the project — agent skills (`.claude/skills/`,
+Write AI tool integrations into the project: agent skills (`.claude/skills/`,
 `.codex/skills/`, …) alongside slash-command files (`.claude/commands/`,
 `.codex/commands/`, …). Without `--tools`, the tools recorded at `init`
 time are used. Integrations for tools no longer selected are removed.

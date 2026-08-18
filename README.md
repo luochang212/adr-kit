@@ -14,7 +14,7 @@
 </p>
 
 <p>
-  <img src="assets/social-preview.png" alt="ADR Kit — Open Architecture Decision Records" width="100%" />
+  <img src="assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
 </p>
 
 ADR Kit turns architecture decisions into plain Markdown files with a
@@ -125,14 +125,14 @@ ADR Kit stands on two projects, in two different roles:
   tool is built: an agent-first CLI whose instructions are installed as
   agent skills, a deterministic `validate`, machine-readable `--json`
   output, and a "fluid not rigid" workflow. Like OpenSpec, ADR Kit
-  *steers* agents — session-visible skills rather than imposing hard phase
+  *steers* agents: session-visible skills rather than imposing hard phase
   gates or mandating that every change be recorded.
 - **[deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)**
-  gave ADR Kit *what a record is*. Its **Agent Notes** — plain Markdown
+  gave ADR Kit *what a record is*. Its **Agent Notes**: plain Markdown
   with a `Status:` line, lifecycle folders
   (`proposed` → `implemented` → `rejected`, plus a frozen archive), and a
   `Problem` / `Proposal`·`Decision` / `Alternatives considered` /
-  `Consequences` skeleton — is the direct ancestor of the ADR Kit record
+  `Consequences` skeleton: that is the direct ancestor of the ADR Kit record
   format.
 
 Adapted, not copied. Accepted records carry a `NNNN` number, `supersede`

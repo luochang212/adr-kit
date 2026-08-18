@@ -71,7 +71,7 @@ Body.
 
 ## Alternatives considered
 
-- **JSON** — rejected.
+- **JSON**: rejected.
 
 ## Acceptance criteria
 
@@ -111,7 +111,7 @@ Body.
 
 ## Alternatives considered
 
-- **None** — rejected.
+- **None**: rejected.
 
 ## Acceptance criteria
 
@@ -123,7 +123,7 @@ Body.
 `,
     );
     const output = instructionsCommand(root);
-    expect(output).toContain('validated — ready to accept');
+    expect(output).toContain('validated - ready to accept');
     expect(output).toContain('missing required section "## Proposal"');
     expect(output).toContain(`adrkit accept ${plugin.fileName}`);
     expect(output).not.toContain(`adrkit accept ${sqlite.fileName}`);
@@ -155,7 +155,7 @@ Body.
 
 ## Alternatives considered
 
-- **None** — rejected.
+- **None**: rejected.
 
 ## Acceptance criteria
 
@@ -202,7 +202,7 @@ Body.
 
 ## Alternatives considered
 
-- **None** — rejected.
+- **None**: rejected.
 
 ## Acceptance criteria
 

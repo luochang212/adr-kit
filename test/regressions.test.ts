@@ -42,7 +42,7 @@ Body.
 
 ## Alternatives considered
 
-- **JSON** — rejected.
+- **JSON**: rejected.
 
 ## Consequences
 
@@ -71,7 +71,7 @@ Body.
 
 ## Alternatives considered
 
-- **JSON** — rejected.
+- **JSON**: rejected.
 
 ## Consequences
 
@@ -98,7 +98,7 @@ Body.
 
 ## Alternatives considered
 
-- **JSON** — rejected.
+- **JSON**: rejected.
 
 ## Acceptance criteria
 
@@ -131,7 +131,7 @@ Body.
 
 ## Alternatives considered
 
-- **JSON** — rejected.
+- **JSON**: rejected.
 
 ## Consequences
 
@@ -160,7 +160,7 @@ Body.
 
 ## Alternatives considered
 
-- **JSON** — rejected.
+- **JSON**: rejected.
 
 ## Consequences
 

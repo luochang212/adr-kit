@@ -16,7 +16,7 @@ import { supersedeCommand } from './commands/supersede.js';
 import { updateCommand } from './commands/update.js';
 import { validateCommand } from './commands/validate.js';
 
-const HELP = `adrkit ${VERSION} — Open Architecture Decision Records
+const HELP = `adrkit ${VERSION} - Open Architecture Decision Records
 
 Usage:
   adrkit init [path] [--tools <list>]        Initialize an ADR Kit repository

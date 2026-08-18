@@ -14,7 +14,7 @@
 </p>
 
 <p>
-  <img src="assets/social-preview.png" alt="ADR Kit — Open Architecture Decision Records" width="100%" />
+  <img src="assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
 </p>
 
 ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周期：
@@ -113,13 +113,13 @@ ADR Kit 站在两个项目之上，两者角色不同：
 - **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** 决定了这个工具*怎么建*：
   agent 优先的 CLI、指令以 agent skills 安装、确定性的 `validate`、
   机器可读的 `--json` 输出，以及"灵活而不僵化"的工作流。和 OpenSpec 一样，
-  ADR Kit 靠*引导* agent——会话开始可见的 skills——而不是硬性阶段门禁，
+  ADR Kit 靠*引导* agent（会话开始可见的 skills），而不是硬性阶段门禁，
   也不强制每次变更都记录。
 - **[deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)**
-  决定了 ADR Kit 里*记录是什么*。它的 **Agent Notes**——带 `Status:` 行的
+  决定了 ADR Kit 里*记录是什么*。它的 **Agent Notes**：带 `Status:` 行的
   纯 Markdown、生命周期文件夹（`proposed` → `implemented` → `rejected`，
   外加冻结归档）、以及 `Problem` / `Proposal`·`Decision` /
-  `Alternatives considered` / `Consequences` 骨架——是 ADR Kit 记录格式的
+  `Alternatives considered` / `Consequences` 骨架，是 ADR Kit 记录格式的
   直接祖先。
 
 是改编，不是照抄。已接受记录带 `NNNN` 编号，`supersede` 原地退役一条决策，

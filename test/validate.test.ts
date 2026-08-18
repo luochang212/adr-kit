@@ -42,7 +42,7 @@ Body.
 
 ## Alternatives considered
 
-- **Other** — rejected.
+- **Other**: rejected.
 
 ## Consequences
 
