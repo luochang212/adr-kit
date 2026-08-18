@@ -1,11 +1,13 @@
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { completionCommand } from '../src/commands/completion.js';
 import { configCommand } from '../src/commands/config.js';
 import { initCommand } from '../src/commands/init.js';
 import { updateCommand } from '../src/commands/update.js';
+import { WORKFLOWS } from '../src/core/tool-integrations.js';
 
 const tempDirs: string[] = [];
 
@@ -26,6 +28,7 @@ describe('initCommand tool integrations', () => {
     const root = makeTarget();
     initCommand(root, 'claude,codex');
     expect(existsSync(join(root, '.claude/commands/openadr-propose.md'))).toBe(true);
+    expect(existsSync(join(root, '.claude/commands/openadr-supersede.md'))).toBe(true);
     expect(existsSync(join(root, '.codex/commands/openadr-validate.md'))).toBe(true);
     expect(existsSync(join(root, '.cursor/commands/openadr-accept.md'))).toBe(false);
   });
@@ -42,6 +45,26 @@ describe('initCommand tool integrations', () => {
     expect(config).toContain('claude');
     const output = updateCommand(root);
     expect(output).toContain(join('.claude', 'commands', 'openadr-propose.md'));
+  });
+});
+
+describe('skills/ stays in sync with the tool integration templates', () => {
+  const skillsDir = fileURLToPath(new URL('../skills/', import.meta.url));
+
+  it('every template mirrors its skill file exactly', () => {
+    for (const workflow of WORKFLOWS) {
+      const path = join(skillsDir, workflow.name, 'SKILL.md');
+      const expected = `---\nname: ${workflow.name}\ndescription: ${workflow.description}\n---\n\n${workflow.body}\n`;
+      expect(readFileSync(path, 'utf8'), workflow.name).toBe(expected);
+    }
+  });
+
+  it('every skill directory has a matching template', () => {
+    const dirs = readdirSync(skillsDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+    expect(dirs).toEqual(WORKFLOWS.map((workflow) => workflow.name).sort());
   });
 });
 
