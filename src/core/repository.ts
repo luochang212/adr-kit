@@ -134,21 +134,61 @@ export function listRecords(root: string): AdrRecord[] {
   return records;
 }
 
-export function resolveRecord(root: string, query: string): AdrRecord {
-  const records = listRecords(root);
-  // Leading zeros are tolerated so "0001" still resolves decision 1.
-  const normalized = query.trim().replace(/^0+(?=\d)/, '');
-  const candidates = records.filter((record) => {
-    const bareName = record.fileName.replace(/\.md$/, '');
-    const slug = bareName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/^\d+-/, '');
-    if (record.fileName === normalized || bareName === normalized || slug === normalized) {
-      return true;
+function fileNameMatchesQuery(fileName: string, needle: string): boolean {
+  const bareName = fileName.replace(/\.md$/, '');
+  const slug = bareName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/^\d+-/, '');
+  return fileName === needle || bareName === needle || slug === needle;
+}
+
+/**
+ * Fallback scan for resolveRecord when listRecords throws on a corrupt
+ * record: parse what we can so a query for a healthy record still resolves.
+ * A corrupt file whose name matches the query re-throws its parse error,
+ * since that is the record the caller asked for.
+ */
+function listRecordsForResolve(root: string, needle: string): AdrRecord[] {
+  const records: AdrRecord[] = [];
+  for (const folder of FOLDERS) {
+    const dir = folderPath(root, folder);
+    if (!existsSync(dir)) continue;
+    for (const entry of readdirSync(dir)) {
+      if (!entry.endsWith('.md')) continue;
+      const path = join(dir, entry);
+      try {
+        const record = parseAdrFile(path);
+        record.folder = folder;
+        records.push(record);
+      } catch (error) {
+        const bareName = entry.replace(/\.md$/, '');
+        const numberMatch = folder === 'decisions' ? bareName.match(/^(\d+)-/) : null;
+        const isTarget =
+          fileNameMatchesQuery(entry, needle) ||
+          (numberMatch !== null && numberMatch[1] === needle);
+        if (isTarget) {
+          const message = error instanceof Error ? error.message : String(error);
+          throw new Error(`failed to parse ${relative(root, path)}: ${message}`);
+        }
+      }
     }
-    if (record.title === normalized || `# ADR: ${record.title}` === normalized) {
+  }
+  return records;
+}
+
+export function resolveRecord(root: string, query: string): AdrRecord {
+  const needle = query.trim();
+  let records: AdrRecord[];
+  try {
+    records = listRecords(root);
+  } catch {
+    records = listRecordsForResolve(root, needle);
+  }
+  const candidates = records.filter((record) => {
+    if (fileNameMatchesQuery(record.fileName, needle)) return true;
+    if (record.title === needle || `# ADR: ${record.title}` === needle) {
       return true;
     }
     if (record.folder === 'decisions') {
-      if (String(record.number ?? 0) === normalized) {
+      if (String(record.number ?? 0) === needle) {
         return true;
       }
     }

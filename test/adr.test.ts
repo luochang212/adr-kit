@@ -67,7 +67,7 @@ describe('parseAdrFile', () => {
   });
 
   it('parses accepted decision numbers', () => {
-    const record = parseAdrFile(write('record.md', `# ADR: 0004 Use SQLite
+    const record = parseAdrFile(write('record.md', `# ADR: 4 Use SQLite
 Status: accepted
 
 ## Problem
@@ -87,6 +87,41 @@ Body.
 Body.
 `));
     expect(record.number).toBe(4);
+  });
+
+  it('does not treat a zero-padded title number as a decision number', () => {
+    const record = parseAdrFile(write('record.md', `# ADR: 0004 Use SQLite
+Status: accepted
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+Body.
+
+## Consequences
+
+Body.
+`));
+    expect(record.number).toBeUndefined();
+  });
+
+  it('rejects a zero-padded supersede reference', () => {
+    expect(() =>
+      parseAdrFile(write('record.md', `# ADR: 1 Use SQLite
+Status: superseded by 0001
+
+## Problem
+
+Body.
+`)),
+    ).toThrow(/status must be/);
   });
 });
 

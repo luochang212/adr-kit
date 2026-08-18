@@ -151,7 +151,8 @@ history, and current facts live in code, not in the record.
   supersede is a command, and `validate` enforces the resulting
   shape.
 - **Agents are first-class users.** The format is plain Markdown, paths are
-  predictable, and every command prints machine-readable output when asked.
+  predictable, and agent-facing commands print machine-readable `--json`
+  output; the rest reject the flag instead of silently ignoring it.
 
 ## Development
 

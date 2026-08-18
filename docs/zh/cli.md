@@ -6,10 +6,11 @@
 
 | 选项 | 说明 |
 | --- | --- |
-| `-h, --help` | 打印帮助 |
+| `-h, --help` | 打印帮助（`adrkit help` 等效） |
 | `-V, --version` | 打印版本 |
 
-面向 agent 的命令支持 `--json` 结构化输出。
+面向 agent 的命令（`list`、`status`、`instructions`、`validate`、`config`）
+支持 `--json` 结构化输出；其他命令会拒绝该 flag 而不是静默忽略。
 
 ## 命令
 
@@ -31,16 +32,17 @@ adr/
 ### `adrkit propose <title>`
 
 在 `adr/proposed/YYYY-MM-DD-slug.md` 创建提案。草稿在填写完所有必填
-section 之前会被 `validate` 判定为不通过。
+section 之前会被 `validate` 判定为不通过。标题不得以数字开头；编号由
+ADR Kit 分配。
 
 ### `adrkit decide <title>`
 
-在 `adr/decisions/N-slug.md` 创建已接受决策草稿。
+在 `adr/decisions/N-slug.md` 创建已接受决策草稿。标题不得以数字开头。
 
 ### `adrkit accept <name>`
 
 校验提案，分配下一个 `N` 编号，改写生命周期 section，并把文件从
-`adr/proposed/` 移动到 `adr/decisions/`。
+`adr/proposed/` 移动到 `adr/decisions/`。提案标题不得以数字开头。
 
 ### `adrkit reject <name> --reason <text>`
 
@@ -52,7 +54,8 @@ section 之前会被 `validate` 判定为不通过。
 
 ### `adrkit show <name>`
 
-打印记录。`name` 支持标题、文件名、决策编号或 slug。
+打印记录。`name` 支持标题、文件名、决策编号或 slug。仓库中其他无法
+解析的记录不会阻塞 `show`；`adrkit validate` 仍会报告它们。
 
 ### `adrkit status [--json]`
 
@@ -67,7 +70,9 @@ section 之前会被 `validate` 判定为不通过。
 
 ### `adrkit validate [name] [--all] [--json]`
 
-校验单条记录；省略 `name` 或使用 `--all` 时校验整个仓库。
+校验单条记录；省略 `name` 或使用 `--all` 时校验整个仓库。单条记录校验
+同样会检查 `superseded by N` 引用是否指向一个存在且未被 superseded 的
+决策。
 
 ### `adrkit update [--tools <list>]`
 

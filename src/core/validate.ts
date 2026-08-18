@@ -37,7 +37,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   }
 
   if (record.folder === 'decisions') {
-    if (!/^\d+-[a-z0-9\u4e00-\u9fff-]+\.md$/.test(record.fileName)) {
+    if (!/^[1-9]\d*-[a-z0-9\u4e00-\u9fff-]+\.md$/.test(record.fileName)) {
       issues.push({ path, message: 'decision file name must be "N-slug.md"' });
     }
     if (record.number === undefined) {
@@ -171,23 +171,54 @@ export function validateRepository(root: string): ValidationIssue[] {
   }
 
   for (const record of records) {
-    if (record.supersededBy === undefined) continue;
-    const path = relative(root, record.path);
-    const target = decisionRecords.get(record.supersededBy);
-    if (target === undefined) {
-      issues.push({
-        path,
-        message: `"superseded by ${record.supersededBy}" references a missing decision`,
-      });
-    } else if (target.status === 'superseded') {
-      issues.push({
-        path,
-        message: `"superseded by ${record.supersededBy}" references a superseded decision; supersede that decision instead`,
-      });
-    }
+    issues.push(...supersedeReferenceIssues(root, record, decisionRecords));
   }
 
   return issues;
+}
+
+function supersedeReferenceIssues(
+  root: string,
+  record: AdrRecord,
+  decisions: Map<number, AdrRecord>,
+): ValidationIssue[] {
+  if (record.supersededBy === undefined) return [];
+  const path = relative(root, record.path);
+  const target = decisions.get(record.supersededBy);
+  if (target === undefined) {
+    return [
+      { path, message: `"superseded by ${record.supersededBy}" references a missing decision` },
+    ];
+  }
+  if (target.status === 'superseded') {
+    return [
+      {
+        path,
+        message: `"superseded by ${record.supersededBy}" references a superseded decision; supersede that decision instead`,
+      },
+    ];
+  }
+  return [];
+}
+
+/**
+ * Repository-level checks for a single record: a "superseded by N" reference
+ * must point at an existing decision that is not itself superseded.
+ * validateRecord only sees one file; this adds the cross-record half so
+ * `adrkit validate <name>` keeps the same promise as a full validate.
+ */
+export function validateRecordReferences(
+  root: string,
+  record: AdrRecord,
+  records: AdrRecord[],
+): ValidationIssue[] {
+  const decisions = new Map<number, AdrRecord>();
+  for (const candidate of records) {
+    if (candidate.folder === 'decisions' && candidate.number !== undefined) {
+      decisions.set(candidate.number, candidate);
+    }
+  }
+  return supersedeReferenceIssues(root, record, decisions);
 }
 
 export function formatIssues(issues: ValidationIssue[]): string {

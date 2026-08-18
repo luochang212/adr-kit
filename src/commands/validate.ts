@@ -1,6 +1,6 @@
-import { requireRoot } from '../core/config.js';
-import { relativePath, resolveRecord } from '../core/repository.js';
-import { formatIssues, validateRecord, validateRepository } from '../core/validate.js';
+import { ADR_DIR, requireRoot } from '../core/config.js';
+import { listRecords, relativePath, resolveRecord } from '../core/repository.js';
+import { formatIssues, validateRecord, validateRecordReferences, validateRepository } from '../core/validate.js';
 
 export interface ValidateResult {
   valid: boolean;
@@ -12,6 +12,16 @@ export function validateCommand(cwd: string, query?: string, asJson = false): Va
   if (query !== undefined && query.trim().length > 0) {
     const record = resolveRecord(root, query);
     const issues = validateRecord(root, record);
+    try {
+      issues.push(...validateRecordReferences(root, record, listRecords(root)));
+    } catch (error) {
+      // An unparseable sibling must not crash single-record validation;
+      // report it like the repository-wide check does.
+      issues.push({
+        path: ADR_DIR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
     if (asJson) {
       return {
         valid: issues.length === 0,

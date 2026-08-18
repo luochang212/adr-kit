@@ -7,10 +7,12 @@ directory by walking upward.
 
 | Option | Description |
 | --- | --- |
-| `-h, --help` | Print help |
+| `-h, --help` | Print help (`adrkit help` does the same) |
 | `-V, --version` | Print the version |
 
-Agent-facing commands accept `--json` for machine-readable output.
+The agent-facing commands (`list`, `status`, `instructions`, `validate`,
+`config`) accept `--json` for machine-readable output; other commands reject
+the flag instead of silently ignoring it.
 
 ## Commands
 
@@ -33,16 +35,18 @@ adr/
 
 Create a proposed ADR in `adr/proposed/YYYY-MM-DD-slug.md`. The draft is
 expected to fail `validate` until every required section is filled in.
+Titles must not start with a number; ADR Kit assigns decision numbers.
 
 ### `adrkit decide <title>`
 
 Create an accepted decision draft in `adr/decisions/N-slug.md` with the
-next available number.
+next available number. Titles must not start with a number.
 
 ### `adrkit accept <name>`
 
 Validate a proposal, assign the next `N` number, rewrite the lifecycle
 sections, and move the file from `adr/proposed/` to `adr/decisions/`.
+The proposal's title must not start with a number.
 
 ### `adrkit reject <name> --reason <text>`
 
@@ -63,6 +67,8 @@ List every record grouped by lifecycle folder.
 ### `adrkit show <name>`
 
 Print a record. `name` resolves by title, file name, or decision number.
+A record that fails to parse elsewhere in the repository does not block
+`show`; `adrkit validate` still reports it.
 
 ### `adrkit status [--json]`
 
@@ -79,7 +85,9 @@ next to the `pending` list.
 ### `adrkit validate [name] [--all] [--json]`
 
 Validate one record, or the whole repository when `name` is omitted or
-`--all` is given.
+`--all` is given. Single-record validation also checks that a
+`superseded by N` reference points at an existing decision that is not
+itself superseded.
 
 ### `adrkit update [--tools <list>]`
 

@@ -40,6 +40,8 @@ Usage:
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
 
+const JSON_COMMANDS = new Set(['list', 'status', 'instructions', 'validate', 'config']);
+
 export function main(argv: string[]): void {
   const { values, positionals } = parseArgs({
     args: argv,
@@ -68,6 +70,10 @@ export function main(argv: string[]): void {
   const rest = positionals.slice(1);
 
   try {
+    // Commands without JSON output reject --json instead of ignoring it.
+    if (values.json && command.length > 0 && !JSON_COMMANDS.has(command)) {
+      throw new Error(`adrkit ${command} does not support --json`);
+    }
     switch (command) {
       case '': {
         console.error(HELP);

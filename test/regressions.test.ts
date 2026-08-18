@@ -215,4 +215,79 @@ Native dependency.
     const shown = showCommand('1', root);
     expect(shown).toContain('# ADR: 1 Use SQLite');
   });
+
+  it('does not tolerate leading zeros in lookups', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-good.md'),
+      `# ADR: 1 Good
+Status: accepted
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- **Other**: rejected.
+
+## Consequences
+
+Body.
+`,
+    );
+    expect(() => showCommand('0001', root)).toThrow(/no ADR matches/);
+    expect(showCommand('1', root)).toContain('# ADR: 1 Good');
+  });
+
+  it('resolves a healthy record even when an unrelated record fails to parse', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-broken.md'),
+      '# ADR: 1 Broken\nStatus: superseded\n',
+    );
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '2-good.md'),
+      `# ADR: 2 Good
+Status: accepted
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- **Other**: rejected.
+
+## Consequences
+
+Body.
+`,
+    );
+    // Whole-repo reads stay fail-fast...
+    expect(() => listRecords(root)).toThrow(/failed to parse/);
+    // ...but single-record commands only need the record asked for.
+    expect(showCommand('2', root)).toContain('# ADR: 2 Good');
+    const result = validateCommand(root, '2');
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('failed to parse');
+  });
+
+  it('surfaces the parse error when the queried record itself is corrupt', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-broken.md'),
+      '# ADR: 1 Broken\nStatus: superseded\n',
+    );
+    expect(() => showCommand('1', root)).toThrow(/failed to parse.*1-broken\.md/);
+    expect(() => showCommand('1-broken.md', root)).toThrow(/failed to parse/);
+  });
 });

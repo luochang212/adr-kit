@@ -108,7 +108,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
     if (rejectionReason.length === 0) {
       throw new AdrFormatError('rejected status must include a reason', filePath);
     }
-  } else if (/^superseded by \d+$/.test(statusText)) {
+  } else if (/^superseded by [1-9]\d*$/.test(statusText)) {
     status = 'superseded';
     supersededBy = Number(statusText.slice('superseded by '.length));
   } else {
@@ -138,7 +138,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
   }
   if (current !== null) sections.push(current);
 
-  const numberMatch = title.match(/^(\d+)\s+(.+)$/);
+  const numberMatch = title.match(/^([1-9]\d*)\s+(.+)$/);
   const parsed: AdrRecord = {
     folder: 'proposed',
     path: filePath,
