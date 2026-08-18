@@ -14,7 +14,7 @@
 </p>
 
 <p>
-  <img src="assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
+  <img src="https://unpkg.com/adr-kit/assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
 </p>
 
 ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周期：
@@ -146,4 +146,4 @@ npm run build
 
 ## 许可证
 
-[MIT](LICENSE)
+[MIT](https://github.com/luochang212/adr-kit/blob/main/LICENSE)

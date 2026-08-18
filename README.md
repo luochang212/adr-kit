@@ -14,7 +14,7 @@
 </p>
 
 <p>
-  <img src="assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
+  <img src="https://unpkg.com/adr-kit/assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
 </p>
 
 ADR Kit turns architecture decisions into plain Markdown files with a
@@ -84,10 +84,10 @@ adrkit version                         Print the version
 
 ## Docs
 
-- [CLI reference](docs/cli.md)
-- [Record format](docs/record-format.md)
-- [Workflow](docs/workflow.md)
-- [Agent skills](skills/README.md)
+- [CLI reference](https://github.com/luochang212/adr-kit/blob/main/docs/cli.md)
+- [Record format](https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md)
+- [Workflow](https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md)
+- [Agent skills](https://github.com/luochang212/adr-kit/blob/main/skills/README.md)
 
 ## Record format
 
@@ -164,4 +164,4 @@ npm run build
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/luochang212/adr-kit/blob/main/LICENSE)
