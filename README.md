@@ -1,14 +1,10 @@
 <p align="center">
-  <img src="assets/social-preview.png" alt="OpenADR — Open Architecture Decision Records" width="768" />
-</p>
-
-<p align="center">
-  <strong>Open Architecture Decision Records</strong> — a lightweight ADR workflow for humans and agents.
+  <img src="assets/social-preview.png" alt="ADR Kit — Open Architecture Decision Records" width="768" />
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/v/adr-kit" alt="npm version" /></a>
-  <a href="https://github.com/luochang212/OpenADR/actions/workflows/ci.yml"><img src="https://github.com/luochang212/OpenADR/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
+  <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
   <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit" alt="npm downloads" /></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit" alt="node" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/adr-kit" alt="license" /></a>
@@ -18,7 +14,7 @@
   <a href="README.md">English</a> | <a href="README.zh.md">中文</a>
 </p>
 
-OpenADR turns architecture decisions into plain Markdown files with a
+ADR Kit turns architecture decisions into plain Markdown files with a
 machine-checkable lifecycle: **proposed → accepted / rejected / superseded**. It borrows
 the spec-driven spirit of [OpenSpec](https://github.com/Fission-AI/OpenSpec)
 and the decision-record discipline of agent-native codebases: every record
@@ -38,11 +34,11 @@ Requires Node.js 20.19 or later.
 ```bash
 npm install -g adr-kit
 cd your-project
-openadr init
-openadr propose "Use SQLite for session storage"
+adrkit init
+adrkit propose "Use SQLite for session storage"
 ```
 
-`openadr init` creates an `adr/` directory:
+`adrkit init` creates an `adr/` directory:
 
 ```text
 adr/
@@ -56,29 +52,29 @@ adr/
 Fill in the proposal, then:
 
 ```bash
-openadr validate
-openadr accept "Use SQLite for session storage"
-openadr list
+adrkit validate
+adrkit accept "Use SQLite for session storage"
+adrkit list
 ```
 
 ## Commands
 
 ```text
-openadr init [path]                    Initialize an OpenADR repository
-openadr propose <title>                 Create a proposed decision
-openadr decide <title>                  Record an already-accepted decision
-openadr accept <name>                   Accept a proposal (assigns NNNN)
-openadr reject <name> --reason <text>   Reject a proposal
-openadr supersede <name> --by <name>    Mark an accepted decision as superseded
-openadr list [--json]                   List all records
-openadr show <name>                     Show a record
-openadr status [--json]                 Show lifecycle counts and validity
-openadr instructions [--json]           Print the next workflow step
-openadr validate [name] [--all] [--json] Validate one record or the repository
-openadr update [--tools <list>]          Rewrite AI tool integrations
-openadr config [--json]                 Print the current configuration
-openadr completion <bash|zsh|fish>      Print a shell completion script
-openadr version                         Print the version
+adrkit init [path]                    Initialize an ADR Kit repository
+adrkit propose <title>                 Create a proposed decision
+adrkit decide <title>                  Record an already-accepted decision
+adrkit accept <name>                   Accept a proposal (assigns NNNN)
+adrkit reject <name> --reason <text>   Reject a proposal
+adrkit supersede <name> --by <name>    Mark an accepted decision as superseded
+adrkit list [--json]                   List all records
+adrkit show <name>                     Show a record
+adrkit status [--json]                 Show lifecycle counts and validity
+adrkit instructions [--json]           Print the next workflow step
+adrkit validate [name] [--all] [--json] Validate one record or the repository
+adrkit update [--tools <list>]          Rewrite AI tool integrations
+adrkit config [--json]                 Print the current configuration
+adrkit completion <bash|zsh|fish>      Print a shell completion script
+adrkit version                         Print the version
 ```
 
 `<name>` resolves by title, file name, or decision number (`0001`).
@@ -112,10 +108,10 @@ Status: proposed
   `Status: rejected — <reason>`.
 - **Superseded** decisions stay in `adr/decisions/` as history, with the
   replacing decision on the status line: `Status: superseded by NNNN`.
-  `openadr supersede <old> --by <new>` performs the rewrite; `validate`
+  `adrkit supersede <old> --by <new>` performs the rewrite; `validate`
   checks that `NNNN` exists and is not itself superseded.
 
-`openadr accept` performs the mechanical rewrite a lifecycle move always
+`adrkit accept` performs the mechanical rewrite a lifecycle move always
 owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 `Risks` are folded into `## Consequences`.
 
@@ -140,10 +136,6 @@ npm run typecheck
 npm test
 npm run build
 ```
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=luochang212/OpenADR&type=Date)](https://www.star-history.com/#luochang212/OpenADR&Date)
 
 ## License
 

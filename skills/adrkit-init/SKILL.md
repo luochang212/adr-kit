@@ -1,9 +1,9 @@
 ---
-name: openadr-init
-description: Use when initializing OpenADR in a repository or when the agent cannot find an adr/ directory.
+name: adrkit-init
+description: Use when initializing ADR Kit in a repository or when the agent cannot find an adr/ directory.
 ---
 
-# OpenADR Init
+# ADR Kit Init
 
 ## Overview
 
@@ -15,7 +15,7 @@ Create an `adr/` repository in the target directory.
 2. Run:
 
 ```bash
-openadr init [path]
+adrkit init [path]
 ```
 
 3. Confirm the output lists `adr/config.yaml`, `adr/decisions`,
@@ -25,4 +25,4 @@ openadr init [path]
 
 - Never create `adr/` directories by hand; use the CLI so the config and
   README stay canonical.
-- After init, the next action is usually `openadr propose "<title>"`.
+- After init, the next action is usually `adrkit propose "<title>"`.

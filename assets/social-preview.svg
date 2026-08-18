@@ -26,7 +26,7 @@
   </g>
 
   <!-- Wordmark -->
-  <text x="440" y="300" font-family="Helvetica Neue, Arial, sans-serif" font-size="104" font-weight="700" fill="#FFFFFF" letter-spacing="-2">Open<tspan fill="url(#word)">ADR</tspan></text>
+  <text x="440" y="300" font-family="Helvetica Neue, Arial, sans-serif" font-size="104" font-weight="700" fill="#FFFFFF" letter-spacing="-2">ADR <tspan fill="url(#word)">Kit</tspan></text>
 
   <!-- Tagline -->
   <text x="444" y="362" font-family="Helvetica Neue, Arial, sans-serif" font-size="29" font-weight="400" fill="#9DA7B8">Architecture decision records for humans and agents</text>

@@ -1,9 +1,9 @@
 ---
-name: openadr-reject
+name: adrkit-reject
 description: Use when a proposed ADR should be declined and frozen for future reference.
 ---
 
-# OpenADR Reject
+# ADR Kit Reject
 
 ## Overview
 
@@ -13,7 +13,7 @@ Reject a proposal. The CLI moves the file from `adr/proposed/` to
 ## Steps
 
 ```bash
-openadr reject "<name>" --reason "<why it was rejected>"
+adrkit reject "<name>" --reason "<why it was rejected>"
 ```
 
 ## Rules

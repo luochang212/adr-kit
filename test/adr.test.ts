@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { parseAdrFile, renderAdr } from '../src/core/adr.js';
 
 function write(relative: string, content: string): string {
-  const dir = mkdtempSync(join(tmpdir(), 'openadr-adr-'));
+  const dir = mkdtempSync(join(tmpdir(), 'adrkit-adr-'));
   const path = join(dir, relative);
   writeFileSync(path, content);
   return path;

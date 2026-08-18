@@ -14,7 +14,7 @@ Agent-facing commands accept `--json` for machine-readable output.
 
 ## Commands
 
-### `openadr init [path]`
+### `adrkit init [path]`
 
 Create an `adr/` repository in `path` (default: current directory).
 
@@ -27,54 +27,54 @@ adr/
 └── rejected/
 ```
 
-### `openadr propose <title>`
+### `adrkit propose <title>`
 
 Create a proposed ADR in `adr/proposed/YYYY-MM-DD-slug.md`. The draft is
 expected to fail `validate` until every required section is filled in.
 
-### `openadr decide <title>`
+### `adrkit decide <title>`
 
 Create an accepted decision draft in `adr/decisions/NNNN-slug.md` with the
 next available number.
 
-### `openadr accept <name>`
+### `adrkit accept <name>`
 
 Validate a proposal, assign the next `NNNN` number, rewrite the lifecycle
 sections, and move the file from `adr/proposed/` to `adr/decisions/`.
 
-### `openadr reject <name> --reason <text>`
+### `adrkit reject <name> --reason <text>`
 
 Move a proposal to `adr/rejected/` with the reason recorded on the status
 line.
 
-### `openadr supersede <name> --by <name>`
+### `adrkit supersede <name> --by <name>`
 
 Mark an accepted decision as superseded by a newer accepted decision. The
 status line of the old record becomes `Status: superseded by NNNN`; the file
 stays in `adr/decisions/` as history. `--by` must resolve to an existing
 accepted decision that is not itself superseded.
 
-### `openadr list [--json]`
+### `adrkit list [--json]`
 
 List every record grouped by lifecycle folder.
 
-### `openadr show <name>`
+### `adrkit show <name>`
 
 Print a record. `name` resolves by title, file name, or decision number.
 
-### `openadr status [--json]`
+### `adrkit status [--json]`
 
 Print lifecycle counts and repository validity.
 
-### `openadr instructions [--json]`
+### `adrkit instructions [--json]`
 
 Print the next workflow step (init, fix validation, decide, or propose).
 
-### `openadr validate [name] [--all] [--json]`
+### `adrkit validate [name] [--all] [--json]`
 
 Validate one record, or the whole repository when `name` is omitted or
 `--all` is given.
 
-### `openadr version`
+### `adrkit version`
 
 Print the version.

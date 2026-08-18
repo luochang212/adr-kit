@@ -1,6 +1,6 @@
-# OpenADR 文档
+# ADR Kit 文档
 
-OpenADR 把架构决策变成纯 Markdown 文件，并带有机检生命周期。
+ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检生命周期。
 
 | 文档 | 内容 |
 | --- | --- |

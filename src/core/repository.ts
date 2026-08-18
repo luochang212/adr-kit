@@ -21,14 +21,14 @@ function initConfig(tools: string[]): string {
   // tools 始终作为顶层键输出：全注释的 YAML 文档会被解析为空，
   // readConfig 的 isMap 检查会报 "top-level value must be a mapping"。
   const toolsYaml = `tools: [${tools.join(', ')}]\n`;
-  return `# OpenADR configuration
+  return `# ADR Kit configuration
 # Fill in \`context\` and it is injected as a comment into every new
-# proposal/decision draft (openadr propose / openadr decide).
+# proposal/decision draft (adrkit propose / adrkit decide).
 # context: |
 #   Tech stack: TypeScript
 #   Conventions that decision records should respect.
 
-# AI tool integrations written by openadr init --tools.
+# AI tool integrations written by adrkit init --tools.
 ${toolsYaml}
 # Optional per-status conventions. These are hints for writers and agents;
 # validate does not enforce them (it cannot check prose).
@@ -42,7 +42,7 @@ ${toolsYaml}
 
 const INIT_README = `# Architecture Decision Records
 
-This directory is an OpenADR repository. Each record is plain Markdown with a
+This directory is an ADR Kit repository. Each record is plain Markdown with a
 machine-checkable header and lifecycle folders.
 
 ## Folders
@@ -68,14 +68,14 @@ Accepted decisions use \`# ADR: NNNN <title>\` and require
 Proposals require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
 \`Acceptance criteria\`, and \`Risks\`.
 
-Run \`openadr validate\` to check every record.
+Run \`adrkit validate\` to check every record.
 `;
 
 export function initRepository(targetDir: string, tools: string[] = []): InitResult {
   const root = resolve(targetDir);
   const adrRoot = join(root, ADR_DIR);
   if (existsSync(adrRoot)) {
-    throw new Error(`OpenADR already exists at ${adrRoot}`);
+    throw new Error(`an ADR Kit repository already exists at ${adrRoot}`);
   }
 
   const created: string[] = [];

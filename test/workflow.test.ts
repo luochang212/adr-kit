@@ -11,7 +11,7 @@ import { folderPath, listRecords } from '../src/core/repository.js';
 const tempDirs: string[] = [];
 
 function makeRepo(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'openadr-workflow-'));
+  const dir = mkdtempSync(join(tmpdir(), 'adrkit-workflow-'));
   tempDirs.push(dir);
   initCommand(dir);
   return dir;
@@ -49,7 +49,7 @@ describe('instructionsCommand', () => {
   it('tells an empty repo to propose next', () => {
     const root = makeRepo();
     const output = instructionsCommand(root);
-    expect(output).toContain('openadr propose');
+    expect(output).toContain('adrkit propose');
   });
 
   it('tells a repo with a pending proposal to decide next', () => {
@@ -83,6 +83,6 @@ Body.
 `,
     );
     const output = instructionsCommand(root);
-    expect(output).toContain('openadr accept');
+    expect(output).toContain('adrkit accept');
   });
 });

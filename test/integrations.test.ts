@@ -12,7 +12,7 @@ import { WORKFLOWS } from '../src/core/tool-integrations.js';
 const tempDirs: string[] = [];
 
 function makeTarget(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'openadr-tools-'));
+  const dir = mkdtempSync(join(tmpdir(), 'adrkit-tools-'));
   tempDirs.push(dir);
   return join(dir, 'project');
 }
@@ -27,10 +27,10 @@ describe('initCommand tool integrations', () => {
   it('writes command files for selected tools', () => {
     const root = makeTarget();
     initCommand(root, 'claude,codex');
-    expect(existsSync(join(root, '.claude/commands/openadr-propose.md'))).toBe(true);
-    expect(existsSync(join(root, '.claude/commands/openadr-supersede.md'))).toBe(true);
-    expect(existsSync(join(root, '.codex/commands/openadr-validate.md'))).toBe(true);
-    expect(existsSync(join(root, '.cursor/commands/openadr-accept.md'))).toBe(false);
+    expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(true);
+    expect(existsSync(join(root, '.claude/commands/adrkit-supersede.md'))).toBe(true);
+    expect(existsSync(join(root, '.codex/commands/adrkit-validate.md'))).toBe(true);
+    expect(existsSync(join(root, '.cursor/commands/adrkit-accept.md'))).toBe(false);
   });
 
   it('rejects unknown tools', () => {
@@ -44,7 +44,7 @@ describe('initCommand tool integrations', () => {
     const config = configCommand(root, true);
     expect(config).toContain('claude');
     const output = updateCommand(root);
-    expect(output).toContain(join('.claude', 'commands', 'openadr-propose.md'));
+    expect(output).toContain(join('.claude', 'commands', 'adrkit-propose.md'));
   });
 });
 
@@ -70,7 +70,7 @@ describe('skills/ stays in sync with the tool integration templates', () => {
 
 describe('completionCommand', () => {
   it('prints bash completion', () => {
-    expect(completionCommand('bash')).toContain('complete -F _openadr_completion openadr');
+    expect(completionCommand('bash')).toContain('complete -F _adrkit_completion adrkit');
   });
 
   it('rejects unsupported shells', () => {

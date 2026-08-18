@@ -14,7 +14,7 @@ import { validateCommand } from '../src/commands/validate.js';
 const tempDirs: string[] = [];
 
 function makeRepo(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'openadr-repo-'));
+  const dir = mkdtempSync(join(tmpdir(), 'adrkit-repo-'));
   tempDirs.push(dir);
   initCommand(dir);
   return dir;
@@ -59,7 +59,7 @@ afterEach(() => {
 });
 
 describe('initCommand', () => {
-  it('creates the OpenADR directory layout', () => {
+  it('creates the ADR Kit directory layout', () => {
     const root = makeRepo();
     expect(existsSync(join(root, 'adr', 'config.yaml'))).toBe(true);
     expect(existsSync(join(root, 'adr', 'decisions'))).toBe(true);

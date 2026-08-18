@@ -11,7 +11,7 @@ export function rejectCommand(query: string, reason: string, cwd: string): strin
   }
   const trimmedReason = reason.trim();
   if (trimmedReason.length === 0) {
-    throw new Error('a rejection reason is required: openadr reject <name> --reason "..."');
+    throw new Error('a rejection reason is required: adrkit reject <name> --reason "..."');
   }
 
   const path = join(root, 'adr', 'rejected', record.fileName);

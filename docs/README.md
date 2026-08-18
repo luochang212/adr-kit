@@ -1,6 +1,6 @@
-# OpenADR Docs
+# ADR Kit Docs
 
-OpenADR turns architecture decisions into plain Markdown files with a
+ADR Kit turns architecture decisions into plain Markdown files with a
 machine-checkable lifecycle.
 
 | Document | Content |

@@ -6,11 +6,11 @@ export function instructionsCommand(cwd: string, asJson = false): string {
   const root = findRoot(cwd);
   if (root === undefined) {
     const output = [
-      'No OpenADR repository found.',
+      'No ADR Kit repository found.',
       '',
       'Next:',
-      '  openadr init',
-      '  openadr propose "your first decision"',
+      '  adrkit init',
+      '  adrkit propose "your first decision"',
     ].join('\n');
     return asJson
       ? JSON.stringify({ step: 'init', message: output }, null, 2)
@@ -25,7 +25,7 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       formatIssues(issues),
       '',
       'Next:',
-      '  openadr validate',
+      '  adrkit validate',
     ].join('\n');
     return asJson
       ? JSON.stringify({ step: 'fix-validation', issues, message: output }, null, 2)
@@ -41,9 +41,9 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       `  ${names}`,
       '',
       'Next:',
-      '  openadr show <name>',
-      '  openadr accept <name>      # accept it',
-      '  openadr reject <name> --reason "..."  # reject it',
+      '  adrkit show <name>',
+      '  adrkit accept <name>      # accept it',
+      '  adrkit reject <name> --reason "..."  # reject it',
     ].join('\n');
     return asJson
       ? JSON.stringify(
@@ -58,8 +58,8 @@ export function instructionsCommand(cwd: string, asJson = false): string {
     'No proposals waiting.',
     '',
     'Next:',
-    '  openadr propose "your next decision"',
-    '  openadr decide "an already-made decision"',
+    '  adrkit propose "your next decision"',
+    '  adrkit decide "an already-made decision"',
   ].join('\n');
   return asJson
     ? JSON.stringify({ step: 'propose', message: output }, null, 2)

@@ -20,7 +20,7 @@ export function listCommand(cwd: string, asJson = false): string {
   }
 
   if (records.length === 0) {
-    return 'no ADRs yet — start one with "openadr propose <title>" or "openadr decide <title>"';
+    return 'no ADRs yet — start one with "adrkit propose <title>" or "adrkit decide <title>"';
   }
 
   const labels: Record<string, string> = {

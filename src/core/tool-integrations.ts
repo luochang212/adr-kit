@@ -21,9 +21,9 @@ const TOOL_COMMAND_DIR: Record<ToolId, string> = {
 // machine-checked in test/integrations.test.ts.
 export const WORKFLOWS = [
   {
-    name: 'openadr-init',
-    description: 'Use when initializing OpenADR in a repository or when the agent cannot find an adr/ directory.',
-    body: `# OpenADR Init
+    name: 'adrkit-init',
+    description: 'Use when initializing ADR Kit in a repository or when the agent cannot find an adr/ directory.',
+    body: `# ADR Kit Init
 
 ## Overview
 
@@ -35,7 +35,7 @@ Create an \`adr/\` repository in the target directory.
 2. Run:
 
 \`\`\`bash
-openadr init [path]
+adrkit init [path]
 \`\`\`
 
 3. Confirm the output lists \`adr/config.yaml\`, \`adr/decisions\`,
@@ -45,30 +45,30 @@ openadr init [path]
 
 - Never create \`adr/\` directories by hand; use the CLI so the config and
   README stay canonical.
-- After init, the next action is usually \`openadr propose "<title>"\`.`,
+- After init, the next action is usually \`adrkit propose "<title>"\`.`,
   },
   {
-    name: 'openadr-propose',
+    name: 'adrkit-propose',
     description: 'Use when starting a new architecture decision that still needs review before it is accepted.',
-    body: `# OpenADR Propose
+    body: `# ADR Kit Propose
 
 ## Overview
 
 Create a proposed ADR in \`adr/proposed/\`. The proposal is a draft and is
-expected to fail \`openadr validate\` until every required section is filled.
+expected to fail \`adrkit validate\` until every required section is filled.
 
 ## Steps
 
 1. Run:
 
 \`\`\`bash
-openadr propose "<title>"
+adrkit propose "<title>"
 \`\`\`
 
 2. Edit the created file. Fill every section with real content:
    \`## Problem\`, \`## Proposal\`, \`## Alternatives considered\`,
    \`## Acceptance criteria\`, \`## Risks\`.
-3. Run \`openadr validate\` until it returns OK.
+3. Run \`adrkit validate\` until it returns OK.
 
 ## Rules
 
@@ -77,9 +77,9 @@ openadr propose "<title>"
 - Keep the status line exactly \`Status: proposed\`.`,
   },
   {
-    name: 'openadr-decide',
+    name: 'adrkit-decide',
     description: 'Use when recording a decision that is already accepted and does not need a proposal phase.',
-    body: `# OpenADR Decide
+    body: `# ADR Kit Decide
 
 ## Overview
 
@@ -91,23 +91,23 @@ next \`NNNN\` number.
 1. Run:
 
 \`\`\`bash
-openadr decide "<title>"
+adrkit decide "<title>"
 \`\`\`
 
 2. Edit the created file and fill \`## Problem\`, \`## Decision\`,
    \`## Alternatives considered\`, and \`## Consequences\`.
-3. Run \`openadr validate <NNNN>\` until it returns OK.
+3. Run \`adrkit validate <NNNN>\` until it returns OK.
 
 ## Rules
 
 - Accepted decisions must not contain \`## Proposal\`, \`## Acceptance
   criteria\`, or \`## Risks\` sections.
-- \`openadr accept\` is the better path when a proposal already exists.`,
+- \`adrkit accept\` is the better path when a proposal already exists.`,
   },
   {
-    name: 'openadr-validate',
-    description: 'Use when checking whether ADR files follow the OpenADR format, especially before accepting a proposal or committing.',
-    body: `# OpenADR Validate
+    name: 'adrkit-validate',
+    description: 'Use when checking whether ADR files follow the ADR Kit format, especially before accepting a proposal or committing.',
+    body: `# ADR Kit Validate
 
 ## Overview
 
@@ -116,7 +116,7 @@ Run the machine checks for one record or the whole repository.
 ## Steps
 
 \`\`\`bash
-openadr validate [name] [--json]
+adrkit validate [name] [--json]
 \`\`\`
 
 - With no \`name\`, the whole repository is validated.
@@ -124,14 +124,14 @@ openadr validate [name] [--json]
 
 ## Rules
 
-- Treat any non-OK output as a blocker for \`openadr accept\`.
+- Treat any non-OK output as a blocker for \`adrkit accept\`.
 - A fresh draft is expected to fail until the required sections are
   filled in; fix the exact issue printed rather than deleting sections.`,
   },
   {
-    name: 'openadr-accept',
+    name: 'adrkit-accept',
     description: 'Use when a proposed ADR is complete and validated, and the team has decided to accept it.',
-    body: `# OpenADR Accept
+    body: `# ADR Kit Accept
 
 ## Overview
 
@@ -142,11 +142,11 @@ file from \`adr/proposed/\` to \`adr/decisions/\`.
 
 ## Steps
 
-1. Run \`openadr validate\` and confirm the proposal is OK.
+1. Run \`adrkit validate\` and confirm the proposal is OK.
 2. Run:
 
 \`\`\`bash
-openadr accept "<name>"
+adrkit accept "<name>"
 \`\`\`
 
 3. Confirm the output names the new \`adr/decisions/NNNN-*.md\` file.
@@ -157,9 +157,9 @@ openadr accept "<name>"
 - Review the generated \`## Consequences\` after accepting.`,
   },
   {
-    name: 'openadr-reject',
+    name: 'adrkit-reject',
     description: 'Use when a proposed ADR should be declined and frozen for future reference.',
-    body: `# OpenADR Reject
+    body: `# ADR Kit Reject
 
 ## Overview
 
@@ -169,7 +169,7 @@ Reject a proposal. The CLI moves the file from \`adr/proposed/\` to
 ## Steps
 
 \`\`\`bash
-openadr reject "<name>" --reason "<why it was rejected>"
+adrkit reject "<name>" --reason "<why it was rejected>"
 \`\`\`
 
 ## Rules
@@ -178,9 +178,9 @@ openadr reject "<name>" --reason "<why it was rejected>"
 - A rejected record is frozen history. Do not edit it afterwards.`,
   },
   {
-    name: 'openadr-supersede',
+    name: 'adrkit-supersede',
     description: 'Use when an accepted decision is replaced by a newer accepted decision and must be retired without deleting history.',
-    body: `# OpenADR Supersede
+    body: `# ADR Kit Supersede
 
 ## Overview
 
@@ -190,12 +190,12 @@ line to \`Status: superseded by NNNN\` and leaves the record in
 
 ## Steps
 
-1. Record the replacement first (\`openadr decide\` or \`openadr propose\` +
-   \`openadr accept\`), and make sure it validates.
+1. Record the replacement first (\`adrkit decide\` or \`adrkit propose\` +
+   \`adrkit accept\`), and make sure it validates.
 2. Run:
 
 \`\`\`bash
-openadr supersede "<old name or number>" --by "<new name or number>"
+adrkit supersede "<old name or number>" --by "<new name or number>"
 \`\`\`
 
 ## Rules

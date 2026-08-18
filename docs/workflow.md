@@ -3,14 +3,14 @@
 ## Proposal first
 
 ```text
-openadr init
-openadr propose "Use SQLite for session storage"
+adrkit init
+adrkit propose "Use SQLite for session storage"
 # fill in the draft
-openadr validate
-openadr accept "Use SQLite for session storage"
+adrkit validate
+adrkit accept "Use SQLite for session storage"
 ```
 
-`openadr accept` performs the mechanical rewrite a lifecycle move always
+`adrkit accept` performs the mechanical rewrite a lifecycle move always
 owed:
 
 - `## Proposal` becomes `## Decision`
@@ -20,7 +20,7 @@ owed:
 ## Rejection
 
 ```text
-openadr reject "Use SQLite for session storage" --reason "we chose files"
+adrkit reject "Use SQLite for session storage" --reason "we chose files"
 ```
 
 The proposal is frozen in `adr/rejected/` with the reason on the status
@@ -32,9 +32,9 @@ Decisions get overturned. Record the replacement first, then retire the
 outdated record:
 
 ```text
-openadr decide "Use Postgres for session storage"
+adrkit decide "Use Postgres for session storage"
 # fill in the new decision, validate it
-openadr supersede 0001 --by 0002
+adrkit supersede 0001 --by 0002
 ```
 
 The old record stays in `adr/decisions/` with `Status: superseded by 0002`
@@ -45,9 +45,9 @@ itself superseded, so a chain always ends at a currently-accepted decision.
 ## Recording an already-made decision
 
 ```text
-openadr decide "Use SQLite for session storage"
+adrkit decide "Use SQLite for session storage"
 # fill in the draft
-openadr validate 0001
+adrkit validate 0001
 ```
 
 ## Agent workflow
@@ -55,7 +55,7 @@ openadr validate 0001
 Agents can drive the same lifecycle through JSON output:
 
 ```bash
-openadr status --json
-openadr instructions --json
-openadr validate --json
+adrkit status --json
+adrkit instructions --json
+adrkit validate --json
 ```

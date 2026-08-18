@@ -9,7 +9,7 @@ import { folderPath } from '../src/core/repository.js';
 const tempDirs: string[] = [];
 
 function makeRepo(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'openadr-validate-'));
+  const dir = mkdtempSync(join(tmpdir(), 'adrkit-validate-'));
   tempDirs.push(dir);
   initCommand(dir);
   return dir;

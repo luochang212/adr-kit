@@ -1,9 +1,9 @@
 ---
-name: openadr-validate
-description: Use when checking whether ADR files follow the OpenADR format, especially before accepting a proposal or committing.
+name: adrkit-validate
+description: Use when checking whether ADR files follow the ADR Kit format, especially before accepting a proposal or committing.
 ---
 
-# OpenADR Validate
+# ADR Kit Validate
 
 ## Overview
 
@@ -12,7 +12,7 @@ Run the machine checks for one record or the whole repository.
 ## Steps
 
 ```bash
-openadr validate [name] [--json]
+adrkit validate [name] [--json]
 ```
 
 - With no `name`, the whole repository is validated.
@@ -20,6 +20,6 @@ openadr validate [name] [--json]
 
 ## Rules
 
-- Treat any non-OK output as a blocker for `openadr accept`.
+- Treat any non-OK output as a blocker for `adrkit accept`.
 - A fresh draft is expected to fail until the required sections are
   filled in; fix the exact issue printed rather than deleting sections.

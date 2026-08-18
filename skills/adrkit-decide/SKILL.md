@@ -1,9 +1,9 @@
 ---
-name: openadr-decide
+name: adrkit-decide
 description: Use when recording a decision that is already accepted and does not need a proposal phase.
 ---
 
-# OpenADR Decide
+# ADR Kit Decide
 
 ## Overview
 
@@ -15,15 +15,15 @@ next `NNNN` number.
 1. Run:
 
 ```bash
-openadr decide "<title>"
+adrkit decide "<title>"
 ```
 
 2. Edit the created file and fill `## Problem`, `## Decision`,
    `## Alternatives considered`, and `## Consequences`.
-3. Run `openadr validate <NNNN>` until it returns OK.
+3. Run `adrkit validate <NNNN>` until it returns OK.
 
 ## Rules
 
 - Accepted decisions must not contain `## Proposal`, `## Acceptance
   criteria`, or `## Risks` sections.
-- `openadr accept` is the better path when a proposal already exists.
+- `adrkit accept` is the better path when a proposal already exists.

@@ -5,7 +5,7 @@ import { isMap, parseDocument } from 'yaml';
 export const ADR_DIR = 'adr';
 export const CONFIG_FILE = 'config.yaml';
 
-export interface OpenAdrConfig {
+export interface AdrKitConfig {
   /** Project context shown to agents and humans when records are created. */
   context?: string;
   /** Optional per-status rules, e.g. `rules.proposal: ["Keep it short"]`. */
@@ -19,7 +19,7 @@ export interface OpenAdrConfig {
 /**
  * Walk from `startDir` upward to find the nearest directory that contains
  * `adr/config.yaml`. Returns the project root (the parent of `adr/`), or
- * `undefined` when no OpenADR repository exists.
+ * `undefined` when no ADR Kit repository exists.
  */
 export function findRoot(startDir: string): string | undefined {
   let current = resolve(startDir);
@@ -37,7 +37,7 @@ export function requireRoot(startDir: string): string {
   const root = findRoot(startDir);
   if (root === undefined) {
     throw new Error(
-      `no OpenADR repository found from "${startDir}" (run "openadr init" first)`,
+      `no ADR Kit repository found from "${startDir}" (run "adrkit init" first)`,
     );
   }
   return root;
@@ -47,7 +47,7 @@ export function configPath(root: string): string {
   return join(root, ADR_DIR, CONFIG_FILE);
 }
 
-export function readConfig(root: string): OpenAdrConfig {
+export function readConfig(root: string): AdrKitConfig {
   const file = configPath(root);
   const text = readFileSync(file, 'utf8');
   const document = parseDocument(text, { prettyErrors: true });
@@ -59,7 +59,7 @@ export function readConfig(root: string): OpenAdrConfig {
     throw new Error(`invalid ${ADR_DIR}/${CONFIG_FILE}: top-level value must be a mapping`);
   }
   const raw = document.contents.toJSON() as Record<string, unknown>;
-  const config: OpenAdrConfig = { raw };
+  const config: AdrKitConfig = { raw };
   if (typeof raw.context === 'string') {
     config.context = raw.context;
   }

@@ -1,9 +1,9 @@
 ---
-name: openadr-supersede
+name: adrkit-supersede
 description: Use when an accepted decision is replaced by a newer accepted decision and must be retired without deleting history.
 ---
 
-# OpenADR Supersede
+# ADR Kit Supersede
 
 ## Overview
 
@@ -13,12 +13,12 @@ line to `Status: superseded by NNNN` and leaves the record in
 
 ## Steps
 
-1. Record the replacement first (`openadr decide` or `openadr propose` +
-   `openadr accept`), and make sure it validates.
+1. Record the replacement first (`adrkit decide` or `adrkit propose` +
+   `adrkit accept`), and make sure it validates.
 2. Run:
 
 ```bash
-openadr supersede "<old name or number>" --by "<new name or number>"
+adrkit supersede "<old name or number>" --by "<new name or number>"
 ```
 
 ## Rules

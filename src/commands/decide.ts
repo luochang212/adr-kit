@@ -11,7 +11,7 @@ export function decideCommand(title: string, cwd: string): string {
     throw new Error('title must not be empty');
   }
   if (/^\d{4}\s+/.test(trimmed)) {
-    throw new Error('title must not start with a four-digit number; OpenADR assigns decision numbers');
+    throw new Error('title must not start with a four-digit number; ADR Kit assigns decision numbers');
   }
   const root = requireRoot(cwd);
   const number = nextDecisionNumber(root);
@@ -23,5 +23,5 @@ export function decideCommand(title: string, cwd: string): string {
   }
   const content = decisionTemplate(number, trimmed, readConfig(root).context);
   writeRecord(root, 'decisions', fileName, content);
-  return `created adr/decisions/${fileName}\n\nfill in the draft and validate it with:\n  openadr validate ${padded}`;
+  return `created adr/decisions/${fileName}\n\nfill in the draft and validate it with:\n  adrkit validate ${padded}`;
 }

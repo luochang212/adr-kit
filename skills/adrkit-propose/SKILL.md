@@ -1,27 +1,27 @@
 ---
-name: openadr-propose
+name: adrkit-propose
 description: Use when starting a new architecture decision that still needs review before it is accepted.
 ---
 
-# OpenADR Propose
+# ADR Kit Propose
 
 ## Overview
 
 Create a proposed ADR in `adr/proposed/`. The proposal is a draft and is
-expected to fail `openadr validate` until every required section is filled.
+expected to fail `adrkit validate` until every required section is filled.
 
 ## Steps
 
 1. Run:
 
 ```bash
-openadr propose "<title>"
+adrkit propose "<title>"
 ```
 
 2. Edit the created file. Fill every section with real content:
    `## Problem`, `## Proposal`, `## Alternatives considered`,
    `## Acceptance criteria`, `## Risks`.
-3. Run `openadr validate` until it returns OK.
+3. Run `adrkit validate` until it returns OK.
 
 ## Rules
 

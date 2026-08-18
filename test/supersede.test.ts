@@ -13,7 +13,7 @@ import { validateCommand } from '../src/commands/validate.js';
 const tempDirs: string[] = [];
 
 function makeRepo(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'openadr-supersede-'));
+  const dir = mkdtempSync(join(tmpdir(), 'adrkit-supersede-'));
   tempDirs.push(dir);
   initCommand(dir);
   return dir;

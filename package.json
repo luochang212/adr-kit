@@ -8,7 +8,7 @@
     "node": ">=20.19"
   },
   "bin": {
-    "openadr": "bin/openadr.js"
+    "adrkit": "bin/adrkit.js"
   },
   "files": [
     "bin",

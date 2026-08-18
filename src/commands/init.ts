@@ -7,12 +7,12 @@ export function initCommand(targetDir: string, toolsValue?: string): string {
   const lines = created.map((path) => `  created ${path}`);
   const integrations = writeToolIntegrations(root, tools);
   return [
-    `OpenADR initialized at ${root}`,
+    `ADR Kit initialized at ${root}`,
     ...lines,
     ...integrationSummary(root, integrations),
     '',
     'Next:',
-    '  openadr propose "your first decision"   # start a proposal',
-    '  openadr decide "use sqlite for sessions" # record an accepted decision',
+    '  adrkit propose "your first decision"   # start a proposal',
+    '  adrkit decide "use sqlite for sessions" # record an accepted decision',
   ].join('\n');
 }

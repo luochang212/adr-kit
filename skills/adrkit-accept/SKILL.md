@@ -1,9 +1,9 @@
 ---
-name: openadr-accept
+name: adrkit-accept
 description: Use when a proposed ADR is complete and validated, and the team has decided to accept it.
 ---
 
-# OpenADR Accept
+# ADR Kit Accept
 
 ## Overview
 
@@ -14,11 +14,11 @@ file from `adr/proposed/` to `adr/decisions/`.
 
 ## Steps
 
-1. Run `openadr validate` and confirm the proposal is OK.
+1. Run `adrkit validate` and confirm the proposal is OK.
 2. Run:
 
 ```bash
-openadr accept "<name>"
+adrkit accept "<name>"
 ```
 
 3. Confirm the output names the new `adr/decisions/NNNN-*.md` file.

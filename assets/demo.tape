@@ -1,12 +1,12 @@
-# OpenADR demo GIF — render with Charm's VHS (https://github.com/charmbracelet/vhs)
+# ADR Kit demo GIF — render with Charm's VHS (https://github.com/charmbracelet/vhs)
 #
 #   brew install vhs
 #   cd assets && vhs demo.tape
 #
 # Produces demo.gif next to this file. Run it from a scratch directory with
-# `openadr` on your PATH, e.g.:
+# `adrkit` on your PATH, e.g.:
 #
-#   mkdir -p /tmp/openadr-demo && cd /tmp/openadr-demo && vhs ~/path/to/assets/demo.tape
+#   mkdir -p /tmp/adrkit-demo && cd /tmp/adrkit-demo && vhs ~/path/to/assets/demo.tape
 
 Output demo.gif
 
@@ -17,27 +17,27 @@ Set Theme "Catppuccin Mocha"
 Set Padding 24
 Set TypingSpeed 50ms
 
-Type "openadr init"
+Type "adrkit init"
 Sleep 500ms
 Enter
 Sleep 1200ms
 
-Type "openadr propose \"Use SQLite for session storage\""
+Type "adrkit propose \"Use SQLite for session storage\""
 Sleep 500ms
 Enter
 Sleep 1200ms
 
-Type "openadr validate"
+Type "adrkit validate"
 Sleep 500ms
 Enter
 Sleep 1200ms
 
-Type "openadr accept \"Use SQLite for session storage\""
+Type "adrkit accept \"Use SQLite for session storage\""
 Sleep 500ms
 Enter
 Sleep 1200ms
 
-Type "openadr list"
+Type "adrkit list"
 Sleep 500ms
 Enter
 Sleep 1500ms

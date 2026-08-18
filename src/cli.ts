@@ -16,26 +16,26 @@ import { supersedeCommand } from './commands/supersede.js';
 import { updateCommand } from './commands/update.js';
 import { validateCommand } from './commands/validate.js';
 
-const HELP = `openadr ${VERSION} — Open Architecture Decision Records
+const HELP = `adrkit ${VERSION} — Open Architecture Decision Records
 
 Usage:
-  openadr init [path] [--tools <list>]        Initialize an OpenADR repository
-  openadr propose <title>                     Create a proposed decision
-  openadr decide <title>                      Create an accepted decision draft
-  openadr accept <name>                       Accept a proposal (assigns NNNN)
-  openadr reject <name> --reason <reason>     Reject a proposal
-  openadr supersede <name> --by <name>        Mark an accepted decision as superseded
-  openadr list [--json]                       List all decision records
-  openadr show <name>                         Show a decision record
-  openadr status [--json]                     Show lifecycle counts and validity
-  openadr instructions [--json]               Print the next workflow step
-  openadr validate [name] [--all] [--json]    Validate one record or the whole repo
-  openadr update [--tools <list>]             Rewrite AI tool integrations
-  openadr config [--json]                     Print the current configuration
-  openadr completion <bash|zsh|fish>          Print a shell completion script
-  openadr version                             Print the version
-  openadr -h, --help                          Print this help
-  openadr -V, --version                       Print the version
+  adrkit init [path] [--tools <list>]        Initialize an ADR Kit repository
+  adrkit propose <title>                     Create a proposed decision
+  adrkit decide <title>                      Create an accepted decision draft
+  adrkit accept <name>                       Accept a proposal (assigns NNNN)
+  adrkit reject <name> --reason <reason>     Reject a proposal
+  adrkit supersede <name> --by <name>        Mark an accepted decision as superseded
+  adrkit list [--json]                       List all decision records
+  adrkit show <name>                         Show a decision record
+  adrkit status [--json]                     Show lifecycle counts and validity
+  adrkit instructions [--json]               Print the next workflow step
+  adrkit validate [name] [--all] [--json]    Validate one record or the whole repo
+  adrkit update [--tools <list>]             Rewrite AI tool integrations
+  adrkit config [--json]                     Print the current configuration
+  adrkit completion <bash|zsh|fish>          Print a shell completion script
+  adrkit version                             Print the version
+  adrkit -h, --help                          Print this help
+  adrkit -V, --version                       Print the version
 
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
