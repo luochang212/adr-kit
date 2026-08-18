@@ -72,6 +72,13 @@ describe('initCommand', () => {
     const root = makeRepo();
     expect(() => initCommand(root)).toThrow(/already exists/);
   });
+
+  it('does not label decisions as current truth in the generated README', () => {
+    const root = makeRepo();
+    const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
+    expect(readme).not.toContain('current truth');
+    expect(readme).toContain('immutable history');
+  });
 });
 
 describe('propose and validate', () => {

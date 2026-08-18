@@ -49,7 +49,7 @@ machine-checkable header and lifecycle folders.
 
 | Folder | Meaning |
 | --- | --- |
-| \`decisions/\` | Accepted decisions, numbered \`NNNN\`, current truth |
+| \`decisions/\` | Accepted and superseded decisions, numbered \`NNNN\`, immutable history |
 | \`proposed/\` | Proposals that are not yet accepted or rejected |
 | \`rejected/\` | Rejected proposals, frozen for the record |
 

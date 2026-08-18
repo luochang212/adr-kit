@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
 
 export interface ToolIntegration {
   tool: string;
@@ -17,9 +17,27 @@ const TOOL_COMMAND_DIR: Record<ToolId, string> = {
   agents: '.agents/commands',
 };
 
+/**
+ * Agent skills directories per tool (github-copilot is absent — it supports
+ * prompts only, not a skills tree). Skills are surfaced at session start,
+ * unlike slash-command files which load only when invoked.
+ */
+const TOOL_SKILL_DIR: Partial<Record<ToolId, string>> = {
+  claude: '.claude/skills',
+  codex: '.codex/skills',
+  cursor: '.cursor/skills',
+  agents: '.agents/skills',
+};
+
+export interface Workflow {
+  name: string;
+  description: string;
+  body: string;
+}
+
 // The bodies mirror skills/<name>/SKILL.md one-to-one; the sync is
 // machine-checked in test/integrations.test.ts.
-export const WORKFLOWS = [
+export const WORKFLOWS: Workflow[] = [
   {
     name: 'adrkit-init',
     description: 'Use when initializing ADR Kit in a repository or when the agent cannot find an adr/ directory.',
@@ -74,7 +92,9 @@ adrkit propose "<title>"
 
 - Do not skip \`## Alternatives considered\`. A proposal without alternatives
   is invalid by design.
-- Keep the status line exactly \`Status: proposed\`.`,
+- Keep the status line exactly \`Status: proposed\`.
+- Before proposing, run \`adrkit list\` and check whether this decision
+  supersedes or overlaps an existing one; mention that in the record.`,
   },
   {
     name: 'adrkit-decide',
@@ -116,7 +136,7 @@ Run the machine checks for one record or the whole repository.
 ## Steps
 
 \`\`\`bash
-adrkit validate [name] [--json]
+adrkit validate [name] [--all] [--json]
 \`\`\`
 
 - With no \`name\`, the whole repository is validated.
@@ -237,6 +257,17 @@ export function parseTools(value: string | undefined): ToolId[] {
   return [...new Set(tools)];
 }
 
+/** Installed skill content: canonical frontmatter plus the workflow body. */
+function skillFrontmatter(workflow: Workflow): string {
+  return `---
+name: ${workflow.name}
+description: ${workflow.description}
+---
+
+${workflow.body}
+`;
+}
+
 export function writeToolIntegrations(root: string, tools: ToolId[]): ToolIntegration[] {
   const created: ToolIntegration[] = [];
   for (const tool of tools) {
@@ -256,8 +287,29 @@ ${workflow.body}
       );
       created.push({ tool, path });
     }
+    const skillBase = TOOL_SKILL_DIR[tool];
+    if (skillBase !== undefined) {
+      for (const workflow of WORKFLOWS) {
+        const skillPath = join(root, skillBase, workflow.name, 'SKILL.md');
+        mkdirSync(dirname(skillPath), { recursive: true });
+        writeFileSync(skillPath, skillFrontmatter(workflow));
+        created.push({ tool, path: skillPath });
+      }
+    }
   }
   return created;
+}
+
+function removeEmptyDir(dir: string): void {
+  try {
+    // rmdirSync only removes empty directories; rmSync throws EISDIR on
+    // directories (even empty) in current Node, so it cannot be used here.
+    if (readdirSync(dir).length === 0) {
+      rmdirSync(dir);
+    }
+  } catch {
+    // Directory does not exist or is not empty — nothing to clean.
+  }
 }
 
 export function removeToolIntegrations(root: string, tools: ToolId[]): void {
@@ -268,6 +320,19 @@ export function removeToolIntegrations(root: string, tools: ToolId[]): void {
       if (existsSync(path)) {
         rmSync(path);
       }
+    }
+    const skillBase = TOOL_SKILL_DIR[tool];
+    if (skillBase !== undefined) {
+      const baseDir = join(root, skillBase);
+      for (const workflow of WORKFLOWS) {
+        const skillDir = join(baseDir, workflow.name);
+        const skillPath = join(skillDir, 'SKILL.md');
+        if (existsSync(skillPath)) {
+          rmSync(skillPath);
+        }
+        removeEmptyDir(skillDir);
+      }
+      removeEmptyDir(baseDir);
     }
   }
 }

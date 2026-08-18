@@ -1,4 +1,4 @@
-import { readConfig, requireRoot } from '../core/config.js';
+import { readConfig, requireRoot, writeToolsConfig } from '../core/config.js';
 import {
   SUPPORTED_TOOLS,
   integrationSummary,
@@ -13,6 +13,7 @@ export function updateCommand(cwd: string, toolsValue?: string): string {
   const tools = parseTools(toolsValue ?? (config.tools ?? []).join(','));
   const stale = SUPPORTED_TOOLS.filter((tool) => !tools.includes(tool));
   removeToolIntegrations(root, stale);
+  writeToolsConfig(root, tools);
   const integrations = writeToolIntegrations(root, tools);
   const lines = [`updated AI tool integrations at ${root}`];
   if (stale.length > 0) {

@@ -12,7 +12,7 @@ Run the machine checks for one record or the whole repository.
 ## Steps
 
 ```bash
-adrkit validate [name] [--json]
+adrkit validate [name] [--all] [--json]
 ```
 
 - With no `name`, the whole repository is validated.

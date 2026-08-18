@@ -17,8 +17,8 @@ Agent-facing commands accept `--json` for machine-readable output.
 ### `adrkit init [path] [--tools <list>]`
 
 Create an `adr/` repository in `path` (default: current directory). Pass
-`--tools <list>` to also write AI agent command files (for example
-`claude`, `codex`, `all`, or `none`; see `adrkit update`).
+`--tools <list>` to also write AI agent command files and skills (for
+example `claude`, `codex`, `all`, or `none`; see `adrkit update`).
 
 ```text
 adr/
@@ -79,7 +79,8 @@ Validate one record, or the whole repository when `name` is omitted or
 
 ### `adrkit update [--tools <list>]`
 
-Write AI tool integrations into the project (`.claude/commands/`,
+Write AI tool integrations into the project — agent skills (`.claude/skills/`,
+`.codex/skills/`, …) alongside slash-command files (`.claude/commands/`,
 `.codex/commands/`, …). Without `--tools`, the tools recorded at `init`
 time are used. Integrations for tools no longer selected are removed.
 

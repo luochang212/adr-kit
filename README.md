@@ -1,17 +1,20 @@
-<p align="center">
-  <img src="assets/social-preview.png" alt="ADR Kit — Open Architecture Decision Records" width="768" />
-</p>
+<div align="right">
+  <a title="English" href="README.md"><img src="https://img.shields.io/badge/-English-A31F34?style=for-the-badge" alt="English" /></a>
+  <a title="简体中文" href="README.zh.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-545759?style=for-the-badge" alt="简体中文"></a>
+</div>
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/v/adr-kit" alt="npm version" /></a>
+# ADR Kit
+
+<p>
+  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/v/adr-kit?style=flat-square&color=0e7490" alt="npm version" /></a>
   <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
-  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit" alt="npm downloads" /></a>
-  <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit" alt="node" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/npm/l/adr-kit" alt="license" /></a>
+  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit?style=flat-square&color=0e7490" alt="npm downloads" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit?style=flat-square&color=0e7490" alt="node" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/adr-kit?style=flat-square&color=0e7490" alt="license" /></a>
 </p>
 
-<p align="center">
-  <a href="README.md">English</a> | <a href="README.zh.md">中文</a>
+<p>
+  <img src="assets/social-preview.png" alt="ADR Kit — Open Architecture Decision Records" width="100%" />
 </p>
 
 ADR Kit turns architecture decisions into plain Markdown files with a
@@ -113,6 +116,29 @@ Status: proposed
 `adrkit accept` performs the mechanical rewrite a lifecycle move always
 owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 `Risks` are folded into `## Consequences`.
+
+## Sources of Inspiration
+
+ADR Kit stands on two projects, in two different roles:
+
+- **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** shaped *how* the
+  tool is built: an agent-first CLI whose instructions are installed as
+  agent skills, a deterministic `validate`, machine-readable `--json`
+  output, and a "fluid not rigid" workflow. Like OpenSpec, ADR Kit
+  *steers* agents — session-visible skills rather than imposing hard phase
+  gates or mandating that every change be recorded.
+- **[deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)**
+  gave ADR Kit *what a record is*. Its **Agent Notes** — plain Markdown
+  with a `Status:` line, lifecycle folders
+  (`proposed` → `implemented` → `rejected`, plus a frozen archive), and a
+  `Problem` / `Proposal`·`Decision` / `Alternatives considered` /
+  `Consequences` skeleton — is the direct ancestor of the ADR Kit record
+  format.
+
+Adapted, not copied. Accepted records carry a `NNNN` number, `supersede`
+retires a decision in place, and `accept` mechanically rewrites a proposal
+into a decision. Records are immutable once accepted: a decision record is
+history, and current facts live in code, not in the record.
 
 ## Philosophy
 

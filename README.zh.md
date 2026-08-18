@@ -1,17 +1,20 @@
-<p align="center">
-  <img src="assets/social-preview.png" alt="ADR Kit — Open Architecture Decision Records" width="768" />
-</p>
+<div align="right">
+  <a title="English" href="README.md"><img src="https://img.shields.io/badge/-English-545759?style=for-the-badge" alt="English" /></a>
+  <a title="简体中文" href="README.zh.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-A31F34?style=for-the-badge" alt="简体中文"></a>
+</div>
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/v/adr-kit" alt="npm version" /></a>
+# ADR Kit
+
+<p>
+  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/v/adr-kit?style=flat-square&color=0e7490" alt="npm version" /></a>
   <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
-  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit" alt="npm downloads" /></a>
-  <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit" alt="node" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/npm/l/adr-kit" alt="license" /></a>
+  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit?style=flat-square&color=0e7490" alt="npm downloads" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit?style=flat-square&color=0e7490" alt="node" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/adr-kit?style=flat-square&color=0e7490" alt="license" /></a>
 </p>
 
-<p align="center">
-  <a href="README.md">English</a> | <a href="README.zh.md">中文</a>
+<p>
+  <img src="assets/social-preview.png" alt="ADR Kit — Open Architecture Decision Records" width="100%" />
 </p>
 
 ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周期：
@@ -102,6 +105,26 @@ Status: proposed
 
 `adrkit accept` 会自动完成生命周期迁移所要求的改写：`## Proposal` 改为
 `## Decision`，`Acceptance criteria` 与 `Risks` 合并进 `## Consequences`。
+
+## 灵感来源
+
+ADR Kit 站在两个项目之上，两者角色不同：
+
+- **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** 决定了这个工具*怎么建*：
+  agent 优先的 CLI、指令以 agent skills 安装、确定性的 `validate`、
+  机器可读的 `--json` 输出，以及"灵活而不僵化"的工作流。和 OpenSpec 一样，
+  ADR Kit 靠*引导* agent——会话开始可见的 skills——而不是硬性阶段门禁，
+  也不强制每次变更都记录。
+- **[deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)**
+  决定了 ADR Kit 里*记录是什么*。它的 **Agent Notes**——带 `Status:` 行的
+  纯 Markdown、生命周期文件夹（`proposed` → `implemented` → `rejected`，
+  外加冻结归档）、以及 `Problem` / `Proposal`·`Decision` /
+  `Alternatives considered` / `Consequences` 骨架——是 ADR Kit 记录格式的
+  直接祖先。
+
+是改编，不是照抄。已接受记录带 `NNNN` 编号，`supersede` 原地退役一条决策，
+`accept` 机械地把提案改写成决策。记录一旦接受就不可变：决策记录是历史，
+当前事实以代码为准，不在记录里。
 
 ## 理念
 

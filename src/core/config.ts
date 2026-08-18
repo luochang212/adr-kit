@@ -1,6 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { isMap, parseDocument } from 'yaml';
+import { isMap, isSeq, parseDocument, type Document, type YAMLMap } from 'yaml';
 
 export const ADR_DIR = 'adr';
 export const CONFIG_FILE = 'config.yaml';
@@ -47,9 +47,12 @@ export function configPath(root: string): string {
   return join(root, ADR_DIR, CONFIG_FILE);
 }
 
-export function readConfig(root: string): AdrKitConfig {
-  const file = configPath(root);
-  const text = readFileSync(file, 'utf8');
+interface ParsedConfig {
+  document: Document;
+  map: YAMLMap;
+}
+
+function parseConfigDocument(text: string): ParsedConfig {
   const document = parseDocument(text, { prettyErrors: true });
   const firstError = document.errors[0];
   if (firstError !== undefined) {
@@ -58,7 +61,13 @@ export function readConfig(root: string): AdrKitConfig {
   if (!isMap(document.contents)) {
     throw new Error(`invalid ${ADR_DIR}/${CONFIG_FILE}: top-level value must be a mapping`);
   }
-  const raw = document.contents.toJSON() as Record<string, unknown>;
+  return { document, map: document.contents };
+}
+
+export function readConfig(root: string): AdrKitConfig {
+  const file = configPath(root);
+  const { map } = parseConfigDocument(readFileSync(file, 'utf8'));
+  const raw = map.toJSON() as Record<string, unknown>;
   const config: AdrKitConfig = { raw };
   if (typeof raw.context === 'string') {
     config.context = raw.context;
@@ -77,4 +86,29 @@ export function readConfig(root: string): AdrKitConfig {
     config.rules = rules;
   }
   return config;
+}
+
+/**
+ * Update the `tools:` key of `adr/config.yaml` in place. Preserves other
+ * keys (`context`, `rules`, unknown keys) and comments attached to the
+ * surrounding YAML nodes. When the existing `tools` value is a sequence,
+ * reuse that node so its style and inline comments survive the rewrite.
+ */
+export function writeToolsConfig(root: string, tools: string[]): void {
+  const file = configPath(root);
+  const parsed = parseConfigDocument(readFileSync(file, 'utf8'));
+  const pair = parsed.map.items.find((item) => {
+    const key = item.key as { value?: unknown } | null | undefined;
+    return key?.value === 'tools';
+  });
+  const existing = pair?.value;
+  if (existing !== undefined && isSeq(existing)) {
+    existing.items.length = 0;
+    for (const tool of tools) {
+      existing.items.push(parsed.document.createNode(tool));
+    }
+  } else {
+    parsed.map.set('tools', tools);
+  }
+  writeFileSync(file, parsed.document.toString());
 }

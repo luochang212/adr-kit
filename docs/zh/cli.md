@@ -16,7 +16,8 @@
 ### `adrkit init [path] [--tools <list>]`
 
 在 `path`（默认当前目录）创建 `adr/` 仓库。`--tools` 可选值：
-`claude,codex,cursor,github-copilot,agents,all,none`。
+`claude,codex,cursor,github-copilot,agents,all,none`，用于同时写入
+AI agent 命令文件和 skills。
 
 ```text
 adr/
@@ -67,7 +68,9 @@ section 之前会被 `validate` 判定为不通过。
 
 ### `adrkit update [--tools <list>]`
 
-重写 AI 工具集成文件。未指定 `--tools` 时使用 `adr/config.yaml` 里记录的工具。
+重写 AI 工具集成文件（slash-command 文件与 skills，例如
+`.claude/skills/`、`.codex/skills/`）。未指定 `--tools` 时使用
+`adr/config.yaml` 里记录的工具。
 
 ### `adrkit config [--json]`
 
