@@ -4,7 +4,6 @@ Every ADR is plain Markdown. The first three lines are fixed:
 
 ```markdown
 # ADR: <title>
-
 Status: proposed | accepted | rejected — <reason> | superseded by NNNN
 ```
 

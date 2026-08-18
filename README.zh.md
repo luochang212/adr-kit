@@ -85,7 +85,6 @@ adrkit version                        查看版本
 
 ```markdown
 # ADR: 使用 SQLite 存储会话
-
 Status: proposed
 
 ## Problem

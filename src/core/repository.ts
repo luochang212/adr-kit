@@ -59,7 +59,6 @@ Every record starts with exactly:
 
 \`\`\`markdown
 # ADR: <title>
-
 Status: proposed | accepted | rejected — <reason>
 \`\`\`
 

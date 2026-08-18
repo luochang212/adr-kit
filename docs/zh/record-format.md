@@ -4,7 +4,6 @@
 
 ```markdown
 # ADR: <title>
-
 Status: proposed | accepted | rejected — <reason>
 ```
 

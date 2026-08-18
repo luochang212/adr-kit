@@ -92,7 +92,6 @@ Every record is plain Markdown with a three-line header:
 
 ```markdown
 # ADR: Use SQLite for session storage
-
 Status: proposed
 
 ## Problem
