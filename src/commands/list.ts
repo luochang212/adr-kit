@@ -12,7 +12,7 @@ export function listCommand(cwd: string, asJson = false): string {
       number: record.number,
       title: record.title,
       fileName: record.fileName,
-      path: relativePath(root, record),
+      path: relativePath(record),
       rejectionReason: record.rejectionReason,
       supersededBy: record.supersededBy,
     }));
@@ -37,7 +37,7 @@ export function listCommand(cwd: string, asJson = false): string {
       const supersededNote = record.status === 'superseded' && record.supersededBy !== undefined
         ? `  [superseded by ${String(record.supersededBy).padStart(4, '0')}]`
         : '';
-      lines.push(`  ${displayName(record)}${supersededNote}  (${relativePath(root, record)})`);
+      lines.push(`  ${displayName(record)}${supersededNote}  (${relativePath(record)})`);
     }
     lines.push('');
   }

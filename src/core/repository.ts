@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { basename, join, relative, resolve } from 'node:path';
-import { ADR_DIR, CONFIG_FILE, configPath, requireRoot } from './config.js';
+import { ADR_DIR, CONFIG_FILE, configPath } from './config.js';
 import { parseAdrFile, type AdrFolder, type AdrRecord } from './adr.js';
 
 export const FOLDERS: AdrFolder[] = ['decisions', 'proposed', 'rejected'];
@@ -211,6 +211,6 @@ export function displayName(record: AdrRecord): string {
   return record.title;
 }
 
-export function relativePath(root: string, record: AdrRecord): string {
+export function relativePath(record: AdrRecord): string {
   return join(ADR_DIR, record.folder, basename(record.path));
 }

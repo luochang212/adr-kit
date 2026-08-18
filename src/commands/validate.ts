@@ -16,7 +16,7 @@ export function validateCommand(cwd: string, query?: string, asJson = false): Va
       return {
         valid: issues.length === 0,
         output: JSON.stringify({
-          path: relativePath(root, record),
+          path: relativePath(record),
           valid: issues.length === 0,
           issues,
         }, null, 2),
@@ -25,7 +25,7 @@ export function validateCommand(cwd: string, query?: string, asJson = false): Va
     return {
       valid: issues.length === 0,
       output: issues.length === 0
-        ? `${relativePath(root, record)}: OK`
+        ? `${relativePath(record)}: OK`
         : formatIssues(issues),
     };
   }
