@@ -122,6 +122,21 @@ supersede), so the record stays truthful without manual date entry.
 owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 `Risks` are folded into `## Consequences`.
 
+## Compatibility with other tools
+
+ADR Kit owns one directory - `adr/` - and reads and validates only its own
+files, so it can share a repository with any tool that does not collide
+with that layout. Its agent skills are namespaced per tool (`adrkit-*`),
+and `adrkit update` only rewrites its own integrations.
+
+| Tool | Role | Relationship |
+|---|---|---|
+| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | Forward-looking: specifies what to build | Complementary - specs vs records |
+| [Changesets](https://changesets.dev) | Release tooling: versions and changelog | Orthogonal - cite the ADR number in the changeset body |
+
+When a change makes an architectural decision that should outlive the
+change, record it as an ADR.
+
 ## Sources of Inspiration
 
 ADR Kit stands on two projects, in two different roles:

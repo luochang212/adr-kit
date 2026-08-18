@@ -117,6 +117,19 @@ Date: 2026-08-19
 `adrkit accept` 会自动完成生命周期迁移所要求的改写：`## Proposal` 改为
 `## Decision`，`Acceptance criteria` 与 `Risks` 合并进 `## Consequences`。
 
+## 工具兼容性
+
+ADR Kit 只拥有一个目录——`adr/`——并且只读取和校验自己的文件，因此可以
+与任何不占用该布局的工具共处于一个仓库。它的 agent skills 按工具命名空间
+隔离（`adrkit-*`），`adrkit update` 只重写自己的集成文件。
+
+| 工具 | 角色 | 与 ADR Kit 的关系 |
+|---|---|---|
+| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | 前瞻：规定要构建什么 | 互补——规格与记录各司其职 |
+| [Changesets](https://changesets.dev) | 发布：版本号与 changelog | 正交——changeset 正文引用 ADR 编号 |
+
+当某个变更做出了应比变更本身更长命的架构决策时，把它记成一条 ADR。
+
 ## 灵感来源
 
 ADR Kit 站在两个项目之上，两者角色不同：
