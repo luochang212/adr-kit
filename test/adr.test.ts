@@ -2,13 +2,31 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
-import { parseAdrFile, renderAdr } from '../src/core/adr.js';
+import { parseAdrFile, type AdrSection } from '../src/core/adr.js';
 
 function write(relative: string, content: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'adrkit-adr-'));
   const path = join(dir, relative);
   writeFileSync(path, content);
   return path;
+}
+
+/** Test-only renderer mirroring the canonical header order. */
+function renderAdr(options: {
+  title: string;
+  status: string;
+  sections: AdrSection[];
+}): string {
+  const lines: string[] = [`# ADR: ${options.title}`, `Status: ${options.status}`, ''];
+  for (const section of options.sections) {
+    lines.push(`## ${section.heading}`, '');
+    if (section.body.trim().length > 0) {
+      lines.push(section.body.replace(/\n+$/, ''), '');
+    } else {
+      lines.push('', '');
+    }
+  }
+  return `${lines.join('\n').trimEnd()}\n`;
 }
 
 const VALID = `# ADR: Use SQLite

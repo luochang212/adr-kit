@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { readConfig, requireRoot } from '../core/config.js';
-import { nextDecisionNumber, writeRecord } from '../core/repository.js';
+import { folderPath, nextDecisionNumber, writeRecord } from '../core/repository.js';
 import { decisionTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
 
@@ -17,7 +17,7 @@ export function decideCommand(title: string, cwd: string): string {
   const number = nextDecisionNumber(root);
   const padded = String(number).padStart(4, '0');
   const fileName = `${padded}-${slugify(trimmed)}.md`;
-  const path = join(root, 'adr', 'decisions', fileName);
+  const path = join(folderPath(root, 'decisions'), fileName);
   if (existsSync(path)) {
     throw new Error(`decision already exists: adr/decisions/${fileName}`);
   }

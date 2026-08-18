@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { requireRoot } from '../core/config.js';
-import { removeRecord, resolveRecord, writeRecord } from '../core/repository.js';
+import { folderPath, readRecord, removeRecord, resolveRecord, writeRecord } from '../core/repository.js';
 
 export function rejectCommand(query: string, reason: string, cwd: string): string {
   const root = requireRoot(cwd);
@@ -14,12 +14,12 @@ export function rejectCommand(query: string, reason: string, cwd: string): strin
     throw new Error('a rejection reason is required: adrkit reject <name> --reason "..."');
   }
 
-  const path = join(root, 'adr', 'rejected', record.fileName);
+  const path = join(folderPath(root, 'rejected'), record.fileName);
   if (existsSync(path)) {
     throw new Error(`rejected record already exists: adr/rejected/${record.fileName}`);
   }
 
-  const original = readFileSync(record.path, 'utf8');
+  const original = readRecord(record);
   const lines = original.split(/\r?\n/);
   lines[1] = `Status: rejected — ${trimmedReason}`;
   writeRecord(root, 'rejected', record.fileName, lines.join('\n'));

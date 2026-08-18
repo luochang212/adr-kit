@@ -155,19 +155,3 @@ export function parseAdrFile(filePath: string): AdrRecord {
   return parsed;
 }
 
-export function renderAdr(options: {
-  title: string;
-  status: string;
-  sections: AdrSection[];
-}): string {
-  const lines: string[] = [`# ADR: ${options.title}`, `Status: ${options.status}`, ''];
-  for (const section of options.sections) {
-    lines.push(`## ${section.heading}`, '');
-    if (section.body.trim().length > 0) {
-      lines.push(section.body.replace(/\n+$/, ''), '');
-    } else {
-      lines.push('', '');
-    }
-  }
-  return `${lines.join('\n').trimEnd()}\n`;
-}

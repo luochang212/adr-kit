@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { readConfig, requireRoot } from '../core/config.js';
-import { todayStamp, writeRecord } from '../core/repository.js';
+import { folderPath, todayStamp, writeRecord } from '../core/repository.js';
 import { proposalTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
 
@@ -16,7 +16,7 @@ export function proposeCommand(title: string, cwd: string): string {
   const root = requireRoot(cwd);
   const slug = slugify(trimmed);
   const fileName = `${todayStamp()}-${slug}.md`;
-  const path = join(root, 'adr', 'proposed', fileName);
+  const path = join(folderPath(root, 'proposed'), fileName);
   if (existsSync(path)) {
     throw new Error(`proposal already exists: adr/proposed/${fileName}`);
   }
