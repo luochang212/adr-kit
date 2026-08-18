@@ -17,8 +17,8 @@ export function acceptCommand(query: string, cwd: string): string {
   if (record.folder !== 'proposed') {
     throw new Error(`"${query}" is not a proposal (it is in ${record.folder})`);
   }
-  if (/^\d{4}\s+/.test(record.title)) {
-    throw new Error('proposal title must not start with a four-digit number; ADR Kit assigns decision numbers');
+  if (/^\d+\s+/.test(record.title)) {
+    throw new Error('proposal title must not start with a number; ADR Kit assigns decision numbers');
   }
 
   const issues = validateRecord(root, record);
@@ -27,9 +27,8 @@ export function acceptCommand(query: string, cwd: string): string {
   }
 
   const number = nextDecisionNumber(root);
-  const padded = String(number).padStart(4, '0');
   const slug = record.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
-  const fileName = `${padded}-${slug}.md`;
+  const fileName = `${number}-${slug}.md`;
   const path = join(folderPath(root, 'decisions'), fileName);
   if (existsSync(path)) {
     throw new Error(`decision already exists: adr/decisions/${fileName}`);

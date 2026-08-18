@@ -4,7 +4,7 @@ Every ADR is plain Markdown. The first three lines are fixed:
 
 ```markdown
 # ADR: <title>
-Status: proposed | accepted | rejected — <reason> | superseded by NNNN
+Status: proposed | accepted | rejected — <reason> | superseded by N
 ```
 
 No front matter. No special syntax.
@@ -26,7 +26,7 @@ after HTML comments are stripped.
 
 ## Accepted decisions
 
-File name: `NNNN-slug.md`. Title: `# ADR: NNNN <title>`. Required sections:
+File name: `N-slug.md`. Title: `# ADR: N <title>`. Required sections:
 
 ```markdown
 ## Problem
@@ -42,7 +42,7 @@ Superseded decisions keep the accepted shape but carry the replacing
 decision number on the status line:
 
 ```markdown
-Status: superseded by 0006
+Status: superseded by 6
 ```
 
 `validate` checks that the referenced number exists and is not itself

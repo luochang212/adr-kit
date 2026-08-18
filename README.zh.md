@@ -45,7 +45,7 @@ adrkit propose "使用 SQLite 存储会话"
 adr/
 ├── config.yaml      # 项目上下文与分状态规则
 ├── README.md        # 仓库约定
-├── decisions/       # 已接受决策，按 NNNN 编号
+├── decisions/       # 已接受决策，按 N 编号
 ├── proposed/        # 待决策提案
 └── rejected/        # 已拒绝提案，冻结保存
 ```
@@ -64,7 +64,7 @@ adrkit list
 adrkit init [path] [--tools <list>]   初始化 ADR Kit 仓库
 adrkit propose <title>                创建提案
 adrkit decide <title>                 直接记录已接受的决策
-adrkit accept <name>                  接受提案（分配 NNNN 编号）
+adrkit accept <name>                  接受提案（分配 N 编号）
 adrkit reject <name> --reason <text>  拒绝提案
 adrkit supersede <name> --by <name>   标记已接受决策被新决策取代
 adrkit list [--json]                  列出所有记录
@@ -78,7 +78,7 @@ adrkit completion <bash|zsh|fish>     打印 shell 补全脚本
 adrkit version                        查看版本
 ```
 
-`<name>` 支持按标题、文件名或决策编号（`0001`）查找。
+`<name>` 支持按标题、文件名或决策编号（`1`）查找。
 
 ## 文档
 
@@ -107,8 +107,8 @@ Status: proposed
   `Consequences`；`validate` 会拒绝提案时代的标题出现在已接受决策中。
 - **Rejected** 冻结提案，拒绝原因写在状态行：`Status: rejected — <reason>`。
 - **Superseded** 决策保留在 `adr/decisions/` 作为历史，状态行指向取代它的决策：
-  `Status: superseded by NNNN`。`adrkit supersede <旧> --by <新>` 完成改写；
-  `validate` 校验 `NNNN` 存在且自身未被取代。
+  `Status: superseded by N`。`adrkit supersede <旧> --by <新>` 完成改写；
+  `validate` 校验 `N` 存在且自身未被取代。
 
 `adrkit accept` 会自动完成生命周期迁移所要求的改写：`## Proposal` 改为
 `## Decision`，`Acceptance criteria` 与 `Risks` 合并进 `## Consequences`。
@@ -129,7 +129,7 @@ ADR Kit 站在两个项目之上，两者角色不同：
   `Alternatives considered` / `Consequences` 骨架，是 ADR Kit 记录格式的
   直接祖先。
 
-是改编，不是照抄。已接受记录带 `NNNN` 编号，`supersede` 原地退役一条决策，
+是改编，不是照抄。已接受记录带 `N` 编号，`supersede` 原地退役一条决策，
 `accept` 机械地把提案改写成决策。记录一旦接受就不可变：决策记录是历史，
 当前事实以代码为准，不在记录里。
 

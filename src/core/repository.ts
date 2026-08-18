@@ -49,7 +49,7 @@ machine-checkable header and lifecycle folders.
 
 | Folder | Meaning |
 | --- | --- |
-| \`decisions/\` | Accepted and superseded decisions, numbered \`NNNN\`, immutable history |
+| \`decisions/\` | Accepted and superseded decisions, numbered sequentially, immutable history |
 | \`proposed/\` | Proposals that are not yet accepted or rejected |
 | \`rejected/\` | Rejected proposals, frozen for the record |
 
@@ -62,7 +62,7 @@ Every record starts with exactly:
 Status: proposed | accepted | rejected — <reason>
 \`\`\`
 
-Accepted decisions use \`# ADR: NNNN <title>\` and require
+Accepted decisions use \`# ADR: N <title>\` and require
 \`Problem\`, \`Decision\`, \`Alternatives considered\`, and \`Consequences\`.
 Proposals require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
 \`Acceptance criteria\`, and \`Risks\`.
@@ -136,10 +136,11 @@ export function listRecords(root: string): AdrRecord[] {
 
 export function resolveRecord(root: string, query: string): AdrRecord {
   const records = listRecords(root);
-  const normalized = query.trim();
+  // Leading zeros are tolerated so "0001" still resolves decision 1.
+  const normalized = query.trim().replace(/^0+(?=\d)/, '');
   const candidates = records.filter((record) => {
     const bareName = record.fileName.replace(/\.md$/, '');
-    const slug = bareName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/^\d{4}-/, '');
+    const slug = bareName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/^\d+-/, '');
     if (record.fileName === normalized || bareName === normalized || slug === normalized) {
       return true;
     }
@@ -147,8 +148,7 @@ export function resolveRecord(root: string, query: string): AdrRecord {
       return true;
     }
     if (record.folder === 'decisions') {
-      const padded = String(record.number ?? 0).padStart(4, '0');
-      if (padded === normalized || String(record.number ?? 0) === normalized) {
+      if (String(record.number ?? 0) === normalized) {
         return true;
       }
     }
@@ -203,9 +203,8 @@ export function readRecord(record: AdrRecord): string {
 
 export function displayName(record: AdrRecord): string {
   if (record.folder === 'decisions' && Number.isInteger(record.number)) {
-    const padded = String(record.number).padStart(4, '0');
-    const titleWithoutNumber = record.title.replace(/^\d{4}\s+/, '');
-    return `[${padded}] ${titleWithoutNumber}`;
+    const titleWithoutNumber = record.title.replace(/^\d+\s+/, '');
+    return `[${record.number}] ${titleWithoutNumber}`;
   }
   return record.title;
 }

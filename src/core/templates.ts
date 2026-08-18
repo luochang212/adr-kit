@@ -52,8 +52,7 @@ ${contextBlock(context)}## Problem
 }
 
 export function decisionTemplate(number: number, title: string, context?: string): string {
-  const padded = String(number).padStart(4, '0');
-  return `# ADR: ${padded} ${title}
+  return `# ADR: ${number} ${title}
 Status: accepted
 
 ${contextBlock(context)}## Problem
@@ -116,8 +115,7 @@ export function proposalToDecision(proposal: AdrRecord, number: number): string 
     consequences.push('_No consequences recorded._', '');
   }
 
-  const padded = String(number).padStart(4, '0');
-  return `# ADR: ${padded} ${proposal.title}
+  return `# ADR: ${number} ${proposal.title}
 Status: accepted
 
 ## Problem

@@ -8,7 +8,7 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     throw new Error(`"${query}" is not an accepted decision (it is in ${record.folder})`);
   }
   if (record.status === 'superseded') {
-    const current = String(record.supersededBy ?? 0).padStart(4, '0');
+    const current = record.supersededBy ?? 0;
     throw new Error(
       `"${query}" is already superseded by ${current}; supersede that decision instead if it is now outdated`,
     );
@@ -33,7 +33,7 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   if (lines[1] !== 'Status: accepted') {
     throw new Error(`unexpected status line "${lines[1] ?? ''}" in ${record.fileName}`);
   }
-  lines[1] = `Status: superseded by ${String(replacement.number).padStart(4, '0')}`;
+  lines[1] = `Status: superseded by ${replacement.number}`;
   writeRecord(root, 'decisions', record.fileName, lines.join('\n'));
   return `superseded adr/decisions/${record.fileName} by adr/decisions/${replacement.fileName}`;
 }

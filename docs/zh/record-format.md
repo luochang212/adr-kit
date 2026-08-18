@@ -4,7 +4,7 @@
 
 ```markdown
 # ADR: <title>
-Status: proposed | accepted | rejected — <reason> | superseded by NNNN
+Status: proposed | accepted | rejected — <reason> | superseded by N
 ```
 
 没有 front matter，也没有特殊语法。
@@ -25,7 +25,7 @@ Status: proposed | accepted | rejected — <reason> | superseded by NNNN
 
 ## 已接受决策（Accepted）
 
-文件名：`NNNN-slug.md`。标题：`# ADR: NNNN <title>`。必需 section：
+文件名：`N-slug.md`。标题：`# ADR: N <title>`。必需 section：
 
 ```markdown
 ## Problem
@@ -40,7 +40,7 @@ Status: proposed | accepted | rejected — <reason> | superseded by NNNN
 被取代的决策保持已接受形态，但状态行携带取代它的决策编号：
 
 ```markdown
-Status: superseded by 0006
+Status: superseded by 6
 ```
 
 `validate` 会校验被引用的编号存在且自身未被取代。被取代的记录留在

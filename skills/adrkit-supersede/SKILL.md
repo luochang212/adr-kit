@@ -8,7 +8,7 @@ description: Use when an accepted decision is replaced by a newer accepted decis
 ## Overview
 
 Mark an accepted decision as superseded. The CLI rewrites only its status
-line to `Status: superseded by NNNN` and leaves the record in
+line to `Status: superseded by N` and leaves the record in
 `adr/decisions/` as frozen history.
 
 ## Steps

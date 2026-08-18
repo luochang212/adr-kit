@@ -10,8 +10,8 @@ export function proposeCommand(title: string, cwd: string): string {
   if (trimmed.length === 0) {
     throw new Error('title must not be empty');
   }
-  if (/^\d{4}\s+/.test(trimmed)) {
-    throw new Error('title must not start with a four-digit number; ADR Kit assigns decision numbers');
+  if (/^\d+\s+/.test(trimmed)) {
+    throw new Error('title must not start with a number; ADR Kit assigns decision numbers');
   }
   const root = requireRoot(cwd);
   const slug = slugify(trimmed);

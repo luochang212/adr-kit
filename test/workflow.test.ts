@@ -35,8 +35,8 @@ describe('statusCommand', () => {
   it('reports json with issues when a decision is invalid', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '0001-broken.md'),
-      '# ADR: 0001 Broken\nStatus: accepted\n\n## Problem\n\nBody.\n',
+      join(folderPath(root, 'decisions'), '1-broken.md'),
+      '# ADR: 1 Broken\nStatus: accepted\n\n## Problem\n\nBody.\n',
     );
     const result = statusCommand(root, true);
     expect(result.valid).toBe(false);
@@ -182,8 +182,8 @@ Body.
   it('prioritizes pending proposals over unrelated validation issues', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '0001-broken.md'),
-      '# ADR: 0001 Broken\nStatus: accepted\n\n## Problem\n\nBody.\n',
+      join(folderPath(root, 'decisions'), '1-broken.md'),
+      '# ADR: 1 Broken\nStatus: accepted\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;

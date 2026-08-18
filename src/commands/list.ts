@@ -35,7 +35,7 @@ export function listCommand(cwd: string, asJson = false): string {
     lines.push(labels[folder] ?? folder, '');
     for (const record of group) {
       const supersededNote = record.status === 'superseded' && record.supersededBy !== undefined
-        ? `  [superseded by ${String(record.supersededBy).padStart(4, '0')}]`
+        ? `  [superseded by ${record.supersededBy}]`
         : '';
       lines.push(`  ${displayName(record)}${supersededNote}  (${relativePath(record)})`);
     }

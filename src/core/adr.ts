@@ -70,7 +70,7 @@ export function hasMeaningfulBody(body: string | undefined): boolean {
  *
  * The format is deliberately plain Markdown, with no front matter:
  *
- *   # ADR: <title or "NNNN Title">
+ *   # ADR: <title or "N Title">
  *   Status: proposed | accepted | rejected — <reason>
  *   <blank line>
  *   ## Problem
@@ -108,12 +108,12 @@ export function parseAdrFile(filePath: string): AdrRecord {
     if (rejectionReason.length === 0) {
       throw new AdrFormatError('rejected status must include a reason', filePath);
     }
-  } else if (/^superseded by \d{1,4}$/.test(statusText)) {
+  } else if (/^superseded by \d+$/.test(statusText)) {
     status = 'superseded';
     supersededBy = Number(statusText.slice('superseded by '.length));
   } else {
     throw new AdrFormatError(
-      'status must be "proposed", "accepted", "rejected — <reason>", or "superseded by NNNN"',
+      'status must be "proposed", "accepted", "rejected — <reason>", or "superseded by N"',
       filePath,
     );
   }
@@ -138,7 +138,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
   }
   if (current !== null) sections.push(current);
 
-  const numberMatch = title.match(/^(\d{4})\s+(.+)$/);
+  const numberMatch = title.match(/^(\d+)\s+(.+)$/);
   const parsed: AdrRecord = {
     folder: 'proposed',
     path: filePath,

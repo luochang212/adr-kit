@@ -106,7 +106,7 @@ adrkit propose "<title>"
 ## Overview
 
 Create an accepted decision draft directly in \`adr/decisions/\` with the
-next \`NNNN\` number.
+next \`N\` number.
 
 ## Steps
 
@@ -118,7 +118,7 @@ adrkit decide "<title>"
 
 2. Edit the created file and fill \`## Problem\`, \`## Decision\`,
    \`## Alternatives considered\`, and \`## Consequences\`.
-3. Run \`adrkit validate <NNNN>\` until it returns OK.
+3. Run \`adrkit validate <N>\` until it returns OK.
 
 ## Rules
 
@@ -158,7 +158,7 @@ adrkit validate [name] [--all] [--json]
 ## Overview
 
 Accept a proposal. The CLI validates the proposal, assigns the next
-\`NNNN\` decision number, rewrites \`## Proposal\` to \`## Decision\`, folds
+\`N\` decision number, rewrites \`## Proposal\` to \`## Decision\`, folds
 \`Acceptance criteria\` and \`Risks\` into \`## Consequences\`, and moves the
 file from \`adr/proposed/\` to \`adr/decisions/\`.
 
@@ -171,7 +171,7 @@ file from \`adr/proposed/\` to \`adr/decisions/\`.
 adrkit accept "<name>"
 \`\`\`
 
-3. Confirm the output names the new \`adr/decisions/NNNN-*.md\` file.
+3. Confirm the output names the new \`adr/decisions/N-*.md\` file.
 
 ## Rules
 
@@ -212,7 +212,7 @@ adrkit reject "<name>" --reason "<why it was rejected>"
 ## Overview
 
 Mark an accepted decision as superseded. The CLI rewrites only its status
-line to \`Status: superseded by NNNN\` and leaves the record in
+line to \`Status: superseded by N\` and leaves the record in
 \`adr/decisions/\` as frozen history.
 
 ## Steps

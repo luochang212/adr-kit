@@ -95,7 +95,7 @@ describe('propose and validate', () => {
     proposeCommand('Use SQLite', root);
     fillProposal(root);
     const output = acceptCommand('Use SQLite', root);
-    expect(output).toContain('adr/decisions/0001-use-sqlite.md');
+    expect(output).toContain('adr/decisions/1-use-sqlite.md');
 
     const list = JSON.parse(listCommand(root, true)) as Array<Record<string, unknown>>;
     expect(list).toHaveLength(1);
@@ -173,7 +173,7 @@ describe('decide and show', () => {
   it('creates an accepted decision draft directly', () => {
     const root = makeRepo();
     decideCommand('Use SQLite', root);
-    const shown = showCommand('0001', root);
+    const shown = showCommand('1', root);
     expect(shown).toContain('Status: accepted');
     expect(shown).toContain('## Decision');
   });

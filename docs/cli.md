@@ -36,12 +36,12 @@ expected to fail `validate` until every required section is filled in.
 
 ### `adrkit decide <title>`
 
-Create an accepted decision draft in `adr/decisions/NNNN-slug.md` with the
+Create an accepted decision draft in `adr/decisions/N-slug.md` with the
 next available number.
 
 ### `adrkit accept <name>`
 
-Validate a proposal, assign the next `NNNN` number, rewrite the lifecycle
+Validate a proposal, assign the next `N` number, rewrite the lifecycle
 sections, and move the file from `adr/proposed/` to `adr/decisions/`.
 
 ### `adrkit reject <name> --reason <text>`
@@ -52,7 +52,7 @@ line.
 ### `adrkit supersede <name> --by <name>`
 
 Mark an accepted decision as superseded by a newer accepted decision. The
-status line of the old record becomes `Status: superseded by NNNN`; the file
+status line of the old record becomes `Status: superseded by N`; the file
 stays in `adr/decisions/` as history. `--by` must resolve to an existing
 accepted decision that is not itself superseded.
 

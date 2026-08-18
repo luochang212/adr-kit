@@ -65,11 +65,11 @@ describe('supersedeCommand', () => {
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
 
-    const message = supersedeCommand('0001', '0002', root);
-    expect(message).toMatch(/superseded adr\/decisions\/0001-.+ by adr\/decisions\/0002-.+/);
+    const message = supersedeCommand('1', '2', root);
+    expect(message).toMatch(/superseded adr\/decisions\/1-.+ by adr\/decisions\/2-.+/);
 
-    const old = readFileSync(join(root, 'adr', 'decisions', '0001-use-sqlite.md'), 'utf8');
-    expect(old.split(/\r?\n/)[1]).toBe('Status: superseded by 0002');
+    const old = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
+    expect(old.split(/\r?\n/)[1]).toBe('Status: superseded by 2');
 
     const result = validateCommand(root, undefined, false);
     expect(result.valid).toBe(true);
@@ -79,7 +79,7 @@ describe('supersedeCommand', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
-    supersedeCommand('0001', '0002', root);
+    supersedeCommand('1', '2', root);
 
     const parsed = JSON.parse(statusCommand(root, true).output) as {
       counts: { accepted: number; superseded: number };
@@ -91,16 +91,16 @@ describe('supersedeCommand', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
-    supersedeCommand('0001', '0002', root);
+    supersedeCommand('1', '2', root);
 
-    expect(listCommand(root, false)).toContain('[superseded by 0002]');
+    expect(listCommand(root, false)).toContain('[superseded by 2]');
   });
 
   it('refuses to supersede a proposal', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use Postgres');
     proposeCommand('Use SQLite', root);
-    expect(() => supersedeCommand('use-sqlite', '0001', root)).toThrow(
+    expect(() => supersedeCommand('use-sqlite', '1', root)).toThrow(
       'is not an accepted decision',
     );
   });
@@ -108,21 +108,21 @@ describe('supersedeCommand', () => {
   it('refuses to supersede with a missing decision', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
-    expect(() => supersedeCommand('0001', '9999', root)).toThrow('no ADR matches');
+    expect(() => supersedeCommand('1', '9999', root)).toThrow('no ADR matches');
   });
 
   it('refuses self-supersede', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
-    expect(() => supersedeCommand('0001', '0001', root)).toThrow('cannot supersede itself');
+    expect(() => supersedeCommand('1', '1', root)).toThrow('cannot supersede itself');
   });
 
   it('refuses to supersede an already-superseded decision', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
-    supersedeCommand('0001', '0002', root);
-    expect(() => supersedeCommand('0001', '0002', root)).toThrow('already superseded by 0002');
+    supersedeCommand('1', '2', root);
+    expect(() => supersedeCommand('1', '2', root)).toThrow('already superseded by 2');
   });
 
   it('refuses superseding with an already-superseded decision', () => {
@@ -130,8 +130,8 @@ describe('supersedeCommand', () => {
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
     acceptDecision(root, 'Use Spanner');
-    supersedeCommand('0002', '0003', root);
-    expect(() => supersedeCommand('0001', '0002', root)).toThrow('is itself superseded');
+    supersedeCommand('2', '3', root);
+    expect(() => supersedeCommand('1', '2', root)).toThrow('is itself superseded');
   });
 });
 
@@ -139,7 +139,7 @@ describe('validate superseded references', () => {
   it('flags a dangling superseded-by reference', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
-    const path = join(root, 'adr', 'decisions', '0001-use-sqlite.md');
+    const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
     const lines = readFileSync(path, 'utf8').split(/\r?\n/);
     lines[1] = 'Status: superseded by 9999';
     writeFileSync(path, lines.join('\n'));
@@ -153,11 +153,11 @@ describe('validate superseded references', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
-    supersedeCommand('0001', '0002', root);
+    supersedeCommand('1', '2', root);
 
-    // 手工制造 0003 并让它指向已被取代的 0001，验证 validate 拒绝悬空链
-    writeFileSync(join(root, 'adr', 'decisions', '0003-use-spanner.md'), `# ADR: 0003 Use Spanner
-Status: superseded by 0001
+    // 手工制造 3 并让它指向已被取代的 1，验证 validate 拒绝悬空链
+    writeFileSync(join(root, 'adr', 'decisions', '3-use-spanner.md'), `# ADR: 3 Use Spanner
+Status: superseded by 1
 
 ## Problem
 

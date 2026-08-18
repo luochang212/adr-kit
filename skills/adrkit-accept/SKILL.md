@@ -8,7 +8,7 @@ description: Use when a proposed ADR is complete and validated, and the team has
 ## Overview
 
 Accept a proposal. The CLI validates the proposal, assigns the next
-`NNNN` decision number, rewrites `## Proposal` to `## Decision`, folds
+`N` decision number, rewrites `## Proposal` to `## Decision`, folds
 `Acceptance criteria` and `Risks` into `## Consequences`, and moves the
 file from `adr/proposed/` to `adr/decisions/`.
 
@@ -21,7 +21,7 @@ file from `adr/proposed/` to `adr/decisions/`.
 adrkit accept "<name>"
 ```
 
-3. Confirm the output names the new `adr/decisions/NNNN-*.md` file.
+3. Confirm the output names the new `adr/decisions/N-*.md` file.
 
 ## Rules
 

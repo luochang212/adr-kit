@@ -22,7 +22,7 @@ Usage:
   adrkit init [path] [--tools <list>]        Initialize an ADR Kit repository
   adrkit propose <title>                     Create a proposed decision
   adrkit decide <title>                      Create an accepted decision draft
-  adrkit accept <name>                       Accept a proposal (assigns NNNN)
+  adrkit accept <name>                       Accept a proposal (assigns the next number)
   adrkit reject <name> --reason <reason>     Reject a proposal
   adrkit supersede <name> --by <name>        Mark an accepted decision as superseded
   adrkit list [--json]                       List all decision records

@@ -8,7 +8,7 @@ description: Use when recording a decision that is already accepted and does not
 ## Overview
 
 Create an accepted decision draft directly in `adr/decisions/` with the
-next `NNNN` number.
+next `N` number.
 
 ## Steps
 
@@ -20,7 +20,7 @@ adrkit decide "<title>"
 
 2. Edit the created file and fill `## Problem`, `## Decision`,
    `## Alternatives considered`, and `## Consequences`.
-3. Run `adrkit validate <NNNN>` until it returns OK.
+3. Run `adrkit validate <N>` until it returns OK.
 
 ## Rules
 

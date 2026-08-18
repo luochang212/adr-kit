@@ -15,7 +15,7 @@ owed:
 
 - `## Proposal` becomes `## Decision`
 - `Acceptance criteria` and `Risks` are folded into `## Consequences`
-- the file moves from `adr/proposed/` to `adr/decisions/NNNN-slug.md`
+- the file moves from `adr/proposed/` to `adr/decisions/N-slug.md`
 
 ## Rejection
 
@@ -34,10 +34,10 @@ outdated record:
 ```text
 adrkit decide "Use Postgres for session storage"
 # fill in the new decision, validate it
-adrkit supersede 0001 --by 0002
+adrkit supersede 1 --by 2
 ```
 
-The old record stays in `adr/decisions/` with `Status: superseded by 0002`
+The old record stays in `adr/decisions/` with `Status: superseded by 2`
 on the status line. Only the status line is rewritten; the body is frozen
 history. `validate` checks that the referenced number exists and is not
 itself superseded, so a chain always ends at a currently-accepted decision.
@@ -47,7 +47,7 @@ itself superseded, so a chain always ends at a currently-accepted decision.
 ```text
 adrkit decide "Use SQLite for session storage"
 # fill in the draft
-adrkit validate 0001
+adrkit validate 1
 ```
 
 ## Agent workflow

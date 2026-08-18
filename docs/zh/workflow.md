@@ -14,7 +14,7 @@ adrkit accept "使用 SQLite 存储会话"
 
 - `## Proposal` 改为 `## Decision`
 - `Acceptance criteria` 和 `Risks` 合并进 `## Consequences`
-- 文件从 `adr/proposed/` 移动到 `adr/decisions/NNNN-slug.md`
+- 文件从 `adr/proposed/` 移动到 `adr/decisions/N-slug.md`
 
 ## 拒绝提案
 
@@ -31,10 +31,10 @@ adrkit reject "使用 SQLite 存储会话" --reason "我们最终选择了 JSON 
 ```text
 adrkit decide "使用 Postgres 存储会话"
 # 填写新决策并校验
-adrkit supersede 0001 --by 0002
+adrkit supersede 1 --by 2
 ```
 
-旧记录留在 `adr/decisions/`，状态行为 `Status: superseded by 0002`。
+旧记录留在 `adr/decisions/`，状态行为 `Status: superseded by 2`。
 只改写状态行；正文是冻结历史。`validate` 会校验被引用的编号存在且
 自身未被取代，所以链条总是终止于当前仍被接受的决策。
 
@@ -43,7 +43,7 @@ adrkit supersede 0001 --by 0002
 ```text
 adrkit decide "使用 SQLite 存储会话"
 # 填写草稿
-adrkit validate 0001
+adrkit validate 1
 ```
 
 ## Agent 工作流

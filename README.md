@@ -45,7 +45,7 @@ adrkit propose "Use SQLite for session storage"
 adr/
 ├── config.yaml      # project context and per-status rules
 ├── README.md        # repository conventions
-├── decisions/       # accepted decisions, numbered NNNN
+├── decisions/       # accepted decisions, numbered N
 ├── proposed/        # proposals waiting for a decision
 └── rejected/        # rejected proposals, frozen
 ```
@@ -64,7 +64,7 @@ adrkit list
 adrkit init [path] [--tools <list>]    Initialize an ADR Kit repository
 adrkit propose <title>                 Create a proposed decision
 adrkit decide <title>                  Record an already-accepted decision
-adrkit accept <name>                   Accept a proposal (assigns NNNN)
+adrkit accept <name>                   Accept a proposal (assigns N)
 adrkit reject <name> --reason <text>   Reject a proposal
 adrkit supersede <name> --by <name>    Mark an accepted decision as superseded
 adrkit list [--json]                   List all records
@@ -78,7 +78,7 @@ adrkit completion <bash|zsh|fish>      Print a shell completion script
 adrkit version                         Print the version
 ```
 
-`<name>` resolves by title, file name, or decision number (`0001`).
+`<name>` resolves by title, file name, or decision number (`1`).
 
 ## Docs
 
@@ -109,9 +109,9 @@ Status: proposed
 - **Rejected** proposals are frozen with the reason on the status line:
   `Status: rejected — <reason>`.
 - **Superseded** decisions stay in `adr/decisions/` as history, with the
-  replacing decision on the status line: `Status: superseded by NNNN`.
+  replacing decision on the status line: `Status: superseded by N`.
   `adrkit supersede <old> --by <new>` performs the rewrite; `validate`
-  checks that `NNNN` exists and is not itself superseded.
+  checks that `N` exists and is not itself superseded.
 
 `adrkit accept` performs the mechanical rewrite a lifecycle move always
 owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
@@ -135,7 +135,7 @@ ADR Kit stands on two projects, in two different roles:
   `Consequences` skeleton: that is the direct ancestor of the ADR Kit record
   format.
 
-Adapted, not copied. Accepted records carry a `NNNN` number, `supersede`
+Adapted, not copied. Accepted records carry a `N` number, `supersede`
 retires a decision in place, and `accept` mechanically rewrites a proposal
 into a decision. Records are immutable once accepted: a decision record is
 history, and current facts live in code, not in the record.

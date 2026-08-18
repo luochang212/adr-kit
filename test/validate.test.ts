@@ -29,7 +29,7 @@ describe('validateCommand', () => {
 
   it('detects duplicate decision numbers', () => {
     const root = makeRepo();
-    const content = `# ADR: 0001 First
+    const content = `# ADR: 1 First
 Status: accepted
 
 ## Problem
@@ -48,8 +48,8 @@ Body.
 
 Body.
 `;
-    writeFileSync(join(folderPath(root, 'decisions'), '0001-first.md'), content);
-    writeFileSync(join(folderPath(root, 'decisions'), '0001-second.md'), content);
+    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'), content);
+    writeFileSync(join(folderPath(root, 'decisions'), '1-second.md'), content);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('duplicate decision number');
@@ -57,7 +57,7 @@ Body.
 
   it('rejects proposal-era headings in accepted decisions', () => {
     const root = makeRepo();
-    const content = `# ADR: 0001 First
+    const content = `# ADR: 1 First
 Status: accepted
 
 ## Problem
@@ -76,7 +76,7 @@ Body.
 
 Body.
 `;
-    writeFileSync(join(folderPath(root, 'decisions'), '0001-first.md'), content);
+    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'), content);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('proposal-era section');

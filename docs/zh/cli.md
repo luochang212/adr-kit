@@ -35,11 +35,11 @@ section 之前会被 `validate` 判定为不通过。
 
 ### `adrkit decide <title>`
 
-在 `adr/decisions/NNNN-slug.md` 创建已接受决策草稿。
+在 `adr/decisions/N-slug.md` 创建已接受决策草稿。
 
 ### `adrkit accept <name>`
 
-校验提案，分配下一个 `NNNN` 编号，改写生命周期 section，并把文件从
+校验提案，分配下一个 `N` 编号，改写生命周期 section，并把文件从
 `adr/proposed/` 移动到 `adr/decisions/`。
 
 ### `adrkit reject <name> --reason <text>`
