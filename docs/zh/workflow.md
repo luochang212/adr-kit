@@ -24,6 +24,20 @@ adrkit reject "使用 SQLite 存储会话" --reason "我们最终选择了 JSON 
 
 提案冻结在 `adr/rejected/`，原因写入状态行。
 
+## 取代一条已接受决策
+
+决策会被推翻。先记录替代决策，再退役过时记录：
+
+```text
+adrkit decide "使用 Postgres 存储会话"
+# 填写新决策并校验
+adrkit supersede 0001 --by 0002
+```
+
+旧记录留在 `adr/decisions/`，状态行为 `Status: superseded by 0002`。
+只改写状态行；正文是冻结历史。`validate` 会校验被引用的编号存在且
+自身未被取代，所以链条总是终止于当前仍被接受的决策。
+
 ## 直接记录已接受决策
 
 ```text

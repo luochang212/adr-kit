@@ -63,7 +63,7 @@ adrkit list
 ## 命令
 
 ```text
-adrkit init [path]                   初始化 ADR Kit 仓库
+adrkit init [path] [--tools <list>]   初始化 ADR Kit 仓库
 adrkit propose <title>                创建提案
 adrkit decide <title>                 直接记录已接受的决策
 adrkit accept <name>                  接受提案（分配 NNNN 编号）
@@ -72,7 +72,7 @@ adrkit supersede <name> --by <name>   标记已接受决策被新决策取代
 adrkit list [--json]                  列出所有记录
 adrkit show <name>                    查看记录
 adrkit status [--json]                查看生命周期计数与校验状态
-adrkit instructions [--json]          查看下一步该做什么
+adrkit instructions [--json]          查看下一步；标注待决提案已就绪或需修改
 adrkit validate [name] [--all] [--json] 校验单条记录或整个仓库
 adrkit update [--tools <list>]         重写 AI 工具集成文件
 adrkit config [--json]                查看当前配置

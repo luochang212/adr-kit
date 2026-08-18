@@ -4,7 +4,7 @@
 
 ```markdown
 # ADR: <title>
-Status: proposed | accepted | rejected — <reason>
+Status: proposed | accepted | rejected — <reason> | superseded by NNNN
 ```
 
 没有 front matter，也没有特殊语法。
@@ -36,6 +36,15 @@ Status: proposed | accepted | rejected — <reason>
 
 已接受决策中禁止出现提案时代的标题（`Proposal`、`Acceptance criteria`、
 `Risks`、`Plan`、`Migration plan`）。
+
+被取代的决策保持已接受形态，但状态行携带取代它的决策编号：
+
+```markdown
+Status: superseded by 0006
+```
+
+`validate` 会校验被引用的编号存在且自身未被取代。被取代的记录留在
+`adr/decisions/` 作为冻结历史。
 
 ## 已拒绝提案（Rejected）
 

@@ -60,7 +60,10 @@ section 之前会被 `validate` 判定为不通过。
 
 ### `adrkit instructions [--json]`
 
-打印下一步该做什么。
+打印下一步工作流步骤（init、fix validation、decide 或 propose）。有待决
+提案时，每条提案会标注为已验证（可直接接受）或需要修改，因此下一步是
+可执行动作而非方向。`--json` 模式下就绪状态通过 `readyToAccept` 和
+`needsWork` 字段暴露在 `pending` 列表旁边。
 
 ### `adrkit validate [name] [--all] [--json]`
 

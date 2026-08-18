@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/luochang212/adr-kit.git"
+    "url": "git+https://github.com/luochang212/adr-kit.git"
   },
   "homepage": "https://github.com/luochang212/adr-kit#readme",
   "bugs": {

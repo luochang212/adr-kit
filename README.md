@@ -63,7 +63,7 @@ adrkit list
 ## Commands
 
 ```text
-adrkit init [path]                    Initialize an ADR Kit repository
+adrkit init [path] [--tools <list>]    Initialize an ADR Kit repository
 adrkit propose <title>                 Create a proposed decision
 adrkit decide <title>                  Record an already-accepted decision
 adrkit accept <name>                   Accept a proposal (assigns NNNN)
