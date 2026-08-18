@@ -1,6 +1,6 @@
 <div align="right">
-  <a title="English" href="https://unpkg.com/adr-kit/README.md"><img src="https://img.shields.io/badge/-English-545759?style=for-the-badge" alt="English" /></a>
-  <a title="简体中文" href="https://unpkg.com/adr-kit/README.zh.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-A31F34?style=for-the-badge" alt="简体中文"></a>
+  <a title="English" href="https://github.com/luochang212/adr-kit/blob/main/README.md"><img src="https://img.shields.io/badge/-English-545759?style=for-the-badge" alt="English" /></a>
+  <a title="简体中文" href="https://github.com/luochang212/adr-kit/blob/main/README.zh.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-A31F34?style=for-the-badge" alt="简体中文"></a>
 </div>
 
 # ADR Kit
@@ -10,11 +10,11 @@
   <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
   <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit?style=flat-square&color=0e7490" alt="npm downloads" /></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit?style=flat-square&color=0e7490" alt="node" /></a>
-  <a href="https://unpkg.com/adr-kit/LICENSE"><img src="https://img.shields.io/npm/l/adr-kit?style=flat-square&color=0e7490" alt="license" /></a>
+  <a href="https://github.com/luochang212/adr-kit/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/adr-kit?style=flat-square&color=0e7490" alt="license" /></a>
 </p>
 
 <p>
-  <img src="https://unpkg.com/adr-kit/assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
+  <img src="https://raw.githubusercontent.com/luochang212/adr-kit/main/assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
 </p>
 
 ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周期：
@@ -146,4 +146,4 @@ npm run build
 
 ## 许可证
 
-[MIT](https://unpkg.com/adr-kit/LICENSE)
+[MIT](https://github.com/luochang212/adr-kit/blob/main/LICENSE)
