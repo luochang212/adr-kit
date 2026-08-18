@@ -1,6 +1,22 @@
-# OpenADR
+<p align="center">
+  <img src="assets/social-preview.png" alt="OpenADR — Open Architecture Decision Records" width="768" />
+</p>
 
-**Open Architecture Decision Records** —— 面向人和 agent 的轻量级架构决策记录工作流。
+<p align="center">
+  <strong>Open Architecture Decision Records</strong> —— 面向人和 agent 的轻量级架构决策记录工作流。
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@luochang212/openadr"><img src="https://img.shields.io/npm/v/@luochang212/openadr" alt="npm version" /></a>
+  <a href="https://github.com/luochang212/OpenADR/actions/workflows/ci.yml"><img src="https://github.com/luochang212/OpenADR/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
+  <a href="https://www.npmjs.com/package/@luochang212/openadr"><img src="https://img.shields.io/npm/dm/@luochang212/openadr" alt="npm downloads" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/@luochang212/openadr" alt="node" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/@luochang212/openadr" alt="license" /></a>
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> | <a href="README.zh.md">中文</a>
+</p>
 
 OpenADR 把架构决策变成纯 Markdown 文件，并带有机检的生命周期：
 **proposed → accepted / rejected / superseded**。它借鉴了

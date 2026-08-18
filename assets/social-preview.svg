@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0D1117"/>
+      <stop offset="1" stop-color="#161B27"/>
+    </linearGradient>
+    <linearGradient id="glyph" x1="164" y1="142" x2="352" y2="370" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- Logo badge -->
+  <g transform="translate(96 176)">
+    <rect width="288" height="288" rx="64" fill="#1A2230" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2"/>
+    <g transform="scale(0.5625)" fill="none" stroke-linecap="round">
+      <path d="M164 142 L352 256" stroke="url(#glyph)" stroke-width="46"/>
+      <path d="M352 256 L164 370" stroke="url(#glyph)" stroke-width="46" opacity="0.3"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="440" y="300" font-family="Helvetica Neue, Arial, sans-serif" font-size="104" font-weight="700" fill="#FFFFFF" letter-spacing="-2">Open<tspan fill="url(#word)">ADR</tspan></text>
+
+  <!-- Tagline -->
+  <text x="444" y="362" font-family="Helvetica Neue, Arial, sans-serif" font-size="29" font-weight="400" fill="#9DA7B8">Architecture decision records for humans and agents</text>
+
+  <!-- Lifecycle -->
+  <text x="444" y="432" font-family="Menlo, Monaco, monospace" font-size="27" fill="#6B7688">proposed <tspan fill="#22D3EE">&#8594;</tspan> accepted <tspan fill="#6B7688">/</tspan> rejected <tspan fill="#6B7688">/</tspan> superseded</text>
+</svg>

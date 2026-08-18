@@ -1,9 +1,22 @@
-# OpenADR
+<p align="center">
+  <img src="assets/social-preview.png" alt="OpenADR — Open Architecture Decision Records" width="768" />
+</p>
 
-**Open Architecture Decision Records** — a lightweight ADR workflow for
-humans and agents.
+<p align="center">
+  <strong>Open Architecture Decision Records</strong> — a lightweight ADR workflow for humans and agents.
+</p>
 
-[English](README.md) | [中文](README.zh.md)
+<p align="center">
+  <a href="https://www.npmjs.com/package/@luochang212/openadr"><img src="https://img.shields.io/npm/v/@luochang212/openadr" alt="npm version" /></a>
+  <a href="https://github.com/luochang212/OpenADR/actions/workflows/ci.yml"><img src="https://github.com/luochang212/OpenADR/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
+  <a href="https://www.npmjs.com/package/@luochang212/openadr"><img src="https://img.shields.io/npm/dm/@luochang212/openadr" alt="npm downloads" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/@luochang212/openadr" alt="node" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/@luochang212/openadr" alt="license" /></a>
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> | <a href="README.zh.md">中文</a>
+</p>
 
 OpenADR turns architecture decisions into plain Markdown files with a
 machine-checkable lifecycle: **proposed → accepted / rejected / superseded**. It borrows
@@ -127,6 +140,10 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=luochang212/OpenADR&type=Date)](https://www.star-history.com/#luochang212/OpenADR&Date)
 
 ## License
 
