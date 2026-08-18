@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { requireRoot } from '../core/config.js';
 import { folderPath, readRecord, removeRecord, resolveRecord, writeRecord } from '../core/repository.js';
+import { stampLifecycleMove } from '../core/templates.js';
 
 export function rejectCommand(query: string, reason: string, cwd: string): string {
   const root = requireRoot(cwd);
@@ -20,9 +21,12 @@ export function rejectCommand(query: string, reason: string, cwd: string): strin
   }
 
   const original = readRecord(record);
-  const lines = original.split(/\r?\n/);
-  lines[1] = `Status: rejected — ${trimmedReason}`;
-  writeRecord(root, 'rejected', record.fileName, lines.join('\n'));
+  writeRecord(
+    root,
+    'rejected',
+    record.fileName,
+    stampLifecycleMove(original, `Status: rejected — ${trimmedReason}`),
+  );
   removeRecord(record);
   return `rejected adr/proposed/${record.fileName} as adr/rejected/${record.fileName}`;
 }

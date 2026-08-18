@@ -36,7 +36,7 @@ describe('statusCommand', () => {
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-broken.md'),
-      '# ADR: 1 Broken\nStatus: accepted\n\n## Problem\n\nBody.\n',
+      '# ADR: 1 Broken\nStatus: accepted\nDate: 2026-08-19\n\n## Problem\n\nBody.\n',
     );
     const result = statusCommand(root, true);
     expect(result.valid).toBe(false);
@@ -60,6 +60,7 @@ describe('instructionsCommand', () => {
       record!.path,
       `# ADR: Use SQLite
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -92,7 +93,7 @@ Body.
     const sqlite = listRecords(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
-      '# ADR: Use SQLite\nStatus: proposed\n\n## Problem\n\nBody.\n',
+      '# ADR: Use SQLite\nStatus: proposed\nDate: 2026-08-19\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
@@ -100,6 +101,7 @@ Body.
       plugin.path,
       `# ADR: Add plugin API
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -136,7 +138,7 @@ Body.
     const sqlite = listRecords(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
-      '# ADR: Use SQLite\nStatus: proposed\n\n## Problem\n\nBody.\n',
+      '# ADR: Use SQLite\nStatus: proposed\nDate: 2026-08-19\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
@@ -144,6 +146,7 @@ Body.
       plugin.path,
       `# ADR: Add plugin API
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -183,7 +186,7 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-broken.md'),
-      '# ADR: 1 Broken\nStatus: accepted\n\n## Problem\n\nBody.\n',
+      '# ADR: 1 Broken\nStatus: accepted\nDate: 2026-08-19\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
@@ -191,6 +194,7 @@ Body.
       plugin.path,
       `# ADR: Add plugin API
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 

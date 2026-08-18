@@ -1,4 +1,4 @@
-import { section, type AdrRecord } from './adr.js';
+import { PROPOSAL_ERA_HEADINGS, section, todayStamp, type AdrRecord } from './adr.js';
 
 /** Proposal sections that survive the mechanical accept rewrite. */
 const PRESERVED_SECTIONS = [
@@ -8,6 +8,16 @@ const PRESERVED_SECTIONS = [
   'Acceptance criteria',
   'Risks',
 ];
+
+/**
+ * Proposal-era leftovers the accept rewrite cannot fold anywhere. The full
+ * PROPOSAL_ERA_HEADINGS set is wider (it also names Proposal/Acceptance
+ * criteria/Risks, which the rewrite folds into Decision/Consequences); only
+ * these headings are genuinely dropped, with a warning.
+ */
+const DROPPED_SECTION_HEADINGS = PROPOSAL_ERA_HEADINGS.filter(
+  (heading) => !PRESERVED_SECTIONS.includes(heading),
+);
 
 /**
  * 把 config.yaml 的 context 注入模板：放在标题块之后、第一个 section 之前。
@@ -27,6 +37,7 @@ ${text}
 export function proposalTemplate(title: string, context?: string): string {
   return `# ADR: ${title}
 Status: proposed
+Date: ${todayStamp()}
 
 ${contextBlock(context)}## Problem
 
@@ -54,6 +65,7 @@ ${contextBlock(context)}## Problem
 export function decisionTemplate(number: number, title: string, context?: string): string {
   return `# ADR: ${number} ${title}
 Status: accepted
+Date: ${todayStamp()}
 
 ${contextBlock(context)}## Problem
 
@@ -77,6 +89,7 @@ ${contextBlock(context)}## Problem
 export function rejectedTemplate(title: string, reason: string): string {
   return `# ADR: ${title}
 Status: rejected — ${reason}
+Date: ${todayStamp()}
 
 ## Problem
 
@@ -115,8 +128,19 @@ export function proposalToDecision(proposal: AdrRecord, number: number): string 
     consequences.push('_No consequences recorded._', '');
   }
 
-  return `# ADR: ${number} ${proposal.title}
+  // Extra sections (for example `## Implementation`) are neither canonical
+  // decision sections nor proposal-era leftovers, so they are carried through
+  // the rewrite verbatim (appended after the canonical sections) instead of
+  // being dropped: a lifecycle move must never lose written content silently.
+  const passthrough = proposal.sections.filter(
+    (candidate) =>
+      !PRESERVED_SECTIONS.includes(candidate.heading) &&
+      !DROPPED_SECTION_HEADINGS.includes(candidate.heading),
+  );
+
+  let output = `# ADR: ${number} ${proposal.title}
 Status: accepted
+Date: ${todayStamp()}
 
 ## Problem
 
@@ -133,6 +157,11 @@ ${alternatives.trim() || '_No alternatives recorded._'}
 ## Consequences
 
 ${consequences.join('\n')}\n`;
+  for (const extra of passthrough) {
+    const body = extra.body.trim();
+    output += body.length > 0 ? `\n## ${extra.heading}\n\n${body}\n` : `\n## ${extra.heading}\n`;
+  }
+  return output;
 }
 
 function sectionBody(record: AdrRecord, heading: string): string {
@@ -141,11 +170,26 @@ function sectionBody(record: AdrRecord, heading: string): string {
 
 /**
  * Proposal sections that have no place in an accepted decision and would be
- * silently discarded by `proposalToDecision`. Callers should surface these so
- * a mechanical lifecycle move never loses content without warning.
+ * silently discarded by `proposalToDecision`. Only proposal-era leftovers
+ * (for example `Plan`, `Migration plan`) qualify; every other extra section
+ * is carried through the rewrite. Callers should surface these so a
+ * mechanical lifecycle move never loses content without warning.
  */
 export function droppedSections(proposal: AdrRecord): string[] {
   return proposal.sections
     .map((candidate) => candidate.heading)
-    .filter((heading) => !PRESERVED_SECTIONS.includes(heading));
+    .filter((heading) => DROPPED_SECTION_HEADINGS.includes(heading));
+}
+
+/**
+ * Rewrite a record's status line and re-stamp its `Date:` line for a
+ * lifecycle move. Every non-creating move (accept, reject, supersede) must
+ * stamp the date so the header always reflects the current status; the body
+ * is left untouched.
+ */
+export function stampLifecycleMove(content: string, statusLine: string): string {
+  const lines = content.split(/\r?\n/);
+  lines[1] = statusLine;
+  lines[2] = `Date: ${todayStamp()}`;
+  return lines.join('\n');
 }

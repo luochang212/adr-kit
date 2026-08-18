@@ -17,7 +17,12 @@ function renderAdr(options: {
   status: string;
   sections: AdrSection[];
 }): string {
-  const lines: string[] = [`# ADR: ${options.title}`, `Status: ${options.status}`, ''];
+  const lines: string[] = [
+    `# ADR: ${options.title}`,
+    `Status: ${options.status}`,
+    'Date: 2026-08-19',
+    '',
+  ];
   for (const section of options.sections) {
     lines.push(`## ${section.heading}`, '');
     if (section.body.trim().length > 0) {
@@ -31,6 +36,7 @@ function renderAdr(options: {
 
 const VALID = `# ADR: Use SQLite
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -58,6 +64,7 @@ describe('parseAdrFile', () => {
     const record = parseAdrFile(write('record.md', VALID));
     expect(record.title).toBe('Use SQLite');
     expect(record.status).toBe('proposed');
+    expect(record.date).toBe('2026-08-19');
     expect(record.sections.find((s) => s.heading === 'Problem')?.body).toContain('Body.');
   });
 
@@ -66,9 +73,20 @@ describe('parseAdrFile', () => {
     expect(() => parseAdrFile(path)).toThrow(/second line/);
   });
 
+  it('rejects a missing date line', () => {
+    const path = write('record.md', '# ADR: Title\nStatus: proposed\n\n## Problem\n');
+    expect(() => parseAdrFile(path)).toThrow(/Date: YYYY-MM-DD/);
+  });
+
+  it('rejects a malformed date line', () => {
+    const path = write('record.md', '# ADR: Title\nStatus: proposed\nDate: 19/08/2026\n\n## Problem\n');
+    expect(() => parseAdrFile(path)).toThrow(/Date: YYYY-MM-DD/);
+  });
+
   it('parses accepted decision numbers', () => {
     const record = parseAdrFile(write('record.md', `# ADR: 4 Use SQLite
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 
@@ -92,6 +110,7 @@ Body.
   it('does not treat a zero-padded title number as a decision number', () => {
     const record = parseAdrFile(write('record.md', `# ADR: 0004 Use SQLite
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 
@@ -116,6 +135,7 @@ Body.
     expect(() =>
       parseAdrFile(write('record.md', `# ADR: 1 Use SQLite
 Status: superseded by 0001
+Date: 2026-08-19
 
 ## Problem
 
@@ -132,6 +152,6 @@ describe('renderAdr', () => {
       status: 'proposed',
       sections: [{ heading: 'Problem', body: 'Body.\n' }],
     });
-    expect(text.startsWith('# ADR: Use SQLite\nStatus: proposed\n\n## Problem')).toBe(true);
+    expect(text.startsWith('# ADR: Use SQLite\nStatus: proposed\nDate: 2026-08-19\n\n## Problem')).toBe(true);
   });
 });

@@ -32,6 +32,7 @@ describe('regressions', () => {
       join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
       `# ADR: 1 Use SQLite
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 
@@ -61,6 +62,7 @@ Body.
       join(folderPath(root, 'decisions'), '1-使用-sqlite.md'),
       `# ADR: 1 使用 SQLite
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 
@@ -88,6 +90,7 @@ Body.
       join(folderPath(root, 'proposed'), '2026-02-31-use-sqlite.md'),
       `# ADR: Use SQLite
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -121,6 +124,7 @@ Body.
       join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
       `# ADR: 1 Use SQLite
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -150,6 +154,7 @@ Body.
       join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
       `# ADR: 1 Use SQLite
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 
@@ -185,6 +190,7 @@ Body.
       proposal.path,
       `# ADR: Use SQLite
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -222,6 +228,7 @@ Native dependency.
       join(folderPath(root, 'decisions'), '1-good.md'),
       `# ADR: 1 Good
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 
@@ -254,6 +261,7 @@ Body.
       join(folderPath(root, 'decisions'), '2-good.md'),
       `# ADR: 2 Good
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 

@@ -11,6 +11,7 @@ import { proposeCommand } from '../src/commands/propose.js';
 import { rejectCommand } from '../src/commands/reject.js';
 import { showCommand } from '../src/commands/show.js';
 import { validateCommand } from '../src/commands/validate.js';
+import { todayStamp } from '../src/core/adr.js';
 
 const tempDirs: string[] = [];
 
@@ -28,6 +29,7 @@ function fillProposal(root: string): string {
   const file = join(path, parsed[0]!.fileName);
   const content = `# ADR: Use SQLite
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -85,6 +87,11 @@ describe('propose and validate', () => {
   it('creates a proposal that fails validation until alternatives are written', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
+    const proposal = readFileSync(
+      join(root, 'adr', 'proposed', `${todayStamp()}-use-sqlite.md`),
+      'utf8',
+    );
+    expect(proposal.split(/\r?\n/)[2]).toBe(`Date: ${todayStamp()}`);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('Alternatives considered');
@@ -100,6 +107,8 @@ describe('propose and validate', () => {
     const list = JSON.parse(listCommand(root, true)) as Array<Record<string, unknown>>;
     expect(list).toHaveLength(1);
     expect(list[0]!.folder).toBe('decisions');
+    const accepted = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
+    expect(accepted.split(/\r?\n/)[2]).toBe(`Date: ${todayStamp()}`);
     expect(validateCommand(root).valid).toBe(true);
   });
 
@@ -110,6 +119,7 @@ describe('propose and validate', () => {
     expect(output).toContain('adr/rejected/');
     const shown = showCommand('Use SQLite', root);
     expect(shown).toContain('Status: rejected — we prefer files');
+    expect(shown).toContain(`Date: ${todayStamp()}`);
   });
 
   it('warns when acceptance drops proposal-era sections', () => {
@@ -124,6 +134,24 @@ describe('propose and validate', () => {
     expect(output).toContain('## Plan');
     expect(validateCommand(root).valid).toBe(true);
   });
+
+  it('carries implementation sections through accept instead of dropping them', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillProposal(root);
+    writeFileSync(
+      file,
+      readFileSync(file, 'utf8') + '## Implementation\n\nPR #123: https://github.com/example/repo/pull/123\n',
+    );
+    const output = acceptCommand('Use SQLite', root);
+    expect(output).not.toContain('warning');
+    const listing = JSON.parse(listCommand(root, true)) as Array<{ folder: string; fileName: string }>;
+    const decisionFile = join(root, 'adr', 'decisions', listing[0]!.fileName);
+    const content = readFileSync(decisionFile, 'utf8');
+    expect(content).toContain('## Implementation');
+    expect(content).toContain('PR #123: https://github.com/example/repo/pull/123');
+    expect(validateCommand(root).valid).toBe(true);
+  });
 });
 
 describe('cli --all flag', () => {
@@ -136,6 +164,7 @@ describe('cli --all flag', () => {
       join(root, 'adr', 'proposed', '2026-08-18-use-redis.md'),
       `# ADR: Use Redis
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -175,6 +204,7 @@ describe('decide and show', () => {
     decideCommand('Use SQLite', root);
     const shown = showCommand('1', root);
     expect(shown).toContain('Status: accepted');
+    expect(shown).toContain(`Date: ${todayStamp()}`);
     expect(shown).toContain('## Decision');
   });
 });

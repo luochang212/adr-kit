@@ -41,8 +41,9 @@ fast unit gate; CI also runs `npm run build` and `npm run typecheck`.
 
 ## Record format is the product
 
-The header order (`# ADR:`, `Status:`, blank line) and the per-status
-section skeletons are machine-checked. When you change a template or a
+The header order (`# ADR:`, `Status:`, `Date:`, blank line) and the
+per-status section skeletons are machine-checked. The `Date:` line is
+machine-stamped at every lifecycle move. When you change a template or a
 validation rule, update:
 
 - `src/core/templates.ts`

@@ -18,6 +18,7 @@ function makeRepo(): string {
 function decision(title: string, status: string): string {
   return `# ADR: ${title}
 Status: ${status}
+Date: 2026-08-19
 
 ## Problem
 
@@ -53,6 +54,7 @@ describe('validateCommand', () => {
     const root = makeRepo();
     const content = `# ADR: 1 First
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 
@@ -81,6 +83,7 @@ Body.
     const root = makeRepo();
     const content = `# ADR: 1 First
 Status: accepted
+Date: 2026-08-19
 
 ## Problem
 
@@ -161,5 +164,16 @@ Body.
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('accepted decision title must be');
+  });
+
+  it('flags an invalid calendar date on the Date line', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      decision('1 First', 'accepted').replace('Date: 2026-08-19', 'Date: 2026-02-31'),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('invalid calendar date');
   });
 });

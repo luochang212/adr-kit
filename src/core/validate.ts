@@ -1,6 +1,12 @@
 import { existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { hasMeaningfulBody, statusForFolder, type AdrRecord } from './adr.js';
+import {
+  DATE_PATTERN,
+  hasMeaningfulBody,
+  PROPOSAL_ERA_HEADINGS,
+  statusForFolder,
+  type AdrRecord,
+} from './adr.js';
 import { ADR_DIR, CONFIG_FILE, readConfig } from './config.js';
 import { FOLDERS, listRecords } from './repository.js';
 
@@ -12,7 +18,6 @@ export interface ValidationIssue {
 const DECISION_REQUIRED = ['Problem', 'Decision', 'Alternatives considered', 'Consequences'];
 const PROPOSED_REQUIRED = ['Problem', 'Proposal', 'Alternatives considered', 'Acceptance criteria', 'Risks'];
 const REJECTED_REQUIRED = ['Problem', 'Proposal', 'Alternatives considered'];
-const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
 
 export function validateRecord(root: string, record: AdrRecord): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
@@ -33,6 +38,23 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
       issues.push({ path, message: 'superseded status must reference a decision number' });
     } else if (record.supersededBy === record.number) {
       issues.push({ path, message: 'a decision cannot supersede itself' });
+    }
+  }
+
+  // The parser already enforces the YYYY-MM-DD format, so this only checks
+  // calendar validity; the match is never null for a parsed record.
+  const dateMatch = record.date.match(DATE_PATTERN);
+  if (dateMatch !== null) {
+    const year = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const day = Number(dateMatch[3]);
+    const date = new Date(year, month - 1, day);
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      issues.push({ path, message: 'Date line contains an invalid calendar date' });
     }
   }
 

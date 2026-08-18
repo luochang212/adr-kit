@@ -1,13 +1,18 @@
 # 记录格式
 
-每条 ADR 都是纯 Markdown。前三行固定：
+每条 ADR 都是纯 Markdown。前四行固定：
 
 ```markdown
 # ADR: <title>
 Status: proposed | accepted | rejected — <reason> | superseded by N
+Date: YYYY-MM-DD
 ```
 
 没有 front matter，也没有特殊语法。
+
+`Date:` 行记录当前状态达成的日期。CLI 在每次生命周期迁移时自动盖章
+（`propose`、`decide`、`accept`、`reject`、`supersede`），由机器写入，
+不靠人工维护。
 
 ## 提案（Proposed）
 

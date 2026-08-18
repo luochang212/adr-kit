@@ -4,6 +4,25 @@ import { basename } from 'node:path';
 export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
 export type AdrFolder = 'proposed' | 'decisions' | 'rejected';
 
+/** Sections that only make sense during the proposal era and must not appear in an accepted decision. */
+export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
+
+/** A `YYYY-MM-DD` date value. Shared by the parser (format) and validate (calendar validity). */
+export const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * Today's date as `YYYY-MM-DD` in local time. The single source of the date:
+ * it feeds the `Date:` header line that every record carries and the
+ * `YYYY-MM-DD-` prefix of proposal file names, so the two always agree.
+ */
+export function todayStamp(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export interface AdrSection {
   heading: string;
   body: string;
@@ -15,6 +34,8 @@ export interface AdrRecord {
   fileName: string;
   title: string;
   status: AdrStatus;
+  /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
+  date: string;
   rejectionReason?: string;
   /** For superseded decisions: the number of the decision that replaced this one. */
   supersededBy?: number;
@@ -71,10 +92,15 @@ export function hasMeaningfulBody(body: string | undefined): boolean {
  * The format is deliberately plain Markdown, with no front matter:
  *
  *   # ADR: <title or "N Title">
- *   Status: proposed | accepted | rejected — <reason>
+ *   Status: proposed | accepted | rejected — <reason> | superseded by N
+ *   Date: YYYY-MM-DD
  *   <blank line>
  *   ## Problem
  *   ...
+ *
+ * The `Date:` line records the date the current status was reached and is
+ * stamped by the CLI at every lifecycle move (propose, decide, accept,
+ * reject, supersede).
  */
 export function parseAdrFile(filePath: string): AdrRecord {
   const text = readFileSync(filePath, 'utf8');
@@ -118,13 +144,22 @@ export function parseAdrFile(filePath: string): AdrRecord {
     );
   }
 
-  if ((lines[2] ?? '') !== '') {
-    throw new AdrFormatError('line 3 must be blank', filePath);
+  const dateLine = lines[2] ?? '';
+  if (!dateLine.startsWith('Date: ')) {
+    throw new AdrFormatError('line 3 must be "Date: YYYY-MM-DD"', filePath);
+  }
+  const date = dateLine.slice('Date: '.length).trim();
+  if (!DATE_PATTERN.test(date)) {
+    throw new AdrFormatError('line 3 must be "Date: YYYY-MM-DD"', filePath);
+  }
+
+  if ((lines[3] ?? '') !== '') {
+    throw new AdrFormatError('line 4 must be blank', filePath);
   }
 
   const sections: AdrSection[] = [];
   let current: AdrSection | null = null;
-  for (const line of lines.slice(3)) {
+  for (const line of lines.slice(4)) {
     if (line.startsWith('## ')) {
       if (current !== null) sections.push(current);
       const heading = line.slice(3).trim();
@@ -145,6 +180,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
     fileName: basename(filePath),
     title,
     status,
+    date,
     sections,
   };
   if (rejectionReason !== undefined) parsed.rejectionReason = rejectionReason;

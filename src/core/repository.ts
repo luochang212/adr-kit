@@ -59,10 +59,13 @@ Every record starts with exactly:
 
 \`\`\`markdown
 # ADR: <title>
-Status: proposed | accepted | rejected — <reason>
+Status: proposed | accepted | rejected — <reason> | superseded by N
+Date: YYYY-MM-DD
 \`\`\`
 
-Accepted decisions use \`# ADR: N <title>\` and require
+The \`Date:\` line records when the current status was reached; the CLI
+stamps it at every lifecycle move. Accepted decisions use \`# ADR: N <title>\`
+and require
 \`Problem\`, \`Decision\`, \`Alternatives considered\`, and \`Consequences\`.
 Proposals require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
 \`Acceptance criteria\`, and \`Risks\`.
@@ -217,14 +220,6 @@ export function nextDecisionNumber(root: string): number {
     }
   }
   return max + 1;
-}
-
-export function todayStamp(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
 
 export function writeRecord(root: string, folder: AdrFolder, fileName: string, content: string): string {

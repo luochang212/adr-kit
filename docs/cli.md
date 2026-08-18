@@ -56,9 +56,10 @@ line.
 ### `adrkit supersede <name> --by <name>`
 
 Mark an accepted decision as superseded by a newer accepted decision. The
-status line of the old record becomes `Status: superseded by N`; the file
-stays in `adr/decisions/` as history. `--by` must resolve to an existing
-accepted decision that is not itself superseded.
+status line of the old record becomes `Status: superseded by N` and its
+`Date:` line is stamped with the supersede date; the file stays in
+`adr/decisions/` as history. `--by` must resolve to an existing accepted
+decision that is not itself superseded.
 
 ### `adrkit list [--json]`
 

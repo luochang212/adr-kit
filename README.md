@@ -91,15 +91,20 @@ adrkit version                         Print the version
 
 ## Record format
 
-Every record is plain Markdown with a three-line header:
+Every record is plain Markdown with a four-line header:
 
 ```markdown
 # ADR: Use SQLite for session storage
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 ...
 ```
+
+The `Date:` line records when the current status was reached; the CLI
+stamps it at every lifecycle move (propose, decide, accept, reject,
+supersede), so the record stays truthful without manual date entry.
 
 - **Proposed** records require `Problem`, `Proposal`, `Alternatives
   considered`, `Acceptance criteria`, and `Risks`.

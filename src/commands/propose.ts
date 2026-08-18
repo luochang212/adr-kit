@@ -1,7 +1,8 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { readConfig, requireRoot } from '../core/config.js';
-import { folderPath, todayStamp, writeRecord } from '../core/repository.js';
+import { folderPath, writeRecord } from '../core/repository.js';
+import { todayStamp } from '../core/adr.js';
 import { proposalTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
 

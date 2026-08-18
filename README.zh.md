@@ -91,15 +91,19 @@ adrkit version                        查看版本
 
 ## 记录格式
 
-每条记录都是纯 Markdown，头部固定三行：
+每条记录都是纯 Markdown，头部固定四行：
 
 ```markdown
 # ADR: 使用 SQLite 存储会话
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 ...
 ```
+
+`Date:` 行记录当前状态达成的日期；CLI 在每次生命周期迁移时自动盖章
+（propose、decide、accept、reject、supersede），无需手动填写日期。
 
 - **Proposed** 需要 `Problem`、`Proposal`、`Alternatives considered`、
   `Acceptance criteria`、`Risks`。

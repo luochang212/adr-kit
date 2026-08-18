@@ -38,9 +38,10 @@ adrkit supersede 1 --by 2
 ```
 
 The old record stays in `adr/decisions/` with `Status: superseded by 2`
-on the status line. Only the status line is rewritten; the body is frozen
-history. `validate` checks that the referenced number exists and is not
-itself superseded, so a chain always ends at a currently-accepted decision.
+on the status line. Only the status line and the `Date:` stamp are
+rewritten; the body is frozen history. `validate` checks that the
+referenced number exists and is not itself superseded, so a chain always
+ends at a currently-accepted decision.
 
 ## Recording an already-made decision
 

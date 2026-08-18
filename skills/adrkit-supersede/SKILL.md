@@ -7,9 +7,9 @@ description: Use when an accepted decision is replaced by a newer accepted decis
 
 ## Overview
 
-Mark an accepted decision as superseded. The CLI rewrites only its status
-line to `Status: superseded by N` and leaves the record in
-`adr/decisions/` as frozen history.
+Mark an accepted decision as superseded. The CLI rewrites its status line
+to `Status: superseded by N`, stamps the superseded date on the `Date:`
+line, and leaves the record in `adr/decisions/` as frozen history.
 
 ## Steps
 

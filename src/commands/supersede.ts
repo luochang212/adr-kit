@@ -1,5 +1,6 @@
 import { requireRoot } from '../core/config.js';
 import { readRecord, resolveRecord, writeRecord } from '../core/repository.js';
+import { stampLifecycleMove } from '../core/templates.js';
 
 export function supersedeCommand(query: string, byQuery: string, cwd: string): string {
   const root = requireRoot(cwd);
@@ -29,11 +30,15 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   }
 
   const original = readRecord(record);
-  const lines = original.split(/\r?\n/);
-  if (lines[1] !== 'Status: accepted') {
-    throw new Error(`unexpected status line "${lines[1] ?? ''}" in ${record.fileName}`);
+  const currentStatus = original.split(/\r?\n/)[1];
+  if (currentStatus !== 'Status: accepted') {
+    throw new Error(`unexpected status line "${currentStatus ?? ''}" in ${record.fileName}`);
   }
-  lines[1] = `Status: superseded by ${replacement.number}`;
-  writeRecord(root, 'decisions', record.fileName, lines.join('\n'));
+  writeRecord(
+    root,
+    'decisions',
+    record.fileName,
+    stampLifecycleMove(original, `Status: superseded by ${replacement.number}`),
+  );
   return `superseded adr/decisions/${record.fileName} by adr/decisions/${replacement.fileName}`;
 }

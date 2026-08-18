@@ -1,13 +1,18 @@
 # Record Format
 
-Every ADR is plain Markdown. The first three lines are fixed:
+Every ADR is plain Markdown. The first four lines are fixed:
 
 ```markdown
 # ADR: <title>
 Status: proposed | accepted | rejected — <reason> | superseded by N
+Date: YYYY-MM-DD
 ```
 
 No front matter. No special syntax.
+
+The `Date:` line records when the current status was reached. The CLI
+stamps it at every lifecycle move (`propose`, `decide`, `accept`,
+`reject`, `supersede`), so it is machine-written, never hand-maintained.
 
 ## Proposed records
 

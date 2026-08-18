@@ -9,6 +9,7 @@ import { proposeCommand } from '../src/commands/propose.js';
 import { statusCommand } from '../src/commands/status.js';
 import { supersedeCommand } from '../src/commands/supersede.js';
 import { validateCommand } from '../src/commands/validate.js';
+import { todayStamp } from '../src/core/adr.js';
 
 const tempDirs: string[] = [];
 
@@ -28,6 +29,7 @@ function acceptDecision(root: string, title: string): string {
   const slug = proposal.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
   writeFileSync(join(root, 'adr', 'proposed', proposal.fileName), `# ADR: ${title}
 Status: proposed
+Date: 2026-08-19
 
 ## Problem
 
@@ -69,7 +71,9 @@ describe('supersedeCommand', () => {
     expect(message).toMatch(/superseded adr\/decisions\/1-.+ by adr\/decisions\/2-.+/);
 
     const old = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
-    expect(old.split(/\r?\n/)[1]).toBe('Status: superseded by 2');
+    const lines = old.split(/\r?\n/);
+    expect(lines[1]).toBe('Status: superseded by 2');
+    expect(lines[2]).toBe(`Date: ${todayStamp()}`);
 
     const result = validateCommand(root, undefined, false);
     expect(result.valid).toBe(true);
@@ -158,6 +162,7 @@ describe('validate superseded references', () => {
     // 手工制造 3 并让它指向已被取代的 1，验证 validate 拒绝悬空链
     writeFileSync(join(root, 'adr', 'decisions', '3-use-spanner.md'), `# ADR: 3 Use Spanner
 Status: superseded by 1
+Date: 2026-08-19
 
 ## Problem
 
