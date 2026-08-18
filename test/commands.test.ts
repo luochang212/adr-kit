@@ -1,7 +1,8 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { main } from '../src/cli.js';
 import { acceptCommand } from '../src/commands/accept.js';
 import { decideCommand } from '../src/commands/decide.js';
 import { initCommand } from '../src/commands/init.js';
@@ -102,6 +103,62 @@ describe('propose and validate', () => {
     expect(output).toContain('adr/rejected/');
     const shown = showCommand('Use SQLite', root);
     expect(shown).toContain('Status: rejected — we prefer files');
+  });
+
+  it('warns when acceptance drops proposal-era sections', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillProposal(root);
+    // Plan is a legitimate proposal-era heading (record-format.md) that has no
+    // place in an accepted decision; accept must not lose it silently.
+    writeFileSync(file, readFileSync(file, 'utf8') + '## Plan\n\nPhase 1: swap adapter.\n');
+    const output = acceptCommand('Use SQLite', root);
+    expect(output).toContain('warning: dropped section(s)');
+    expect(output).toContain('## Plan');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+});
+
+describe('cli --all flag', () => {
+  it('validate <name> --all validates the whole repository', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillProposal(root);
+    // second, invalid proposal must be caught only when the whole repo is checked
+    writeFileSync(
+      join(root, 'adr', 'proposed', '2026-08-18-use-redis.md'),
+      `# ADR: Use Redis
+Status: proposed
+
+## Problem
+
+## Proposal
+
+## Alternatives considered
+
+- Redis: fast.
+
+## Acceptance criteria
+
+## Risks
+`,
+    );
+
+    const logs: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
+      logs.push(args.map(String).join(' '));
+    });
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    process.chdir(root);
+    try {
+      main(['validate', 'use-sqlite', '--all']);
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      spy.mockRestore();
+    }
+    expect(logs.join('\n')).toContain('must contain written content');
   });
 });
 

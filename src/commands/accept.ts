@@ -2,12 +2,13 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { requireRoot } from '../core/config.js';
 import {
+  folderPath,
   nextDecisionNumber,
   removeRecord,
   resolveRecord,
   writeRecord,
 } from '../core/repository.js';
-import { proposalToDecision } from '../core/templates.js';
+import { droppedSections, proposalToDecision } from '../core/templates.js';
 import { formatIssues, validateRecord } from '../core/validate.js';
 
 export function acceptCommand(query: string, cwd: string): string {
@@ -29,7 +30,7 @@ export function acceptCommand(query: string, cwd: string): string {
   const padded = String(number).padStart(4, '0');
   const slug = record.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
   const fileName = `${padded}-${slug}.md`;
-  const path = join(root, 'adr', 'decisions', fileName);
+  const path = join(folderPath(root, 'decisions'), fileName);
   if (existsSync(path)) {
     throw new Error(`decision already exists: adr/decisions/${fileName}`);
   }
@@ -37,5 +38,12 @@ export function acceptCommand(query: string, cwd: string): string {
   const content = proposalToDecision(record, number);
   writeRecord(root, 'decisions', fileName, content);
   removeRecord(record);
-  return `accepted adr/proposed/${record.fileName} as adr/decisions/${fileName}`;
+  let output = `accepted adr/proposed/${record.fileName} as adr/decisions/${fileName}`;
+  const dropped = droppedSections(record);
+  if (dropped.length > 0) {
+    output += `\nwarning: dropped section(s) with no place in an accepted decision: ${dropped
+      .map((heading) => `## ${heading}`)
+      .join(', ')}`;
+  }
+  return output;
 }

@@ -14,9 +14,11 @@ Agent-facing commands accept `--json` for machine-readable output.
 
 ## Commands
 
-### `adrkit init [path]`
+### `adrkit init [path] [--tools <list>]`
 
-Create an `adr/` repository in `path` (default: current directory).
+Create an `adr/` repository in `path` (default: current directory). Pass
+`--tools <list>` to also write AI agent command files (for example
+`claude`, `codex`, `all`, or `none`; see `adrkit update`).
 
 ```text
 adr/
@@ -74,6 +76,20 @@ Print the next workflow step (init, fix validation, decide, or propose).
 
 Validate one record, or the whole repository when `name` is omitted or
 `--all` is given.
+
+### `adrkit update [--tools <list>]`
+
+Write AI tool integrations into the project (`.claude/commands/`,
+`.codex/commands/`, …). Without `--tools`, the tools recorded at `init`
+time are used. Integrations for tools no longer selected are removed.
+
+### `adrkit config [--json]`
+
+Print the current `adr/config.yaml` configuration.
+
+### `adrkit completion <bash|zsh|fish>`
+
+Print a shell completion script for the given shell.
 
 ### `adrkit version`
 

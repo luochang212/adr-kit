@@ -27,3 +27,6 @@ adrkit accept "<name>"
 
 - Never accept an invalid proposal; the command refuses.
 - Review the generated `## Consequences` after accepting.
+- The command warns when a proposal contains sections that have no place in
+  an accepted decision (for example `## Plan`); save their content elsewhere
+  if it still matters.

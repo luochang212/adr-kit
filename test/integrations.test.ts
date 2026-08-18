@@ -46,6 +46,23 @@ describe('initCommand tool integrations', () => {
     const output = updateCommand(root);
     expect(output).toContain(join('.claude', 'commands', 'adrkit-propose.md'));
   });
+
+  it('removes integrations for tools no longer selected', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude');
+    const output = updateCommand(root, 'codex');
+    expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
+    expect(existsSync(join(root, '.codex/commands/adrkit-propose.md'))).toBe(true);
+    expect(output).toContain('removed integrations for: claude');
+  });
+
+  it('clears every integration with --tools none', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude,codex');
+    updateCommand(root, 'none');
+    expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
+    expect(existsSync(join(root, '.codex/commands/adrkit-propose.md'))).toBe(false);
+  });
 });
 
 describe('skills/ stays in sync with the tool integration templates', () => {

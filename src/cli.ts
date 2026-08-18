@@ -153,7 +153,7 @@ export function main(argv: string[]): void {
         return;
       }
       case 'validate': {
-        const result = validateCommand(process.cwd(), rest[0], values.json);
+        const result = validateCommand(process.cwd(), values.all ? undefined : rest[0], values.json);
         console.log(result.output);
         if (result.valid === false) process.exitCode = 1;
         return;

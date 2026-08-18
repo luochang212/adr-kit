@@ -1,4 +1,13 @@
-import type { AdrRecord } from './adr.js';
+import { section, type AdrRecord } from './adr.js';
+
+/** Proposal sections that survive the mechanical accept rewrite. */
+const PRESERVED_SECTIONS = [
+  'Problem',
+  'Proposal',
+  'Alternatives considered',
+  'Acceptance criteria',
+  'Risks',
+];
 
 /**
  * 把 config.yaml 的 context 注入模板：放在标题块之后、第一个 section 之前。
@@ -129,5 +138,16 @@ ${consequences.join('\n')}\n`;
 }
 
 function sectionBody(record: AdrRecord, heading: string): string {
-  return record.sections.find((candidate) => candidate.heading === heading)?.body.trim() ?? '';
+  return section(record, heading)?.trim() ?? '';
+}
+
+/**
+ * Proposal sections that have no place in an accepted decision and would be
+ * silently discarded by `proposalToDecision`. Callers should surface these so
+ * a mechanical lifecycle move never loses content without warning.
+ */
+export function droppedSections(proposal: AdrRecord): string[] {
+  return proposal.sections
+    .map((candidate) => candidate.heading)
+    .filter((heading) => !PRESERVED_SECTIONS.includes(heading));
 }
