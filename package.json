@@ -1,6 +1,6 @@
 {
   "name": "adr-kit",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A lightweight ADR workflow for humans and agents.",
   "type": "module",
   "license": "MIT",

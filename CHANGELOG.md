@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.2.4
+
+### Patch Changes
+
+- ef602d9: - Drop the stale "Open Architecture Decision Records" tagline left over from
+    the pre-rename OpenADR era: the npm description, the `adrkit --help`
+    header, and the README banner alt text now describe the project as
+    "A lightweight ADR workflow for humans and agents" (the banner alt is
+    simply "ADR Kit").
+- 989b410: - Records now carry a `Date:` header line that records when the current
+    status was reached. The CLI stamps it at every lifecycle move
+    (`propose`, `decide`, `accept`, `reject`, `supersede`), so the date is
+    machine-written and never drifts or goes stale. `validate` additionally
+    checks the calendar validity of the date (for example `2026-02-31` is
+    rejected). This is a format change: records without the `Date:` line no
+    longer parse. The project has no released user base yet, so no migration
+    path is provided.
+- 989b410: - `adrkit accept` no longer drops extra proposal sections that have a place
+    in an accepted decision — for example `## Implementation` holding a PR or
+    review link. They are preserved verbatim, appended after the canonical
+    `## Consequences` section, so a lifecycle move can never lose written
+    content silently. Only proposal-era leftovers (`Plan`, `Migration plan`)
+    are still dropped, and the existing warning still names them.
+
 ## 0.2.3
 
 ### Patch Changes
