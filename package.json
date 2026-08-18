@@ -22,6 +22,8 @@
     "bin",
     "dist",
     "assets",
+    "docs",
+    "skills",
     "README.md",
     "LICENSE"
   ],

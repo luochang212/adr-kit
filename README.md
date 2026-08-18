@@ -1,6 +1,6 @@
 <div align="right">
-  <a title="English" href="README.md"><img src="https://img.shields.io/badge/-English-A31F34?style=for-the-badge" alt="English" /></a>
-  <a title="简体中文" href="README.zh.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-545759?style=for-the-badge" alt="简体中文"></a>
+  <a title="English" href="https://unpkg.com/adr-kit/README.md"><img src="https://img.shields.io/badge/-English-A31F34?style=for-the-badge" alt="English" /></a>
+  <a title="简体中文" href="https://unpkg.com/adr-kit/README.zh.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-545759?style=for-the-badge" alt="简体中文"></a>
 </div>
 
 # ADR Kit
@@ -10,7 +10,7 @@
   <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
   <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit?style=flat-square&color=0e7490" alt="npm downloads" /></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit?style=flat-square&color=0e7490" alt="node" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/npm/l/adr-kit?style=flat-square&color=0e7490" alt="license" /></a>
+  <a href="https://unpkg.com/adr-kit/LICENSE"><img src="https://img.shields.io/npm/l/adr-kit?style=flat-square&color=0e7490" alt="license" /></a>
 </p>
 
 <p>
@@ -84,10 +84,10 @@ adrkit version                         Print the version
 
 ## Docs
 
-- [CLI reference](https://github.com/luochang212/adr-kit/blob/main/docs/cli.md)
-- [Record format](https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md)
-- [Workflow](https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md)
-- [Agent skills](https://github.com/luochang212/adr-kit/blob/main/skills/README.md)
+- [CLI reference](https://unpkg.com/adr-kit/docs/cli.md)
+- [Record format](https://unpkg.com/adr-kit/docs/record-format.md)
+- [Workflow](https://unpkg.com/adr-kit/docs/workflow.md)
+- [Agent skills](https://unpkg.com/adr-kit/skills/README.md)
 
 ## Record format
 
@@ -164,4 +164,4 @@ npm run build
 
 ## License
 
-[MIT](https://github.com/luochang212/adr-kit/blob/main/LICENSE)
+[MIT](https://unpkg.com/adr-kit/LICENSE)
