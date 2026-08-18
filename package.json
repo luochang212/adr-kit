@@ -4,6 +4,14 @@
   "description": "Open Architecture Decision Records \u2014 a lightweight ADR workflow for humans and agents.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luochang212/adr-kit.git"
+  },
+  "homepage": "https://github.com/luochang212/adr-kit#readme",
+  "bugs": {
+    "url": "https://github.com/luochang212/adr-kit/issues"
+  },
   "engines": {
     "node": ">=20.19"
   },
