@@ -7,9 +7,9 @@
 
 <p>
   <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/v/adr-kit?style=flat-square&color=0e7490" alt="npm version" /></a>
-  <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
   <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit?style=flat-square&color=0e7490" alt="npm downloads" /></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit?style=flat-square&color=0e7490" alt="node" /></a>
+  <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
   <a href="https://github.com/luochang212/adr-kit/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/adr-kit?style=flat-square&color=0e7490" alt="license" /></a>
 </p>
 
@@ -23,12 +23,10 @@ the spec-driven spirit of [OpenSpec](https://github.com/Fission-AI/OpenSpec)
 and the decision-record discipline of agent-native codebases: every record
 must say what problem it solves, what it chose, and what it gave up.
 
-```text
-→ fluid not rigid
-→ plain Markdown, no front matter
-→ one decision, one file
-→ built for agents and humans alike
-```
+- fluid not rigid
+- plain Markdown, no front matter
+- one decision, one file
+- built for agents and humans alike
 
 ## Quick start
 
@@ -84,10 +82,12 @@ adrkit version                         Print the version
 
 ## Docs
 
-- [CLI reference](https://github.com/luochang212/adr-kit/blob/main/docs/cli.md)
-- [Record format](https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md)
-- [Workflow](https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md)
-- [Agent skills](https://github.com/luochang212/adr-kit/blob/main/skills/README.md)
+| Document | Content |
+| --- | --- |
+| [CLI reference](https://github.com/luochang212/adr-kit/blob/main/docs/cli.md) | Command reference with arguments and `--json` output |
+| [Record format](https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md) | ADR file format and validation rules |
+| [Workflow](https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md) | Lifecycle from proposal to decision |
+| [Agent skills](https://github.com/luochang212/adr-kit/blob/main/skills/README.md) | Agent skills that drive the `adrkit` CLI |
 
 ## Record format
 

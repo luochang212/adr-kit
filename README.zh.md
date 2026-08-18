@@ -7,9 +7,9 @@
 
 <p>
   <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/v/adr-kit?style=flat-square&color=0e7490" alt="npm version" /></a>
-  <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
   <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit?style=flat-square&color=0e7490" alt="npm downloads" /></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit?style=flat-square&color=0e7490" alt="node" /></a>
+  <a href="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml"><img src="https://github.com/luochang212/adr-kit/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
   <a href="https://github.com/luochang212/adr-kit/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/adr-kit?style=flat-square&color=0e7490" alt="license" /></a>
 </p>
 
@@ -23,12 +23,10 @@ ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周�
 agent 原生代码库的决策记录纪律：每条记录都必须说明它解决什么问题、选择了什么、
 放弃了什么。
 
-```text
-→ 灵活而不僵化
-→ 纯 Markdown，无 front matter
-→ 一个决策一个文件
-→ 同时服务人类和 agent
-```
+- 灵活而不僵化
+- 纯 Markdown，无 front matter
+- 一个决策一个文件
+- 同时服务人类和 agent
 
 ## 快速开始
 
@@ -81,6 +79,15 @@ adrkit version                        查看版本
 ```
 
 `<name>` 支持按标题、文件名或决策编号（`0001`）查找。
+
+## 文档
+
+| 文档 | 内容 |
+| --- | --- |
+| [CLI 参考](https://github.com/luochang212/adr-kit/blob/main/docs/zh/cli.md) | 命令参考：参数与 `--json` 输出 |
+| [记录格式](https://github.com/luochang212/adr-kit/blob/main/docs/zh/record-format.md) | ADR 文件格式与校验规则 |
+| [工作流](https://github.com/luochang212/adr-kit/blob/main/docs/zh/workflow.md) | 从提案到决策的生命周期 |
+| [Agent 技能](https://github.com/luochang212/adr-kit/blob/main/skills/README.md) | 驱动 `adrkit` CLI 的 agent 技能 |
 
 ## 记录格式
 
