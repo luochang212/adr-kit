@@ -7,11 +7,11 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@luochang212/openadr"><img src="https://img.shields.io/npm/v/@luochang212/openadr" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/v/adr-kit" alt="npm version" /></a>
   <a href="https://github.com/luochang212/OpenADR/actions/workflows/ci.yml"><img src="https://github.com/luochang212/OpenADR/actions/workflows/ci.yml/badge.svg" alt="ci" /></a>
-  <a href="https://www.npmjs.com/package/@luochang212/openadr"><img src="https://img.shields.io/npm/dm/@luochang212/openadr" alt="npm downloads" /></a>
-  <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/@luochang212/openadr" alt="node" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/npm/l/@luochang212/openadr" alt="license" /></a>
+  <a href="https://www.npmjs.com/package/adr-kit"><img src="https://img.shields.io/npm/dm/adr-kit" alt="npm downloads" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/adr-kit" alt="node" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/adr-kit" alt="license" /></a>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@ must say what problem it solves, what it chose, and what it gave up.
 Requires Node.js 20.19 or later.
 
 ```bash
-npm install -g @luochang212/openadr
+npm install -g adr-kit
 cd your-project
 openadr init
 openadr propose "Use SQLite for session storage"
