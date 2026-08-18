@@ -14,7 +14,7 @@
 </p>
 
 <p>
-  <img src="https://raw.githubusercontent.com/luochang212/adr-kit/main/assets/social-preview.png" alt="ADR Kit - Open Architecture Decision Records" width="100%" />
+  <img src="https://raw.githubusercontent.com/luochang212/adr-kit/main/assets/social-preview.png" alt="ADR Kit" width="100%" />
 </p>
 
 ADR Kit turns architecture decisions into plain Markdown files with a

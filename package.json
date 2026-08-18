@@ -1,7 +1,7 @@
 {
   "name": "adr-kit",
   "version": "0.2.3",
-  "description": "Open Architecture Decision Records \u2014 a lightweight ADR workflow for humans and agents.",
+  "description": "A lightweight ADR workflow for humans and agents.",
   "type": "module",
   "license": "MIT",
   "repository": {
