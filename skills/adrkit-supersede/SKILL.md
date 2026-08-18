@@ -25,6 +25,9 @@ adrkit supersede "<old name or number>" --by "<new name or number>"
 
 - `--by` must reference an existing accepted decision that is not itself
   superseded; the command refuses dangling chains.
+- Re-run `adrkit list` right before superseding to confirm the `--by` target
+  still exists and is not itself superseded, even if you checked earlier in
+  this conversation.
 - Never hand-edit a superseded record afterwards; it is history.
 - Mention what it supersedes in the new decision's `## Problem` section so
   the causal link survives in prose.

@@ -72,7 +72,7 @@ adrkit supersede <name> --by <name>    Mark an accepted decision as superseded
 adrkit list [--json]                   List all records
 adrkit show <name>                     Show a record
 adrkit status [--json]                 Show lifecycle counts and validity
-adrkit instructions [--json]           Print the next workflow step
+adrkit instructions [--json]           Print the next step; flag pending proposals as ready or needing work
 adrkit validate [name] [--all] [--json] Validate one record or the repository
 adrkit update [--tools <list>]          Rewrite AI tool integrations
 adrkit config [--json]                 Print the current configuration

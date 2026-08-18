@@ -70,7 +70,11 @@ Print lifecycle counts and repository validity.
 
 ### `adrkit instructions [--json]`
 
-Print the next workflow step (init, fix validation, decide, or propose).
+Print the next workflow step (init, fix validation, decide, or propose). When
+proposals are waiting, each one is flagged as validated (ready to accept) or
+needs work, so the next action is executable rather than a direction. In
+`--json` mode the readiness is exposed as `readyToAccept` and `needsWork`
+next to the `pending` list.
 
 ### `adrkit validate [name] [--all] [--json]`
 

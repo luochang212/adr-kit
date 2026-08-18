@@ -94,7 +94,9 @@ adrkit propose "<title>"
   is invalid by design.
 - Keep the status line exactly \`Status: proposed\`.
 - Before proposing, run \`adrkit list\` and check whether this decision
-  supersedes or overlaps an existing one; mention that in the record.`,
+  supersedes or overlaps an existing one; mention that in the record. Re-run
+  it even if you ran it earlier in this conversation — session memory can be
+  stale, and the repo may have changed.`,
   },
   {
     name: 'adrkit-decide',
@@ -174,6 +176,8 @@ adrkit accept "<name>"
 ## Rules
 
 - Never accept an invalid proposal; the command refuses.
+- Re-run \`adrkit validate\` immediately before accepting, even if you
+  validated earlier in this conversation; the repo may have changed since.
 - Review the generated \`## Consequences\` after accepting.
 - The command warns when a proposal contains sections that have no place in
   an accepted decision (for example \`## Plan\`); save their content elsewhere
@@ -225,6 +229,9 @@ adrkit supersede "<old name or number>" --by "<new name or number>"
 
 - \`--by\` must reference an existing accepted decision that is not itself
   superseded; the command refuses dangling chains.
+- Re-run \`adrkit list\` right before superseding to confirm the \`--by\` target
+  still exists and is not itself superseded, even if you checked earlier in
+  this conversation.
 - Never hand-edit a superseded record afterwards; it is history.
 - Mention what it supersedes in the new decision's \`## Problem\` section so
   the causal link survives in prose.`,

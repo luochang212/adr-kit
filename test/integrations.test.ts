@@ -151,6 +151,15 @@ rules:
     expect(propose?.body).toContain('adrkit list');
     expect(propose?.body).toContain('supersedes or overlaps');
   });
+
+  it('decision-point workflows require re-querying the repo state', () => {
+    const propose = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-propose');
+    const accept = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-accept');
+    const supersede = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-supersede');
+    expect(propose?.body).toContain('even if you ran it earlier in this conversation');
+    expect(accept?.body).toMatch(/even if you\s+validated earlier in this conversation/);
+    expect(supersede?.body).toMatch(/even if you\s+checked earlier in\s+this conversation/);
+  });
 });
 
 describe('skills/ stays in sync with the tool integration templates', () => {

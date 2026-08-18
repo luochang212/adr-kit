@@ -26,6 +26,8 @@ adrkit accept "<name>"
 ## Rules
 
 - Never accept an invalid proposal; the command refuses.
+- Re-run `adrkit validate` immediately before accepting, even if you
+  validated earlier in this conversation; the repo may have changed since.
 - Review the generated `## Consequences` after accepting.
 - The command warns when a proposal contains sections that have no place in
   an accepted decision (for example `## Plan`); save their content elsewhere
