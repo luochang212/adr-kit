@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.2.2
+
+### Patch Changes
+
+- 217b895: - Fix the broken banner image on the npm package page: point the README
+    image and every link (docs, skills, license, language switcher) at
+    public GitHub URLs (`raw.githubusercontent.com` for the image, blob URLs
+    for links), which render on both GitHub and the npm page now that the
+    repository is public. npm does not serve package files, so relative
+    README references stay broken there.
+  - Replace em-dash separators in user-facing output (`adrkit instructions`
+    readiness flags, `adrkit list` empty state), help text, docs, comments,
+    and test fixtures with `-` or `:`.
+- 92e3e2f: - Fix `adrkit --version` reporting a stale hardcoded version: the CLI now
+    reads the version from package.json, which changesets bump on every
+    release. `adrkit --version` / `adrkit version` will no longer lie about
+    the installed package.
+  - Synchronize the Chinese docs with the current behavior: the record-format
+    status line now includes `superseded by NNNN`, the workflow docs cover
+    superseding, and the `instructions` command description reflects the
+    state-aware output. Normalize the `repository.url` to the `git+` form npm
+    expects.
+
 ## 0.2.1
 
 ### Patch Changes
