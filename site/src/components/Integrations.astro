@@ -1,0 +1,62 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Mirrors SUPPORTED_TOOLS in src/core/tool-integrations.ts.
+const tools = ['Claude Code', 'Codex', 'Cursor', 'GitHub Copilot'];
+---
+
+<section class="section integrations" id="integrations">
+  <div class="section__inner">
+    <div class="reveal">
+      <p class="section__eyebrow">{t('integrations.eyebrow')}</p>
+      <h2 class="section__title">{t('integrations.title')}</h2>
+      <p class="section__lead">{t('integrations.lead')}</p>
+    </div>
+    <div class="integrations__panel reveal">
+      <code class="integrations__cmd"><span class="integrations__prompt">›</span> adrkit init --tools claude,codex</code>
+      <div class="integrations__chips">
+        {tools.map((tool) => <span class="integrations__chip">{tool}</span>)}
+        <span class="integrations__chip integrations__chip--generic">{t('integrations.generic')}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .integrations { border-top: 1px solid var(--border); }
+  .integrations__panel {
+    margin-top: 40px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 26px 26px 24px;
+  }
+  .integrations__cmd {
+    font-size: 14px;
+    color: var(--fg);
+  }
+  .integrations__prompt { color: var(--cyan); margin-right: 4px; }
+  .integrations__chips {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .integrations__chip {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--fg-70);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 15px;
+    background: var(--bg);
+  }
+  .integrations__chip--generic {
+    color: var(--fg-30);
+    border-style: dashed;
+  }
+</style>

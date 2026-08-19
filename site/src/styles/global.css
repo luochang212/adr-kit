@@ -1,0 +1,100 @@
+/* ADR Kit site — design tokens + base.
+   One accent (indigo→cyan gradient, used sparingly), white alpha ladder,
+   no box-shadows, 1px low-alpha borders for layering. */
+
+:root {
+  --bg: #0d1117;
+  --bg-soft: #161b27;
+  --fg: #ffffff;
+  --fg-70: #ffffffb3;
+  --fg-50: #ffffff80;
+  --fg-30: #ffffff4d;
+  --border: #ffffff1a;
+  --border-strong: #ffffff33;
+  --surface: #ffffff08;
+  --surface-hover: #ffffff0f;
+  --indigo: #818cf8;
+  --cyan: #22d3ee;
+  --grad: linear-gradient(90deg, var(--indigo), var(--cyan));
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --inner: 1120px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg-70);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* faint grain over large flat areas, kills the plastic feel */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  z-index: 100;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+h1, h2, h3 { color: var(--fg); margin: 0; }
+
+a { color: var(--fg-70); text-decoration: none; }
+a:hover { color: var(--fg); }
+
+code, pre { font-family: var(--font-mono); }
+
+::selection { background: #22d3ee33; }
+
+/* shared layout */
+.section { width: 100%; }
+.section__inner {
+  max-width: var(--inner);
+  margin: 0 auto;
+  padding: clamp(72px, 10vw, 128px) 24px;
+}
+.section__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-30);
+  margin: 0 0 14px;
+}
+.section__title {
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+.section__lead { max-width: 56ch; margin: 0; color: var(--fg-50); }
+
+section[id] { scroll-margin-top: 5rem; }
+
+/* scroll reveal — JS-gated so no-JS environments see everything */
+.reveal { opacity: 1; }
+html.js .reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+html.js .reveal.in { opacity: 1; transform: none; }
+html.js .reveal.in > *:nth-child(1) { transition-delay: 0ms; }
+html.js .reveal.in > *:nth-child(2) { transition-delay: 80ms; }
+html.js .reveal.in > *:nth-child(3) { transition-delay: 160ms; }
+html.js .reveal.in > *:nth-child(4) { transition-delay: 240ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  html.js .reveal { opacity: 1; transform: none; transition: none; }
+}

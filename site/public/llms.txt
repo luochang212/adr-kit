@@ -1,0 +1,42 @@
+# ADR Kit
+
+> ADR Kit is a command-line tool for Architecture Decision Records (ADRs).
+> It turns architecture decisions into plain Markdown files with a
+> machine-checkable lifecycle: proposed → accepted / rejected / superseded.
+> Built for humans and AI coding assistants.
+
+## Links
+
+- Repository: https://github.com/luochang212/adr-kit
+- npm: https://www.npmjs.com/package/adr-kit
+- CLI reference: https://github.com/luochang212/adr-kit/blob/main/docs/cli.md
+- Record format: https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md
+- Workflow guide: https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md
+- Changelog: https://github.com/luochang212/adr-kit/blob/main/CHANGELOG.md
+
+## Quick start
+
+Requires Node.js 20.19 or later.
+
+```bash
+npm install -g adr-kit
+cd your-project
+adrkit init --tools claude
+adrkit propose "Use SQLite for session storage"
+adrkit validate
+adrkit accept "Use SQLite for session storage"
+```
+
+## Key facts
+
+- Records are plain Markdown; the parser and validator are the format
+  contract.
+- Validation failures are success signals: fresh drafts fail until every
+  required section is filled in.
+- Proposals carry dates; decision numbers are assigned only at accept time.
+- AI tool integrations (`adrkit init --tools`): claude, codex, cursor,
+  github-copilot, agents (generic .agents/). Installs agent skills and
+  slash-command files.
+- Works alongside spec-driven tools like OpenSpec: OpenSpec tracks what is
+  being built; ADR Kit records why a direction was chosen.
+- License: MIT. Single runtime dependency: yaml.

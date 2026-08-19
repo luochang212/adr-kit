@@ -1,0 +1,128 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+import TerminalDemo from './TerminalDemo.astro';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="hero">
+  <div class="hero__inner">
+    <h1 class="hero__title">ADR <span class="hero__kit">Kit</span></h1>
+    <p class="hero__tagline">{t('hero.tagline')}</p>
+    <p class="hero__lead">{t('hero.lead')}</p>
+    <div class="hero__install">
+      <code class="hero__cmd"><span class="hero__prompt">›</span> {t('hero.install')}</code>
+      <button class="hero__copy" data-copy={t('hero.install')} data-label={t('hero.copy')} data-copied={t('hero.copied')}>
+        {t('hero.copy')}
+      </button>
+    </div>
+    <TerminalDemo lang={lang} />
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+  }
+  /* halftone dot grid, dense at center, fading to the edges — the brand motif */
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, var(--border-strong) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(at 50% 28%, #000 15%, #0000 68%);
+    -webkit-mask-image: radial-gradient(at 50% 28%, #000 15%, #0000 68%);
+  }
+  .hero__inner {
+    position: relative;
+    max-width: var(--inner);
+    margin: 0 auto;
+    padding: clamp(140px, 18vw, 200px) 24px clamp(64px, 8vw, 96px);
+    text-align: center;
+  }
+  .hero__title {
+    font-family: var(--font-mono);
+    font-size: clamp(64px, 12vw, 132px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .hero__kit {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero__tagline {
+    font-size: clamp(17px, 2.4vw, 21px);
+    color: var(--fg-70);
+    margin: 22px 0 0;
+  }
+  .hero__lead {
+    max-width: 58ch;
+    margin: 14px auto 0;
+    color: var(--fg-50);
+  }
+  .hero__install {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 34px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 6px 6px 6px 16px;
+  }
+  .hero__cmd {
+    font-size: 14px;
+    color: var(--fg);
+  }
+  .hero__prompt { color: var(--cyan); margin-right: 4px; }
+  .hero__copy {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-70);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .hero__copy:hover { color: var(--fg); border-color: var(--border-strong); }
+</style>
+
+<script is:inline>
+  // declarative copy buttons, with execCommand fallback
+  (function () {
+    document.querySelectorAll('[data-copy]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var text = btn.getAttribute('data-copy');
+        function done() {
+          btn.textContent = btn.getAttribute('data-copied');
+          setTimeout(function () { btn.textContent = btn.getAttribute('data-label'); }, 1600);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, done);
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); } catch (e) {}
+          document.body.removeChild(ta);
+          done();
+        }
+      });
+    });
+  })();
+</script>

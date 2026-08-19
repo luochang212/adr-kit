@@ -1,0 +1,73 @@
+---
+import { useTranslations, langPath, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__row">
+      <div>
+        <p class="footer__brand">ADR Kit</p>
+        <p class="footer__tagline">{t('footer.tagline')}</p>
+      </div>
+      <nav class="footer__links">
+        <a href="https://github.com/luochang212/adr-kit">GitHub</a>
+        <a href="https://www.npmjs.com/package/adr-kit">npm</a>
+        <a href="https://github.com/luochang212/adr-kit/tree/main/docs">{t('footer.docs')}</a>
+        <a href="https://github.com/luochang212/adr-kit/blob/main/CHANGELOG.md">Changelog</a>
+        <a href="https://github.com/luochang212/adr-kit/blob/main/LICENSE">{t('footer.license')}</a>
+      </nav>
+    </div>
+    <p class="footer__ghost" aria-hidden="true">ADR Kit</p>
+    <p class="footer__copy">© {year} luochang212</p>
+  </div>
+</footer>
+
+<style>
+  .footer { border-top: 1px solid var(--border); overflow: hidden; }
+  .footer__inner {
+    max-width: var(--inner);
+    margin: 0 auto;
+    padding: 56px 24px 24px;
+    position: relative;
+  }
+  .footer__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .footer__brand {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--fg);
+    margin: 0 0 6px;
+  }
+  .footer__tagline { margin: 0; color: var(--fg-30); font-size: 13.5px; max-width: 40ch; }
+  .footer__links {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    font-size: 13.5px;
+  }
+  .footer__links a { color: var(--fg-50); }
+  .footer__links a:hover { color: var(--fg); }
+  .footer__ghost {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(90px, 18vw, 240px);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    margin: 48px 0 0;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--border);
+    user-select: none;
+    white-space: nowrap;
+  }
+  .footer__copy { color: var(--fg-30); font-size: 12.5px; margin: 24px 0 0; }
+</style>

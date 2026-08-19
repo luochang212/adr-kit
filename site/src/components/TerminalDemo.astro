@@ -1,0 +1,174 @@
+---
+import type { Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+// The transcript mirrors real CLI output (captured from adr-kit 0.2.4).
+// The single localized line is the aside comment; the CLI speaks English.
+const fillNote = lang === 'zh' ? '# 填满必填章节之后' : '# after filling the required sections';
+
+type Line = { kind: 'cmd' | 'out' | 'ok' | 'note'; text: string };
+const lines: Line[] = [
+  { kind: 'cmd', text: 'adrkit init --tools claude' },
+  { kind: 'out', text: 'ADR Kit initialized at ~/my-project' },
+  { kind: 'out', text: '  created adr/config.yaml' },
+  { kind: 'out', text: '  created adr/decisions/' },
+  { kind: 'out', text: '  created .claude/skills/adrkit-propose/SKILL.md (claude)' },
+  { kind: 'out', text: '  … 13 more files' },
+  { kind: 'cmd', text: 'adrkit propose "Use SQLite for session storage"' },
+  { kind: 'out', text: 'created adr/proposed/2026-08-19-use-sqlite-for-session-storage.md' },
+  { kind: 'cmd', text: 'adrkit validate' },
+  { kind: 'out', text: 'found 3 issues:' },
+  { kind: 'out', text: '  section "## Problem" must contain written content' },
+  { kind: 'out', text: '  section "## Proposal" must contain written content' },
+  { kind: 'out', text: '  section "## Alternatives considered" must contain an alternative' },
+  { kind: 'note', text: fillNote },
+  { kind: 'cmd', text: 'adrkit validate' },
+  { kind: 'ok', text: 'OK' },
+  { kind: 'cmd', text: 'adrkit accept "Use SQLite for session storage"' },
+  { kind: 'ok', text: 'accepted as adr/decisions/1-use-sqlite-for-session-storage.md' },
+  { kind: 'cmd', text: 'adrkit list' },
+  { kind: 'out', text: 'Accepted' },
+  { kind: 'ok', text: '  [1] Use SQLite for session storage' },
+];
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const transcriptHtml = lines
+  .map((l) => {
+    const inner = l.kind === 'cmd' ? `<span class="term__prompt">› </span>${esc(l.text)}` : esc(l.text);
+    return `<span class="term__line term__line--${l.kind}">${inner}\n</span>`;
+  })
+  .join('');
+---
+
+<div class="term reveal" id="term-demo">
+  <div class="term__bar" aria-hidden="true">
+    <span class="term__dot"></span><span class="term__dot"></span><span class="term__dot"></span>
+    <span class="term__title">terminal</span>
+  </div>
+  <pre class="term__body" aria-label="adrkit demo transcript"><code set:html={transcriptHtml}></code></pre>
+  <script type="application/json" id="term-data" set:html={JSON.stringify(lines)}></script>
+</div>
+
+<style>
+  .term {
+    margin: 48px auto 0;
+    max-width: 760px;
+    text-align: left;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #0a0e14;
+    overflow: hidden;
+  }
+  .term__bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .term__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+  .term__title {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-30);
+    letter-spacing: 0.08em;
+  }
+  .term__body {
+    margin: 0;
+    padding: 20px 22px;
+    font-size: 13px;
+    line-height: 1.75;
+    min-height: 480px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .term__line { display: inline; }
+  .term__line--cmd { color: var(--fg); font-weight: 500; }
+  .term__line--out { color: var(--fg-50); }
+  .term__line--ok { color: var(--cyan); }
+  .term__line--note { color: var(--fg-30); font-style: italic; }
+  .term__prompt { color: var(--cyan); }
+  .term__caret::after {
+    content: "▋";
+    color: var(--cyan);
+    animation: term-blink 1s step-end infinite;
+  }
+  @keyframes term-blink { 50% { opacity: 0; } }
+  @media (max-width: 640px) {
+    .term__body { font-size: 11.5px; min-height: 430px; }
+  }
+</style>
+
+<script is:inline>
+  // The one attention-grabbing motion on the page: the terminal plays the
+  // real adrkit workflow when it scrolls into view. SSR renders the full
+  // transcript, so no-JS / reduced-motion users see everything; JS clears
+  // and replays it with typing.
+  (function () {
+    var term = document.getElementById('term-demo');
+    if (!term) return;
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || typeof IntersectionObserver !== 'function') return;
+
+    var data = JSON.parse(document.getElementById('term-data').textContent);
+    var body = term.querySelector('.term__body code');
+
+    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+    function play() {
+      body.textContent = '';
+      var caret = document.createElement('span');
+      caret.className = 'term__caret';
+      body.appendChild(caret);
+
+      var i = 0;
+      function nextLine() {
+        if (i >= data.length) return;
+        var line = data[i++];
+        var span = document.createElement('span');
+        span.className = 'term__line term__line--' + line.kind;
+        body.insertBefore(span, caret);
+        if (line.kind === 'cmd') {
+          var prompt = document.createElement('span');
+          prompt.className = 'term__prompt';
+          prompt.textContent = '› ';
+          span.appendChild(prompt);
+          var textNode = document.createTextNode('');
+          span.appendChild(textNode);
+          var j = 0;
+          (function typeChar() {
+            if (j < line.text.length) {
+              textNode.textContent += line.text[j++];
+              setTimeout(typeChar, 28 + Math.random() * 40);
+            } else {
+              span.appendChild(document.createTextNode('\n'));
+              setTimeout(nextLine, 350);
+            }
+          })();
+        } else {
+          span.textContent = line.text + '\n';
+          setTimeout(nextLine, line.kind === 'note' ? 900 : 140);
+        }
+      }
+      nextLine();
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          io.disconnect();
+          play();
+        }
+      });
+    }, { threshold: 0.25 });
+    io.observe(term);
+  })();
+</script>

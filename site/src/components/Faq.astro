@@ -1,0 +1,71 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const faqs = [1, 2, 3] as const;
+---
+
+<section class="section faq" id="faq">
+  <div class="section__inner">
+    <div class="reveal">
+      <p class="section__eyebrow">{t('faq.eyebrow')}</p>
+      <h2 class="section__title">{t('faq.title')}</h2>
+    </div>
+    <div class="faq__list reveal">
+      {faqs.map((n) => (
+        <details class="faq__item">
+          <summary class="faq__q">
+            {t(`faq.${n}.q` as const)}
+            <span class="faq__chev" aria-hidden="true">+</span>
+          </summary>
+          <p class="faq__a">{t(`faq.${n}.a` as const)}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq { border-top: 1px solid var(--border); }
+  .faq__list {
+    margin-top: 40px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .faq__item { background: var(--bg); }
+  .faq__item + .faq__item { border-top: 1px solid var(--border); }
+  .faq__q {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 26px;
+    cursor: pointer;
+    color: var(--fg);
+    font-weight: 550;
+    font-size: 15.5px;
+    list-style: none;
+    transition: background-color 0.2s;
+  }
+  .faq__q::-webkit-details-marker { display: none; }
+  .faq__q:hover { background: var(--surface); }
+  .faq__chev {
+    font-family: var(--font-mono);
+    color: var(--fg-30);
+    font-size: 18px;
+    flex: none;
+    transition: transform 0.2s ease;
+  }
+  .faq__item[open] .faq__chev { transform: rotate(45deg); }
+  .faq__a {
+    margin: 0;
+    padding: 0 26px 24px;
+    color: var(--fg-50);
+    font-size: 14px;
+    max-width: 72ch;
+  }
+</style>
