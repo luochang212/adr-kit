@@ -1,9 +1,10 @@
 {
   "name": "adr-kit",
   "version": "0.2.4",
-  "description": "A lightweight ADR workflow for humans and agents.",
+  "description": "Architecture Decision Records (ADRs) for AI coding assistants.",
   "type": "module",
   "license": "MIT",
+  "author": "Chang Luo <luochang212@gmail.com>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/luochang212/adr-kit.git"
