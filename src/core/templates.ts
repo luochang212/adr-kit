@@ -1,4 +1,11 @@
-import { PROPOSAL_ERA_HEADINGS, section, todayStamp, type AdrRecord } from './adr.js';
+import { parse, stringify } from 'yaml';
+import {
+  FRONT_MATTER_ORDER,
+  PROPOSAL_ERA_HEADINGS,
+  section,
+  todayStamp,
+  type AdrRecord,
+} from './adr.js';
 
 /** Proposal sections that survive the mechanical accept rewrite. */
 const PRESERVED_SECTIONS = [
@@ -34,10 +41,23 @@ ${text}
 `;
 }
 
+/**
+ * Render a YAML front matter block. Fields are written in the canonical
+ * order (status, date, reason, superseded-by); only the fields present in
+ * `fields` are emitted.
+ */
+export function frontMatter(fields: Record<string, string | number>): string {
+  const ordered: Record<string, string | number> = {};
+  for (const key of FRONT_MATTER_ORDER) {
+    const value = fields[key];
+    if (value !== undefined) ordered[key] = value;
+  }
+  return `---\n${stringify(ordered)}---\n`;
+}
+
 export function proposalTemplate(title: string, context?: string): string {
-  return `# ADR: ${title}
-Status: proposed
-Date: ${todayStamp()}
+  return `${frontMatter({ status: 'proposed', date: todayStamp() })}
+# ADR: ${title}
 
 ${contextBlock(context)}## Problem
 
@@ -63,9 +83,8 @@ ${contextBlock(context)}## Problem
 }
 
 export function decisionTemplate(number: number, title: string, context?: string): string {
-  return `# ADR: ${number} ${title}
-Status: accepted
-Date: ${todayStamp()}
+  return `${frontMatter({ status: 'accepted', date: todayStamp() })}
+# ADR: ${number} ${title}
 
 ${contextBlock(context)}## Problem
 
@@ -87,9 +106,8 @@ ${contextBlock(context)}## Problem
 }
 
 export function rejectedTemplate(title: string, reason: string): string {
-  return `# ADR: ${title}
-Status: rejected — ${reason}
-Date: ${todayStamp()}
+  return `${frontMatter({ status: 'rejected', date: todayStamp(), reason })}
+# ADR: ${title}
 
 ## Problem
 
@@ -138,9 +156,8 @@ export function proposalToDecision(proposal: AdrRecord, number: number): string 
       !DROPPED_SECTION_HEADINGS.includes(candidate.heading),
   );
 
-  let output = `# ADR: ${number} ${proposal.title}
-Status: accepted
-Date: ${todayStamp()}
+  let output = `${frontMatter({ status: 'accepted', date: todayStamp() })}
+# ADR: ${number} ${proposal.title}
 
 ## Problem
 
@@ -182,14 +199,36 @@ export function droppedSections(proposal: AdrRecord): string[] {
 }
 
 /**
- * Rewrite a record's status line and re-stamp its `Date:` line for a
- * lifecycle move. Every non-creating move (accept, reject, supersede) must
- * stamp the date so the header always reflects the current status; the body
- * is left untouched.
+ * Rewrite a record's front matter for a lifecycle move: parse the existing
+ * block, merge `patch` over it, and re-emit the fields in canonical order.
+ * Every non-creating move (accept, reject, supersede) must stamp the date so
+ * the front matter always reflects the current status; the Markdown body is
+ * left untouched. Unknown keys are preserved after the canonical ones so a
+ * mechanical rewrite never loses data silently (validate flags them).
  */
-export function stampLifecycleMove(content: string, statusLine: string): string {
-  const lines = content.split(/\r?\n/);
-  lines[1] = statusLine;
-  lines[2] = `Date: ${todayStamp()}`;
-  return lines.join('\n');
+export function stampLifecycleMove(content: string, patch: Record<string, string | number>): string {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (match === null) {
+    throw new Error('record has no YAML front matter block');
+  }
+  const existing = parse(match[1] ?? '') as Record<string, unknown>;
+  const merged: Record<string, string | number> = {};
+  for (const key of FRONT_MATTER_ORDER) {
+    const patched = patch[key];
+    if (patched !== undefined) {
+      merged[key] = patched;
+      continue;
+    }
+    const kept = existing[key];
+    if (typeof kept === 'string' || typeof kept === 'number') {
+      merged[key] = kept;
+    }
+  }
+  for (const [key, value] of Object.entries(existing)) {
+    if ((FRONT_MATTER_ORDER as readonly string[]).includes(key)) continue;
+    if (typeof value === 'string' || typeof value === 'number') {
+      merged[key] = value;
+    }
+  }
+  return `---\n${stringify(merged)}---${content.slice(match[0].length)}`;
 }

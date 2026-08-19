@@ -50,14 +50,15 @@ The proposal's title must not start with a number.
 
 ### `adrkit reject <name> --reason <text>`
 
-Move a proposal to `adr/rejected/` with the reason recorded on the status
-line.
+Move a proposal to `adr/rejected/` with the reason recorded in the front
+matter.
 
 ### `adrkit supersede <name> --by <name>`
 
 Mark an accepted decision as superseded by a newer accepted decision. The
-status line of the old record becomes `Status: superseded by N` and its
-`Date:` line is stamped with the supersede date; the file stays in
+old record's front matter becomes `status: superseded` with
+`superseded-by: N` and its `date` field is stamped with the supersede
+date; the file stays in
 `adr/decisions/` as history. `--by` must resolve to an existing accepted
 decision that is not itself superseded.
 
@@ -87,7 +88,7 @@ next to the `pending` list.
 
 Validate one record, or the whole repository when `name` is omitted or
 `--all` is given. Single-record validation also checks that a
-`superseded by N` reference points at an existing decision that is not
+`superseded-by: N` reference points at an existing decision that is not
 itself superseded.
 
 ### `adrkit update [--tools <list>]`

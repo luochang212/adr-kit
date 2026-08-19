@@ -27,9 +27,12 @@ function acceptDecision(root: string, title: string): string {
   const proposal = listing.find((record) => record.folder === 'proposed');
   if (proposal === undefined) throw new Error('proposal not found');
   const slug = proposal.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
-  writeFileSync(join(root, 'adr', 'proposed', proposal.fileName), `# ADR: ${title}
-Status: proposed
-Date: 2026-08-19
+  writeFileSync(join(root, 'adr', 'proposed', proposal.fileName), `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: ${title}
 
 ## Problem
 
@@ -62,7 +65,7 @@ afterEach(() => {
 });
 
 describe('supersedeCommand', () => {
-  it('rewrites the status line and keeps the record in decisions/', () => {
+  it('rewrites the front matter and keeps the record in decisions/', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
@@ -72,8 +75,9 @@ describe('supersedeCommand', () => {
 
     const old = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
     const lines = old.split(/\r?\n/);
-    expect(lines[1]).toBe('Status: superseded by 2');
-    expect(lines[2]).toBe(`Date: ${todayStamp()}`);
+    expect(lines[1]).toBe('status: superseded');
+    expect(lines[2]).toBe(`date: ${todayStamp()}`);
+    expect(lines[3]).toBe('superseded-by: 2');
 
     const result = validateCommand(root, undefined, false);
     expect(result.valid).toBe(true);
@@ -144,9 +148,8 @@ describe('validate superseded references', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
-    const lines = readFileSync(path, 'utf8').split(/\r?\n/);
-    lines[1] = 'Status: superseded by 9999';
-    writeFileSync(path, lines.join('\n'));
+    const content = readFileSync(path, 'utf8');
+    writeFileSync(path, content.replace('status: accepted', 'status: superseded\nsuperseded-by: 9999'));
 
     const result = validateCommand(root, undefined, false);
     expect(result.valid).toBe(false);
@@ -160,9 +163,13 @@ describe('validate superseded references', () => {
     supersedeCommand('1', '2', root);
 
     // 手工制造 3 并让它指向已被取代的 1，验证 validate 拒绝悬空链
-    writeFileSync(join(root, 'adr', 'decisions', '3-use-spanner.md'), `# ADR: 3 Use Spanner
-Status: superseded by 1
-Date: 2026-08-19
+    writeFileSync(join(root, 'adr', 'decisions', '3-use-spanner.md'), `---
+status: superseded
+date: 2026-08-19
+superseded-by: 1
+---
+
+# ADR: 3 Use Spanner
 
 ## Problem
 

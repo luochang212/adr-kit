@@ -8,7 +8,7 @@ description: Use when a proposed ADR should be declined and frozen for future re
 ## Overview
 
 Reject a proposal. The CLI moves the file from `adr/proposed/` to
-`adr/rejected/` and rewrites the status line with the reason.
+`adr/rejected/` and records the reason in the front matter.
 
 ## Steps
 

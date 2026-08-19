@@ -30,9 +30,12 @@ describe('regressions', () => {
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
-      `# ADR: 1 Use SQLite
-Status: accepted
-Date: 2026-08-19
+      `---
+status: accepted
+date: 2026-08-19
+---
+
+# ADR: 1 Use SQLite
 
 ## Problem
 
@@ -60,9 +63,12 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-使用-sqlite.md'),
-      `# ADR: 1 使用 SQLite
-Status: accepted
-Date: 2026-08-19
+      `---
+status: accepted
+date: 2026-08-19
+---
+
+# ADR: 1 使用 SQLite
 
 ## Problem
 
@@ -88,9 +94,12 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'proposed'), '2026-02-31-use-sqlite.md'),
-      `# ADR: Use SQLite
-Status: proposed
-Date: 2026-08-19
+      `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: Use SQLite
 
 ## Problem
 
@@ -122,9 +131,12 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
-      `# ADR: 1 Use SQLite
-Status: proposed
-Date: 2026-08-19
+      `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: 1 Use SQLite
 
 ## Problem
 
@@ -152,9 +164,12 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
-      `# ADR: 1 Use SQLite
-Status: accepted
-Date: 2026-08-19
+      `---
+status: accepted
+date: 2026-08-19
+---
+
+# ADR: 1 Use SQLite
 
 ## Problem
 
@@ -188,9 +203,12 @@ Body.
     const proposal = listRecords(root).find((record) => record.folder === 'proposed')!;
     writeFileSync(
       proposal.path,
-      `# ADR: Use SQLite
-Status: proposed
-Date: 2026-08-19
+      `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: Use SQLite
 
 ## Problem
 
@@ -226,9 +244,12 @@ Native dependency.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-good.md'),
-      `# ADR: 1 Good
-Status: accepted
-Date: 2026-08-19
+      `---
+status: accepted
+date: 2026-08-19
+---
+
+# ADR: 1 Good
 
 ## Problem
 
@@ -259,9 +280,12 @@ Body.
     );
     writeFileSync(
       join(folderPath(root, 'decisions'), '2-good.md'),
-      `# ADR: 2 Good
-Status: accepted
-Date: 2026-08-19
+      `---
+status: accepted
+date: 2026-08-19
+---
+
+# ADR: 2 Good
 
 ## Problem
 

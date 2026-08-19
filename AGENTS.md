@@ -28,10 +28,11 @@ fast unit gate; CI also runs `npm run build` and `npm run typecheck`.
   the test tells you to fix the other.
 - Shell completion scripts live in `src/commands/completion.ts`. Add new
   commands there when the CLI surface changes.
-- Record files are plain Markdown. The parser and validator are the format
-  contract; do not introduce front matter or a second format without
-  changing `src/core/adr.ts`, `src/core/validate.ts`, the templates, and
-  the README in the same change.
+- Record files are YAML front matter plus a Markdown body. The parser and
+  validator are the format contract; status and date live only in the
+  front matter, never repeated in the body. Do not introduce a second
+  format without changing `src/core/adr.ts`, `src/core/validate.ts`, the
+  templates, and the README in the same change.
 - `parseArgs` from `node:util` is the CLI parser. Do not add a CLI
   dependency for argument parsing.
 - `yaml` is the only runtime dependency. Keep it that way unless a change
@@ -39,12 +40,25 @@ fast unit gate; CI also runs `npm run build` and `npm run typecheck`.
 - Every behavior change gets a test in `test/`. Command tests create real
   repositories in a temp directory and assert on files and command output.
 
+## Project website
+
+`site/` is the bilingual (en/zh) project homepage, an Astro app deployed to
+GitHub Pages by `.github/workflows/site.yml`. It has its own
+`package.json` and build (`cd site && npm run build`); the CLI's build does
+not cover it. Copy lives in `site/src/i18n/ui.ts` — edit both languages in
+the same change. The tool list in `site/src/components/Integrations.astro`
+mirrors `SUPPORTED_TOOLS` in `src/core/tool-integrations.ts`; update both
+when the supported tools change. The terminal demo transcript in
+`site/src/components/TerminalDemo.astro` mirrors real CLI output; refresh it
+when command output changes.
+
 ## Record format is the product
 
-The header order (`# ADR:`, `Status:`, `Date:`, blank line) and the
-per-status section skeletons are machine-checked. The `Date:` line is
-machine-stamped at every lifecycle move. When you change a template or a
-validation rule, update:
+The front matter layout (`---`, `status`/`date` fields in canonical
+order, `---`, blank line, `# ADR:` title) and the per-status section
+skeletons are machine-checked. The `date` field is machine-stamped at
+every lifecycle move. When you change a template or a validation rule,
+update:
 
 - `src/core/templates.ts`
 - `src/core/validate.ts`

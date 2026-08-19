@@ -15,10 +15,15 @@ function makeRepo(): string {
   return dir;
 }
 
-function decision(title: string, status: string): string {
-  return `# ADR: ${title}
-Status: ${status}
-Date: 2026-08-19
+function decision(title: string, fields: Record<string, string | number>): string {
+  const frontMatter = Object.entries(fields)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join('\n');
+  return `---
+${frontMatter}
+---
+
+# ADR: ${title}
 
 ## Problem
 
@@ -38,6 +43,8 @@ Body.
 `;
 }
 
+const ACCEPTED = { status: 'accepted', date: '2026-08-19' };
+
 afterEach(() => {
   for (const dir of tempDirs.splice(0)) {
     rmSync(dir, { recursive: true, force: true });
@@ -52,9 +59,12 @@ describe('validateCommand', () => {
 
   it('detects duplicate decision numbers', () => {
     const root = makeRepo();
-    const content = `# ADR: 1 First
-Status: accepted
-Date: 2026-08-19
+    const content = `---
+status: accepted
+date: 2026-08-19
+---
+
+# ADR: 1 First
 
 ## Problem
 
@@ -81,9 +91,12 @@ Body.
 
   it('rejects proposal-era headings in accepted decisions', () => {
     const root = makeRepo();
-    const content = `# ADR: 1 First
-Status: accepted
-Date: 2026-08-19
+    const content = `---
+status: accepted
+date: 2026-08-19
+---
+
+# ADR: 1 First
 
 ## Problem
 
@@ -107,6 +120,17 @@ Body.
     expect(result.output).toContain('proposal-era section');
   });
 
+  it('flags unknown front matter fields', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      decision('1 First', { ...ACCEPTED, owner: 'platform' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('unknown front matter field "owner"');
+  });
+
   it('reports invalid config.yaml', () => {
     const root = makeRepo();
     writeFileSync(join(root, 'adr', 'config.yaml'), 'context: [unclosed\n');
@@ -119,7 +143,7 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', 'superseded by 99'),
+      decision('1 First', { status: 'superseded', date: '2026-08-19', 'superseded-by': 99 }),
     );
     const result = validateCommand(root, '1');
     expect(result.valid).toBe(false);
@@ -130,13 +154,13 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', 'superseded by 2'),
+      decision('1 First', { status: 'superseded', date: '2026-08-19', 'superseded-by': 2 }),
     );
     writeFileSync(
       join(folderPath(root, 'decisions'), '2-second.md'),
-      decision('2 Second', 'superseded by 3'),
+      decision('2 Second', { status: 'superseded', date: '2026-08-19', 'superseded-by': 3 }),
     );
-    writeFileSync(join(folderPath(root, 'decisions'), '3-third.md'), decision('3 Third', 'accepted'));
+    writeFileSync(join(folderPath(root, 'decisions'), '3-third.md'), decision('3 Third', ACCEPTED));
     const result = validateCommand(root, '1');
     expect(result.valid).toBe(false);
     expect(result.output).toContain('references a superseded decision');
@@ -146,11 +170,11 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', 'superseded by 2'),
+      decision('1 First', { status: 'superseded', date: '2026-08-19', 'superseded-by': 2 }),
     );
     writeFileSync(
       join(folderPath(root, 'decisions'), '2-second.md'),
-      decision('2 Second', 'accepted'),
+      decision('2 Second', ACCEPTED),
     );
     expect(validateCommand(root, '1').valid).toBe(true);
   });
@@ -159,18 +183,18 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('0001 First', 'accepted'),
+      decision('0001 First', ACCEPTED),
     );
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('accepted decision title must be');
   });
 
-  it('flags an invalid calendar date on the Date line', () => {
+  it('flags an invalid calendar date in the front matter', () => {
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', 'accepted').replace('Date: 2026-08-19', 'Date: 2026-02-31'),
+      decision('1 First', { status: 'accepted', date: '2026-02-31' }),
     );
     const result = validateCommand(root);
     expect(result.valid).toBe(false);

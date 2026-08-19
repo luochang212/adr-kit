@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { folderPath, readRecord, removeRecord, resolveRecord, writeRecord } from '../core/repository.js';
 import { stampLifecycleMove } from '../core/templates.js';
@@ -25,7 +26,7 @@ export function rejectCommand(query: string, reason: string, cwd: string): strin
     root,
     'rejected',
     record.fileName,
-    stampLifecycleMove(original, `Status: rejected — ${trimmedReason}`),
+    stampLifecycleMove(original, { status: 'rejected', date: todayStamp(), reason: trimmedReason }),
   );
   removeRecord(record);
   return `rejected adr/proposed/${record.fileName} as adr/rejected/${record.fileName}`;

@@ -27,9 +27,12 @@ function fillProposal(root: string): string {
   const name = listCommand(root, true);
   const parsed = JSON.parse(name) as Array<{ fileName: string }>;
   const file = join(path, parsed[0]!.fileName);
-  const content = `# ADR: Use SQLite
-Status: proposed
-Date: 2026-08-19
+  const content = `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: Use SQLite
 
 ## Problem
 
@@ -91,7 +94,7 @@ describe('propose and validate', () => {
       join(root, 'adr', 'proposed', `${todayStamp()}-use-sqlite.md`),
       'utf8',
     );
-    expect(proposal.split(/\r?\n/)[2]).toBe(`Date: ${todayStamp()}`);
+    expect(proposal.split(/\r?\n/)[2]).toBe(`date: ${todayStamp()}`);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('Alternatives considered');
@@ -108,7 +111,7 @@ describe('propose and validate', () => {
     expect(list).toHaveLength(1);
     expect(list[0]!.folder).toBe('decisions');
     const accepted = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
-    expect(accepted.split(/\r?\n/)[2]).toBe(`Date: ${todayStamp()}`);
+    expect(accepted.split(/\r?\n/)[2]).toBe(`date: ${todayStamp()}`);
     expect(validateCommand(root).valid).toBe(true);
   });
 
@@ -118,8 +121,9 @@ describe('propose and validate', () => {
     const output = rejectCommand('Use SQLite', 'we prefer files', root);
     expect(output).toContain('adr/rejected/');
     const shown = showCommand('Use SQLite', root);
-    expect(shown).toContain('Status: rejected — we prefer files');
-    expect(shown).toContain(`Date: ${todayStamp()}`);
+    expect(shown).toContain('status: rejected');
+    expect(shown).toContain('reason: we prefer files');
+    expect(shown).toContain(`date: ${todayStamp()}`);
   });
 
   it('warns when acceptance drops proposal-era sections', () => {
@@ -162,9 +166,12 @@ describe('cli --all flag', () => {
     // second, invalid proposal must be caught only when the whole repo is checked
     writeFileSync(
       join(root, 'adr', 'proposed', '2026-08-18-use-redis.md'),
-      `# ADR: Use Redis
-Status: proposed
-Date: 2026-08-19
+      `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: Use Redis
 
 ## Problem
 
@@ -179,7 +186,6 @@ Date: 2026-08-19
 ## Risks
 `,
     );
-
     const logs: string[] = [];
     const spy = vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
       logs.push(args.map(String).join(' '));
@@ -203,8 +209,8 @@ describe('decide and show', () => {
     const root = makeRepo();
     decideCommand('Use SQLite', root);
     const shown = showCommand('1', root);
-    expect(shown).toContain('Status: accepted');
-    expect(shown).toContain(`Date: ${todayStamp()}`);
+    expect(shown).toContain('status: accepted');
+    expect(shown).toContain(`date: ${todayStamp()}`);
     expect(shown).toContain('## Decision');
   });
 });

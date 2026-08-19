@@ -22,7 +22,7 @@ adrkit accept "使用 SQLite 存储会话"
 adrkit reject "使用 SQLite 存储会话" --reason "我们最终选择了 JSON 文件"
 ```
 
-提案冻结在 `adr/rejected/`，原因写入状态行。
+提案冻结在 `adr/rejected/`，原因写入 front matter。
 
 ## 取代一条已接受决策
 
@@ -34,9 +34,9 @@ adrkit decide "使用 Postgres 存储会话"
 adrkit supersede 1 --by 2
 ```
 
-旧记录留在 `adr/decisions/`，状态行为 `Status: superseded by 2`。
-只改写状态行和 `Date:` 盖章；正文是冻结历史。`validate` 会校验被引用
-的编号存在且自身未被取代，所以链条总是终止于当前仍被接受的决策。
+旧记录留在 `adr/decisions/`，front matter 为 `status: superseded` 加
+`superseded-by: 2`。只改写 front matter；正文是冻结历史。`validate` 会校验
+被引用的编号存在且自身未被取代，所以链条总是终止于当前仍被接受的决策。
 
 ## 直接记录已接受决策
 

@@ -23,6 +23,10 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   const issues: ValidationIssue[] = [];
   const path = relative(root, record.path);
 
+  for (const key of record.frontMatterExtras ?? []) {
+    issues.push({ path, message: `unknown front matter field "${key}"` });
+  }
+
   const statusMatchesFolder = record.folder === 'decisions'
     ? record.status === 'accepted' || record.status === 'superseded'
     : record.status === statusForFolder(record.folder);
@@ -54,7 +58,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
       date.getMonth() !== month - 1 ||
       date.getDate() !== day
     ) {
-      issues.push({ path, message: 'Date line contains an invalid calendar date' });
+      issues.push({ path, message: 'front matter date contains an invalid calendar date' });
     }
   }
 
@@ -209,14 +213,14 @@ function supersedeReferenceIssues(
   const target = decisions.get(record.supersededBy);
   if (target === undefined) {
     return [
-      { path, message: `"superseded by ${record.supersededBy}" references a missing decision` },
+      { path, message: `"superseded-by: ${record.supersededBy}" references a missing decision` },
     ];
   }
   if (target.status === 'superseded') {
     return [
       {
         path,
-        message: `"superseded by ${record.supersededBy}" references a superseded decision; supersede that decision instead`,
+        message: `"superseded-by: ${record.supersededBy}" references a superseded decision; supersede that decision instead`,
       },
     ];
   }
@@ -224,7 +228,7 @@ function supersedeReferenceIssues(
 }
 
 /**
- * Repository-level checks for a single record: a "superseded by N" reference
+ * Repository-level checks for a single record: a `superseded-by: N` reference
  * must point at an existing decision that is not itself superseded.
  * validateRecord only sees one file; this adds the cross-record half so
  * `adrkit validate <name>` keeps the same promise as a full validate.

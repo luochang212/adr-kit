@@ -46,7 +46,7 @@ ADR Kit 分配。
 
 ### `adrkit reject <name> --reason <text>`
 
-把提案移动到 `adr/rejected/`，拒绝原因写入状态行。
+把提案移动到 `adr/rejected/`，拒绝原因写入 front matter。
 
 ### `adrkit list [--json]`
 
@@ -71,7 +71,7 @@ ADR Kit 分配。
 ### `adrkit validate [name] [--all] [--json]`
 
 校验单条记录；省略 `name` 或使用 `--all` 时校验整个仓库。单条记录校验
-同样会检查 `superseded by N` 引用是否指向一个存在且未被 superseded 的
+同样会检查 `superseded-by: N` 引用是否指向一个存在且未被 superseded 的
 决策。
 
 ### `adrkit update [--tools <list>]`

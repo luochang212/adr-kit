@@ -14,7 +14,7 @@
 </p>
 
 <p>
-  <img src="https://raw.githubusercontent.com/luochang212/adr-kit/main/assets/social-preview.png" alt="ADR Kit" width="100%" />
+  <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
 ADR Kit turns architecture decisions into plain Markdown files with a
@@ -24,7 +24,7 @@ and the decision-record discipline of agent-native codebases: every record
 must say what problem it solves, what it chose, and what it gave up.
 
 - fluid not rigid
-- plain Markdown, no front matter
+- plain Markdown
 - one decision, one file
 - built for agents and humans alike
 
@@ -91,18 +91,21 @@ adrkit version                         Print the version
 
 ## Record format
 
-Every record is plain Markdown with a four-line header:
+Every record is YAML front matter followed by a Markdown body:
 
 ```markdown
+---
+status: proposed
+date: 2026-08-19
+---
+
 # ADR: Use SQLite for session storage
-Status: proposed
-Date: 2026-08-19
 
 ## Problem
 ...
 ```
 
-The `Date:` line records when the current status was reached; the CLI
+The `date` field records when the current status was reached; the CLI
 stamps it at every lifecycle move (propose, decide, accept, reject,
 supersede), so the record stays truthful without manual date entry.
 
@@ -111,10 +114,11 @@ supersede), so the record stays truthful without manual date entry.
 - **Accepted** decisions require `Problem`, `Decision`, `Alternatives
   considered`, and `Consequences`; proposal-era headings are rejected by
   `validate`.
-- **Rejected** proposals are frozen with the reason on the status line:
-  `Status: rejected — <reason>`.
+- **Rejected** proposals are frozen with the reason in the front matter:
+  `status: rejected` plus `reason: <why>`.
 - **Superseded** decisions stay in `adr/decisions/` as history, with the
-  replacing decision on the status line: `Status: superseded by N`.
+  replacing decision in the front matter: `status: superseded` plus
+  `superseded-by: N`.
   `adrkit supersede <old> --by <new>` performs the rewrite; `validate`
   checks that `N` exists and is not itself superseded.
 

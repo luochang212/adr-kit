@@ -55,17 +55,21 @@ machine-checkable header and lifecycle folders.
 
 ## Record format
 
-Every record starts with exactly:
+Every record starts with a YAML front matter block:
 
 \`\`\`markdown
+---
+status: proposed | accepted | rejected | superseded
+date: YYYY-MM-DD
+---
+
 # ADR: <title>
-Status: proposed | accepted | rejected — <reason> | superseded by N
-Date: YYYY-MM-DD
 \`\`\`
 
-The \`Date:\` line records when the current status was reached; the CLI
-stamps it at every lifecycle move. Accepted decisions use \`# ADR: N <title>\`
-and require
+Rejected records add \`reason: <why>\`; superseded decisions add
+\`superseded-by: N\`. The \`date\` field records when the current status was
+reached; the CLI stamps it at every lifecycle move. Accepted decisions use
+\`# ADR: N <title>\` and require
 \`Problem\`, \`Decision\`, \`Alternatives considered\`, and \`Consequences\`.
 Proposals require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
 \`Acceptance criteria\`, and \`Risks\`.

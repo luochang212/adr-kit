@@ -1,16 +1,23 @@
 # Record Format
 
-Every ADR is plain Markdown. The first four lines are fixed:
+Every ADR is YAML front matter followed by a Markdown body:
 
 ```markdown
+---
+status: proposed | accepted | rejected | superseded
+date: YYYY-MM-DD
+---
+
 # ADR: <title>
-Status: proposed | accepted | rejected — <reason> | superseded by N
-Date: YYYY-MM-DD
 ```
 
-No front matter. No special syntax.
+Front matter fields are written in the order `status`, `date`, `reason`,
+`superseded-by`; only the fields that apply are present. `reason` is
+required on rejected records and forbidden otherwise; `superseded-by` is
+required on superseded decisions and forbidden otherwise. Unknown fields
+are reported by `validate`.
 
-The `Date:` line records when the current status was reached. The CLI
+The `date` field records when the current status was reached. The CLI
 stamps it at every lifecycle move (`propose`, `decide`, `accept`,
 `reject`, `supersede`), so it is machine-written, never hand-maintained.
 
@@ -44,10 +51,14 @@ Proposal-era sections (`Proposal`, `Acceptance criteria`, `Risks`, `Plan`,
 `Migration plan`) are rejected in accepted decisions.
 
 Superseded decisions keep the accepted shape but carry the replacing
-decision number on the status line:
+decision number in the front matter:
 
 ```markdown
-Status: superseded by 6
+---
+status: superseded
+date: 2026-08-19
+superseded-by: 6
+---
 ```
 
 `validate` checks that the referenced number exists and is not itself
@@ -55,10 +66,14 @@ superseded. Superseded records stay in `adr/decisions/` as frozen history.
 
 ## Rejected proposals
 
-File name: `YYYY-MM-DD-slug.md`. The status line carries the reason:
+File name: `YYYY-MM-DD-slug.md`. The front matter carries the reason:
 
 ```markdown
-Status: rejected — we chose JSON files instead
+---
+status: rejected
+date: 2026-08-19
+reason: we chose JSON files instead
+---
 ```
 
 Required sections: `Problem`, `Proposal`, `Alternatives considered`.

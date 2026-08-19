@@ -14,7 +14,7 @@
 </p>
 
 <p>
-  <img src="https://raw.githubusercontent.com/luochang212/adr-kit/main/assets/social-preview.png" alt="ADR Kit" width="100%" />
+  <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
 ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周期：
@@ -24,7 +24,7 @@ agent 原生代码库的决策记录纪律：每条记录都必须说明它解�
 放弃了什么。
 
 - 灵活而不僵化
-- 纯 Markdown，无 front matter
+- 纯 Markdown
 - 一个决策一个文件
 - 同时服务人类和 agent
 
@@ -91,27 +91,32 @@ adrkit version                        查看版本
 
 ## 记录格式
 
-每条记录都是纯 Markdown，头部固定四行：
+每条记录都是 YAML front matter 加 Markdown 正文：
 
 ```markdown
+---
+status: proposed
+date: 2026-08-19
+---
+
 # ADR: 使用 SQLite 存储会话
-Status: proposed
-Date: 2026-08-19
 
 ## Problem
 ...
 ```
 
-`Date:` 行记录当前状态达成的日期；CLI 在每次生命周期迁移时自动盖章
+`date` 字段记录当前状态达成的日期；CLI 在每次生命周期迁移时自动盖章
 （propose、decide、accept、reject、supersede），无需手动填写日期。
 
 - **Proposed** 需要 `Problem`、`Proposal`、`Alternatives considered`、
   `Acceptance criteria`、`Risks`。
 - **Accepted** 需要 `Problem`、`Decision`、`Alternatives considered`、
   `Consequences`；`validate` 会拒绝提案时代的标题出现在已接受决策中。
-- **Rejected** 冻结提案，拒绝原因写在状态行：`Status: rejected — <reason>`。
-- **Superseded** 决策保留在 `adr/decisions/` 作为历史，状态行指向取代它的决策：
-  `Status: superseded by N`。`adrkit supersede <旧> --by <新>` 完成改写；
+- **Rejected** 冻结提案，拒绝原因写在 front matter：`status: rejected`
+  加 `reason: <原因>`。
+- **Superseded** 决策保留在 `adr/decisions/` 作为历史，front matter 指向
+  取代它的决策：`status: superseded` 加 `superseded-by: N`。
+  `adrkit supersede <旧> --by <新>` 完成改写；
   `validate` 校验 `N` 存在且自身未被取代。
 
 `adrkit accept` 会自动完成生命周期迁移所要求的改写：`## Proposal` 改为

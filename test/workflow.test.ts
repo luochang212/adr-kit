@@ -36,7 +36,7 @@ describe('statusCommand', () => {
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-broken.md'),
-      '# ADR: 1 Broken\nStatus: accepted\nDate: 2026-08-19\n\n## Problem\n\nBody.\n',
+      '---\nstatus: accepted\ndate: 2026-08-19\n---\n\n# ADR: 1 Broken\n\n## Problem\n\nBody.\n',
     );
     const result = statusCommand(root, true);
     expect(result.valid).toBe(false);
@@ -58,9 +58,12 @@ describe('instructionsCommand', () => {
     const record = listRecords(root)[0];
     writeFileSync(
       record!.path,
-      `# ADR: Use SQLite
-Status: proposed
-Date: 2026-08-19
+      `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: Use SQLite
 
 ## Problem
 
@@ -93,15 +96,18 @@ Body.
     const sqlite = listRecords(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
-      '# ADR: Use SQLite\nStatus: proposed\nDate: 2026-08-19\n\n## Problem\n\nBody.\n',
+      '---\nstatus: proposed\ndate: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
-      `# ADR: Add plugin API
-Status: proposed
-Date: 2026-08-19
+      `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: Add plugin API
 
 ## Problem
 
@@ -138,15 +144,18 @@ Body.
     const sqlite = listRecords(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
-      '# ADR: Use SQLite\nStatus: proposed\nDate: 2026-08-19\n\n## Problem\n\nBody.\n',
+      '---\nstatus: proposed\ndate: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
-      `# ADR: Add plugin API
-Status: proposed
-Date: 2026-08-19
+      `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: Add plugin API
 
 ## Problem
 
@@ -186,15 +195,18 @@ Body.
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-broken.md'),
-      '# ADR: 1 Broken\nStatus: accepted\nDate: 2026-08-19\n\n## Problem\n\nBody.\n',
+      '---\nstatus: accepted\ndate: 2026-08-19\n---\n\n# ADR: 1 Broken\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
-      `# ADR: Add plugin API
-Status: proposed
-Date: 2026-08-19
+      `---
+status: proposed
+date: 2026-08-19
+---
+
+# ADR: Add plugin API
 
 ## Problem
 

@@ -37,8 +37,8 @@ adrkit decide "Use Postgres for session storage"
 adrkit supersede 1 --by 2
 ```
 
-The old record stays in `adr/decisions/` with `Status: superseded by 2`
-on the status line. Only the status line and the `Date:` stamp are
+The old record stays in `adr/decisions/` with `status: superseded` and
+`superseded-by: 2` in its front matter. Only the front matter is
 rewritten; the body is frozen history. `validate` checks that the
 referenced number exists and is not itself superseded, so a chain always
 ends at a currently-accepted decision.

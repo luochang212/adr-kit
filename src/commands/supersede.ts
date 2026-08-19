@@ -1,3 +1,4 @@
+import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { readRecord, resolveRecord, writeRecord } from '../core/repository.js';
 import { stampLifecycleMove } from '../core/templates.js';
@@ -29,16 +30,19 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     throw new Error(`"--by ${byQuery}" has no decision number`);
   }
 
-  const original = readRecord(record);
-  const currentStatus = original.split(/\r?\n/)[1];
-  if (currentStatus !== 'Status: accepted') {
-    throw new Error(`unexpected status line "${currentStatus ?? ''}" in ${record.fileName}`);
+  if (record.status !== 'accepted') {
+    throw new Error(`unexpected status "${record.status}" in ${record.fileName}`);
   }
+  const original = readRecord(record);
   writeRecord(
     root,
     'decisions',
     record.fileName,
-    stampLifecycleMove(original, `Status: superseded by ${replacement.number}`),
+    stampLifecycleMove(original, {
+      status: 'superseded',
+      date: todayStamp(),
+      'superseded-by': replacement.number,
+    }),
   );
   return `superseded adr/decisions/${record.fileName} by adr/decisions/${replacement.fileName}`;
 }
