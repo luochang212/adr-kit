@@ -14,8 +14,9 @@ const t = useTranslations(lang);
     <p class="hero__lead">{t('hero.lead')}</p>
     <div class="hero__install">
       <code class="hero__cmd"><span class="hero__prompt">›</span> {t('hero.install')}</code>
-      <button class="hero__copy" data-copy={t('hero.install')} data-label={t('hero.copy')} data-copied={t('hero.copied')}>
-        {t('hero.copy')}
+      <button class="hero__copy" data-copy={t('hero.install')}>
+        <span class="hero__copy-label">{t('hero.copy')}</span>
+        <span class="hero__copy-label hero__copy-label--alt" aria-hidden="true">{t('hero.copied')}</span>
       </button>
     </div>
     <TerminalDemo lang={lang} />
@@ -97,6 +98,13 @@ const t = useTranslations(lang);
     transition: color 0.2s, border-color 0.2s;
   }
   .hero__copy:hover { color: var(--fg); border-color: var(--border-strong); }
+  /* both labels stacked in one grid cell: the button is always as wide as
+     the longer label, so Copy → Copied never shifts layout */
+  .hero__copy { display: inline-grid; }
+  .hero__copy-label { grid-area: 1 / 1; }
+  .hero__copy-label--alt { visibility: hidden; color: var(--cyan); }
+  .hero__copy.copied .hero__copy-label { visibility: hidden; }
+  .hero__copy.copied .hero__copy-label--alt { visibility: visible; }
 </style>
 
 <script is:inline>
@@ -106,8 +114,8 @@ const t = useTranslations(lang);
       btn.addEventListener('click', function () {
         var text = btn.getAttribute('data-copy');
         function done() {
-          btn.textContent = btn.getAttribute('data-copied');
-          setTimeout(function () { btn.textContent = btn.getAttribute('data-label'); }, 1600);
+          btn.classList.add('copied');
+          setTimeout(function () { btn.classList.remove('copied'); }, 1600);
         }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(done, done);
