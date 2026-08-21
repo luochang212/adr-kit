@@ -3,10 +3,16 @@ import { basename } from 'node:path';
 import { parse } from 'yaml';
 
 export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
-export type AdrFolder = 'proposed' | 'decisions' | 'rejected';
+/**
+ * The durable records folder (`decisions/`) and the ephemeral drafts folder
+ * (`adr/.drafts/`). Status is never implied by location: durable records carry
+ * their own status, and drafts are proposals that will either be promoted or
+ * discarded.
+ */
+export type AdrFolder = 'decisions' | 'drafts';
 
 /** Canonical front matter field order; only fields that exist are written. */
-export const FRONT_MATTER_ORDER = ['status', 'date', 'reason', 'superseded-by'] as const;
+export const FRONT_MATTER_ORDER = ['status', 'date', 'commit', 'reason', 'superseded-by'] as const;
 
 /** Sections that only make sense during the proposal era and must not appear in an accepted decision. */
 export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
@@ -40,6 +46,8 @@ export interface AdrRecord {
   status: AdrStatus;
   /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
   date: string;
+  /** Short git hash the decision was recorded against; auto-stamped when in a git repo. */
+  commit?: string;
   rejectionReason?: string;
   /** For superseded decisions: the number of the decision that replaced this one. */
   supersededBy?: number;
@@ -56,29 +64,6 @@ export class AdrFormatError extends Error {
   ) {
     super(`${message} (${path})`);
     this.name = 'AdrFormatError';
-  }
-}
-
-export function statusForFolder(folder: AdrFolder): AdrStatus {
-  switch (folder) {
-    case 'decisions':
-      return 'accepted';
-    case 'proposed':
-      return 'proposed';
-    case 'rejected':
-      return 'rejected';
-  }
-}
-
-export function folderForStatus(status: AdrStatus): AdrFolder {
-  switch (status) {
-    case 'accepted':
-    case 'superseded':
-      return 'decisions';
-    case 'proposed':
-      return 'proposed';
-    case 'rejected':
-      return 'rejected';
   }
 }
 
@@ -167,6 +152,15 @@ export function parseAdrFile(filePath: string): AdrRecord {
   }
   const date = dateText;
 
+  let commit: string | undefined;
+  const commitField = fields['commit'];
+  if (commitField !== undefined) {
+    if (typeof commitField !== 'string' || commitField.trim().length === 0) {
+      throw new AdrFormatError('commit must be a non-empty string', filePath);
+    }
+    commit = commitField.trim();
+  }
+
   let rejectionReason: string | undefined;
   const reason = fields['reason'];
   if (status === 'rejected') {
@@ -229,8 +223,10 @@ export function parseAdrFile(filePath: string): AdrRecord {
   if (current !== null) sections.push(current);
 
   const numberMatch = title.match(/^([1-9]\d*)\s+(.+)$/);
+  // The parser does not know which folder the file lives in; listRecords and
+  // listDrafts set `folder` after scanning. 'decisions' is a neutral placeholder.
   const parsed: AdrRecord = {
-    folder: 'proposed',
+    folder: 'decisions',
     path: filePath,
     fileName: basename(filePath),
     title,
@@ -238,6 +234,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
     date,
     sections,
   };
+  if (commit !== undefined) parsed.commit = commit;
   if (rejectionReason !== undefined) parsed.rejectionReason = rejectionReason;
   if (supersededBy !== undefined) parsed.supersededBy = supersededBy;
   if (extras.length > 0) parsed.frontMatterExtras = extras;

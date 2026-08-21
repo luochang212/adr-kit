@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -8,7 +8,7 @@ import { listCommand } from '../src/commands/list.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { showCommand } from '../src/commands/show.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { folderPath, listRecords } from '../src/core/repository.js';
+import { folderPath, listDrafts, listRecords } from '../src/core/repository.js';
 
 const tempDirs: string[] = [];
 
@@ -90,10 +90,11 @@ Body.
     expect(validateCommand(root).valid).toBe(true);
   });
 
-  it('rejects invalid calendar dates in proposed file names', () => {
+  it('rejects a draft whose file name has an invalid calendar date', () => {
     const root = makeRepo();
+    mkdirSync(join(root, 'adr', '.drafts'), { recursive: true });
     writeFileSync(
-      join(folderPath(root, 'proposed'), '2026-02-31-use-sqlite.md'),
+      join(root, 'adr', '.drafts', '2026-02-31-use-sqlite.md'),
       `---
 status: proposed
 date: 2026-08-19
@@ -122,9 +123,8 @@ Body.
 Body.
 `,
     );
-    const result = validateCommand(root);
-    expect(result.valid).toBe(false);
-    expect(result.output).toContain('invalid calendar date');
+    // Drafts are outside the validate surface; the gate is accept.
+    expect(() => acceptCommand('Use SQLite', root)).toThrow(/invalid calendar date/);
   });
 
   it('rejects a record whose status does not match its folder', () => {
@@ -157,7 +157,7 @@ Body.
     );
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
-    expect(result.output).toContain('does not match folder');
+    expect(result.output).toContain('not a durable decision status');
   });
 
   it('resolves records by slug', () => {
@@ -200,9 +200,9 @@ Body.
   it('numbers decisions without zero padding (1, not 0001)', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const proposal = listRecords(root).find((record) => record.folder === 'proposed')!;
+    const draft = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
-      proposal.path,
+      draft.path,
       `---
 status: proposed
 date: 2026-08-19

@@ -24,33 +24,36 @@ AI agent 命令文件和 skills。
 adr/
 ├── config.yaml
 ├── README.md
-├── decisions/
-├── proposed/
-└── rejected/
+├── .gitignore     # 让 adr/.drafts/ 不进 git
+└── decisions/
 ```
 
-### `adrkit propose <title>`
-
-在 `adr/proposed/YYYY-MM-DD-slug.md` 创建提案。草稿在填写完所有必填
-section 之前会被 `validate` 判定为不通过。标题不得以数字开头；编号由
-ADR Kit 分配。
+提案是 `adr/.drafts/` 里的临时草稿；目录在第一次 `adrkit propose` 时创建。
 
 ### `adrkit decide <title>`
 
-在 `adr/decisions/N-slug.md` 创建已接受决策草稿。标题不得以数字开头。
+直接记录一条已做的决策到 `adr/decisions/N-slug.md`（默认路径）。标题不得
+以数字开头。
+
+### `adrkit propose <title>`
+
+在 `adr/.drafts/YYYY-MM-DD-slug.md` 创建临时提案草稿。草稿是临时的：
+`accept` 把它提升为编号决策，`reject` 直接丢弃、不留记录。标题不得以数字
+开头。
 
 ### `adrkit accept <name>`
 
-校验提案，分配下一个 `N` 编号，改写生命周期 section，并把文件从
-`adr/proposed/` 移动到 `adr/decisions/`。提案标题不得以数字开头。
+校验草稿，分配下一个 `N` 编号，改写生命周期 section，写入
+`adr/decisions/N-slug.md` 并删除草稿。草稿标题不得以数字开头。
 
-### `adrkit reject <name> --reason <text>`
+### `adrkit reject <name> [--reason <text>]`
 
-把提案移动到 `adr/rejected/`，拒绝原因写入 front matter。
+从 `adr/.drafts/` 丢弃提案草稿。不产生任何记录——拒绝记录在胜出决策的
+`Alternatives considered` 里。`--reason` 可选，仅回显。
 
 ### `adrkit list [--json]`
 
-按生命周期目录列出全部记录。
+列出决策（accepted/superseded）与待决草稿。
 
 ### `adrkit show <name>`
 
@@ -59,12 +62,12 @@ ADR Kit 分配。
 
 ### `adrkit status [--json]`
 
-打印生命周期计数与仓库校验状态。
+打印生命周期计数（accepted、superseded、待决草稿）与仓库校验状态。
 
 ### `adrkit instructions [--json]`
 
 打印下一步工作流步骤（init、fix validation、decide 或 propose）。有待决
-提案时，每条提案会标注为已验证（可直接接受）或需要修改，因此下一步是
+草稿时，每条草稿会标注为已验证（可直接接受）或需要修改，因此下一步是
 可执行动作而非方向。`--json` 模式下就绪状态通过 `readyToAccept` 和
 `needsWork` 字段暴露在 `pending` 列表旁边。
 

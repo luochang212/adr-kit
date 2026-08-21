@@ -12,7 +12,7 @@ export function initCommand(targetDir: string, toolsValue?: string): string {
     ...integrationSummary(root, integrations),
     '',
     'Next:',
-    '  adrkit propose "your first decision"   # start a proposal',
-    '  adrkit decide "use sqlite for sessions" # record an accepted decision',
+    '  adrkit decide "use sqlite for sessions" # record a decision (default path)',
+    '  adrkit propose "your first decision"    # draft a proposal for review',
   ].join('\n');
 }

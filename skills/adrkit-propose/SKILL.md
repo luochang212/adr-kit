@@ -7,8 +7,9 @@ description: Use when starting a new architecture decision that still needs revi
 
 ## Overview
 
-Create a proposed ADR in `adr/proposed/`. The proposal is a draft and is
-expected to fail `adrkit validate` until every required section is filled.
+Create an ephemeral proposal draft in `adr/.drafts/`. A draft is temporary:
+`adrkit accept` promotes it into a decision, `adrkit reject` discards it
+without leaving a record.
 
 ## Steps
 
@@ -18,10 +19,11 @@ expected to fail `adrkit validate` until every required section is filled.
 adrkit propose "<title>"
 ```
 
-2. Edit the created file. Fill every section with real content:
+2. Edit the created draft. Fill every section with real content:
    `## Problem`, `## Proposal`, `## Alternatives considered`,
    `## Acceptance criteria`, `## Risks`.
-3. Run `adrkit validate` until it returns OK.
+3. Promote the completed draft with `adrkit accept "<title>"`; the CLI
+   validates it before promoting.
 
 ## Rules
 

@@ -1,12 +1,13 @@
 import { requireRoot } from '../core/config.js';
-import { displayName, listRecords, relativePath } from '../core/repository.js';
+import { displayName, listDrafts, listRecords, relativePath } from '../core/repository.js';
 
 export function listCommand(cwd: string, asJson = false): string {
   const root = requireRoot(cwd);
   const records = listRecords(root);
+  const drafts = listDrafts(root);
 
   if (asJson) {
-    const payload = records.map((record) => ({
+    const payload = [...records, ...drafts].map((record) => ({
       folder: record.folder,
       status: record.status,
       number: record.number,
@@ -19,25 +20,25 @@ export function listCommand(cwd: string, asJson = false): string {
     return JSON.stringify(payload, null, 2);
   }
 
-  if (records.length === 0) {
+  if (records.length === 0 && drafts.length === 0) {
     return 'no ADRs yet: start one with "adrkit propose <title>" or "adrkit decide <title>"';
   }
 
-  const labels: Record<string, string> = {
-    decisions: 'Accepted',
-    proposed: 'Proposed',
-    rejected: 'Rejected',
-  };
   const lines: string[] = [];
-  for (const folder of ['decisions', 'proposed', 'rejected'] as const) {
-    const group = records.filter((record) => record.folder === folder);
-    if (group.length === 0) continue;
-    lines.push(labels[folder] ?? folder, '');
-    for (const record of group) {
+  if (records.length > 0) {
+    lines.push('Accepted', '');
+    for (const record of records) {
       const supersededNote = record.status === 'superseded' && record.supersededBy !== undefined
         ? `  [superseded by ${record.supersededBy}]`
         : '';
       lines.push(`  ${displayName(record)}${supersededNote}  (${relativePath(record)})`);
+    }
+    lines.push('');
+  }
+  if (drafts.length > 0) {
+    lines.push('Drafts (pending)', '');
+    for (const draft of drafts) {
+      lines.push(`  ${draft.title}  (${relativePath(draft)})`);
     }
     lines.push('');
   }

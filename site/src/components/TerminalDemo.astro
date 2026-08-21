@@ -4,7 +4,8 @@ import type { Lang } from '../i18n/ui';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 
-// The transcript mirrors real CLI output (captured from adr-kit 0.2.4).
+// The transcript mirrors real CLI output (adr-kit 0.3+). Proposals are
+// ephemeral drafts in adr/.drafts/; accept promotes a draft and deletes it.
 // The single localized line is the aside comment; the CLI speaks English.
 const fillNote = lang === 'zh' ? '# 填满必填章节之后' : '# after filling the required sections';
 
@@ -14,20 +15,16 @@ const lines: Line[] = [
   { kind: 'out', text: 'ADR Kit initialized at ~/my-project' },
   { kind: 'out', text: '  created adr/config.yaml' },
   { kind: 'out', text: '  created adr/decisions/' },
+  { kind: 'out', text: '  created adr/.gitignore' },
   { kind: 'out', text: '  created .claude/skills/adrkit-propose/SKILL.md (claude)' },
   { kind: 'out', text: '  … 13 more files' },
   { kind: 'cmd', text: 'adrkit propose "Use SQLite for session storage"' },
-  { kind: 'out', text: 'created adr/proposed/2026-08-19-use-sqlite-for-session-storage.md' },
-  { kind: 'cmd', text: 'adrkit validate' },
-  { kind: 'out', text: 'found 3 issues:' },
-  { kind: 'out', text: '  section "## Problem" must contain written content' },
-  { kind: 'out', text: '  section "## Proposal" must contain written content' },
-  { kind: 'out', text: '  section "## Alternatives considered" must contain an alternative' },
+  { kind: 'out', text: 'created adr/.drafts/2026-08-19-use-sqlite-for-session-storage.md' },
   { kind: 'note', text: fillNote },
+  { kind: 'cmd', text: 'adrkit accept "Use SQLite for session storage"' },
+  { kind: 'ok', text: 'accepted adr/.drafts/2026-08-19-use-sqlite-for-session-storage.md as adr/decisions/1-use-sqlite-for-session-storage.md' },
   { kind: 'cmd', text: 'adrkit validate' },
   { kind: 'ok', text: 'OK' },
-  { kind: 'cmd', text: 'adrkit accept "Use SQLite for session storage"' },
-  { kind: 'ok', text: 'accepted as adr/decisions/1-use-sqlite-for-session-storage.md' },
   { kind: 'cmd', text: 'adrkit list' },
   { kind: 'out', text: 'Accepted' },
   { kind: 'ok', text: '  [1] Use SQLite for session storage' },

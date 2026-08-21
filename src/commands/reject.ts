@@ -1,33 +1,17 @@
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
-import { folderPath, readRecord, removeRecord, resolveRecord, writeRecord } from '../core/repository.js';
-import { stampLifecycleMove } from '../core/templates.js';
+import { removeRecord, resolveDraft } from '../core/repository.js';
 
-export function rejectCommand(query: string, reason: string, cwd: string): string {
+export function rejectCommand(query: string, reason: string | undefined, cwd: string): string {
   const root = requireRoot(cwd);
-  const record = resolveRecord(root, query);
-  if (record.folder !== 'proposed') {
-    throw new Error(`"${query}" is not a proposal (it is in ${record.folder})`);
+  const draft = resolveDraft(root, query);
+  removeRecord(draft);
+  const lines = [`rejected and discarded draft adr/.drafts/${draft.fileName}`];
+  if (reason !== undefined && reason.trim().length > 0) {
+    lines.push(`reason: ${reason.trim()}`);
   }
-  const trimmedReason = reason.trim();
-  if (trimmedReason.length === 0) {
-    throw new Error('a rejection reason is required: adrkit reject <name> --reason "..."');
-  }
-
-  const path = join(folderPath(root, 'rejected'), record.fileName);
-  if (existsSync(path)) {
-    throw new Error(`rejected record already exists: adr/rejected/${record.fileName}`);
-  }
-
-  const original = readRecord(record);
-  writeRecord(
-    root,
-    'rejected',
-    record.fileName,
-    stampLifecycleMove(original, { status: 'rejected', date: todayStamp(), reason: trimmedReason }),
+  lines.push(
+    'No record was created - rejection lives in "Alternatives considered" of the',
+    'decision that won, not in a standalone rejected record.',
   );
-  removeRecord(record);
-  return `rejected adr/proposed/${record.fileName} as adr/rejected/${record.fileName}`;
+  return lines.join('\n');
 }

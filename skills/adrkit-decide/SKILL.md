@@ -7,8 +7,8 @@ description: Use when recording a decision that is already accepted and does not
 
 ## Overview
 
-Create an accepted decision draft directly in `adr/decisions/` with the
-next `N` number.
+Record an already-made decision directly in `adr/decisions/` with the next
+`N` number.
 
 ## Steps
 

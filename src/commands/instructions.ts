@@ -1,7 +1,6 @@
-import type { AdrRecord } from '../core/adr.js';
 import { findRoot } from '../core/config.js';
-import { listRecords } from '../core/repository.js';
-import { formatIssues, validateRecord, validateRepository } from '../core/validate.js';
+import { listDrafts, listRecords } from '../core/repository.js';
+import { formatIssues, validateDraft, validateRepository } from '../core/validate.js';
 
 export function instructionsCommand(cwd: string, asJson = false): string {
   const root = findRoot(cwd);
@@ -11,20 +10,19 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       '',
       'Next:',
       '  adrkit init',
-      '  adrkit propose "your first decision"',
+      '  adrkit decide "your first decision"',
     ].join('\n');
     return asJson
       ? JSON.stringify({ step: 'init', message: output }, null, 2)
       : output;
   }
 
-  // Pending proposals come first: deciding them is the steer, and a draft
-  // elsewhere in the repo must not hide the proposals that are ready.
-  // Unparseable records fall back to the repository-level validation output,
-  // which reports the parse error as an issue.
-  let records: AdrRecord[];
+  // Pending drafts come first: promoting or discarding them is the steer, and a
+  // draft elsewhere in the repo must not hide the proposals that are ready.
+  // A corrupt durable record falls back to the repository-level validation
+  // output, which reports the parse error as an issue.
   try {
-    records = listRecords(root);
+    listRecords(root);
   } catch {
     const issues = validateRepository(root);
     const output = [
@@ -40,42 +38,42 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       : output;
   }
 
-  const proposed = records.filter((record) => record.folder === 'proposed');
-  if (proposed.length > 0) {
+  const drafts = listDrafts(root);
+  if (drafts.length > 0) {
     const ready: string[] = [];
     const needsWork: Record<string, string[]> = {};
-    for (const record of proposed) {
-      const issues = validateRecord(root, record);
+    for (const draft of drafts) {
+      const issues = validateDraft(root, draft);
       if (issues.length === 0) {
-        ready.push(record.fileName);
+        ready.push(draft.fileName);
       } else {
-        needsWork[record.fileName] = issues.map((issue) => issue.message);
+        needsWork[draft.fileName] = issues.map((issue) => issue.message);
       }
     }
     const readySet = new Set(ready);
 
-    const lines = [`${proposed.length} proposal${proposed.length === 1 ? '' : 's'} waiting:`];
-    for (const record of proposed) {
-      if (readySet.has(record.fileName)) {
-        lines.push(`  ✓ ${record.fileName}   validated - ready to accept`);
+    const lines = [`${drafts.length} draft${drafts.length === 1 ? '' : 's'} pending:`];
+    for (const draft of drafts) {
+      if (readySet.has(draft.fileName)) {
+        lines.push(`  ✓ ${draft.fileName}   validated - ready to accept`);
       } else {
-        const first = needsWork[record.fileName]?.[0] ?? 'validation failed';
-        lines.push(`  ✗ ${record.fileName}   ${first}`);
+        const first = needsWork[draft.fileName]?.[0] ?? 'validation failed';
+        lines.push(`  ✗ ${draft.fileName}   ${first}`);
       }
     }
     lines.push('', 'Next:');
     for (const name of ready) {
-      lines.push(`  adrkit accept ${name}   # accept it`);
+      lines.push(`  adrkit accept ${name}   # promote to a decision`);
     }
     for (const name of Object.keys(needsWork)) {
-      lines.push(`  adrkit validate ${name}   # fix it first`);
+      lines.push(`  adrkit reject ${name}   # or fix adr/.drafts/${name} and accept it`);
     }
     const output = lines.join('\n');
     return asJson
       ? JSON.stringify(
           {
             step: 'decide',
-            pending: proposed.map((record) => record.fileName),
+            pending: drafts.map((draft) => draft.fileName),
             readyToAccept: ready,
             needsWork,
             message: output,
@@ -105,7 +103,7 @@ export function instructionsCommand(cwd: string, asJson = false): string {
     'No proposals waiting.',
     '',
     'Next:',
-    '  adrkit propose "your next decision"',
+    '  adrkit propose "a decision you are unsure about"   # ephemeral draft',
     '  adrkit decide "an already-made decision"',
   ].join('\n');
   return asJson

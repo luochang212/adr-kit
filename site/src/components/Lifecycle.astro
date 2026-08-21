@@ -6,10 +6,10 @@ const { lang } = Astro.props;
 const t = useTranslations(lang);
 
 const states = [
-  { key: 'proposed', mono: 'proposed/', cls: 'proposed' },
+  { key: 'draft', mono: 'adr/.drafts/', cls: 'draft' },
   { key: 'accepted', mono: 'decisions/N-*.md', cls: 'accepted' },
-  { key: 'rejected', mono: 'rejected/', cls: 'rejected' },
   { key: 'superseded', mono: 'superseded-by: N', cls: 'superseded' },
+  { key: 'rejected', mono: 'Alternatives considered', cls: 'rejected' },
 ] as const;
 ---
 
@@ -23,8 +23,8 @@ const states = [
     <div class="lifecycle__grid reveal">
       {states.map((s, i) => (
         <>
-          {i > 0 && i !== 2 && <span class="lifecycle__arrow" aria-hidden="true">→</span>}
-          {i === 2 && <span class="lifecycle__arrow lifecycle__arrow--branch" aria-hidden="true">↘</span>}
+          {i > 0 && i !== 3 && <span class="lifecycle__arrow" aria-hidden="true">→</span>}
+          {i === 3 && <span class="lifecycle__arrow lifecycle__arrow--branch" aria-hidden="true">↘</span>}
           <article class={`lifecycle__card lifecycle__card--${s.cls}`}>
             <header class="lifecycle__head">
               <span class={`lifecycle__dot lifecycle__dot--${s.cls}`}></span>
@@ -74,7 +74,7 @@ const states = [
     border-radius: 50%;
     flex: none;
   }
-  .lifecycle__dot--proposed { background: var(--fg-30); }
+  .lifecycle__dot--draft { background: var(--fg-30); }
   .lifecycle__dot--accepted { background: var(--cyan); }
   .lifecycle__dot--rejected { background: var(--fg-30); }
   .lifecycle__dot--superseded { background: var(--indigo); }

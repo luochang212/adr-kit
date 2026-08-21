@@ -8229,5 +8229,5 @@
   <text x="444" y="362" font-family="Helvetica Neue, Arial, sans-serif" font-size="29" font-weight="400" fill="#B4BDCE">Architecture decision records for humans and agents</text>
 
   <!-- Lifecycle -->
-  <text x="444" y="432" font-family="Menlo, Monaco, monospace" font-size="27" fill="#A6B0C2"><tspan fill="#22D3EE">&#8250;</tspan> proposed <tspan fill="#22D3EE">&#8594;</tspan> accepted <tspan fill="#A6B0C2">/</tspan> rejected <tspan fill="#A6B0C2">/</tspan> superseded</text>
+  <text x="444" y="432" font-family="Menlo, Monaco, monospace" font-size="27" fill="#A6B0C2"><tspan fill="#22D3EE">&#8250;</tspan> draft <tspan fill="#22D3EE">&#8594;</tspan> accepted <tspan fill="#22D3EE">&#8594;</tspan> superseded</text>
 </svg>

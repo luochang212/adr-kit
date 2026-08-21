@@ -20,14 +20,14 @@ function makeRepo(): string {
   return dir;
 }
 
-/** propose → fill → accept，返回分配到的四位编号字符串。 */
+/** propose → fill → accept，返回 slug。 */
 function acceptDecision(root: string, title: string): string {
   proposeCommand(title, root);
   const listing = JSON.parse(listCommand(root, true)) as Array<{ fileName: string; folder: string }>;
-  const proposal = listing.find((record) => record.folder === 'proposed');
-  if (proposal === undefined) throw new Error('proposal not found');
-  const slug = proposal.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
-  writeFileSync(join(root, 'adr', 'proposed', proposal.fileName), `---
+  const draft = listing.find((record) => record.folder === 'drafts');
+  if (draft === undefined) throw new Error('draft not found');
+  const slug = draft.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
+  writeFileSync(join(root, 'adr', '.drafts', draft.fileName), `---
 status: proposed
 date: 2026-08-19
 ---
@@ -108,9 +108,8 @@ describe('supersedeCommand', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use Postgres');
     proposeCommand('Use SQLite', root);
-    expect(() => supersedeCommand('use-sqlite', '1', root)).toThrow(
-      'is not an accepted decision',
-    );
+    // Drafts are not decisions, so a draft title does not resolve for supersede.
+    expect(() => supersedeCommand('use-sqlite', '1', root)).toThrow('no ADR matches');
   });
 
   it('refuses to supersede with a missing decision', () => {

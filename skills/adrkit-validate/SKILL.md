@@ -21,5 +21,5 @@ adrkit validate [name] [--all] [--json]
 ## Rules
 
 - Treat any non-OK output as a blocker for `adrkit accept`.
-- A fresh draft is expected to fail until the required sections are
-  filled in; fix the exact issue printed rather than deleting sections.
+- `adrkit validate` checks durable decisions only; a draft in `adr/.drafts/`
+  is validated by `adrkit accept` right before it is promoted.

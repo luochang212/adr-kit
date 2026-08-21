@@ -1,22 +1,24 @@
 ---
 name: adrkit-reject
-description: Use when a proposed ADR should be declined and frozen for future reference.
+description: Use when a proposal draft should be declined and discarded.
 ---
 
 # ADR Kit Reject
 
 ## Overview
 
-Reject a proposal. The CLI moves the file from `adr/proposed/` to
-`adr/rejected/` and records the reason in the front matter.
+Discard a proposal draft. The CLI deletes the draft from `adr/.drafts/` and
+leaves no record - rejection lives in the winning decision's
+`## Alternatives considered`, not in a standalone rejected record.
 
 ## Steps
 
 ```bash
-adrkit reject "<name>" --reason "<why it was rejected>"
+adrkit reject "<name>" [--reason "<why it was rejected>"]
 ```
 
 ## Rules
 
-- Always provide a concrete reason; the command refuses an empty one.
-- A rejected record is frozen history. Do not edit it afterwards.
+- `--reason` is optional and is only echoed; nothing is persisted. If the
+  rejection matters, record it in `## Alternatives considered` of the decision
+  that won.

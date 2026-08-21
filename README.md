@@ -18,8 +18,10 @@
 </p>
 
 ADR Kit turns architecture decisions into plain Markdown files with a
-machine-checkable lifecycle: **proposed → accepted / rejected / superseded**. It borrows
-the spec-driven spirit of [OpenSpec](https://github.com/Fission-AI/OpenSpec)
+machine-checkable lifecycle. Decisions are durable records
+(**accepted / superseded**); proposals are ephemeral drafts that either become
+a decision or vanish. It borrows the spec-driven spirit of
+[OpenSpec](https://github.com/Fission-AI/OpenSpec)
 and the decision-record discipline of agent-native codebases: every record
 must say what problem it solves, what it chose, and what it gave up.
 
@@ -36,7 +38,7 @@ Requires Node.js 20.19 or later.
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit propose "Use SQLite for session storage"
+adrkit decide "Use SQLite for session storage"
 ```
 
 `adrkit init` creates an `adr/` directory:
@@ -45,37 +47,40 @@ adrkit propose "Use SQLite for session storage"
 adr/
 ├── config.yaml      # project context and per-status rules
 ├── README.md        # repository conventions
-├── decisions/       # accepted decisions, numbered N
-├── proposed/        # proposals waiting for a decision
-└── rejected/        # rejected proposals, frozen
+├── .gitignore       # keeps adr/.drafts/ out of git
+└── decisions/       # decisions, numbered N, immutable history
 ```
 
-Fill in the proposal, then:
+Proposals are ephemeral drafts in `adr/.drafts/`: `adrkit propose` creates
+one, `adrkit accept` promotes it to a numbered decision, and `adrkit reject`
+discards it without leaving a record. Rejection is recorded in a decision's
+`Alternatives considered`, never as a standalone record.
+
+Fill in the decision, then:
 
 ```bash
 adrkit validate
-adrkit accept "Use SQLite for session storage"
 adrkit list
 ```
 
 ## Commands
 
 ```text
-adrkit init [path] [--tools <list>]    Initialize an ADR Kit repository
-adrkit propose <title>                 Create a proposed decision
-adrkit decide <title>                  Record an already-accepted decision
-adrkit accept <name>                   Accept a proposal (assigns N)
-adrkit reject <name> --reason <text>   Reject a proposal
-adrkit supersede <name> --by <name>    Mark an accepted decision as superseded
-adrkit list [--json]                   List all records
-adrkit show <name>                     Show a record
-adrkit status [--json]                 Show lifecycle counts and validity
-adrkit instructions [--json]           Print the next step; flag pending proposals as ready or needing work
+adrkit init [path] [--tools <list>]     Initialize an ADR Kit repository
+adrkit decide <title>                   Record an already-made decision (default path)
+adrkit propose <title>                  Create an ephemeral proposal draft
+adrkit accept <name>                    Promote a draft to a decision (assigns N)
+adrkit reject <name> [--reason <text>]  Discard a draft (leaves no record)
+adrkit supersede <name> --by <name>     Mark an accepted decision as superseded
+adrkit list [--json]                    List decisions and pending drafts
+adrkit show <name>                      Show a decision or draft
+adrkit status [--json]                  Show lifecycle counts and validity
+adrkit instructions [--json]            Print the next step; flag pending drafts as ready or needing work
 adrkit validate [name] [--all] [--json] Validate one record or the repository
 adrkit update [--tools <list>]          Rewrite AI tool integrations
-adrkit config [--json]                 Print the current configuration
-adrkit completion <bash|zsh|fish>      Print a shell completion script
-adrkit version                         Print the version
+adrkit config [--json]                  Print the current configuration
+adrkit completion <bash|zsh|fish>       Print a shell completion script
+adrkit version                          Print the version
 ```
 
 `<name>` resolves by title, file name, or decision number (`1`).
@@ -95,27 +100,31 @@ Every record is YAML front matter followed by a Markdown body:
 
 ```markdown
 ---
-status: proposed
+status: accepted
 date: 2026-08-19
+commit: abc1234
 ---
 
-# ADR: Use SQLite for session storage
+# ADR: 1 Use SQLite for session storage
 
 ## Problem
 ...
 ```
 
 The `date` field records when the current status was reached; the CLI
-stamps it at every lifecycle move (propose, decide, accept, reject,
-supersede), so the record stays truthful without manual date entry.
+stamps it at every lifecycle move, alongside the git `commit` the decision
+was recorded against. Decisions are immutable history; the current facts
+live in code, not in the record.
 
-- **Proposed** records require `Problem`, `Proposal`, `Alternatives
-  considered`, `Acceptance criteria`, and `Risks`.
-- **Accepted** decisions require `Problem`, `Decision`, `Alternatives
-  considered`, and `Consequences`; proposal-era headings are rejected by
-  `validate`.
-- **Rejected** proposals are frozen with the reason in the front matter:
-  `status: rejected` plus `reason: <why>`.
+- **Decisions** (`adr/decisions/N-slug.md`) are `accepted` or `superseded`
+  and require `Problem`, `Decision`, `Alternatives considered`, and
+  `Consequences`; proposal-era headings are rejected by `validate`.
+- **Drafts** (`adr/.drafts/YYYY-MM-DD-slug.md`) are ephemeral proposals with
+  `status: proposed`, require `Problem`, `Proposal`, `Alternatives
+  considered`, `Acceptance criteria`, and `Risks`, and are never checked by
+  `validate` - `adrkit accept` validates a draft right before promoting it.
+- **Rejected** ideas are not standalone records: a decision's
+  `Alternatives considered` documents what was considered and why it lost.
 - **Superseded** decisions stay in `adr/decisions/` as history, with the
   replacing decision in the front matter: `status: superseded` plus
   `superseded-by: N`.
@@ -170,10 +179,9 @@ history, and current facts live in code, not in the record.
   ADR that says what was decided and what was given up stays useful.
 - **Alternatives are mandatory.** A decision recorded without what it beat
   invites re-litigation.
-- **Lifecycle is mechanical, not editorial.** Moving a proposal to
-  accepted or rejected is a command, retiring an accepted decision via
-  supersede is a command, and `validate` enforces the resulting
-  shape.
+- **Lifecycle is mechanical, not editorial.** Promoting a draft and retiring
+  an accepted decision are commands (`accept`, `supersede`), and `validate`
+  enforces the resulting shape.
 - **Agents are first-class users.** The format is plain Markdown, paths are
   predictable, and agent-facing commands print machine-readable `--json`
   output; the rest reject the flag instead of silently ignoring it.

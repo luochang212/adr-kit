@@ -56,14 +56,16 @@ Create an \`adr/\` repository in the target directory.
 adrkit init [path]
 \`\`\`
 
-3. Confirm the output lists \`adr/config.yaml\`, \`adr/decisions\`,
-   \`adr/proposed\`, and \`adr/rejected\`.
+3. Confirm the output lists \`adr/config.yaml\`, \`adr/decisions\`, and
+   \`adr/.gitignore\`. Proposals are not a separate folder: they are ephemeral
+   drafts in \`adr/.drafts/\`, created by \`adrkit propose\`.
 
 ## Rules
 
 - Never create \`adr/\` directories by hand; use the CLI so the config and
   README stay canonical.
-- After init, the next action is usually \`adrkit propose "<title>"\`.`,
+- After init, the next action is usually \`adrkit decide "<title>"\`, or
+  \`adrkit propose "<title>"\` when the decision still needs review.`,
   },
   {
     name: 'adrkit-propose',
@@ -72,8 +74,9 @@ adrkit init [path]
 
 ## Overview
 
-Create a proposed ADR in \`adr/proposed/\`. The proposal is a draft and is
-expected to fail \`adrkit validate\` until every required section is filled.
+Create an ephemeral proposal draft in \`adr/.drafts/\`. A draft is temporary:
+\`adrkit accept\` promotes it into a decision, \`adrkit reject\` discards it
+without leaving a record.
 
 ## Steps
 
@@ -83,10 +86,11 @@ expected to fail \`adrkit validate\` until every required section is filled.
 adrkit propose "<title>"
 \`\`\`
 
-2. Edit the created file. Fill every section with real content:
+2. Edit the created draft. Fill every section with real content:
    \`## Problem\`, \`## Proposal\`, \`## Alternatives considered\`,
    \`## Acceptance criteria\`, \`## Risks\`.
-3. Run \`adrkit validate\` until it returns OK.
+3. Promote the completed draft with \`adrkit accept "<title>"\`; the CLI
+   validates it before promoting.
 
 ## Rules
 
@@ -105,8 +109,8 @@ adrkit propose "<title>"
 
 ## Overview
 
-Create an accepted decision draft directly in \`adr/decisions/\` with the
-next \`N\` number.
+Record an already-made decision directly in \`adr/decisions/\` with the next
+\`N\` number.
 
 ## Steps
 
@@ -147,24 +151,25 @@ adrkit validate [name] [--all] [--json]
 ## Rules
 
 - Treat any non-OK output as a blocker for \`adrkit accept\`.
-- A fresh draft is expected to fail until the required sections are
-  filled in; fix the exact issue printed rather than deleting sections.`,
+- \`adrkit validate\` checks durable decisions only; a draft in \`adr/.drafts/\`
+  is validated by \`adrkit accept\` right before it is promoted.`,
   },
   {
     name: 'adrkit-accept',
-    description: 'Use when a proposed ADR is complete and validated, and the team has decided to accept it.',
+    description: 'Use when a proposal draft is complete, and the team has decided to accept it.',
     body: `# ADR Kit Accept
 
 ## Overview
 
-Accept a proposal. The CLI validates the proposal, assigns the next
-\`N\` decision number, rewrites \`## Proposal\` to \`## Decision\`, folds
-\`Acceptance criteria\` and \`Risks\` into \`## Consequences\`, and moves the
-file from \`adr/proposed/\` to \`adr/decisions/\`.
+Promote a completed draft to a decision. The CLI validates the draft, assigns
+the next \`N\` number, rewrites \`## Proposal\` to \`## Decision\`, folds
+\`Acceptance criteria\` and \`Risks\` into \`## Consequences\`, writes
+\`adr/decisions/N-*.md\`, and discards the draft from \`adr/.drafts/\`.
 
 ## Steps
 
-1. Run \`adrkit validate\` and confirm the proposal is OK.
+1. Review the draft with \`adrkit show "<name>"\`; every section must have real
+   content before accepting.
 2. Run:
 
 \`\`\`bash
@@ -175,9 +180,9 @@ adrkit accept "<name>"
 
 ## Rules
 
-- Never accept an invalid proposal; the command refuses.
-- Re-run \`adrkit validate\` immediately before accepting, even if you
-  validated earlier in this conversation; the repo may have changed since.
+- Never accept an invalid draft; the command refuses.
+- Re-run \`adrkit show "<name>"\` immediately before accepting, even if you
+  reviewed it earlier in this conversation; the repo may have changed since.
 - Review the generated \`## Consequences\` after accepting.
 - The command warns when a proposal contains sections that have no place in
   an accepted decision (for example \`## Plan\`); save their content elsewhere
@@ -185,24 +190,26 @@ adrkit accept "<name>"
   },
   {
     name: 'adrkit-reject',
-    description: 'Use when a proposed ADR should be declined and frozen for future reference.',
+    description: 'Use when a proposal draft should be declined and discarded.',
     body: `# ADR Kit Reject
 
 ## Overview
 
-Reject a proposal. The CLI moves the file from \`adr/proposed/\` to
-\`adr/rejected/\` and records the reason in the front matter.
+Discard a proposal draft. The CLI deletes the draft from \`adr/.drafts/\` and
+leaves no record - rejection lives in the winning decision's
+\`## Alternatives considered\`, not in a standalone rejected record.
 
 ## Steps
 
 \`\`\`bash
-adrkit reject "<name>" --reason "<why it was rejected>"
+adrkit reject "<name>" [--reason "<why it was rejected>"]
 \`\`\`
 
 ## Rules
 
-- Always provide a concrete reason; the command refuses an empty one.
-- A rejected record is frozen history. Do not edit it afterwards.`,
+- \`--reason\` is optional and is only echoed; nothing is persisted. If the
+  rejection matters, record it in \`## Alternatives considered\` of the decision
+  that won.`,
   },
   {
     name: 'adrkit-supersede',

@@ -157,7 +157,7 @@ rules:
     const accept = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-accept');
     const supersede = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-supersede');
     expect(propose?.body).toContain('even if you ran it earlier in this conversation');
-    expect(accept?.body).toMatch(/even if you\s+validated earlier in this conversation/);
+    expect(accept?.body).toMatch(/even if you\s+reviewed it earlier in this conversation/);
     expect(supersede?.body).toMatch(/even if you\s+checked earlier in\s+this conversation/);
   });
 });

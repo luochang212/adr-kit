@@ -4,26 +4,28 @@ Every ADR is YAML front matter followed by a Markdown body:
 
 ```markdown
 ---
-status: proposed | accepted | rejected | superseded
+status: accepted | superseded
 date: YYYY-MM-DD
+commit: abc1234
 ---
 
-# ADR: <title>
+# ADR: N <title>
 ```
 
-Front matter fields are written in the order `status`, `date`, `reason`,
-`superseded-by`; only the fields that apply are present. `reason` is
-required on rejected records and forbidden otherwise; `superseded-by` is
-required on superseded decisions and forbidden otherwise. Unknown fields
-are reported by `validate`.
+Front matter fields are written in the order `status`, `date`, `commit`,
+`superseded-by`; only the fields that apply are present. `commit` is the
+short git hash the decision was recorded against, stamped automatically when
+the repository is under git. `superseded-by` is required on superseded
+decisions and forbidden otherwise. Unknown fields are reported by `validate`.
 
 The `date` field records when the current status was reached. The CLI
-stamps it at every lifecycle move (`propose`, `decide`, `accept`,
-`reject`, `supersede`), so it is machine-written, never hand-maintained.
+stamps it at every lifecycle move (`decide`, `accept`, `supersede`), so it
+is machine-written, never hand-maintained.
 
-## Proposed records
+## Drafts (proposals)
 
-File name: `YYYY-MM-DD-slug.md`. Required sections:
+File name: `YYYY-MM-DD-slug.md`, location `adr/.drafts/`. Front matter:
+`status: proposed`. Required sections:
 
 ```markdown
 ## Problem
@@ -36,7 +38,11 @@ File name: `YYYY-MM-DD-slug.md`. Required sections:
 `## Alternatives considered` must contain at least one written alternative
 after HTML comments are stripped.
 
-## Accepted decisions
+Drafts are ephemeral and outside the `validate` surface: `adrkit accept`
+validates a draft right before promoting it into a decision, and `adrkit
+reject` discards it without leaving a record.
+
+## Decisions
 
 File name: `N-slug.md`. Title: `# ADR: N <title>`. Required sections:
 
@@ -64,20 +70,11 @@ superseded-by: 6
 `validate` checks that the referenced number exists and is not itself
 superseded. Superseded records stay in `adr/decisions/` as frozen history.
 
-## Rejected proposals
+## Rejection
 
-File name: `YYYY-MM-DD-slug.md`. The front matter carries the reason:
-
-```markdown
----
-status: rejected
-date: 2026-08-19
-reason: we chose JSON files instead
----
-```
-
-Required sections: `Problem`, `Proposal`, `Alternatives considered`.
-Rejected records are frozen history.
+A rejected idea is not a standalone record. Every decision's
+`Alternatives considered` documents what was considered and why it lost, so
+a "no" never disappears and is never re-litigated.
 
 ## Slug rules
 

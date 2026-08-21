@@ -6,11 +6,19 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { basename, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { ADR_DIR, CONFIG_FILE, configPath } from './config.js';
 import { parseAdrFile, type AdrFolder, type AdrRecord } from './adr.js';
 
-export const FOLDERS: AdrFolder[] = ['decisions', 'proposed', 'rejected'];
+/** Durable records live in one folder; status is carried in the front matter. */
+export const FOLDERS: AdrFolder[] = ['decisions'];
+
+/**
+ * Ephemeral proposal drafts. Created lazily on the first `adrkit propose`,
+ * gitignored (init writes `adr/.gitignore`), never validated by `adrkit
+ * validate` and never durable until `accept` promotes one into decisions/.
+ */
+export const DRAFTS_DIR = '.drafts';
 
 export interface InitResult {
   root: string;
@@ -43,15 +51,17 @@ ${toolsYaml}
 const INIT_README = `# Architecture Decision Records
 
 This directory is an ADR Kit repository. Each record is plain Markdown with a
-machine-checkable header and lifecycle folders.
+machine-checkable header. Decisions are durable; proposals are ephemeral drafts.
 
 ## Folders
 
 | Folder | Meaning |
 | --- | --- |
-| \`decisions/\` | Accepted and superseded decisions, numbered sequentially, immutable history |
-| \`proposed/\` | Proposals that are not yet accepted or rejected |
-| \`rejected/\` | Rejected proposals, frozen for the record |
+| \`decisions/\` | Decisions, numbered sequentially, immutable history (accepted or superseded) |
+| \`.drafts/\` | Proposal drafts, gitignored and ephemeral - promote one with \`adrkit accept\` or discard it with \`adrkit reject\` |
+
+Rejection is recorded in a decision's \`Alternatives considered\` section, never
+as a standalone record.
 
 ## Record format
 
@@ -59,20 +69,22 @@ Every record starts with a YAML front matter block:
 
 \`\`\`markdown
 ---
-status: proposed | accepted | rejected | superseded
+status: accepted | superseded
 date: YYYY-MM-DD
+commit: abc1234
 ---
 
-# ADR: <title>
+# ADR: N <title>
 \`\`\`
 
-Rejected records add \`reason: <why>\`; superseded decisions add
+Decisions use \`# ADR: N <title>\` and require \`Problem\`, \`Decision\`,
+\`Alternatives considered\`, and \`Consequences\`. Superseded decisions add
 \`superseded-by: N\`. The \`date\` field records when the current status was
-reached; the CLI stamps it at every lifecycle move. Accepted decisions use
-\`# ADR: N <title>\` and require
-\`Problem\`, \`Decision\`, \`Alternatives considered\`, and \`Consequences\`.
-Proposals require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
-\`Acceptance criteria\`, and \`Risks\`.
+reached; the CLI stamps it at every lifecycle move, alongside the git \`commit\`
+the decision was recorded against. Drafts (\`adr/.drafts/\`, \`status:
+proposed\`) require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
+\`Acceptance criteria\`, and \`Risks\`; \`adrkit accept\` promotes one into a
+decision, and \`adrkit reject\` discards it without leaving a record.
 
 Run \`adrkit validate\` to check every record.
 `;
@@ -98,6 +110,13 @@ export function initRepository(targetDir: string, tools: string[] = []): InitRes
   writeFileSync(config, initConfig(tools));
   created.push(`${ADR_DIR}/${CONFIG_FILE}`);
 
+  // Drafts are ephemeral and must never be committed; the guard ships with init
+  // so a draft can never leak into git, even before the first propose creates
+  // the directory.
+  const gitignore = join(adrRoot, '.gitignore');
+  writeFileSync(gitignore, `${DRAFTS_DIR}\n`);
+  created.push(`${ADR_DIR}/.gitignore`);
+
   const readme = join(adrRoot, 'README.md');
   writeFileSync(readme, INIT_README);
   created.push(`${ADR_DIR}/README.md`);
@@ -109,8 +128,17 @@ export function adrRoot(root: string): string {
   return join(root, ADR_DIR);
 }
 
+/**
+ * Physical directory name for a folder value. The drafts folder is named
+ * `.drafts` (dot-prefixed, gitignored) while the value carried on AdrRecord is
+ * the bare `drafts`.
+ */
+function folderDirName(folder: AdrFolder): string {
+  return folder === 'drafts' ? DRAFTS_DIR : folder;
+}
+
 export function folderPath(root: string, folder: AdrFolder): string {
-  return join(adrRoot(root), folder);
+  return join(adrRoot(root), folderDirName(folder));
 }
 
 export function listRecords(root: string): AdrRecord[] {
@@ -228,12 +256,60 @@ export function nextDecisionNumber(root: string): number {
 
 export function writeRecord(root: string, folder: AdrFolder, fileName: string, content: string): string {
   const path = join(folderPath(root, folder), fileName);
+  // mkdir-on-write: a target folder may not exist yet (e.g. .drafts/ before the
+  // first propose, or a decisions/ that was removed). Creating it on demand
+  // keeps every lifecycle command correct without eager directory ceremony.
+  mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
   return path;
 }
 
 export function removeRecord(record: AdrRecord): void {
   rmSync(record.path);
+}
+
+/** Path to the ephemeral drafts folder (`adr/.drafts/`). */
+export function draftsPath(root: string): string {
+  return join(adrRoot(root), DRAFTS_DIR);
+}
+
+export function listDrafts(root: string): AdrRecord[] {
+  const dir = draftsPath(root);
+  if (!existsSync(dir)) return [];
+  const drafts: AdrRecord[] = [];
+  for (const entry of readdirSync(dir)) {
+    if (!entry.endsWith('.md')) continue;
+    const path = join(dir, entry);
+    try {
+      const draft = parseAdrFile(path);
+      draft.folder = 'drafts';
+      drafts.push(draft);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`failed to parse ${relative(root, path)}: ${message}`);
+    }
+  }
+  drafts.sort((a, b) => a.fileName.localeCompare(b.fileName));
+  return drafts;
+}
+
+function draftMatchesQuery(draft: AdrRecord, needle: string): boolean {
+  if (fileNameMatchesQuery(draft.fileName, needle)) return true;
+  return draft.title === needle || `# ADR: ${draft.title}` === needle;
+}
+
+export function resolveDraft(root: string, query: string): AdrRecord {
+  const needle = query.trim();
+  const drafts = listDrafts(root);
+  const candidates = drafts.filter((draft) => draftMatchesQuery(draft, needle));
+  if (candidates.length === 0) {
+    throw new Error(`no draft proposal matches "${query}"`);
+  }
+  if (candidates.length > 1) {
+    const paths = candidates.map((draft) => relative(root, draft.path)).join(', ');
+    throw new Error(`"${query}" is ambiguous; matches: ${paths}`);
+  }
+  return candidates[0]!;
 }
 
 export function readRecord(record: AdrRecord): string {
@@ -249,5 +325,5 @@ export function displayName(record: AdrRecord): string {
 }
 
 export function relativePath(record: AdrRecord): string {
-  return join(ADR_DIR, record.folder, basename(record.path));
+  return join(ADR_DIR, folderDirName(record.folder), basename(record.path));
 }

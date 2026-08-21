@@ -22,17 +22,7 @@ Sleep 500ms
 Enter
 Sleep 1200ms
 
-Type "adrkit propose \"Use SQLite for session storage\""
-Sleep 500ms
-Enter
-Sleep 1200ms
-
-Type "adrkit validate"
-Sleep 500ms
-Enter
-Sleep 1200ms
-
-Type "adrkit accept \"Use SQLite for session storage\""
+Type "adrkit decide \"Use SQLite for session storage\""
 Sleep 500ms
 Enter
 Sleep 1200ms

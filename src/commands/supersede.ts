@@ -1,5 +1,6 @@
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
+import { gitHead } from '../core/git.js';
 import { readRecord, resolveRecord, writeRecord } from '../core/repository.js';
 import { stampLifecycleMove } from '../core/templates.js';
 
@@ -34,15 +35,13 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     throw new Error(`unexpected status "${record.status}" in ${record.fileName}`);
   }
   const original = readRecord(record);
-  writeRecord(
-    root,
-    'decisions',
-    record.fileName,
-    stampLifecycleMove(original, {
-      status: 'superseded',
-      date: todayStamp(),
-      'superseded-by': replacement.number,
-    }),
-  );
+  const patch: Record<string, string | number> = {
+    status: 'superseded',
+    date: todayStamp(),
+    'superseded-by': replacement.number,
+  };
+  const commit = gitHead(root);
+  if (commit !== undefined) patch.commit = commit;
+  writeRecord(root, 'decisions', record.fileName, stampLifecycleMove(original, patch));
   return `superseded adr/decisions/${record.fileName} by adr/decisions/${replacement.fileName}`;
 }

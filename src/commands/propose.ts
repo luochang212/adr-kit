@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { readConfig, requireRoot } from '../core/config.js';
-import { folderPath, writeRecord } from '../core/repository.js';
+import { draftsPath, writeRecord } from '../core/repository.js';
 import { todayStamp } from '../core/adr.js';
 import { proposalTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
@@ -17,11 +17,18 @@ export function proposeCommand(title: string, cwd: string): string {
   const root = requireRoot(cwd);
   const slug = slugify(trimmed);
   const fileName = `${todayStamp()}-${slug}.md`;
-  const path = join(folderPath(root, 'proposed'), fileName);
+  const path = join(draftsPath(root), fileName);
   if (existsSync(path)) {
-    throw new Error(`proposal already exists: adr/proposed/${fileName}`);
+    throw new Error(`draft already exists: adr/.drafts/${fileName}`);
   }
   const content = proposalTemplate(trimmed, readConfig(root).context);
-  writeRecord(root, 'proposed', fileName, content);
-  return `created adr/proposed/${fileName}\n\nvalidate it with:\n  adrkit validate ${fileName}`;
+  writeRecord(root, 'drafts', fileName, content);
+  return [
+    `created adr/.drafts/${fileName}`,
+    '',
+    'A draft is ephemeral: promote it with',
+    `  adrkit accept "${trimmed}"`,
+    'or discard it with',
+    `  adrkit reject "${trimmed}"`,
+  ].join('\n');
 }

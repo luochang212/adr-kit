@@ -43,8 +43,8 @@ ${text}
 
 /**
  * Render a YAML front matter block. Fields are written in the canonical
- * order (status, date, reason, superseded-by); only the fields present in
- * `fields` are emitted.
+ * order (status, date, commit, reason, superseded-by); only the fields
+ * present in `fields` are emitted.
  */
 export function frontMatter(fields: Record<string, string | number>): string {
   const ordered: Record<string, string | number> = {};
@@ -82,8 +82,10 @@ ${contextBlock(context)}## Problem
 `;
 }
 
-export function decisionTemplate(number: number, title: string, context?: string): string {
-  return `${frontMatter({ status: 'accepted', date: todayStamp() })}
+export function decisionTemplate(number: number, title: string, context?: string, commit?: string): string {
+  const fields: Record<string, string | number> = { status: 'accepted', date: todayStamp() };
+  if (commit !== undefined) fields.commit = commit;
+  return `${frontMatter(fields)}
 # ADR: ${number} ${title}
 
 ${contextBlock(context)}## Problem
@@ -105,30 +107,13 @@ ${contextBlock(context)}## Problem
 `;
 }
 
-export function rejectedTemplate(title: string, reason: string): string {
-  return `${frontMatter({ status: 'rejected', date: todayStamp(), reason })}
-# ADR: ${title}
-
-## Problem
-
-<!-- What problem or opportunity was this proposal addressing? -->
-
-## Proposal
-
-<!-- The rejected proposal. -->
-
-## Alternatives considered
-
-<!-- Each genuine alternative and why it lost. -->
-`;
-}
-
 /**
- * Convert a proposal into an accepted decision using the same mechanical
+ * Convert a draft proposal into an accepted decision using the same mechanical
  * rewrite the format requires: Proposal becomes Decision, and the
- * acceptance criteria and risks are folded into Consequences.
+ * acceptance criteria and risks are folded into Consequences. `commit` anchors
+ * the decision to the code state it was recorded against.
  */
-export function proposalToDecision(proposal: AdrRecord, number: number): string {
+export function proposalToDecision(proposal: AdrRecord, number: number, commit?: string): string {
   const problem = sectionBody(proposal, 'Problem');
   const decision = sectionBody(proposal, 'Proposal');
   const alternatives = sectionBody(proposal, 'Alternatives considered');
@@ -156,7 +141,9 @@ export function proposalToDecision(proposal: AdrRecord, number: number): string 
       !DROPPED_SECTION_HEADINGS.includes(candidate.heading),
   );
 
-  let output = `${frontMatter({ status: 'accepted', date: todayStamp() })}
+  const fields: Record<string, string | number> = { status: 'accepted', date: todayStamp() };
+  if (commit !== undefined) fields.commit = commit;
+  let output = `${frontMatter(fields)}
 # ADR: ${number} ${proposal.title}
 
 ## Problem

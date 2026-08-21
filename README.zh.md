@@ -17,8 +17,8 @@
   <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
-ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周期：
-**proposed → accepted / rejected / superseded**。它借鉴了
+ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周期。决策是持久记录
+（**accepted / superseded**）；提案是临时草稿，要么变成决策、要么消失。它借鉴了
 [OpenSpec](https://github.com/Fission-AI/OpenSpec) 的 spec-driven 思路，以及
 agent 原生代码库的决策记录纪律：每条记录都必须说明它解决什么问题、选择了什么、
 放弃了什么。
@@ -36,7 +36,7 @@ agent 原生代码库的决策记录纪律：每条记录都必须说明它解�
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit propose "使用 SQLite 存储会话"
+adrkit decide "使用 SQLite 存储会话"
 ```
 
 `adrkit init` 会创建 `adr/` 目录：
@@ -45,37 +45,39 @@ adrkit propose "使用 SQLite 存储会话"
 adr/
 ├── config.yaml      # 项目上下文与分状态规则
 ├── README.md        # 仓库约定
-├── decisions/       # 已接受决策，按 N 编号
-├── proposed/        # 待决策提案
-└── rejected/        # 已拒绝提案，冻结保存
+├── .gitignore       # 让 adr/.drafts/ 不进 git
+└── decisions/       # 决策，按 N 编号，不可变历史
 ```
 
-填写提案内容后：
+提案是 `adr/.drafts/` 里的临时草稿：`adrkit propose` 创建一条，
+`adrkit accept` 把它提升为编号决策，`adrkit reject` 直接丢弃、不留下任何记录。
+拒绝记录在决策的 `Alternatives considered` 里，从不是独立记录。
+
+填写决策内容后：
 
 ```bash
 adrkit validate
-adrkit accept "使用 SQLite 存储会话"
 adrkit list
 ```
 
 ## 命令
 
 ```text
-adrkit init [path] [--tools <list>]   初始化 ADR Kit 仓库
-adrkit propose <title>                创建提案
-adrkit decide <title>                 直接记录已接受的决策
-adrkit accept <name>                  接受提案（分配 N 编号）
-adrkit reject <name> --reason <text>  拒绝提案
-adrkit supersede <name> --by <name>   标记已接受决策被新决策取代
-adrkit list [--json]                  列出所有记录
-adrkit show <name>                    查看记录
-adrkit status [--json]                查看生命周期计数与校验状态
-adrkit instructions [--json]          查看下一步；标注待决提案已就绪或需修改
+adrkit init [path] [--tools <list>]    初始化 ADR Kit 仓库
+adrkit decide <title>                  直接记录已做的决策（默认路径）
+adrkit propose <title>                 创建临时提案草稿
+adrkit accept <name>                   把草稿提升为决策（分配 N 编号）
+adrkit reject <name> [--reason <text>] 丢弃草稿（不留记录）
+adrkit supersede <name> --by <name>    标记已接受决策被新决策取代
+adrkit list [--json]                   列出决策与待决草稿
+adrkit show <name>                     查看决策或草稿
+adrkit status [--json]                 查看生命周期计数与校验状态
+adrkit instructions [--json]           查看下一步；标注待决草稿已就绪或需修改
 adrkit validate [name] [--all] [--json] 校验单条记录或整个仓库
 adrkit update [--tools <list>]         重写 AI 工具集成文件
-adrkit config [--json]                查看当前配置
-adrkit completion <bash|zsh|fish>     打印 shell 补全脚本
-adrkit version                        查看版本
+adrkit config [--json]                 查看当前配置
+adrkit completion <bash|zsh|fish>      打印 shell 补全脚本
+adrkit version                         查看版本
 ```
 
 `<name>` 支持按标题、文件名或决策编号（`1`）查找。
@@ -95,25 +97,30 @@ adrkit version                        查看版本
 
 ```markdown
 ---
-status: proposed
+status: accepted
 date: 2026-08-19
+commit: abc1234
 ---
 
-# ADR: 使用 SQLite 存储会话
+# ADR: 1 使用 SQLite 存储会话
 
 ## Problem
 ...
 ```
 
-`date` 字段记录当前状态达成的日期；CLI 在每次生命周期迁移时自动盖章
-（propose、decide、accept、reject、supersede），无需手动填写日期。
+`date` 字段记录当前状态达成的日期；CLI 在每次生命周期迁移时自动盖章，
+同时盖上该决策对应的 git `commit`。决策是不可变历史；当前事实以代码为准，
+不在记录里。
 
-- **Proposed** 需要 `Problem`、`Proposal`、`Alternatives considered`、
-  `Acceptance criteria`、`Risks`。
-- **Accepted** 需要 `Problem`、`Decision`、`Alternatives considered`、
-  `Consequences`；`validate` 会拒绝提案时代的标题出现在已接受决策中。
-- **Rejected** 冻结提案，拒绝原因写在 front matter：`status: rejected`
-  加 `reason: <原因>`。
+- **决策**（`adr/decisions/N-slug.md`）是 `accepted` 或 `superseded`，
+  需要 `Problem`、`Decision`、`Alternatives considered`、`Consequences`；
+  `validate` 会拒绝提案时代的标题出现在已接受决策中。
+- **草稿**（`adr/.drafts/YYYY-MM-DD-slug.md`）是 `status: proposed` 的临时
+  提案，需要 `Problem`、`Proposal`、`Alternatives considered`、
+  `Acceptance criteria`、`Risks`，`validate` 不检查它们——`adrkit accept`
+  在提升前才校验草稿。
+- **被否决**的想法不是独立记录：决策的 `Alternatives considered` 记录了
+  考虑过什么、为什么落选。
 - **Superseded** 决策保留在 `adr/decisions/` 作为历史，front matter 指向
   取代它的决策：`status: superseded` 加 `superseded-by: N`。
   `adrkit supersede <旧> --by <新>` 完成改写；
@@ -160,8 +167,8 @@ ADR Kit 站在两个项目之上，两者角色不同：
 - **记录是事实来源。** 代码注释会腐化，文档会漂移；一条写明了决定与代价的
   ADR 会持续有用。
 - **备选方案是强制项。** 没有记录被否决方案的决策，是在邀请未来的重复争论。
-- **生命周期是机械操作，不是编辑操作。** 提案转接受或拒绝、已接受决策被取代，
-  都是一条命令，`validate` 强制检查结果形态。
+- **生命周期是机械操作，不是编辑操作。** 提升草稿、退役已接受决策都是命令
+  （`accept`、`supersede`），`validate` 强制检查结果形态。
 - **Agent 是一等用户。** 纯 Markdown、可预测的路径、需要时可输出 JSON。
 
 ## 开发

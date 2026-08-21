@@ -6,7 +6,7 @@ import { initCommand } from '../src/commands/init.js';
 import { instructionsCommand } from '../src/commands/instructions.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { statusCommand } from '../src/commands/status.js';
-import { folderPath, listRecords } from '../src/core/repository.js';
+import { folderPath, listDrafts } from '../src/core/repository.js';
 
 const tempDirs: string[] = [];
 
@@ -29,7 +29,7 @@ describe('statusCommand', () => {
     const result = statusCommand(root);
     expect(result.valid).toBe(true);
     expect(result.output).toContain('accepted: 0');
-    expect(result.output).toContain('proposed: 0');
+    expect(result.output).toContain('drafts (pending): 0');
   });
 
   it('reports json with issues when a decision is invalid', () => {
@@ -55,7 +55,7 @@ describe('instructionsCommand', () => {
   it('tells a repo with a pending proposal to decide next', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const record = listRecords(root)[0];
+    const record = listDrafts(root)[0];
     writeFileSync(
       record!.path,
       `---
@@ -93,13 +93,13 @@ Body.
   it('flags readiness per pending proposal and never suggests accepting a draft', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const sqlite = listRecords(root).find((record) => record.title === 'Use SQLite')!;
+    const sqlite = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
       '---\nstatus: proposed\ndate: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
-    const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
+    const plugin = listDrafts(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
       `---
@@ -135,19 +135,19 @@ Body.
     expect(output).toContain('missing required section "## Proposal"');
     expect(output).toContain(`adrkit accept ${plugin.fileName}`);
     expect(output).not.toContain(`adrkit accept ${sqlite.fileName}`);
-    expect(output).toContain(`adrkit validate ${sqlite.fileName}`);
+    expect(output).toContain(`adrkit reject ${sqlite.fileName}`);
   });
 
   it('reports readiness in JSON without changing the pending shape', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const sqlite = listRecords(root).find((record) => record.title === 'Use SQLite')!;
+    const sqlite = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
       '---\nstatus: proposed\ndate: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
-    const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
+    const plugin = listDrafts(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
       `---
@@ -198,7 +198,7 @@ Body.
       '---\nstatus: accepted\ndate: 2026-08-19\n---\n\n# ADR: 1 Broken\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
-    const plugin = listRecords(root).find((record) => record.title === 'Add plugin API')!;
+    const plugin = listDrafts(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
       `---

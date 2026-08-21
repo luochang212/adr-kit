@@ -26,32 +26,36 @@ example `claude`, `codex`, `all`, or `none`; see `adrkit update`).
 adr/
 ├── config.yaml
 ├── README.md
-├── decisions/
-├── proposed/
-└── rejected/
+├── .gitignore     # keeps adr/.drafts/ out of git
+└── decisions/
 ```
 
-### `adrkit propose <title>`
-
-Create a proposed ADR in `adr/proposed/YYYY-MM-DD-slug.md`. The draft is
-expected to fail `validate` until every required section is filled in.
-Titles must not start with a number; ADR Kit assigns decision numbers.
+Proposals are ephemeral drafts in `adr/.drafts/`; the directory is created
+on the first `adrkit propose`.
 
 ### `adrkit decide <title>`
 
-Create an accepted decision draft in `adr/decisions/N-slug.md` with the
-next available number. Titles must not start with a number.
+Record an already-made decision in `adr/decisions/N-slug.md` with the
+next available number. This is the default path. Titles must not start with
+a number.
+
+### `adrkit propose <title>`
+
+Create an ephemeral proposal draft in `adr/.drafts/YYYY-MM-DD-slug.md`. A
+draft is temporary: `accept` promotes it to a numbered decision, `reject`
+discards it without leaving a record. Titles must not start with a number.
 
 ### `adrkit accept <name>`
 
-Validate a proposal, assign the next `N` number, rewrite the lifecycle
-sections, and move the file from `adr/proposed/` to `adr/decisions/`.
-The proposal's title must not start with a number.
+Validate a draft, assign the next `N` number, rewrite the lifecycle
+sections, write `adr/decisions/N-slug.md`, and discard the draft.
+The draft's title must not start with a number.
 
-### `adrkit reject <name> --reason <text>`
+### `adrkit reject <name> [--reason <text>]`
 
-Move a proposal to `adr/rejected/` with the reason recorded in the front
-matter.
+Discard a proposal draft from `adr/.drafts/`. No record is created -
+rejection lives in the winning decision's `Alternatives considered`. The
+`--reason` is optional and only echoed.
 
 ### `adrkit supersede <name> --by <name>`
 
@@ -64,22 +68,23 @@ decision that is not itself superseded.
 
 ### `adrkit list [--json]`
 
-List every record grouped by lifecycle folder.
+List decisions (accepted and superseded) and any pending drafts.
 
 ### `adrkit show <name>`
 
-Print a record. `name` resolves by title, file name, or decision number.
-A record that fails to parse elsewhere in the repository does not block
-`show`; `adrkit validate` still reports it.
+Print a decision or draft. `name` resolves by title, file name, or decision
+number. A record that fails to parse elsewhere in the repository does not
+block `show`; `adrkit validate` still reports it.
 
 ### `adrkit status [--json]`
 
-Print lifecycle counts and repository validity.
+Print lifecycle counts (accepted, superseded, pending drafts) and
+repository validity.
 
 ### `adrkit instructions [--json]`
 
 Print the next workflow step (init, fix validation, decide, or propose). When
-proposals are waiting, each one is flagged as validated (ready to accept) or
+drafts are pending, each one is flagged as validated (ready to accept) or
 needs work, so the next action is executable rather than a direction. In
 `--json` mode the readiness is exposed as `readyToAccept` and `needsWork`
 next to the `pending` list.

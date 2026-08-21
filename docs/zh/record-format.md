@@ -4,25 +4,26 @@
 
 ```markdown
 ---
-status: proposed | accepted | rejected | superseded
+status: accepted | superseded
 date: YYYY-MM-DD
+commit: abc1234
 ---
 
-# ADR: <title>
+# ADR: N <title>
 ```
 
-front matter 字段按 `status`、`date`、`reason`、`superseded-by` 的顺序书写，
-只写适用的字段。`reason` 仅在 rejected 记录上必填，其他状态禁止出现；
-`superseded-by` 仅在 superseded 决策上必填，其他状态禁止出现。未知字段
+front matter 字段按 `status`、`date`、`commit`、`superseded-by` 的顺序书写，
+只写适用的字段。`commit` 是该决策对应的短 git hash，仓库处于 git 下时自动
+盖章。`superseded-by` 仅在 superseded 决策上必填，其他状态禁止出现。未知字段
 会被 `validate` 报告。
 
 `date` 字段记录当前状态达成的日期。CLI 在每次生命周期迁移时自动盖章
-（`propose`、`decide`、`accept`、`reject`、`supersede`），由机器写入，
-不靠人工维护。
+（`decide`、`accept`、`supersede`），由机器写入，不靠人工维护。
 
-## 提案（Proposed）
+## 草稿（提案）
 
-文件名：`YYYY-MM-DD-slug.md`。必需 section：
+文件名：`YYYY-MM-DD-slug.md`，位置 `adr/.drafts/`。front matter：
+`status: proposed`。必需 section：
 
 ```markdown
 ## Problem
@@ -34,7 +35,10 @@ front matter 字段按 `status`、`date`、`reason`、`superseded-by` 的顺序�
 
 `## Alternatives considered` 在去掉 HTML 注释后必须至少有一条真实备选方案。
 
-## 已接受决策（Accepted）
+草稿是临时的，不在 `validate` 的检查范围内：`adrkit accept` 在把它提升为
+决策之前才校验草稿，`adrkit reject` 则直接丢弃、不留记录。
+
+## 决策（Accepted / Superseded）
 
 文件名：`N-slug.md`。标题：`# ADR: N <title>`。必需 section：
 
@@ -61,20 +65,10 @@ superseded-by: 6
 `validate` 会校验被引用的编号存在且自身未被取代。被取代的记录留在
 `adr/decisions/` 作为冻结历史。
 
-## 已拒绝提案（Rejected）
+## 被否决
 
-文件名：`YYYY-MM-DD-slug.md`。front matter 携带拒绝原因：
-
-```markdown
----
-status: rejected
-date: 2026-08-19
-reason: 我们最终选择了 JSON 文件
----
-```
-
-必需 section：`Problem`、`Proposal`、`Alternatives considered`。已拒绝记录
-是冻结历史，不应再编辑。
+被否决的想法不是独立记录。每条决策的 `Alternatives considered` 记录了
+考虑过什么、为什么落选，所以"不"不会消失，也不会被反复争论。
 
 ## Slug 规则
 

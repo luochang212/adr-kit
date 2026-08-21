@@ -18,15 +18,18 @@ import { validateCommand } from './commands/validate.js';
 
 const HELP = `adrkit ${VERSION} - A lightweight ADR workflow for humans and agents
 
+Decisions are durable records in adr/decisions/. Proposals are ephemeral drafts
+in adr/.drafts/ that are promoted by accept or discarded by reject.
+
 Usage:
   adrkit init [path] [--tools <list>]        Initialize an ADR Kit repository
-  adrkit propose <title>                     Create a proposed decision
-  adrkit decide <title>                      Create an accepted decision draft
-  adrkit accept <name>                       Accept a proposal (assigns the next number)
-  adrkit reject <name> --reason <reason>     Reject a proposal
+  adrkit decide <title>                      Record a decision (default path)
+  adrkit propose <title>                     Create an ephemeral proposal draft
+  adrkit accept <name>                       Promote a draft to a decision (assigns the next number)
+  adrkit reject <name> [--reason <reason>]   Discard a draft (leaves no record)
   adrkit supersede <name> --by <name>        Mark an accepted decision as superseded
-  adrkit list [--json]                       List all decision records
-  adrkit show <name>                         Show a decision record
+  adrkit list [--json]                       List decisions and pending drafts
+  adrkit show <name>                         Show a decision or draft
   adrkit status [--json]                     Show lifecycle counts and validity
   adrkit instructions [--json]               Print the next workflow step
   adrkit validate [name] [--all] [--json]    Validate one record or the whole repo
@@ -110,11 +113,7 @@ export function main(argv: string[]): void {
       }
       case 'reject': {
         requireTitle(rest, 'reject');
-        const reason = values.reason;
-        if (reason === undefined) {
-          throw new Error('reject requires --reason <reason>');
-        }
-        console.log(rejectCommand(rest[0]!, reason, process.cwd()));
+        console.log(rejectCommand(rest[0]!, values.reason, process.cwd()));
         return;
       }
       case 'supersede': {
