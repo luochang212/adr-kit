@@ -2,13 +2,14 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
+import type { AdrRecord } from '../src/core/adr.js';
 import { acceptCommand } from '../src/commands/accept.js';
 import { initCommand } from '../src/commands/init.js';
 import { listCommand } from '../src/commands/list.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { showCommand } from '../src/commands/show.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { folderPath, listDrafts, listRecords } from '../src/core/repository.js';
+import { folderPath, listDrafts, listRecords, relativePath } from '../src/core/repository.js';
 
 const tempDirs: string[] = [];
 
@@ -321,5 +322,23 @@ Body.
     );
     expect(() => showCommand('1', root)).toThrow(/failed to parse.*1-broken\.md/);
     expect(() => showCommand('1-broken.md', root)).toThrow(/failed to parse/);
+  });
+
+  it('renders relative paths with POSIX separators on every platform', () => {
+    // `show`/`list`/`validate` print relativePath() output. On Windows a plain
+    // join() yields `adr\.drafts\...`, which breaks the documented path form
+    // (and the CLI tests that assert `adr/.drafts/`). The path must render
+    // with forward slashes regardless of the host platform.
+    const record: AdrRecord = {
+      folder: 'drafts',
+      path: join('adr', '.drafts', '2026-08-21-use-sqlite.md'),
+      fileName: '2026-08-21-use-sqlite.md',
+      title: 'Use SQLite',
+      status: 'proposed',
+      date: '2026-08-21',
+      sections: [],
+    };
+    expect(relativePath(record)).toBe('adr/.drafts/2026-08-21-use-sqlite.md');
+    expect(relativePath(record)).not.toContain('\\');
   });
 });

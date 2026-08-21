@@ -6,7 +6,7 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, posix, relative, resolve } from 'node:path';
 import { ADR_DIR, CONFIG_FILE, configPath } from './config.js';
 import { parseAdrFile, type AdrFolder, type AdrRecord } from './adr.js';
 
@@ -325,5 +325,8 @@ export function displayName(record: AdrRecord): string {
 }
 
 export function relativePath(record: AdrRecord): string {
-  return join(ADR_DIR, folderDirName(record.folder), basename(record.path));
+  // 始终输出 POSIX 风格路径：CLI 输出是用户可见文本，Windows 上也要
+  // 显示 adr/.drafts/... 而不是 adr\.drafts\...（与其它命令的硬编码
+  // 拼接保持一致，且测试断言跨平台稳定）。
+  return posix.join(ADR_DIR, folderDirName(record.folder), basename(record.path));
 }
