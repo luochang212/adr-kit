@@ -22,8 +22,8 @@ const year = new Date().getFullYear();
         <a href="https://github.com/luochang212/adr-kit/blob/main/LICENSE">{t('footer.license')}</a>
       </nav>
     </div>
-    <p class="footer__ghost" aria-hidden="true">ADR Kit</p>
     <p class="footer__copy">© {year} luochang212</p>
+    <p class="footer__ghost" aria-hidden="true">ADR KIT</p>
   </div>
 </footer>
 
@@ -32,7 +32,7 @@ const year = new Date().getFullYear();
   .footer__inner {
     max-width: var(--inner);
     margin: 0 auto;
-    padding: 56px 24px 24px;
+    padding: 56px 24px 0;
     position: relative;
   }
   .footer__row {
@@ -59,15 +59,23 @@ const year = new Date().getFullYear();
   .footer__links a:hover { color: var(--fg); }
   .footer__ghost {
     font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: clamp(90px, 18vw, 240px);
-    line-height: 0.9;
-    letter-spacing: -0.04em;
-    margin: 48px 0 0;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--border);
+    font-weight: 800;
+    font-size: clamp(120px, 24vw, 340px);
+    line-height: 1;
+    height: 0.67em; /* clip plane: slices a sliver off the glyph bottoms flush with the footer edge */
+    overflow: hidden;
+    letter-spacing: -0.05em;
+    margin: 64px 0 0;
+    width: 100vw;
+    margin-left: calc(50% - 50vw); /* full-bleed box spanning the viewport… */
+    /* flex, not text-align: an overflowing nowrap line falls back to
+       start-alignment under text-align (CSS2.1 §16.2); flex centers it
+       with equal bleed off both edges */
+    display: flex;
+    justify-content: center;
+    color: var(--border);
     user-select: none;
     white-space: nowrap;
   }
-  .footer__copy { color: var(--fg-30); font-size: 12.5px; margin: 24px 0 0; }
+  .footer__copy { color: var(--fg-30); font-size: 12.5px; margin: 48px 0 0; }
 </style>
