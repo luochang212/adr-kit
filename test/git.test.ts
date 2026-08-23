@@ -34,9 +34,13 @@ describe('git commit stamping', () => {
   it('stamps the short HEAD hash on decide inside a git repo', () => {
     const root = makeRepo();
     gitInit(root);
+    const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+      cwd: root,
+      encoding: 'utf8',
+    }).trim();
     decideCommand('Use SQLite', root);
     const content = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
-    expect(content).toMatch(/^commit: [0-9a-f]{7,40}$/m);
+    expect(content).toMatch(new RegExp(`^commit: ${head}$`, 'm'));
   });
 
   it('omits the commit field outside a git repo', () => {
