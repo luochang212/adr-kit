@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
+import { parseAdrFile } from '../src/core/adr.js';
 import { decideCommand } from '../src/commands/decide.js';
 import { initCommand } from '../src/commands/init.js';
 
@@ -39,8 +40,11 @@ describe('git commit stamping', () => {
       encoding: 'utf8',
     }).trim();
     decideCommand('Use SQLite', root);
-    const content = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
-    expect(content).toMatch(new RegExp(`^commit: ${head}$`, 'm'));
+    // Assert on the parsed record: an all-digit short hash is serialized
+    // quoted (`commit: "2281972"`) to stay a string in YAML, so a raw-text
+    // regex would flake on ~5% of hashes.
+    const record = parseAdrFile(join(root, 'adr', 'decisions', '1-use-sqlite.md'));
+    expect(record.commit).toBe(head);
   });
 
   it('omits the commit field outside a git repo', () => {
