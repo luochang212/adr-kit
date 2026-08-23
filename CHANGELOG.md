@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.7
+
+### Patch Changes
+
+- Fix Windows relative-path rendering in `adrkit show`, and retry `git rev-parse` once so a transient failure cannot silently drop the commit stamp.
+
 ## 0.2.6
 
 ### Patch Changes
