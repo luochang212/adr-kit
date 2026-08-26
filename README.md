@@ -63,7 +63,7 @@ adrkit validate
 adrkit list
 ```
 
-## Tell your agent
+## Wire in your agent
 
 Paste this into any AI coding agent to record key decisions automatically:
 

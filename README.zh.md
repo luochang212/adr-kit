@@ -60,7 +60,7 @@ adrkit validate
 adrkit list
 ```
 
-## 告诉你的 Agent
+## 接入你的 Agent
 
 把下面这行贴给任意 AI 编码 Agent，它就会自动把关键决策记录成 ADR：
 
