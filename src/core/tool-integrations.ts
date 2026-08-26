@@ -87,7 +87,9 @@ adrkit propose "<title>"
 2. Edit the created draft. Fill every section with real content:
    \`## Problem\`, \`## Proposal\`, \`## Alternatives considered\`,
    \`## Acceptance criteria\`, \`## Risks\`.
-3. Promote the completed draft with \`adrkit accept "<title>"\`; the CLI
+3. Add 2-4 kebab-case \`tags\` to the front matter (for example \`frontend\`,
+   \`execution-layer\`) so the decision graph can group by theme.
+4. Promote the completed draft with \`adrkit accept "<title>"\`; the CLI
    validates it before promoting.
 
 ## Rules
@@ -119,7 +121,9 @@ adrkit decide "<title>"
 \`\`\`
 
 2. Edit the created file and fill \`## Problem\`, \`## Decision\`,
-   \`## Alternatives considered\`, and \`## Consequences\`.
+   \`## Alternatives considered\`, and \`## Consequences\`. Add 2-4 kebab-case
+   \`tags\` to the front matter (for example \`frontend\`, \`execution-layer\`)
+   so the decision graph can group by theme.
 3. Run \`adrkit validate <N>\` until it returns OK.
 
 ## Rules

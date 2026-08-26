@@ -19,7 +19,9 @@ adrkit decide "<title>"
 ```
 
 2. Edit the created file and fill `## Problem`, `## Decision`,
-   `## Alternatives considered`, and `## Consequences`.
+   `## Alternatives considered`, and `## Consequences`. Add 2-4 kebab-case
+   `tags` to the front matter (for example `frontend`, `execution-layer`)
+   so the decision graph can group by theme.
 3. Run `adrkit validate <N>` until it returns OK.
 
 ## Rules
