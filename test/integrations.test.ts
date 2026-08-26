@@ -25,44 +25,61 @@ afterEach(() => {
 });
 
 describe('initCommand tool integrations', () => {
-  it('writes command files for selected tools', () => {
+  it('installs the standard .agents integration by default', () => {
     const root = makeTarget();
-    initCommand(root, 'claude,codex');
-    expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(true);
-    expect(existsSync(join(root, '.claude/commands/adrkit-supersede.md'))).toBe(true);
-    expect(existsSync(join(root, '.codex/commands/adrkit-validate.md'))).toBe(true);
-    expect(existsSync(join(root, '.cursor/commands/adrkit-accept.md'))).toBe(false);
+    initCommand(root);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(true);
+    expect(existsSync(join(root, '.agents/skills/adrkit-propose/SKILL.md'))).toBe(true);
+    expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
   });
 
-  it('rejects unknown tools', () => {
+  it('adds the Claude Code exception with --tools claude', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude');
+    expect(existsSync(join(root, '.claude/skills/adrkit-propose/SKILL.md'))).toBe(true);
+    expect(existsSync(join(root, '.agents/skills/adrkit-propose/SKILL.md'))).toBe(true);
+  });
+
+  it('rejects unknown and retired tool ids', () => {
     const root = makeTarget();
     expect(() => initCommand(root, 'not-a-tool')).toThrow(/unknown tool/);
+    expect(() => initCommand(root, 'codex')).toThrow(/unknown tool/);
   });
 
   it('persists tools in config and update rewrites them', () => {
     const root = makeTarget();
     initCommand(root, 'claude');
     const config = configCommand(root, true);
-    expect(config).toContain('claude');
+    expect(config).toContain('agents');
     const output = updateCommand(root);
-    expect(output).toContain(join('.claude', 'commands', 'adrkit-propose.md'));
+    expect(output).toContain(join('.agents', 'commands', 'adrkit-propose.md'));
   });
 
-  it('removes integrations for tools no longer selected', () => {
+  it('removes the claude exception when it is no longer selected', () => {
     const root = makeTarget();
     initCommand(root, 'claude');
-    const output = updateCommand(root, 'codex');
+    const output = updateCommand(root, 'agents');
     expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
-    expect(existsSync(join(root, '.codex/commands/adrkit-propose.md'))).toBe(true);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(true);
     expect(output).toContain('removed integrations for: claude');
   });
 
   it('clears every integration with --tools none', () => {
     const root = makeTarget();
-    initCommand(root, 'claude,codex');
+    initCommand(root, 'claude');
     updateCommand(root, 'none');
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
     expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
-    expect(existsSync(join(root, '.codex/commands/adrkit-propose.md'))).toBe(false);
+    expect(existsSync(join(root, '.claude/skills/adrkit-propose/SKILL.md'))).toBe(false);
+  });
+
+  it('cleans up integration roots when they empty out', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude');
+    updateCommand(root, 'agents');
+    expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
+    expect(existsSync(join(root, '.claude'))).toBe(false);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(true);
   });
 
   it('installs skills alongside commands', () => {
@@ -74,25 +91,25 @@ describe('initCommand tool integrations', () => {
     expect(installed).toBe(source);
     expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(true);
   });
-
-  it('does not install skills for github-copilot (prompts only)', () => {
-    const root = makeTarget();
-    initCommand(root, 'github-copilot');
-    expect(existsSync(join(root, '.github/prompts/adrkit-init.md'))).toBe(true);
-    expect(existsSync(join(root, '.github/skills'))).toBe(false);
-  });
 });
 
 describe('update writes the selected tools back to config.yaml', () => {
-  it('persists the new tool set and a bare update re-installs it', () => {
+  it('records the standard target and re-installs it on a bare update', () => {
     const root = makeTarget();
-    initCommand(root, 'claude');
-    updateCommand(root, 'codex');
-    expect(readConfig(root).tools).toEqual(['codex']);
+    initCommand(root);
+    expect(readConfig(root).tools).toEqual(['agents']);
     updateCommand(root);
-    expect(readConfig(root).tools).toEqual(['codex']);
-    expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
-    expect(existsSync(join(root, '.codex/commands/adrkit-propose.md'))).toBe(true);
+    expect(readConfig(root).tools).toEqual(['agents']);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(true);
+  });
+
+  it('respects a recorded opt-out on a bare update', () => {
+    const root = makeTarget();
+    initCommand(root);
+    updateCommand(root, 'none');
+    expect(readConfig(root).tools).toEqual([]);
+    updateCommand(root);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
   });
 
   it('preserves context, rules, and comments when rewriting tools', () => {
@@ -113,9 +130,9 @@ rules:
     - Keep proposals under 500 words.
 `,
     );
-    updateCommand(root, 'codex');
+    updateCommand(root);
     const config = readConfig(root);
-    expect(config.tools).toEqual(['codex']);
+    expect(config.tools).toEqual(['agents', 'claude']);
     expect(config.context).toContain('Tech stack: TypeScript');
     expect(config.rules?.proposal).toContain('Keep proposals under 500 words.');
     const raw = readFileSync(join(root, 'adr', 'config.yaml'), 'utf8');
@@ -123,27 +140,30 @@ rules:
     expect(raw).toContain('# managed by adrkit');
   });
 
-  it('appends tools when the key is missing', () => {
+  it('defaults to the standard target when the key is missing', () => {
     const root = makeTarget();
     initCommand(root);
     writeFileSync(join(root, 'adr', 'config.yaml'), 'context: |\n  Domain: payments\n');
-    updateCommand(root, 'codex');
+    updateCommand(root);
     const config = readConfig(root);
-    expect(config.tools).toEqual(['codex']);
+    expect(config.tools).toEqual(['agents']);
     expect(config.context).toContain('Domain: payments');
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(true);
   });
 
   it('--tools none clears skills and records an empty set', () => {
     const root = makeTarget();
-    initCommand(root, 'claude,codex');
+    initCommand(root, 'claude');
     updateCommand(root, 'none');
     expect(readConfig(root).tools).toEqual([]);
+    expect(existsSync(join(root, '.agents/skills/adrkit-propose/SKILL.md'))).toBe(false);
     expect(existsSync(join(root, '.claude/skills/adrkit-propose/SKILL.md'))).toBe(false);
-    expect(existsSync(join(root, '.codex/skills/adrkit-propose/SKILL.md'))).toBe(false);
+    expect(existsSync(join(root, '.agents/skills'))).toBe(false);
     expect(existsSync(join(root, '.claude/skills'))).toBe(false);
-    expect(existsSync(join(root, '.codex/skills'))).toBe(false);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
     expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
-    expect(existsSync(join(root, '.codex/commands/adrkit-propose.md'))).toBe(false);
+    expect(existsSync(join(root, '.agents'))).toBe(false);
+    expect(existsSync(join(root, '.claude'))).toBe(false);
   });
 
   it('propose workflow guides a supersession check', () => {

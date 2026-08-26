@@ -6,27 +6,25 @@ export interface ToolIntegration {
   path: string;
 }
 
-export const SUPPORTED_TOOLS = ['claude', 'codex', 'cursor', 'github-copilot', 'agents'] as const;
-export type ToolId = (typeof SUPPORTED_TOOLS)[number];
-
-const TOOL_COMMAND_DIR: Record<ToolId, string> = {
-  claude: '.claude/commands',
-  codex: '.codex/commands',
-  cursor: '.cursor/commands',
-  'github-copilot': '.github/prompts',
-  agents: '.agents/commands',
-};
-
 /**
- * Agent skills directories per tool (github-copilot is absent: it supports
- * prompts only, not a skills tree). Skills are surfaced at session start,
- * unlike slash-command files which load only when invoked.
+ * Integration targets. The default is the vendor-neutral `.agents/`
+ * convention: every mainstream agent (Codex, Cursor, GitHub Copilot / VS
+ * Code, Junie, OpenCode, ...) discovers skills and commands there. Claude
+ * Code is the one holdout - it scans only `.claude/` - so it stays an
+ * explicit exception (`--tools claude`) until Anthropic ships AGENTS.md
+ * support.
  */
-const TOOL_SKILL_DIR: Partial<Record<ToolId, string>> = {
-  claude: '.claude/skills',
-  codex: '.codex/skills',
-  cursor: '.cursor/skills',
-  agents: '.agents/skills',
+export type IntegrationTarget = 'agents' | 'claude';
+
+/** Directories one target owns; `skills` is absent for prompts-only shapes. */
+interface TargetDirs {
+  commands: string;
+  skills?: string;
+}
+
+const TARGET_DIRS: Record<IntegrationTarget, TargetDirs> = {
+  agents: { commands: '.agents/commands', skills: '.agents/skills' },
+  claude: { commands: '.claude/commands', skills: '.claude/skills' },
 };
 
 export interface Workflow {
@@ -246,30 +244,27 @@ adrkit supersede "<old name or number>" --by "<new name or number>"
   },
 ];
 
-export function parseTools(value: string | undefined): ToolId[] {
-  if (value === undefined || value.trim() === '' || value.trim() === 'none') {
-    return [];
-  }
-  const requested = value
+export function parseTools(value: string | undefined): IntegrationTarget[] {
+  // Flag absent: the standard integration is the default. An explicit empty
+  // string (a config that recorded `tools: []`) keeps meaning "opt out".
+  if (value === undefined) return ['agents'];
+  const text = value.trim();
+  if (text.length === 0 || text === 'none') return [];
+  const requested = text
     .split(',')
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
 
-  if (requested.includes('all')) {
-    return [...SUPPORTED_TOOLS];
-  }
-
-  const tools: ToolId[] = [];
+  const targets: IntegrationTarget[] = [];
   for (const entry of requested) {
-    if ((SUPPORTED_TOOLS as readonly string[]).includes(entry)) {
-      tools.push(entry as ToolId);
-    } else {
-      throw new Error(
-        `unknown tool "${entry}". Supported tools: ${SUPPORTED_TOOLS.join(', ')}, all, none`,
-      );
+    if (entry !== 'agents' && entry !== 'claude') {
+      throw new Error(`unknown tool "${entry}". Supported: agents (default), claude, none`);
     }
+    targets.push(entry);
   }
-  return [...new Set(tools)];
+  // The standard target always ships; claude is an addition for mixed teams,
+  // never a replacement for the files every other agent reads.
+  return [...new Set<IntegrationTarget>(['agents', ...targets])];
 }
 
 /** Installed skill content: canonical frontmatter plus the workflow body. */
@@ -283,14 +278,14 @@ ${workflow.body}
 `;
 }
 
-export function writeToolIntegrations(root: string, tools: ToolId[]): ToolIntegration[] {
+export function writeToolIntegrations(root: string, tools: IntegrationTarget[]): ToolIntegration[] {
   const created: ToolIntegration[] = [];
   for (const tool of tools) {
-    const dir = join(root, TOOL_COMMAND_DIR[tool]);
-    mkdirSync(dir, { recursive: true });
+    const dirs = TARGET_DIRS[tool];
+    mkdirSync(join(root, dirs.commands), { recursive: true });
     for (const workflow of WORKFLOWS) {
       const fileName = `${workflow.name}.md`;
-      const path = join(dir, fileName);
+      const path = join(root, dirs.commands, fileName);
       writeFileSync(
         path,
         `---
@@ -302,10 +297,9 @@ ${workflow.body}
       );
       created.push({ tool, path });
     }
-    const skillBase = TOOL_SKILL_DIR[tool];
-    if (skillBase !== undefined) {
+    if (dirs.skills !== undefined) {
       for (const workflow of WORKFLOWS) {
-        const skillPath = join(root, skillBase, workflow.name, 'SKILL.md');
+        const skillPath = join(root, dirs.skills, workflow.name, 'SKILL.md');
         mkdirSync(dirname(skillPath), { recursive: true });
         writeFileSync(skillPath, skillFrontmatter(workflow));
         created.push({ tool, path: skillPath });
@@ -327,29 +321,50 @@ function removeEmptyDir(dir: string): void {
   }
 }
 
-export function removeToolIntegrations(root: string, tools: ToolId[]): void {
-  for (const tool of tools) {
-    const dir = join(root, TOOL_COMMAND_DIR[tool]);
-    for (const workflow of WORKFLOWS) {
-      const path = join(dir, `${workflow.name}.md`);
-      if (existsSync(path)) {
-        rmSync(path);
-      }
-    }
-    const skillBase = TOOL_SKILL_DIR[tool];
-    if (skillBase !== undefined) {
-      const baseDir = join(root, skillBase);
-      for (const workflow of WORKFLOWS) {
-        const skillDir = join(baseDir, workflow.name);
-        const skillPath = join(skillDir, 'SKILL.md');
-        if (existsSync(skillPath)) {
-          rmSync(skillPath);
-        }
-        removeEmptyDir(skillDir);
-      }
-      removeEmptyDir(baseDir);
+function targetHasIntegrations(root: string, dirs: TargetDirs): boolean {
+  for (const workflow of WORKFLOWS) {
+    if (existsSync(join(root, dirs.commands, `${workflow.name}.md`))) return true;
+    if (dirs.skills !== undefined && existsSync(join(root, dirs.skills, workflow.name, 'SKILL.md'))) {
+      return true;
     }
   }
+  return false;
+}
+
+/** Targets whose integration files no longer belong to the selection. */
+export function staleIntegrationKeys(selected: string[]): string[] {
+  return Object.keys(TARGET_DIRS).filter((key) => !selected.includes(key));
+}
+
+/**
+ * Remove our integration files for every stale key. Returns the keys that
+ * actually had files so the caller only reports real removals.
+ */
+export function removeToolIntegrations(root: string, keys: string[]): string[] {
+  const removed: string[] = [];
+  for (const key of keys) {
+    const dirs = TARGET_DIRS[key as IntegrationTarget];
+    if (dirs === undefined) continue;
+    const hadFiles = targetHasIntegrations(root, dirs);
+    for (const workflow of WORKFLOWS) {
+      const commandPath = join(root, dirs.commands, `${workflow.name}.md`);
+      if (existsSync(commandPath)) rmSync(commandPath);
+      if (dirs.skills !== undefined) {
+        const skillDir = join(root, dirs.skills, workflow.name);
+        const skillPath = join(skillDir, 'SKILL.md');
+        if (existsSync(skillPath)) rmSync(skillPath);
+        removeEmptyDir(skillDir);
+      }
+    }
+    removeEmptyDir(join(root, dirs.commands));
+    if (dirs.skills !== undefined) removeEmptyDir(join(root, dirs.skills));
+    // The vendor root itself goes too, but only when empty: removeEmptyDir
+    // never deletes a directory that still holds the user's own files.
+    removeEmptyDir(dirname(join(root, dirs.commands)));
+    if (dirs.skills !== undefined) removeEmptyDir(dirname(join(root, dirs.skills)));
+    if (hadFiles) removed.push(key);
+  }
+  return removed;
 }
 
 export function integrationSummary(root: string, created: ToolIntegration[]): string[] {
