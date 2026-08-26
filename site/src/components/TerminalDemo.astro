@@ -13,14 +13,14 @@ const moreNote = lang === 'zh' ? '# …… 另外 13 个文件' : '# … 13 more
 
 type Line = { kind: 'cmd' | 'out' | 'ok' | 'note'; text: string };
 const lines: Line[] = [
-  { kind: 'cmd', text: 'adrkit init --tools claude' },
+  { kind: 'cmd', text: 'adrkit init' },
   { kind: 'out', text: 'ADR Kit initialized at ~/my-project' },
   { kind: 'out', text: '  created adr' },
   { kind: 'out', text: '  created adr/decisions' },
   { kind: 'out', text: '  created adr/config.yaml' },
   { kind: 'out', text: '  created adr/.gitignore' },
   { kind: 'out', text: '  created adr/README.md' },
-  { kind: 'out', text: '  created .claude/skills/adrkit-propose/SKILL.md (claude)' },
+  { kind: 'out', text: '  created .agents/skills/adrkit-propose/SKILL.md (agents)' },
   { kind: 'note', text: moreNote },
   { kind: 'cmd', text: 'adrkit propose "Use SQLite for session storage"' },
   { kind: 'out', text: 'created adr/.drafts/2026-08-19-use-sqlite-for-session-storage.md' },

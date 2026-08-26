@@ -54,8 +54,9 @@ const ui = {
     'integrations.eyebrow': 'Integrations',
     'integrations.title': 'Works with your AI coding assistant',
     'integrations.lead':
-      'One flag writes agent skills and slash commands into your project. The same workflows, mirrored for every supported tool.',
+      'Integrations install into the open .agents/ standard by default - one set of skills and slash commands every mainstream agent reads. Claude Code is the one exception: add --tools claude.',
     'integrations.generic': 'Any AGENTS-compatible agent',
+    'integrations.claude': 'Claude Code (via --tools claude)',
 
     'install.eyebrow': 'Install',
     'install.title': 'Up and running in a minute',
@@ -119,8 +120,9 @@ const ui = {
 
     'integrations.eyebrow': '集成',
     'integrations.title': '与你的 AI 编码助手协同工作',
-    'integrations.lead': '一个参数即可把 Agent 技能和斜杠命令写入项目。同一套工作流，镜像到每个支持的工具。',
+    'integrations.lead': '集成默认写入开放的 .agents/ 标准——一套技能和斜杠命令，所有主流 Agent 通用。Claude Code 是唯一例外：加 --tools claude。',
     'integrations.generic': '任何兼容 AGENTS 的 Agent',
+    'integrations.claude': 'Claude Code（需 --tools claude）',
 
     'install.eyebrow': '安装',
     'install.title': '一分钟跑起来',

@@ -5,8 +5,10 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 
-// Mirrors SUPPORTED_TOOLS in src/core/tool-integrations.ts.
-const tools = ['Claude Code', 'Codex', 'Cursor', 'GitHub Copilot'];
+// Mirrors the integration targets in src/core/tool-integrations.ts: the
+// standard .agents/ target every mainstream agent reads by default, plus
+// the Claude Code exception (--tools claude).
+const tools = ['Codex', 'Cursor', 'GitHub Copilot'];
 ---
 
 <section class="section integrations" id="integrations">
@@ -17,10 +19,11 @@ const tools = ['Claude Code', 'Codex', 'Cursor', 'GitHub Copilot'];
       <p class="section__lead">{t('integrations.lead')}</p>
     </div>
     <div class="integrations__panel reveal">
-      <code class="integrations__cmd"><span class="integrations__prompt">›</span> adrkit init --tools claude,codex</code>
+      <code class="integrations__cmd"><span class="integrations__prompt">›</span> adrkit init</code>
       <div class="integrations__chips">
         {tools.map((tool) => <span class="integrations__chip">{tool}</span>)}
         <span class="integrations__chip integrations__chip--generic">{t('integrations.generic')}</span>
+        <span class="integrations__chip">{t('integrations.claude')}</span>
       </div>
     </div>
   </div>
