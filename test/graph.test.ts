@@ -20,16 +20,21 @@ function makeRepo(): string {
 interface DecisionOptions {
   status?: string;
   date: string;
+  /** Defaults to `date`; graph grouping uses this. */
+  created?: string;
   supersededBy?: number;
+  tags?: string[];
   /** Extra prose dropped into ## Decision; where ADR-N references live. */
   decisionBody?: string;
 }
 
 function writeDecision(root: string, number: number, title: string, options: DecisionOptions): void {
   const superseded = options.supersededBy === undefined ? '' : `\nsuperseded-by: ${options.supersededBy}`;
+  const tags = options.tags === undefined ? '' : `\ntags: [${options.tags.join(', ')}]`;
   const content = `---
 status: ${options.status ?? 'accepted'}
-date: ${options.date}${superseded}
+date: ${options.date}
+created: ${options.created ?? options.date}${superseded}${tags}
 ---
 
 # ADR: ${number} ${title}
@@ -201,6 +206,7 @@ describe('graphCommand formats', () => {
       `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Side quest
@@ -254,5 +260,69 @@ describe('cli graph surface', () => {
       logSpy.mockRestore();
       errorSpy.mockRestore();
     }
+  });
+});
+
+describe('created grouping, tags, and tree output', () => {
+  it('groups by created date, not the status date', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'Founding', { date: '2026-08-19', created: '2026-08-17' });
+    writeDecision(root, 2, 'Later', { date: '2026-08-19' });
+    const output = graphCommand(root, {});
+    expect(output).toContain('subgraph D20260817["2026-08-17 (1)"]');
+    expect(output).toContain('subgraph D20260819["2026-08-19 (1)"]');
+  });
+
+  it('emits an exact terminal tree with --text', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'Old', { date: '2026-08-19', created: '2026-08-17', status: 'superseded', supersededBy: 3, tags: ['adr'] });
+    writeDecision(root, 2, 'Base', { date: '2026-08-17', tags: ['execution'] });
+    writeDecision(root, 3, 'New', { date: '2026-08-19', created: '2026-08-19', decisionBody: 'Builds on ADR-1.' });
+    expect(graphCommand(root, { text: true })).toBe(`Decisions
+├── 2026-08-17 (2)
+│   ├── 1 Old  [superseded by 3; adr]
+│   └── 2 Base  [execution]
+└── 2026-08-19 (1)
+    └── 3 New`);
+  });
+
+  it('filters to one theme with --tag in every format', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'Sandbox', { date: '2026-08-17', tags: ['execution', 'sandbox'] });
+    writeDecision(root, 2, 'Frontend', { date: '2026-08-17', tags: ['frontend'] });
+    writeDecision(root, 3, 'Uses sandbox', { date: '2026-08-19', decisionBody: 'Builds on ADR-1.', tags: ['execution'] });
+    const parsed = JSON.parse(graphCommand(root, { json: true, tag: 'execution' })) as {
+      decisions: Array<{ number: number }>;
+      referenceEdges: Array<{ from: number; to: number }>;
+    };
+    expect(parsed.decisions.map((decision) => decision.number)).toEqual([1, 3]);
+    expect(parsed.referenceEdges).toEqual([{ from: 3, to: 1 }]);
+    const tree = graphCommand(root, { text: true, tag: 'execution' });
+    expect(tree).not.toContain('2 Frontend');
+  });
+
+  it('colors active nodes by their first tag in mermaid', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'Sandbox', { date: '2026-08-17', tags: ['execution'] });
+    writeDecision(root, 2, 'Frontend', { date: '2026-08-17', tags: ['frontend'] });
+    writeDecision(root, 3, 'Retired', { date: '2026-08-17', status: 'superseded', supersededBy: 1, tags: ['execution'] });
+    const output = graphCommand(root, {});
+    expect(output).toContain('classDef tag-0 stroke:#0e7490,color:#0e7490');
+    expect(output).toContain('classDef tag-1 stroke:#b45309,color:#b45309');
+    expect(output).toContain('class n1 tag-0');
+    expect(output).toContain('class n2 tag-1');
+    // superseded nodes stay gray: no tag class for n3
+    expect(output).not.toContain('n3 tag-');
+    expect(output).toContain('class n3 retired');
+  });
+
+  it('exposes created and tags in the JSON graph', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'First', { date: '2026-08-19', created: '2026-08-17', tags: ['execution'] });
+    const parsed = JSON.parse(graphCommand(root, { json: true })) as {
+      decisions: Array<{ created: string; tags: string[] }>;
+    };
+    expect(parsed.decisions[0]?.created).toBe('2026-08-17');
+    expect(parsed.decisions[0]?.tags).toEqual(['execution']);
   });
 });

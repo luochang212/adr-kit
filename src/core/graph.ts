@@ -6,13 +6,18 @@ export interface GraphNode {
   number: number;
   title: string;
   status: AdrRecord['status'];
+  /** Current status date (front matter `date`). */
   date: string;
+  /** Birth date (front matter `created`); falls back to `date` on legacy records. */
+  created: string;
   fileName: string;
   /** Repository-relative POSIX path; the `click` target in Mermaid output. */
   path: string;
   supersededBy?: number;
   /** Mined `ADR-N` reference targets, filtered and sorted. */
   references: number[];
+  /** Theme keywords from front matter `tags`. */
+  tags: string[];
 }
 
 export interface GraphEdge {
@@ -33,7 +38,7 @@ const REFERENCE_PATTERN = /ADR-?\s*([1-9]\d*)/g;
 
 export function buildDecisionGraph(
   records: AdrRecord[],
-  options: { formalOnly?: boolean } = {},
+  options: { formalOnly?: boolean; tag?: string } = {},
 ): DecisionGraph {
   const nodes: GraphNode[] = [];
   const recordByNumber = new Map<number, AdrRecord>();
@@ -45,16 +50,25 @@ export function buildDecisionGraph(
       title: record.title,
       status: record.status,
       date: record.date,
+      created: record.created ?? record.date,
       fileName: record.fileName,
       path: relativePath(record),
       references: [],
+      tags: record.tags ?? [],
     };
     if (record.supersededBy !== undefined) node.supersededBy = record.supersededBy;
     nodes.push(node);
   }
 
-  const supersedeEdges: GraphEdge[] = nodes
-    .filter((node) => node.supersededBy !== undefined)
+  // Theme filter: keep only decisions carrying the tag; edges survive only
+  // when both endpoints survive.
+  const filtered = options.tag === undefined
+    ? nodes
+    : nodes.filter((node) => node.tags.includes(options.tag!));
+  const retained = new Set(filtered.map((node) => node.number));
+
+  const supersedeEdges: GraphEdge[] = filtered
+    .filter((node) => node.supersededBy !== undefined && retained.has(node.supersededBy!))
     .map((node) => ({ from: node.number, to: node.supersededBy! }))
     .sort(byPair);
 
@@ -68,7 +82,7 @@ export function buildDecisionGraph(
 
   const referenceEdges: GraphEdge[] = [];
   if (!options.formalOnly) {
-    for (const node of nodes) {
+    for (const node of filtered) {
       const record = recordByNumber.get(node.number)!;
       const body = record.sections.map((section) => section.body).join('\n');
       const targets = new Set<number>();
@@ -83,26 +97,28 @@ export function buildDecisionGraph(
       }
       node.references = [...targets].sort((a, b) => a - b);
       for (const target of node.references) {
-        referenceEdges.push({ from: node.number, to: target });
+        if (retained.has(target)) {
+          referenceEdges.push({ from: node.number, to: target });
+        }
       }
     }
   }
   referenceEdges.sort(byPair);
 
-  return { nodes, supersedeEdges, referenceEdges };
+  return { nodes: filtered, supersedeEdges, referenceEdges };
 }
 
 function byPair(a: GraphEdge, b: GraphEdge): number {
   return a.from - b.from || a.to - b.to;
 }
 
-/** Distinct record dates, chronological; YYYY-MM-DD sorts lexically. */
+/** Distinct birth dates, chronological; YYYY-MM-DD sorts lexically. */
 function dateGroups(nodes: GraphNode[]): Map<string, GraphNode[]> {
   const groups = new Map<string, GraphNode[]>();
   for (const node of nodes) {
-    const group = groups.get(node.date);
+    const group = groups.get(node.created);
     if (group === undefined) {
-      groups.set(node.date, [node]);
+      groups.set(node.created, [node]);
     } else {
       group.push(node);
     }
@@ -111,9 +127,11 @@ function dateGroups(nodes: GraphNode[]): Map<string, GraphNode[]> {
 }
 
 /**
- * Mermaid flowchart. Same-date decisions share a subgraph so decision
- * bursts are visible without implying a continuous timeline; edges are
- * solid for formal supersession, dashed for mined references.
+ * Mermaid flowchart. Decisions share a subgraph per birth date (`created`)
+ * so decision bursts are visible without implying a continuous timeline;
+ * edges are solid for formal supersession, dashed for mined references.
+ * Active nodes are tinted by their first tag (border + text, no fill);
+ * superseded nodes keep the gray retired style instead.
  */
 export function mermaidGraph(graph: DecisionGraph): string {
   const header: string[] = ['flowchart LR'];
@@ -142,12 +160,60 @@ export function mermaidGraph(graph: DecisionGraph): string {
     style.push(`  class ${retired.join(',')} retired`);
   }
 
+  const tagClasses = tagStyleBlocks(graph);
   const clicks = graph.nodes.map((node) => `  click n${node.number} "${node.path}"`);
 
-  const blocks = [header, formal, references, style, clicks].filter(
+  const blocks = [header, formal, references, tagClasses, style, clicks].filter(
     (block) => block.length > 0,
   );
   return blocks.map((block) => block.join('\n')).join('\n\n');
+}
+
+const TAG_COLORS = [
+  '#0e7490',
+  '#b45309',
+  '#6d28d9',
+  '#15803d',
+  '#be123c',
+  '#4f46e5',
+  '#a16207',
+  '#0f766e',
+];
+
+/** One `classDef tag-N` per distinct tag plus `class` assignments for the
+ * nodes carrying it (first tag only, superseded nodes excluded). */
+function tagStyleBlocks(graph: DecisionGraph): string[] {
+  const tagIndex = new Map<string, number>();
+  for (const node of graph.nodes) {
+    if (node.status === 'superseded') continue;
+    const first = node.tags[0];
+    if (first === undefined) continue;
+    if (!tagIndex.has(first)) tagIndex.set(first, tagIndex.size);
+  }
+  if (tagIndex.size === 0) return [];
+  const defs: string[] = [];
+  const assigns = new Map<string, string[]>();
+  for (const index of tagIndex.values()) {
+    const color = TAG_COLORS[index % TAG_COLORS.length]!;
+    defs.push(`  classDef tag-${index} stroke:${color},color:${color}`);
+  }
+  for (const node of graph.nodes) {
+    if (node.status === 'superseded') continue;
+    const first = node.tags[0];
+    if (first === undefined) continue;
+    const index = tagIndex.get(first)!;
+    const list = assigns.get(`tag-${index}`);
+    if (list === undefined) {
+      assigns.set(`tag-${index}`, [`n${node.number}`]);
+    } else {
+      list.push(`n${node.number}`);
+    }
+  }
+  const lines = [...defs];
+  for (const [name, nodes] of assigns) {
+    lines.push(`  class ${nodes.join(',')} ${name}`);
+  }
+  return lines;
 }
 
 function mermaidLabel(title: string): string {
@@ -196,10 +262,12 @@ export function jsonGraph(graph: DecisionGraph): string {
         title: node.title,
         status: node.status,
         date: node.date,
+        created: node.created,
         fileName: node.fileName,
         path: node.path,
         supersededBy: node.supersededBy,
         references: node.references,
+        tags: node.tags,
       })),
       supersedeEdges: graph.supersedeEdges,
       referenceEdges: graph.referenceEdges,
@@ -207,4 +275,33 @@ export function jsonGraph(graph: DecisionGraph): string {
     null,
     2,
   );
+}
+
+/**
+ * Terminal-friendly tree: birth dates as branches, decisions as leaves,
+ * lifecycle and tag annotations inline. The tree shape is the same date
+ * grouping the graph formats use, drawn with box-drawing characters so it
+ * reads in any terminal without a renderer.
+ */
+export function textTree(graph: DecisionGraph): string {
+  const lines: string[] = ['Decisions'];
+  const groups = [...dateGroups(graph.nodes).entries()];
+  groups.forEach(([date, nodes], groupIndex) => {
+    const isLastGroup = groupIndex === groups.length - 1;
+    lines.push(`${isLastGroup ? '└── ' : '├── '}${date} (${nodes.length})`);
+    const groupPad = isLastGroup ? '    ' : '│   ';
+    nodes.forEach((node, nodeIndex) => {
+      const isLastNode = nodeIndex === nodes.length - 1;
+      const annotations: string[] = [];
+      if (node.supersededBy !== undefined) {
+        annotations.push(`superseded by ${node.supersededBy}`);
+      }
+      if (node.tags.length > 0) {
+        annotations.push(node.tags.join(', '));
+      }
+      const suffix = annotations.length > 0 ? `  [${annotations.join('; ')}]` : '';
+      lines.push(`${groupPad}${isLastNode ? '└── ' : '├── '}${node.title}${suffix}`);
+    });
+  });
+  return lines.join('\n');
 }

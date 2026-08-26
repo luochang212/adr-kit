@@ -36,7 +36,7 @@ Usage:
   adrkit validate [name] [--all] [--json]    Validate one record or the whole repo
   adrkit update [--tools <list>]             Rewrite AI tool integrations
   adrkit config [--json]                     Print the current configuration
-  adrkit graph [--mermaid|--dot|--json] [--formal-only]
+  adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
                                            Emit the decision relationship graph
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
@@ -45,10 +45,11 @@ Usage:
 
 adrkit graph visualizes the decision history: solid edges are formal
 superseded-by links, dashed edges are ADR-N references mined from record
-bodies, and nodes group by date. The default --mermaid output pastes into
-any Markdown and renders natively on GitHub; --dot feeds Graphviz
-(dot -Tpng), --json exposes the graph to other tools, --formal-only drops
-the mined edges.
+bodies, and nodes group by their created date. --mermaid pastes into any
+Markdown and renders natively on GitHub (nodes are tinted by their tags),
+--dot feeds Graphviz (dot -Tpng), --text prints a terminal-friendly tree,
+--json exposes the graph to other tools; --tag <tag> filters to one theme,
+--formal-only drops the mined edges.
 
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
@@ -66,6 +67,8 @@ export function main(argv: string[]): void {
       'formal-only': { type: 'boolean', default: false },
       json: { type: 'boolean', default: false },
       mermaid: { type: 'boolean', default: false },
+      text: { type: 'boolean', default: false },
+      tag: { type: 'string' },
       reason: { type: 'string' },
       tools: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
@@ -171,7 +174,9 @@ export function main(argv: string[]): void {
             mermaid: values.mermaid,
             dot: values.dot,
             json: values.json,
+            text: values.text,
             formalOnly: values['formal-only'],
+            tag: values.tag,
           }),
         );
         return;
