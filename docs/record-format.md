@@ -6,21 +6,29 @@ Every ADR is YAML front matter followed by a Markdown body:
 ---
 status: accepted | superseded
 date: YYYY-MM-DD
+created: YYYY-MM-DD
 commit: abc1234
+tags: [frontend]
 ---
 
 # ADR: N <title>
 ```
 
-Front matter fields are written in the order `status`, `date`, `commit`,
-`superseded-by`; only the fields that apply are present. `commit` is the
-short git hash the decision was recorded against, stamped automatically when
-the repository is under git. `superseded-by` is required on superseded
-decisions and forbidden otherwise. Unknown fields are reported by `validate`.
+Front matter fields are written in the order `status`, `date`, `created`,
+`commit`, `superseded-by`, `reason`, `tags`; only the fields that apply are
+present. `commit` is the short git hash the decision was recorded against,
+stamped automatically when the repository is under git. `superseded-by` is
+required on superseded decisions and forbidden otherwise. Unknown fields
+are reported by `validate`.
 
 The `date` field records when the current status was reached. The CLI
 stamps it at every lifecycle move (`decide`, `accept`, `supersede`), so it
-is machine-written, never hand-maintained.
+is machine-written, never hand-maintained. `created` is the birth date,
+stamped once at creation and never re-stamped, so the time axis survives
+later lifecycle moves. `tags` is an optional list of kebab-case keywords
+(for example `frontend`, `execution-layer`) that `adrkit graph` uses to
+group and filter decisions by theme; `validate` checks their shape but
+never requires them.
 
 ## Drafts (proposals)
 

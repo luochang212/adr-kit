@@ -6,19 +6,24 @@
 ---
 status: accepted | superseded
 date: YYYY-MM-DD
+created: YYYY-MM-DD
 commit: abc1234
+tags: [frontend]
 ---
 
 # ADR: N <title>
 ```
 
-front matter 字段按 `status`、`date`、`commit`、`superseded-by` 的顺序书写，
-只写适用的字段。`commit` 是该决策对应的短 git hash，仓库处于 git 下时自动
-盖章。`superseded-by` 仅在 superseded 决策上必填，其他状态禁止出现。未知字段
-会被 `validate` 报告。
+front matter 字段按 `status`、`date`、`created`、`commit`、`superseded-by`、
+`reason`、`tags` 的顺序书写，只写适用的字段。`commit` 是该决策对应的短 git
+hash，仓库处于 git 下时自动盖章。`superseded-by` 仅在 superseded 决策上必填，
+其他状态禁止出现。未知字段会被 `validate` 报告。
 
 `date` 字段记录当前状态达成的日期。CLI 在每次生命周期迁移时自动盖章
-（`decide`、`accept`、`supersede`），由机器写入，不靠人工维护。
+（`decide`、`accept`、`supersede`），由机器写入，不靠人工维护。`created`
+是创建日期，创建时盖一次、永不重盖，让时间轴在后续生命周期迁移后依然成立。
+`tags` 是可选的 kebab-case 关键词列表（如 `frontend`、`execution-layer`），
+`adrkit graph` 用它按主题分组和过滤决策；`validate` 只校验形状、从不要求必填。
 
 ## 草稿（提案）
 
