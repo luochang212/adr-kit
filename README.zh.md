@@ -84,7 +84,7 @@ adrkit instructions [--json]           查看下一步；标注待决草稿已�
 adrkit validate [name] [--all] [--json] 校验单条记录或整个仓库
 adrkit update [--tools <list>]         重写 AI 工具集成文件
 adrkit config [--json]                 查看当前配置
-adrkit graph [--mermaid|--dot|--json] [--formal-only]
+adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
                                        输出决策关系图
 adrkit completion <bash|zsh|fish>      打印 shell 补全脚本
 adrkit version                         查看版本
@@ -117,7 +117,9 @@ adrkit version                         查看版本
 ---
 status: accepted
 date: 2026-08-19
+created: 2026-08-17
 commit: abc1234
+tags: [frontend]
 ---
 
 # ADR: 1 使用 SQLite 存储会话
@@ -127,8 +129,10 @@ commit: abc1234
 ```
 
 `date` 字段记录当前状态达成的日期；CLI 在每次生命周期迁移时自动盖章，
-同时盖上该决策对应的 git `commit`。决策是不可变历史；当前事实以代码为准，
-不在记录里。
+同时盖上该决策对应的 git `commit`。`created` 是创建日期，创建时盖一次、
+永不重盖，让时间轴在后续生命周期迁移后依然成立。可选的 `tags`（kebab-case
+关键词）让 `adrkit graph` 按主题分组和过滤决策。决策是不可变历史；当前
+事实以代码为准，不在记录里。
 
 - **决策**（`adr/decisions/N-slug.md`）是 `accepted` 或 `superseded`，
   需要 `Problem`、`Decision`、`Alternatives considered`、`Consequences`；

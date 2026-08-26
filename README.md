@@ -87,7 +87,7 @@ adrkit instructions [--json]            Print the next step; flag pending drafts
 adrkit validate [name] [--all] [--json] Validate one record or the repository
 adrkit update [--tools <list>]          Rewrite AI tool integrations
 adrkit config [--json]                  Print the current configuration
-adrkit graph [--mermaid|--dot|--json] [--formal-only]
+adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
                                         Emit the decision relationship graph
 adrkit completion <bash|zsh|fish>       Print a shell completion script
 adrkit version                          Print the version
@@ -121,7 +121,9 @@ Every record is YAML front matter followed by a Markdown body:
 ---
 status: accepted
 date: 2026-08-19
+created: 2026-08-17
 commit: abc1234
+tags: [frontend]
 ---
 
 # ADR: 1 Use SQLite for session storage
@@ -132,7 +134,10 @@ commit: abc1234
 
 The `date` field records when the current status was reached; the CLI
 stamps it at every lifecycle move, alongside the git `commit` the decision
-was recorded against. Decisions are immutable history; the current facts
+was recorded against. `created` is the birth date, stamped once and never
+re-stamped, so the time axis survives later lifecycle moves. Optional
+`tags` (kebab-case keywords) let `adrkit graph` group and filter decisions
+by theme. Decisions are immutable history; the current facts
 live in code, not in the record.
 
 - **Decisions** (`adr/decisions/N-slug.md`) are `accepted` or `superseded`

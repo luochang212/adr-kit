@@ -109,15 +109,18 @@ selected are removed. Without `--tools`, the targets recorded in
 
 Print the current `adr/config.yaml` configuration.
 
-### `adrkit graph [--mermaid|--dot|--json] [--formal-only]`
+### `adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]`
 
 Emit a relationship graph of the decisions: solid edges for formal
 `superseded-by` references, dashed edges for `ADR-N` mentions mined from
-record bodies, grouped by date so decision bursts are visible without
-implying a continuous timeline. `--mermaid` (the default) renders natively
-on GitHub; `--dot` emits Graphviz; `--json` exposes the graph for other
-tools. `--formal-only` drops the mined edges. Note that `date` records the
-current status date, not the creation date.
+record bodies, grouped by the `created` date so decision bursts are visible
+without implying a continuous timeline. `--mermaid` (the default) renders
+natively on GitHub and tints active nodes by their first `tag`; `--dot`
+emits Graphviz; `--text` prints a terminal-friendly tree; `--json` exposes
+the graph (including `created` and `tags`) for other tools. `--tag <tag>`
+filters to decisions carrying that theme; `--formal-only` drops the mined
+edges. Note that `date` records the current status date, while `created` is
+the birth date.
 
 ### `adrkit completion <bash|zsh|fish>`
 
