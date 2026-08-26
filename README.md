@@ -63,6 +63,14 @@ adrkit validate
 adrkit list
 ```
 
+## Tell your agent
+
+Paste this into any AI coding agent to record key decisions automatically:
+
+```text
+Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.
+```
+
 ## Commands
 
 ```text

@@ -60,6 +60,14 @@ adrkit validate
 adrkit list
 ```
 
+## 告诉你的 Agent
+
+把下面这行贴给任意 AI 编码 Agent，它就会自动把关键决策记录成 ADR：
+
+```text
+在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策
+```
+
 ## 命令
 
 ```text
