@@ -76,6 +76,8 @@ adrkit instructions [--json]           查看下一步；标注待决草稿已�
 adrkit validate [name] [--all] [--json] 校验单条记录或整个仓库
 adrkit update [--tools <list>]         重写 AI 工具集成文件
 adrkit config [--json]                 查看当前配置
+adrkit graph [--mermaid|--dot|--json] [--formal-only]
+                                       输出决策关系图
 adrkit completion <bash|zsh|fish>      打印 shell 补全脚本
 adrkit version                         查看版本
 ```

@@ -88,6 +88,14 @@ adr/
 
 打印当前配置。
 
+### `adrkit graph [--mermaid|--dot|--json] [--formal-only]`
+
+输出决策关系图：实线边为 `superseded-by` 正式取代关系，虚线边为从正文
+挖掘的 `ADR-N` 引用，按日期分组，让决策脉冲可见而不伪造连续时间线。
+`--mermaid`（默认）在 GitHub 上原生渲染；`--dot` 输出 Graphviz；`--json`
+把图暴露给其他工具。`--formal-only` 丢弃挖掘边。注意 `date` 记录的是当前
+状态日期，不是创建日期。
+
 ### `adrkit completion <bash|zsh|fish>`
 
 打印 shell 补全脚本。

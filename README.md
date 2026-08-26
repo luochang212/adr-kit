@@ -79,6 +79,8 @@ adrkit instructions [--json]            Print the next step; flag pending drafts
 adrkit validate [name] [--all] [--json] Validate one record or the repository
 adrkit update [--tools <list>]          Rewrite AI tool integrations
 adrkit config [--json]                  Print the current configuration
+adrkit graph [--mermaid|--dot|--json] [--formal-only]
+                                        Emit the decision relationship graph
 adrkit completion <bash|zsh|fish>       Print a shell completion script
 adrkit version                          Print the version
 ```
