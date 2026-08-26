@@ -18,9 +18,11 @@ the flag instead of silently ignoring it.
 
 ### `adrkit init [path] [--tools <list>]`
 
-Create an `adr/` repository in `path` (default: current directory). Pass
-`--tools <list>` to also write AI agent command files and skills (for
-example `claude`, `codex`, `all`, or `none`; see `adrkit update`).
+Create an `adr/` repository in `path` (default: current directory) and
+install the agent integration into `.agents/` (`commands/` + `skills/`) -
+the vendor-neutral convention every mainstream agent reads. `--tools claude`
+additionally installs `.claude/` copies for Claude Code (the one agent that
+does not read `.agents/`); `--tools none` installs nothing.
 
 ```text
 adr/
@@ -98,10 +100,10 @@ itself superseded.
 
 ### `adrkit update [--tools <list>]`
 
-Write AI tool integrations into the project: agent skills (`.claude/skills/`,
-`.codex/skills/`, …) alongside slash-command files (`.claude/commands/`,
-`.codex/commands/`, …). Without `--tools`, the tools recorded at `init`
-time are used. Integrations for tools no longer selected are removed.
+Rewrite the agent integrations: the standard `.agents/` target plus, with
+`--tools claude`, the `.claude/` exception. Targets that are no longer
+selected are removed. Without `--tools`, the targets recorded in
+`adr/config.yaml` are used.
 
 ### `adrkit config [--json]`
 

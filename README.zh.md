@@ -80,6 +80,14 @@ adrkit completion <bash|zsh|fish>      打印 shell 补全脚本
 adrkit version                         查看版本
 ```
 
+> [!IMPORTANT]
+> 集成默认写入开放的 [`.agents/`](https://agents.md/) 标准——一套技能和斜杠
+> 命令，所有主流 Agent 通用。Claude Code 是唯一的例外：它不仅[关闭了
+> AGENTS.md 支持请求](https://github.com/anthropics/claude-code/issues/6235)，
+> 还让 [Shopify CEO 公开放话要因此禁用它](https://thenewstack.io/shopify-claude-code-agentsmd/)。
+> 如果你的团队用 Claude Code，加 `--tools claude` 会同时安装 `.claude/`
+> 副本——这个例外我们一直背到 Anthropic 采纳标准为止。
+
 `<name>` 支持按标题、文件名或决策编号（`1`）查找。
 
 ## 文档

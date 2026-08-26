@@ -83,6 +83,15 @@ adrkit completion <bash|zsh|fish>       Print a shell completion script
 adrkit version                          Print the version
 ```
 
+> [!IMPORTANT]
+> Integrations install into the open [`.agents/`](https://agents.md/) standard
+> by default - one set of skills and slash commands every mainstream agent
+> reads. Claude Code is the one holdout: it even [closed the AGENTS.md support
+> request](https://github.com/anthropics/claude-code/issues/6235), and Shopify's
+> CEO [publicly threatened to ban it over this](https://thenewstack.io/shopify-claude-code-agentsmd/).
+> If your team uses Claude Code, pass `--tools claude` to also install
+> `.claude/` copies - an exception we carry until Anthropic adopts the standard.
+
 `<name>` resolves by title, file name, or decision number (`1`).
 
 ## Docs

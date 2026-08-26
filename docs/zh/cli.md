@@ -16,9 +16,10 @@
 
 ### `adrkit init [path] [--tools <list>]`
 
-在 `path`（默认当前目录）创建 `adr/` 仓库。`--tools` 可选值：
-`claude,codex,cursor,github-copilot,agents,all,none`，用于同时写入
-AI agent 命令文件和 skills。
+在 `path`（默认当前目录）创建 `adr/` 仓库，并把 agent 集成写入 `.agents/`
+（`commands/` + `skills/`）——所有主流 Agent 都识别的供应商中立约定。
+`--tools claude` 额外安装 `.claude/` 副本给 Claude Code（唯一不读
+`.agents/` 的 Agent）；`--tools none` 不安装任何集成。
 
 ```text
 adr/
@@ -79,9 +80,9 @@ adr/
 
 ### `adrkit update [--tools <list>]`
 
-重写 AI 工具集成文件（slash-command 文件与 skills，例如
-`.claude/skills/`、`.codex/skills/`）。未指定 `--tools` 时使用
-`adr/config.yaml` 里记录的工具。
+重写 agent 集成：标准 `.agents/` 目标，加上 `--tools claude` 时的
+`.claude/` 例外；不再选中的目标会被移除。未指定 `--tools` 时使用
+`adr/config.yaml` 里记录的目标。
 
 ### `adrkit config [--json]`
 
