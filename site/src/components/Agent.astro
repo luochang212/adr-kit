@@ -1,0 +1,68 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="section agent" id="agent">
+  <div class="section__inner">
+    <div class="reveal">
+      <p class="section__eyebrow">{t('agent.eyebrow')}</p>
+      <h2 class="section__title">{t('agent.title')}</h2>
+      <p class="section__lead">{t('agent.lead')}</p>
+    </div>
+    <div class="agent__prompt reveal">
+      <code class="agent__text">{t('agent.prompt')}</code>
+      <button class="agent__copy" data-copy={t('agent.prompt')}>
+        <span class="agent__copy-label">{t('agent.copy')}</span>
+        <span class="agent__copy-label agent__copy-label--alt" aria-hidden="true">{t('agent.copied')}</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .agent { border-top: 1px solid var(--border); }
+  .agent__prompt {
+    margin-top: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 18px 18px 18px 22px;
+  }
+  .agent__text {
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-all;
+  }
+  /* same two-label stack as the hero copy button: Copy ↔ Copied without layout shift */
+  .agent__copy {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-70);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    display: inline-grid;
+    flex: none;
+  }
+  .agent__copy:hover { color: var(--fg); border-color: var(--border-strong); }
+  .agent__copy-label { grid-area: 1 / 1; }
+  .agent__copy-label--alt { visibility: hidden; color: var(--cyan); }
+  .agent__copy.copied .agent__copy-label { visibility: hidden; }
+  .agent__copy.copied .agent__copy-label--alt { visibility: visible; }
+  @media (max-width: 640px) {
+    .agent__prompt { flex-direction: column; align-items: stretch; }
+  }
+</style>

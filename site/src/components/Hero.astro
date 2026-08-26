@@ -106,31 +106,3 @@ const t = useTranslations(lang);
   .hero__copy.copied .hero__copy-label { visibility: hidden; }
   .hero__copy.copied .hero__copy-label--alt { visibility: visible; }
 </style>
-
-<script is:inline>
-  // declarative copy buttons, with execCommand fallback
-  (function () {
-    document.querySelectorAll('[data-copy]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var text = btn.getAttribute('data-copy');
-        function done() {
-          btn.classList.add('copied');
-          setTimeout(function () { btn.classList.remove('copied'); }, 1600);
-        }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(done, done);
-        } else {
-          var ta = document.createElement('textarea');
-          ta.value = text;
-          ta.style.position = 'fixed';
-          ta.style.opacity = '0';
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand('copy'); } catch (e) {}
-          document.body.removeChild(ta);
-          done();
-        }
-      });
-    });
-  })();
-</script>

@@ -67,6 +67,15 @@ const ui = {
     'install.github': 'Star on GitHub',
     'install.githubBody': 'Source, issues, and the full documentation live on GitHub.',
 
+    'agent.eyebrow': 'For AI agents',
+    'agent.title': 'One line to wire it in',
+    'agent.lead':
+      'Paste this into any AI coding agent and it will record your key decisions as ADRs automatically.',
+    'agent.prompt':
+      'Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.',
+    'agent.copy': 'Copy',
+    'agent.copied': 'Copied',
+
     'faq.eyebrow': 'FAQ',
     'faq.title': 'Questions',
     'faq.1.q': 'What does ADR Kit do to my project when I adopt it?',
@@ -132,6 +141,13 @@ const ui = {
     'install.step3': '记录第一个决策',
     'install.github': '在 GitHub 上 Star',
     'install.githubBody': '源码、Issue 和完整文档都在 GitHub。',
+
+    'agent.eyebrow': '给 AI Agent',
+    'agent.title': '一行接入你的 Agent',
+    'agent.lead': '把这行贴给任意 AI 编码 Agent，它就会自动把关键决策记录成 ADR。',
+    'agent.prompt': '在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策',
+    'agent.copy': '复制',
+    'agent.copied': '已复制',
 
     'faq.eyebrow': '常见问题',
     'faq.title': 'Q&A',
