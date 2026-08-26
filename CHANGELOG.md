@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- 00c9e8a: Add `adrkit graph` — visualize the decision history of a repository
+  from git commits and decision records, with status transitions and supersede
+  relationships.
+- 5593e76: `adrkit init` and `adrkit update` now write agent integration files to
+  the standard `.agents/` directory by default; Claude Code is the only
+  exception, generated via `adrkit update --tools claude` into `.claude/`.
+
 ## 0.2.7
 
 ### Patch Changes
