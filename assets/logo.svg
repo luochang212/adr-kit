@@ -10,7 +10,7 @@
        is the chosen path; the faint one is the alternative that was
        considered and recorded. -->
   <g fill="none" stroke-linecap="round">
-    <path d="M164 142 L352 256" stroke="url(#glyph)" stroke-width="46"/>
-    <path d="M352 256 L164 370" stroke="url(#glyph)" stroke-width="46" opacity="0.3"/>
+    <path d="M164 142 L352 256" stroke="url(#glyph)" stroke-width="58"/>
+    <path d="M352 256 L164 370" stroke="url(#glyph)" stroke-width="58" opacity="0.3"/>
   </g>
 </svg>

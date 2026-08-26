@@ -8217,8 +8217,8 @@
   <g transform="translate(96 176)">
     <rect width="288" height="288" rx="64" fill="#1A2230" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2"/>
     <g transform="scale(0.5625)" fill="none" stroke-linecap="round">
-      <path d="M164 142 L352 256" stroke="url(#glyph)" stroke-width="46"/>
-      <path d="M352 256 L164 370" stroke="url(#glyph)" stroke-width="46" opacity="0.3"/>
+      <path d="M164 142 L352 256" stroke="url(#glyph)" stroke-width="58"/>
+      <path d="M352 256 L164 370" stroke="url(#glyph)" stroke-width="58" opacity="0.3"/>
     </g>
   </g>
 
