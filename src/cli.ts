@@ -5,6 +5,7 @@ import { acceptCommand } from './commands/accept.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
 import { decideCommand } from './commands/decide.js';
+import { graphCommand } from './commands/graph.js';
 import { initCommand } from './commands/init.js';
 import { instructionsCommand } from './commands/instructions.js';
 import { listCommand } from './commands/list.js';
@@ -35,15 +36,24 @@ Usage:
   adrkit validate [name] [--all] [--json]    Validate one record or the whole repo
   adrkit update [--tools <list>]             Rewrite AI tool integrations
   adrkit config [--json]                     Print the current configuration
+  adrkit graph [--mermaid|--dot|--json] [--formal-only]
+                                           Emit the decision relationship graph
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
   adrkit -h, --help                          Print this help
   adrkit -V, --version                       Print the version
 
+adrkit graph visualizes the decision history: solid edges are formal
+superseded-by links, dashed edges are ADR-N references mined from record
+bodies, and nodes group by date. The default --mermaid output pastes into
+any Markdown and renders natively on GitHub; --dot feeds Graphviz
+(dot -Tpng), --json exposes the graph to other tools, --formal-only drops
+the mined edges.
+
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
 
-const JSON_COMMANDS = new Set(['list', 'status', 'instructions', 'validate', 'config']);
+const JSON_COMMANDS = new Set(['list', 'status', 'instructions', 'validate', 'config', 'graph']);
 
 export function main(argv: string[]): void {
   const { values, positionals } = parseArgs({
@@ -52,7 +62,10 @@ export function main(argv: string[]): void {
     options: {
       all: { type: 'boolean', default: false },
       by: { type: 'string' },
+      dot: { type: 'boolean', default: false },
+      'formal-only': { type: 'boolean', default: false },
       json: { type: 'boolean', default: false },
+      mermaid: { type: 'boolean', default: false },
       reason: { type: 'string' },
       tools: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
@@ -150,6 +163,17 @@ export function main(argv: string[]): void {
       }
       case 'config': {
         console.log(configCommand(process.cwd(), values.json));
+        return;
+      }
+      case 'graph': {
+        console.log(
+          graphCommand(process.cwd(), {
+            mermaid: values.mermaid,
+            dot: values.dot,
+            json: values.json,
+            formalOnly: values['formal-only'],
+          }),
+        );
         return;
       }
       case 'completion': {

@@ -12,6 +12,7 @@ const COMMANDS = [
   'validate',
   'update',
   'config',
+  'graph',
   'completion',
   'version',
   'help',
