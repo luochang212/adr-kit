@@ -18,9 +18,53 @@ export interface ValidationIssue {
 const DECISION_REQUIRED = ['Problem', 'Decision', 'Alternatives considered', 'Consequences'];
 const PROPOSED_REQUIRED = ['Problem', 'Proposal', 'Alternatives considered', 'Acceptance criteria', 'Risks'];
 
+const TAG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 function calendarDateIsValid(year: number, month: number, day: number): boolean {
   const date = new Date(year, month - 1, day);
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+/**
+ * The parser enforces YYYY-MM-DD when the field exists; this checks calendar
+ * validity, presence (the field is required), and the invariant that a record
+ * cannot be created after its current status date.
+ */
+function createdIssues(path: string, record: AdrRecord): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const created = record.created;
+  if (created === undefined) {
+    issues.push({ path, message: 'front matter must include "created"' });
+    return issues;
+  }
+  const match = created.match(DATE_PATTERN);
+  if (match === null) return issues;
+  if (!calendarDateIsValid(Number(match[1]), Number(match[2]), Number(match[3]))) {
+    issues.push({ path, message: 'front matter created contains an invalid calendar date' });
+  }
+  if (record.date < created) {
+    issues.push({ path, message: 'created must not be after the status date' });
+  }
+  return issues;
+}
+
+function tagsIssues(path: string, tags: string[]): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  if (tags.length === 0) {
+    issues.push({ path, message: 'tags must not be empty' });
+    return issues;
+  }
+  const seen = new Set<string>();
+  for (const tag of tags) {
+    if (!TAG_PATTERN.test(tag)) {
+      issues.push({ path, message: `tag "${tag}" must be lowercase kebab-case` });
+    }
+    if (seen.has(tag)) {
+      issues.push({ path, message: `duplicate tag "${tag}"` });
+    }
+    seen.add(tag);
+  }
+  return issues;
 }
 
 /**
@@ -111,6 +155,8 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
 
   const dateError = dateIssue(record);
   if (dateError !== undefined) issues.push({ path, message: dateError });
+  issues.push(...createdIssues(path, record));
+  if (record.tags !== undefined) issues.push(...tagsIssues(path, record.tags));
 
   if (!/^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/.test(record.fileName)) {
     issues.push({ path, message: 'decision file name must be "N-slug.md"' });
@@ -157,6 +203,8 @@ export function validateDraft(root: string, draft: AdrRecord): ValidationIssue[]
 
   const dateError = dateIssue(draft);
   if (dateError !== undefined) issues.push({ path, message: dateError });
+  issues.push(...createdIssues(path, draft));
+  if (draft.tags !== undefined) issues.push(...tagsIssues(path, draft.tags));
 
   const match = draft.fileName.match(/^(\d{4})-(\d{2})-(\d{2})-[a-z0-9一-鿿-]+\.md$/);
   if (match === null) {

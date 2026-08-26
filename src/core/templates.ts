@@ -56,7 +56,7 @@ export function frontMatter(fields: Record<string, string | number>): string {
 }
 
 export function proposalTemplate(title: string, context?: string): string {
-  return `${frontMatter({ status: 'proposed', date: todayStamp() })}
+  return `${frontMatter({ status: 'proposed', date: todayStamp(), created: todayStamp() })}
 # ADR: ${title}
 
 ${contextBlock(context)}## Problem
@@ -83,7 +83,11 @@ ${contextBlock(context)}## Problem
 }
 
 export function decisionTemplate(number: number, title: string, context?: string, commit?: string): string {
-  const fields: Record<string, string | number> = { status: 'accepted', date: todayStamp() };
+  const fields: Record<string, string | number> = {
+    status: 'accepted',
+    date: todayStamp(),
+    created: todayStamp(),
+  };
   if (commit !== undefined) fields.commit = commit;
   return `${frontMatter(fields)}
 # ADR: ${number} ${title}
@@ -141,7 +145,13 @@ export function proposalToDecision(proposal: AdrRecord, number: number, commit?:
       !DROPPED_SECTION_HEADINGS.includes(candidate.heading),
   );
 
-  const fields: Record<string, string | number> = { status: 'accepted', date: todayStamp() };
+  const fields: Record<string, string | number> = {
+    status: 'accepted',
+    date: todayStamp(),
+    // The decision inherits the proposal's birth date: created is stamped
+    // once, at propose time, and survives the promotion.
+    created: proposal.created ?? todayStamp(),
+  };
   if (commit !== undefined) fields.commit = commit;
   let output = `${frontMatter(fields)}
 # ADR: ${number} ${proposal.title}

@@ -34,6 +34,7 @@ describe('regressions', () => {
       `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 1 Use SQLite
@@ -67,6 +68,7 @@ Body.
       `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 1 使用 SQLite
@@ -99,6 +101,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Use SQLite
@@ -135,6 +138,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 1 Use SQLite
@@ -168,6 +172,7 @@ Body.
       `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 1 Use SQLite
@@ -207,6 +212,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Use SQLite
@@ -248,6 +254,7 @@ Native dependency.
       `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 1 Good
@@ -284,6 +291,7 @@ Body.
       `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 2 Good

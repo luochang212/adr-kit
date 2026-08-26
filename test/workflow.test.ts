@@ -61,6 +61,7 @@ describe('instructionsCommand', () => {
       `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Use SQLite
@@ -96,7 +97,7 @@ Body.
     const sqlite = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
-      '---\nstatus: proposed\ndate: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
+      '---\nstatus: proposed\ndate: 2026-08-19\ncreated: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listDrafts(root).find((record) => record.title === 'Add plugin API')!;
@@ -105,6 +106,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Add plugin API
@@ -144,7 +146,7 @@ Body.
     const sqlite = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
-      '---\nstatus: proposed\ndate: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
+      '---\nstatus: proposed\ndate: 2026-08-19\ncreated: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
     const plugin = listDrafts(root).find((record) => record.title === 'Add plugin API')!;
@@ -153,6 +155,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Add plugin API
@@ -204,6 +207,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Add plugin API

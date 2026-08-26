@@ -16,9 +16,13 @@ function makeRepo(): string {
 }
 
 function decision(title: string, fields: Record<string, string | number>): string {
-  const frontMatter = Object.entries(fields)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join('\n');
+  // `created` is required; default it to the status date so fixtures stay terse.
+  const entries: Array<[string, string | number]> = [];
+  for (const [key, value] of Object.entries(fields)) {
+    entries.push([key, value]);
+    if (key === 'date' && !('created' in fields)) entries.push(['created', value]);
+  }
+  const frontMatter = entries.map(([key, value]) => `${key}: ${value}`).join('\n');
   return `---
 ${frontMatter}
 ---
@@ -62,6 +66,7 @@ describe('validateCommand', () => {
     const content = `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 1 First
@@ -94,6 +99,7 @@ Body.
     const content = `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 1 First
@@ -199,5 +205,125 @@ Body.
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('invalid calendar date');
+  });
+
+  it('requires the created field', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      `---
+status: accepted
+date: 2026-08-19
+---
+
+# ADR: 1 First
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- **Other**: rejected.
+
+## Consequences
+
+Body.
+`,
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('front matter must include "created"');
+  });
+
+  it('flags created after the status date', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      decision('1 First', { status: 'accepted', date: '2026-08-19', created: '2026-08-20' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('created must not be after the status date');
+  });
+
+  it('flags an invalid calendar date in created', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      decision('1 First', { status: 'accepted', date: '2026-08-19', created: '2026-02-30' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('created contains an invalid calendar date');
+  });
+
+  it('flags malformed, duplicate, and empty tags', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      `---
+status: accepted
+date: 2026-08-19
+created: 2026-08-19
+tags: [Execution Layer, sandbox, sandbox]
+---
+
+# ADR: 1 First
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- **Other**: rejected.
+
+## Consequences
+
+Body.
+`,
+    );
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '2-second.md'),
+      `---
+status: accepted
+date: 2026-08-19
+created: 2026-08-19
+tags: []
+---
+
+# ADR: 2 Second
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- **Other**: rejected.
+
+## Consequences
+
+Body.
+`,
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('tag "Execution Layer" must be lowercase kebab-case');
+    expect(result.output).toContain('duplicate tag "sandbox"');
+    expect(result.output).toContain('tags must not be empty');
   });
 });

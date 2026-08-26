@@ -38,6 +38,7 @@ function renderAdr(options: {
 const VALID = `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Use SQLite
@@ -162,6 +163,7 @@ describe('parseAdrFile', () => {
     const record = parseAdrFile(write('record.md', `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 4 Use SQLite
@@ -189,6 +191,7 @@ Body.
     const record = parseAdrFile(write('record.md', `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 0004 Use SQLite
@@ -210,6 +213,58 @@ Body.
 Body.
 `));
     expect(record.number).toBeUndefined();
+  });
+});
+
+describe('created and tags', () => {
+  it('parses created and tags from the front matter', () => {
+    const record = parseAdrFile(
+      write(
+        '1-x.md',
+        renderAdr({
+          title: '1 Use SQLite',
+          fields: {
+            status: 'accepted',
+            date: '2026-08-19',
+            created: '2026-08-17',
+            tags: ['execution-layer', 'sandbox'],
+          },
+          sections: [{ heading: 'Problem', body: 'Body.\n' }],
+        }),
+      ),
+    );
+    expect(record.created).toBe('2026-08-17');
+    expect(record.tags).toEqual(['execution-layer', 'sandbox']);
+  });
+
+  it('rejects a malformed created field', () => {
+    expect(() =>
+      parseAdrFile(
+        write(
+          '1-x.md',
+          renderAdr({
+            title: '1 Use SQLite',
+            fields: { status: 'accepted', date: '2026-08-19', created: 'not-a-date' },
+            sections: [{ heading: 'Problem', body: 'Body.\n' }],
+          }),
+        ),
+      ),
+    ).toThrow(/created must be a "YYYY-MM-DD" string/);
+  });
+
+  it('rejects a non-list tags field', () => {
+    expect(() =>
+      parseAdrFile(
+        write(
+          '1-x.md',
+          renderAdr({
+            title: '1 Use SQLite',
+            fields: { status: 'accepted', date: '2026-08-19', tags: 'sandbox' },
+            sections: [{ heading: 'Problem', body: 'Body.\n' }],
+          }),
+        ),
+      ),
+    ).toThrow(/tags must be a list of strings/);
   });
 });
 

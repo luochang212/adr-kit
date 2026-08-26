@@ -40,6 +40,7 @@ function fillDraft(root: string): string {
   const content = `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: Use SQLite
@@ -190,6 +191,7 @@ describe('cli --all flag', () => {
       `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 1 Use SQLite
@@ -217,6 +219,7 @@ Fast lookups.
       `---
 status: accepted
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: 2 Use Redis

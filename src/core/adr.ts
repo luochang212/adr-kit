@@ -12,7 +12,7 @@ export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
 export type AdrFolder = 'decisions' | 'drafts';
 
 /** Canonical front matter field order; only fields that exist are written. */
-export const FRONT_MATTER_ORDER = ['status', 'date', 'commit', 'reason', 'superseded-by'] as const;
+export const FRONT_MATTER_ORDER = ['status', 'date', 'created', 'commit', 'superseded-by', 'reason', 'tags'] as const;
 
 /** Sections that only make sense during the proposal era and must not appear in an accepted decision. */
 export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
@@ -46,11 +46,16 @@ export interface AdrRecord {
   status: AdrStatus;
   /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
   date: string;
+  /** Date the record was created; stamped once and never re-stamped, so the
+   * time axis survives later lifecycle moves. */
+  created?: string;
   /** Short git hash the decision was recorded against; auto-stamped when in a git repo. */
   commit?: string;
   rejectionReason?: string;
   /** For superseded decisions: the number of the decision that replaced this one. */
   supersededBy?: number;
+  /** Optional kebab-case theme keywords; validate checks the shape. */
+  tags?: string[];
   number?: number;
   sections: AdrSection[];
   /** Front matter keys outside the canonical set; validate reports them. */
@@ -152,6 +157,24 @@ export function parseAdrFile(filePath: string): AdrRecord {
   }
   const date = dateText;
 
+  let created: string | undefined;
+  const createdField = fields['created'];
+  if (createdField !== undefined) {
+    if (typeof createdField !== 'string' || !DATE_PATTERN.test(createdField)) {
+      throw new AdrFormatError('created must be a "YYYY-MM-DD" string', filePath);
+    }
+    created = createdField;
+  }
+
+  let tags: string[] | undefined;
+  const tagsField = fields['tags'];
+  if (tagsField !== undefined) {
+    if (!Array.isArray(tagsField) || !tagsField.every((tag) => typeof tag === 'string')) {
+      throw new AdrFormatError('tags must be a list of strings', filePath);
+    }
+    tags = tagsField as string[];
+  }
+
   let commit: string | undefined;
   const commitField = fields['commit'];
   if (commitField !== undefined) {
@@ -235,6 +258,8 @@ export function parseAdrFile(filePath: string): AdrRecord {
     sections,
   };
   if (commit !== undefined) parsed.commit = commit;
+  if (created !== undefined) parsed.created = created;
+  if (tags !== undefined) parsed.tags = tags;
   if (rejectionReason !== undefined) parsed.rejectionReason = rejectionReason;
   if (supersededBy !== undefined) parsed.supersededBy = supersededBy;
   if (extras.length > 0) parsed.frontMatterExtras = extras;

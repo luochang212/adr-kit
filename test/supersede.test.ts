@@ -30,6 +30,7 @@ function acceptDecision(root: string, title: string): string {
   writeFileSync(join(root, 'adr', '.drafts', draft.fileName), `---
 status: proposed
 date: 2026-08-19
+created: 2026-08-19
 ---
 
 # ADR: ${title}
@@ -77,7 +78,8 @@ describe('supersedeCommand', () => {
     const lines = old.split(/\r?\n/);
     expect(lines[1]).toBe('status: superseded');
     expect(lines[2]).toBe(`date: ${todayStamp()}`);
-    expect(lines[3]).toBe('superseded-by: 2');
+    expect(lines[3]).toBe('created: 2026-08-19');
+    expect(lines[4]).toBe('superseded-by: 2');
 
     const result = validateCommand(root, undefined, false);
     expect(result.valid).toBe(true);
@@ -165,6 +167,7 @@ describe('validate superseded references', () => {
     writeFileSync(join(root, 'adr', 'decisions', '3-use-spanner.md'), `---
 status: superseded
 date: 2026-08-19
+created: 2026-08-19
 superseded-by: 1
 ---
 
