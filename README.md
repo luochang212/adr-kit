@@ -74,7 +74,8 @@ Use github.com/luochang212/adr-kit in this repository to automatically record ke
 ## Commands
 
 ```text
-adrkit init [path] [--tools <list>]     Initialize an ADR Kit repository
+adrkit init [path] [--tools <list>] [--workflows <list>]
+                                        Initialize an ADR Kit repository
 adrkit decide <title>                   Record an already-made decision (default path)
 adrkit propose <title>                  Create an ephemeral proposal draft
 adrkit accept <name>                    Promote a draft to a decision (assigns N)
@@ -85,7 +86,8 @@ adrkit show <name>                      Show a decision or draft
 adrkit status [--json]                  Show lifecycle counts and validity
 adrkit instructions [--json]            Print the next step; flag pending drafts as ready or needing work
 adrkit validate [name] [--all] [--json] Validate one record or the repository
-adrkit update [--tools <list>]          Rewrite AI tool integrations
+adrkit update [--tools <list>] [--workflows <list>]
+                                        Rewrite AI tool integrations
 adrkit config [--json]                  Print the current configuration
 adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
                                         Emit the decision relationship graph
@@ -101,6 +103,13 @@ adrkit version                          Print the version
 > CEO [publicly threatened to ban it over this](https://thenewstack.io/shopify-claude-code-agentsmd/).
 > If your team uses Claude Code, pass `--tools claude` to also install
 > `.claude/` copies - an exception we carry until Anthropic adopts the standard.
+
+> [!TIP]
+> Every integration ships all seven workflow skills by default. A small
+> repository that only records decisions can pass
+> `--workflows init,decide,validate` to install a lean subset; the choice is
+> recorded in `adr/config.yaml`, `adrkit update` keeps it, and
+> `--workflows all` restores the full set.
 
 `<name>` resolves by title, file name, or decision number (`1`).
 

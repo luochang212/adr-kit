@@ -25,10 +25,13 @@ export interface InitResult {
   created: string[];
 }
 
-function initConfig(tools: string[]): string {
+function initConfig(tools: string[], workflows?: string[]): string {
   // tools 始终作为顶层键输出：全注释的 YAML 文档会被解析为空，
   // readConfig 的 isMap 检查会报 "top-level value must be a mapping"。
   const toolsYaml = `tools: [${tools.join(', ')}]\n`;
+  // workflows 仅在选择子集时输出：缺省即全部，老配置无需迁移。
+  const workflowsYaml =
+    workflows === undefined ? '' : `\n# Workflow subset written by adrkit init --workflows.\nworkflows: [${workflows.join(', ')}]\n`;
   return `# ADR Kit configuration
 # Fill in \`context\` and it is injected as a comment into every new
 # proposal/decision draft (adrkit propose / adrkit decide).
@@ -37,7 +40,7 @@ function initConfig(tools: string[]): string {
 #   Conventions that decision records should respect.
 
 # AI tool integrations written by adrkit init --tools.
-${toolsYaml}
+${toolsYaml}${workflowsYaml}
 # Optional per-status conventions. These are hints for writers and agents;
 # validate does not enforce them (it cannot check prose).
 # rules:
@@ -71,7 +74,9 @@ Every record starts with a YAML front matter block:
 ---
 status: accepted | superseded
 date: YYYY-MM-DD
+created: YYYY-MM-DD
 commit: abc1234
+tags: [frontend]
 ---
 
 # ADR: N <title>
@@ -81,7 +86,10 @@ Decisions use \`# ADR: N <title>\` and require \`Problem\`, \`Decision\`,
 \`Alternatives considered\`, and \`Consequences\`. Superseded decisions add
 \`superseded-by: N\`. The \`date\` field records when the current status was
 reached; the CLI stamps it at every lifecycle move, alongside the git \`commit\`
-the decision was recorded against. Drafts (\`adr/.drafts/\`, \`status:
+the decision was recorded against. \`created\` is the birth date, stamped once
+and never re-stamped, so the time axis survives later lifecycle moves.
+Optional \`tags\` (kebab-case keywords) let \`adrkit graph\` group and filter
+decisions by theme. Drafts (\`adr/.drafts/\`, \`status:
 proposed\`) require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
 \`Acceptance criteria\`, and \`Risks\`; \`adrkit accept\` promotes one into a
 decision, and \`adrkit reject\` discards it without leaving a record.
@@ -89,7 +97,7 @@ decision, and \`adrkit reject\` discards it without leaving a record.
 Run \`adrkit validate\` to check every record.
 `;
 
-export function initRepository(targetDir: string, tools: string[] = []): InitResult {
+export function initRepository(targetDir: string, tools: string[] = [], workflows?: string[]): InitResult {
   const root = resolve(targetDir);
   const adrRoot = join(root, ADR_DIR);
   if (existsSync(adrRoot)) {
@@ -107,7 +115,7 @@ export function initRepository(targetDir: string, tools: string[] = []): InitRes
   }
 
   const config = configPath(root);
-  writeFileSync(config, initConfig(tools));
+  writeFileSync(config, initConfig(tools, workflows));
   created.push(`${ADR_DIR}/${CONFIG_FILE}`);
 
   // Drafts are ephemeral and must never be committed; the guard ships with init

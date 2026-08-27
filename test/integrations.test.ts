@@ -93,6 +93,108 @@ describe('initCommand tool integrations', () => {
   });
 });
 
+describe('workflow subsets for tool integrations', () => {
+  it('installs only the selected workflows', () => {
+    const root = makeTarget();
+    initCommand(root, undefined, 'init,decide,validate');
+    expect(existsSync(join(root, '.agents/commands/adrkit-decide.md'))).toBe(true);
+    expect(existsSync(join(root, '.agents/skills/adrkit-validate/SKILL.md'))).toBe(true);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
+    expect(readdirSync(join(root, '.agents/skills')).sort()).toEqual([
+      'adrkit-decide',
+      'adrkit-init',
+      'adrkit-validate',
+    ]);
+  });
+
+  it('records the subset in config and a bare update keeps it', () => {
+    const root = makeTarget();
+    initCommand(root, undefined, 'decide,validate');
+    expect(readConfig(root).workflows).toEqual(['decide', 'validate']);
+    updateCommand(root);
+    expect(existsSync(join(root, '.agents/commands/adrkit-decide.md'))).toBe(true);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
+    expect(readConfig(root).workflows).toEqual(['decide', 'validate']);
+  });
+
+  it('leaves the config key absent when every workflow installs', () => {
+    const root = makeTarget();
+    initCommand(root);
+    expect(readConfig(root).workflows).toBeUndefined();
+  });
+
+  it('config reports the effective workflow selection', () => {
+    const root = makeTarget();
+    initCommand(root, undefined, 'init,decide,validate');
+    const json = JSON.parse(configCommand(root, true)) as { workflows: string[] };
+    expect(json.workflows).toEqual(['init', 'decide', 'validate']);
+    expect(configCommand(root)).toContain('workflows: init, decide, validate');
+  });
+
+  it('config reports the full default set when the key is absent', () => {
+    const root = makeTarget();
+    initCommand(root);
+    const json = JSON.parse(configCommand(root, true)) as { workflows: string[] };
+    expect(json.workflows).toHaveLength(7);
+    expect(json.workflows).toContain('init');
+    expect(json.workflows).toContain('supersede');
+    expect(configCommand(root)).toContain('workflows: init');
+  });
+
+  it('prunes workflows that are no longer selected', () => {
+    const root = makeTarget();
+    initCommand(root);
+    updateCommand(root, undefined, 'decide');
+    expect(existsSync(join(root, '.agents/commands/adrkit-decide.md'))).toBe(true);
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
+    expect(existsSync(join(root, '.agents/skills/adrkit-propose'))).toBe(false);
+    expect(readConfig(root).workflows).toEqual(['decide']);
+  });
+
+  it('expands back to the full set with --workflows all', () => {
+    const root = makeTarget();
+    initCommand(root, undefined, 'decide');
+    updateCommand(root, undefined, 'all');
+    expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(true);
+    expect(readConfig(root).workflows).toEqual([
+      'init',
+      'propose',
+      'decide',
+      'validate',
+      'accept',
+      'reject',
+      'supersede',
+    ]);
+  });
+
+  it('accepts the adrkit- prefix and returns canonical order', () => {
+    const root = makeTarget();
+    initCommand(root, undefined, 'validate,adrkit-decide');
+    expect(readdirSync(join(root, '.agents/commands')).sort()).toEqual([
+      'adrkit-decide.md',
+      'adrkit-validate.md',
+    ]);
+  });
+
+  it('rejects unknown workflow names', () => {
+    const root = makeTarget();
+    expect(() => initCommand(root, undefined, 'decide,publish')).toThrow(/unknown workflow "publish"/);
+  });
+
+  it('rejects an empty workflow selection', () => {
+    const root = makeTarget();
+    expect(() => initCommand(root, undefined, ' ')).toThrow(/at least one workflow/);
+  });
+
+  it('prunes the subset inside the Claude exception too', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude', 'decide');
+    updateCommand(root, 'claude', 'validate');
+    expect(existsSync(join(root, '.claude/commands/adrkit-decide.md'))).toBe(false);
+    expect(existsSync(join(root, '.claude/commands/adrkit-validate.md'))).toBe(true);
+  });
+});
+
 describe('update writes the selected tools back to config.yaml', () => {
   it('records the standard target and re-installs it on a bare update', () => {
     const root = makeTarget();

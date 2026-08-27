@@ -1,11 +1,23 @@
 import { initRepository } from '../core/repository.js';
-import { integrationSummary, parseTools, writeToolIntegrations } from '../core/tool-integrations.js';
+import {
+  integrationSummary,
+  parseTools,
+  parseWorkflows,
+  writeToolIntegrations,
+} from '../core/tool-integrations.js';
 
-export function initCommand(targetDir: string, toolsValue?: string): string {
+export function initCommand(targetDir: string, toolsValue?: string, workflowsValue?: string): string {
   const tools = parseTools(toolsValue);
-  const { root, created } = initRepository(targetDir, tools);
+  const workflows = parseWorkflows(workflowsValue);
+  // `undefined` keeps the config key absent: only an explicit subset is
+  // recorded, so repositories that install every workflow need no migration.
+  const { root, created } = initRepository(
+    targetDir,
+    tools,
+    workflowsValue === undefined ? undefined : workflows,
+  );
   const lines = created.map((path) => `  created ${path}`);
-  const integrations = writeToolIntegrations(root, tools);
+  const integrations = writeToolIntegrations(root, tools, workflows);
   return [
     `ADR Kit initialized at ${root}`,
     ...lines,

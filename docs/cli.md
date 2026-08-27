@@ -16,13 +16,20 @@ the flag instead of silently ignoring it.
 
 ## Commands
 
-### `adrkit init [path] [--tools <list>]`
+### `adrkit init [path] [--tools <list>] [--workflows <list>]`
 
 Create an `adr/` repository in `path` (default: current directory) and
 install the agent integration into `.agents/` (`commands/` + `skills/`) -
 the vendor-neutral convention every mainstream agent reads. `--tools claude`
 additionally installs `.claude/` copies for Claude Code (the one agent that
 does not read `.agents/`); `--tools none` installs nothing.
+
+`--workflows <list>` installs a subset of the seven workflow skills
+(`init, propose, decide, validate, accept, reject, supersede`) instead of
+all of them - useful for small repositories that only exercise the
+decide/validate path. Entries may carry the `adrkit-` prefix;
+`--workflows all` is the explicit full set (also the default). The subset
+is recorded in `adr/config.yaml` so a bare `adrkit update` keeps it.
 
 ```text
 adr/
@@ -98,16 +105,19 @@ Validate one record, or the whole repository when `name` is omitted or
 `superseded-by: N` reference points at an existing decision that is not
 itself superseded.
 
-### `adrkit update [--tools <list>]`
+### `adrkit update [--tools <list>] [--workflows <list>]`
 
 Rewrite the agent integrations: the standard `.agents/` target plus, with
 `--tools claude`, the `.claude/` exception. Targets that are no longer
-selected are removed. Without `--tools`, the targets recorded in
-`adr/config.yaml` are used.
+selected are removed, and so are workflow skills outside the selection
+(`--workflows all` restores every skill). Without `--tools`/`--workflows`,
+the values recorded in `adr/config.yaml` are used.
 
 ### `adrkit config [--json]`
 
-Print the current `adr/config.yaml` configuration.
+Print the current `adr/config.yaml` configuration: `context`, `tools`, the
+effective `workflows` selection (the recorded subset, or the full default set
+when the key is absent), and `rules`.
 
 ### `adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]`
 

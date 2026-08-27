@@ -99,6 +99,14 @@ describe('initCommand', () => {
     expect(readme).not.toContain('current truth');
     expect(readme).toContain('immutable history');
   });
+
+  it('documents the created and tags fields in the generated README', () => {
+    const root = makeRepo();
+    const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
+    expect(readme).toContain('created: YYYY-MM-DD');
+    expect(readme).toContain('tags: [frontend]');
+    expect(readme).toContain('never re-stamped');
+  });
 });
 
 describe('propose and accept', () => {

@@ -23,7 +23,8 @@ Decisions are durable records in adr/decisions/. Proposals are ephemeral drafts
 in adr/.drafts/ that are promoted by accept or discarded by reject.
 
 Usage:
-  adrkit init [path] [--tools <list>]        Initialize an ADR Kit repository
+  adrkit init [path] [--tools <list>] [--workflows <list>]
+                                           Initialize an ADR Kit repository
   adrkit decide <title>                      Record a decision (default path)
   adrkit propose <title>                     Create an ephemeral proposal draft
   adrkit accept <name>                       Promote a draft to a decision (assigns the next number)
@@ -34,7 +35,8 @@ Usage:
   adrkit status [--json]                     Show lifecycle counts and validity
   adrkit instructions [--json]               Print the next workflow step
   adrkit validate [name] [--all] [--json]    Validate one record or the whole repo
-  adrkit update [--tools <list>]             Rewrite AI tool integrations
+  adrkit update [--tools <list>] [--workflows <list>]
+                                           Rewrite AI tool integrations
   adrkit config [--json]                     Print the current configuration
   adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
                                            Emit the decision relationship graph
@@ -71,6 +73,7 @@ export function main(argv: string[]): void {
       tag: { type: 'string' },
       reason: { type: 'string' },
       tools: { type: 'string' },
+      workflows: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
       version: { type: 'boolean', short: 'V', default: false },
     },
@@ -109,7 +112,7 @@ export function main(argv: string[]): void {
       }
       case 'init': {
         const target = rest[0] ?? process.cwd();
-        console.log(initCommand(target, values.tools));
+        console.log(initCommand(target, values.tools, values.workflows));
         return;
       }
       case 'propose': {
@@ -161,7 +164,7 @@ export function main(argv: string[]): void {
         return;
       }
       case 'update': {
-        console.log(updateCommand(process.cwd(), values.tools));
+        console.log(updateCommand(process.cwd(), values.tools, values.workflows));
         return;
       }
       case 'config': {

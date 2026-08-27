@@ -12,6 +12,8 @@ export interface AdrKitConfig {
   rules?: Record<string, string[]>;
   /** AI tool integrations selected at init time, e.g. `["claude", "codex"]`. */
   tools?: string[];
+  /** Workflow subset for integrations, e.g. `["init", "decide", "validate"]`. */
+  workflows?: string[];
   /** The raw parsed YAML document (for forward compatibility). */
   raw: Record<string, unknown>;
 }
@@ -75,6 +77,12 @@ export function readConfig(root: string): AdrKitConfig {
   if (Array.isArray(raw.tools) && raw.tools.every((entry) => typeof entry === 'string')) {
     config.tools = raw.tools as string[];
   }
+  if (
+    Array.isArray(raw.workflows) &&
+    raw.workflows.every((entry) => typeof entry === 'string')
+  ) {
+    config.workflows = raw.workflows as string[];
+  }
 
   if (raw.rules !== null && typeof raw.rules === 'object' && !Array.isArray(raw.rules)) {
     const rules: Record<string, string[]> = {};
@@ -89,26 +97,36 @@ export function readConfig(root: string): AdrKitConfig {
 }
 
 /**
- * Update the `tools:` key of `adr/config.yaml` in place. Preserves other
+ * Rewrite a list-valued key of `adr/config.yaml` in place. Preserves other
  * keys (`context`, `rules`, unknown keys) and comments attached to the
- * surrounding YAML nodes. When the existing `tools` value is a sequence,
- * reuse that node so its style and inline comments survive the rewrite.
+ * surrounding YAML nodes. When the existing value is a sequence, reuse that
+ * node so its style and inline comments survive the rewrite.
  */
-export function writeToolsConfig(root: string, tools: string[]): void {
+function writeListConfig(root: string, key: string, values: string[]): void {
   const file = configPath(root);
   const parsed = parseConfigDocument(readFileSync(file, 'utf8'));
   const pair = parsed.map.items.find((item) => {
-    const key = item.key as { value?: unknown } | null | undefined;
-    return key?.value === 'tools';
+    const itemKey = item.key as { value?: unknown } | null | undefined;
+    return itemKey?.value === key;
   });
   const existing = pair?.value;
   if (existing !== undefined && isSeq(existing)) {
     existing.items.length = 0;
-    for (const tool of tools) {
-      existing.items.push(parsed.document.createNode(tool));
+    for (const value of values) {
+      existing.items.push(parsed.document.createNode(value));
     }
   } else {
-    parsed.map.set('tools', tools);
+    parsed.map.set(key, values);
   }
   writeFileSync(file, parsed.document.toString());
+}
+
+/** Update the `tools:` key; see {@link writeListConfig} for the semantics. */
+export function writeToolsConfig(root: string, tools: string[]): void {
+  writeListConfig(root, 'tools', tools);
+}
+
+/** Update the `workflows:` key; see {@link writeListConfig} for the semantics. */
+export function writeWorkflowsConfig(root: string, workflows: string[]): void {
+  writeListConfig(root, 'workflows', workflows);
 }

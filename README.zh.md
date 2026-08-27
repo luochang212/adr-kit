@@ -71,7 +71,8 @@ adrkit list
 ## 命令
 
 ```text
-adrkit init [path] [--tools <list>]    初始化 ADR Kit 仓库
+adrkit init [path] [--tools <list>] [--workflows <list>]
+                                       初始化 ADR Kit 仓库
 adrkit decide <title>                  直接记录已做的决策（默认路径）
 adrkit propose <title>                 创建临时提案草稿
 adrkit accept <name>                   把草稿提升为决策（分配 N 编号）
@@ -82,7 +83,8 @@ adrkit show <name>                     查看决策或草稿
 adrkit status [--json]                 查看生命周期计数与校验状态
 adrkit instructions [--json]           查看下一步；标注待决草稿已就绪或需修改
 adrkit validate [name] [--all] [--json] 校验单条记录或整个仓库
-adrkit update [--tools <list>]         重写 AI 工具集成文件
+adrkit update [--tools <list>] [--workflows <list>]
+                                       重写 AI 工具集成文件
 adrkit config [--json]                 查看当前配置
 adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
                                        输出决策关系图
@@ -97,6 +99,11 @@ adrkit version                         查看版本
 > 还让 [Shopify CEO 公开放话要因此禁用它](https://thenewstack.io/shopify-claude-code-agentsmd/)。
 > 如果你的团队用 Claude Code，加 `--tools claude` 会同时安装 `.claude/`
 > 副本——这个例外我们一直背到 Anthropic 采纳标准为止。
+
+> [!TIP]
+> 集成默认安装全部七个工作流技能。只记录决策的小仓库可传
+> `--workflows init,decide,validate` 装精简子集；选择会写入
+> `adr/config.yaml`，`adrkit update` 会保持，`--workflows all` 恢复全套。
 
 `<name>` 支持按标题、文件名或决策编号（`1`）查找。
 

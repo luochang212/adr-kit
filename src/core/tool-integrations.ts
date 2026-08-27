@@ -248,6 +248,37 @@ adrkit supersede "<old name or number>" --by "<new name or number>"
   },
 ];
 
+/** Bare workflow names (without the `adrkit-` prefix), in canonical order. */
+export const WORKFLOW_NAMES: string[] = WORKFLOWS.map((workflow) =>
+  workflow.name.replace(/^adrkit-/, ''),
+);
+
+/**
+ * Resolve a comma-separated workflow selection to bare names in canonical
+ * order. Absent flag or `all` means every workflow; each entry may carry the
+ * `adrkit-` prefix. Unknown names and an empty selection are errors: a
+ * subset with nothing in it is never a meaningful integration state.
+ */
+export function parseWorkflows(value: string | undefined): string[] {
+  if (value === undefined) return [...WORKFLOW_NAMES];
+  const text = value.trim();
+  if (text === 'all') return [...WORKFLOW_NAMES];
+  const requested = text
+    .split(',')
+    .map((entry) => entry.trim().replace(/^adrkit-/, ''))
+    .filter((entry) => entry.length > 0);
+  if (requested.length === 0) {
+    throw new Error('--workflows needs at least one workflow name (or "all")');
+  }
+  const known = new Set(WORKFLOW_NAMES);
+  const unknown = requested.find((entry) => !known.has(entry));
+  if (unknown !== undefined) {
+    throw new Error(`unknown workflow "${unknown}". Supported: ${WORKFLOW_NAMES.join(', ')}`);
+  }
+  const selected = new Set(requested);
+  return WORKFLOW_NAMES.filter((name) => selected.has(name));
+}
+
 export function parseTools(value: string | undefined): IntegrationTarget[] {
   // Flag absent: the standard integration is the default. An explicit empty
   // string (a config that recorded `tools: []`) keeps meaning "opt out".
@@ -282,12 +313,19 @@ ${workflow.body}
 `;
 }
 
-export function writeToolIntegrations(root: string, tools: IntegrationTarget[]): ToolIntegration[] {
+export function writeToolIntegrations(
+  root: string,
+  tools: IntegrationTarget[],
+  workflows: string[] = WORKFLOW_NAMES,
+): ToolIntegration[] {
   const created: ToolIntegration[] = [];
+  const selected = WORKFLOWS.filter((workflow) =>
+    workflows.includes(workflow.name.replace(/^adrkit-/, '')),
+  );
   for (const tool of tools) {
     const dirs = TARGET_DIRS[tool];
     mkdirSync(join(root, dirs.commands), { recursive: true });
-    for (const workflow of WORKFLOWS) {
+    for (const workflow of selected) {
       const fileName = `${workflow.name}.md`;
       const path = join(root, dirs.commands, fileName);
       writeFileSync(
@@ -302,7 +340,7 @@ ${workflow.body}
       created.push({ tool, path });
     }
     if (dirs.skills !== undefined) {
-      for (const workflow of WORKFLOWS) {
+      for (const workflow of selected) {
         const skillPath = join(root, dirs.skills, workflow.name, 'SKILL.md');
         mkdirSync(dirname(skillPath), { recursive: true });
         writeFileSync(skillPath, skillFrontmatter(workflow));
@@ -369,6 +407,32 @@ export function removeToolIntegrations(root: string, keys: string[]): string[] {
     if (hadFiles) removed.push(key);
   }
   return removed;
+}
+
+/**
+ * Remove, inside every kept target, the integration files of workflows that
+ * are no longer selected. Target directories survive: the selected workflows
+ * still live in them.
+ */
+export function removeWorkflowIntegrations(
+  root: string,
+  tools: IntegrationTarget[],
+  workflows: string[],
+): void {
+  for (const tool of tools) {
+    const dirs = TARGET_DIRS[tool];
+    for (const workflow of WORKFLOWS) {
+      if (workflows.includes(workflow.name.replace(/^adrkit-/, ''))) continue;
+      const commandPath = join(root, dirs.commands, `${workflow.name}.md`);
+      if (existsSync(commandPath)) rmSync(commandPath);
+      if (dirs.skills !== undefined) {
+        const skillDir = join(root, dirs.skills, workflow.name);
+        const skillPath = join(skillDir, 'SKILL.md');
+        if (existsSync(skillPath)) rmSync(skillPath);
+        removeEmptyDir(skillDir);
+      }
+    }
+  }
 }
 
 export function integrationSummary(root: string, created: ToolIntegration[]): string[] {
