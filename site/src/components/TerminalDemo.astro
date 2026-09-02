@@ -5,29 +5,18 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 
 // The transcript mirrors real CLI output, verified line-by-line against
-// the shipped CLI (durable decisions; ephemeral drafts in adr/.drafts/).
-// Editorial lines (abridgment ellipsis, the fill note) are the localized
-// `note` lines; the CLI itself speaks English.
+// the shipped CLI. Two commands tell the whole story the CLI output itself
+// sets up: propose creates an ephemeral draft and its own output points to
+// the next step, accept promotes that draft to a durable decision.
+// The one editorial line is the localized `note` (the draft is scripted as
+// already filled, so accept succeeds); the CLI itself speaks English.
 const fillNote = lang === 'zh' ? '# 填满必填章节之后' : '# after filling the required sections';
-const moreNote = lang === 'zh' ? '# …… 另外 13 个文件' : '# … 13 more files';
 // example date for the draft filename; static on purpose (this is a scripted
 // demo, not a live capture — the date is decorative)
 const demoDate = '2026-09-03';
 
 type Line = { kind: 'cmd' | 'out' | 'ok' | 'note'; text: string };
 const lines: Line[] = [
-  { kind: 'cmd', text: 'adrkit init' },
-  { kind: 'out', text: 'ADR Kit initialized at ~/my-project' },
-  { kind: 'out', text: '  created adr' },
-  { kind: 'out', text: '  created adr/decisions' },
-  { kind: 'out', text: '  created adr/config.yaml' },
-  { kind: 'out', text: '  created adr/.gitignore' },
-  { kind: 'out', text: '  created adr/README.md' },
-  { kind: 'out', text: '  created .agents/skills/adrkit-propose/SKILL.md (agents)' },
-  { kind: 'note', text: moreNote },
-  { kind: 'out', text: 'Next:' },
-  { kind: 'out', text: '  adrkit decide "use sqlite for sessions" # record a decision (default path)' },
-  { kind: 'out', text: '  adrkit propose "your first decision"    # draft a proposal for review' },
   { kind: 'cmd', text: 'adrkit propose "Use SQLite for session storage"' },
   { kind: 'out', text: `created adr/.drafts/${demoDate}-use-sqlite-for-session-storage.md` },
   { kind: 'out', text: '' },
@@ -38,12 +27,6 @@ const lines: Line[] = [
   { kind: 'note', text: fillNote },
   { kind: 'cmd', text: 'adrkit accept "Use SQLite for session storage"' },
   { kind: 'ok', text: `accepted adr/.drafts/${demoDate}-use-sqlite-for-session-storage.md as adr/decisions/1-use-sqlite-for-session-storage.md` },
-  { kind: 'cmd', text: 'adrkit validate' },
-  { kind: 'ok', text: 'OK' },
-  { kind: 'cmd', text: 'adrkit list' },
-  { kind: 'out', text: 'Accepted' },
-  { kind: 'out', text: '' },
-  { kind: 'ok', text: '  [1] Use SQLite for session storage  (adr/decisions/1-use-sqlite-for-session-storage.md)' },
 ];
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -101,7 +84,6 @@ const transcriptHtml = lines
     padding: 20px 22px;
     font-size: 13px;
     line-height: 1.75;
-    min-height: 480px;
     white-space: pre-wrap;
     word-break: break-word;
     user-select: text;
@@ -120,7 +102,7 @@ const transcriptHtml = lines
   }
   @keyframes term-blink { 50% { opacity: 0; } }
   @media (max-width: 640px) {
-    .term__body { font-size: 11.5px; min-height: 430px; }
+    .term__body { font-size: 11.5px; }
   }
 </style>
 
@@ -136,11 +118,14 @@ const transcriptHtml = lines
     if (reduce || typeof IntersectionObserver !== 'function') return;
 
     var data = JSON.parse(document.getElementById('term-data').textContent);
+    var pre = term.querySelector('.term__body');
     var body = term.querySelector('.term__body code');
 
-    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-
     function play() {
+      // SSR already rendered the full transcript, so the box is exactly the
+      // final height. Pin it before clearing — otherwise the replayed lines
+      // would grow the box again and push the page around as they type.
+      pre.style.height = pre.getBoundingClientRect().height + 'px';
       body.textContent = '';
       var caret = document.createElement('span');
       caret.className = 'term__caret';
@@ -148,7 +133,12 @@ const transcriptHtml = lines
 
       var i = 0;
       function nextLine() {
-        if (i >= data.length) return;
+        if (i >= data.length) {
+          // Show over; the typed content now matches the SSR layout, so the
+          // box can follow its own content again (stays current on resize).
+          pre.style.height = '';
+          return;
+        }
         var line = data[i++];
         var span = document.createElement('span');
         span.className = 'term__line term__line--' + line.kind;
