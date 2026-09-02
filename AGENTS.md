@@ -48,10 +48,11 @@ GitHub Pages by `.github/workflows/site.yml`. It has its own
 `package.json` and build (`cd site && npm run build`); the CLI's build does
 not cover it. Copy lives in `site/src/i18n/ui.ts`: edit both languages in
 the same change. The integration story in
-`site/src/components/Integrations.astro` (default `.agents/` target plus the
+`site/src/components/GetStarted.astro` (default `.agents/` target plus the
 Claude Code exception) mirrors the targets in `src/core/tool-integrations.ts`;
 update both when they change. The terminal demo transcript in
-`site/src/components/TerminalDemo.astro` mirrors real CLI output; refresh it
+`site/src/components/TerminalDemo.astro` and the graph example in
+`site/src/components/Graph.astro` mirror real CLI output; refresh them
 when command output changes.
 
 ## Record format is the product

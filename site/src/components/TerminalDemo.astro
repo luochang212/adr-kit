@@ -88,6 +88,8 @@ const transcriptHtml = lines
     color: var(--fg-30);
     letter-spacing: 0.08em;
   }
+  /* selection-lock-demo: 演出容器锁选区，pre 解锁保留复制能力 */
+  .term { user-select: none; -webkit-user-select: none; }
   .term__body {
     margin: 0;
     padding: 20px 22px;
@@ -96,6 +98,8 @@ const transcriptHtml = lines
     min-height: 480px;
     white-space: pre-wrap;
     word-break: break-word;
+    user-select: text;
+    -webkit-user-select: text;
   }
   .term__line { display: inline; }
   .term__line--cmd { color: var(--fg); font-weight: 500; }

@@ -1,0 +1,226 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// The diagram mirrors the real full-graph topology of a production
+// repository (15 decisions, 4 creation-date groups, one formal supersede
+// edge, mined ADR-N reference edges, per-tag node tinting). Titles here are
+// generalized one-liners, not the private repo's actual wording. Geometry is
+// computed at build time below — regenerate the edge list with
+// `adrkit graph --mermaid` in that repo when the example ages.
+const mermaid = 'adrkit graph --mermaid';
+
+const titles: Record<number, string> = lang === 'zh' ? {
+  1: '1 记录架构决策（ADR）',
+  2: '2 选定 agent 底座',
+  3: '3 skills 优先于 workflow',
+  4: '4 沙箱与隔离策略',
+  5: '5 服务拓扑与边界',
+  6: '6 前端架构与本地 API',
+  7: '7 前端设计基线',
+  8: '8 部署形态：本地与容器',
+  9: '9 凭证管理与配置面',
+  10: '10 对外 API 与配额',
+  11: '11 改用 adr-kit 管理 ADR',
+  12: '12 执行层统一沙箱化',
+  13: '13 执行层收敛为单 provider',
+  14: '14 执行层安全模型',
+  15: '15 模型代理与密钥隔离',
+} : {
+  1: '1 Record decisions as ADRs',
+  2: '2 Pick the agent harness',
+  3: '3 Skills over workflows',
+  4: '4 Sandbox isolation strategy',
+  5: '5 Service topology',
+  6: '6 Frontend + local API arch',
+  7: '7 Frontend design baseline',
+  8: '8 Local vs container deploy',
+  9: '9 Credential management',
+  10: '10 Public API & quotas',
+  11: '11 Adopt adr-kit for ADRs',
+  12: '12 Unify execution layer',
+  13: '13 Consolidate providers',
+  14: '14 Execution security model',
+  15: '15 Proxy & key isolation',
+};
+
+// first tag per decision (drives the stroke tint, like the CLI's classDefs)
+const tagOf: Record<number, string> = {
+  1: 'adr', 2: 'agent-base', 3: 'agent-base', 4: 'sandbox', 5: 'sandbox',
+  6: 'frontend', 7: 'frontend', 8: 'deploy', 9: 'credentials', 10: 'api',
+  11: 'adr', 12: 'execution', 13: 'execution', 14: 'execution', 15: 'execution',
+};
+const TAG_COLORS = ['#0e7490', '#b45309', '#6d28d9', '#15803d', '#be123c', '#4f46e5'];
+const tagSeen: string[] = [];
+const tagColor: Record<string, string> = {};
+for (const n of Object.keys(tagOf).map(Number)) {
+  const tag = tagOf[n];
+  if (!(tag in tagColor)) {
+    tagColor[tag] = TAG_COLORS[tagSeen.length % TAG_COLORS.length];
+    tagSeen.push(tag);
+  }
+}
+
+// --- layout (build time) ---
+const NW = 220, NH = 38, PITCH = 51, COLGAP = 46, GW = 250, GY = 44, TOP = 90;
+const groups = [
+  { date: '2026-08-17 (5)', nodes: [1, 2, 3, 4, 5] },
+  { date: '2026-08-18 (2)', nodes: [6, 7] },
+  { date: '2026-08-19 (5)', nodes: [8, 9, 10, 11, 12] },
+  { date: '2026-08-25 (3)', nodes: [13, 14, 15] },
+];
+const pos: Record<number, { x: number; y: number; cx: number; cy: number; col: number }> = {};
+const boxes = groups.map((g, gi) => {
+  const gx = 20 + gi * (GW + COLGAP);
+  g.nodes.forEach((n, ni) => {
+    pos[n] = { x: gx + 15, y: TOP + ni * PITCH, cx: gx + 15 + NW / 2, cy: TOP + ni * PITCH + NH / 2, col: gi };
+  });
+  const h = (g.nodes.length - 1) * PITCH + NH + 64;
+  return { gx, date: g.date, h };
+});
+
+// formal supersede edge (1 superseded by 11): long dashes, clearly distinct
+// from the reference edges' short 4/4 dashes; same color and weight
+const supPath = `M ${pos[1].x + NW} ${pos[1].cy} C ${pos[1].x + NW + COLGAP / 2} ${pos[1].cy}, ${pos[11].x - COLGAP / 2} ${pos[11].cy}, ${pos[11].x} ${pos[11].cy}`;
+const supLabelX = 302, supLabelY = 130;
+
+const REFS: Array<[number, number]> = [
+  [1, 4], [5, 4], [6, 3], [6, 5], [7, 6], [8, 6], [8, 9], [9, 6], [9, 8],
+  [10, 9], [11, 4], [11, 8], [11, 9], [12, 4], [12, 6], [12, 9], [13, 4],
+  [13, 12], [14, 12], [14, 13], [15, 9], [15, 14],
+];
+
+// spread multiple arrivals/exits along a node's edge so arrowheads stack neatly
+const inTotal: Record<number, number> = {}, outTotal: Record<number, number> = {};
+for (const [, to] of REFS) inTotal[to] = (inTotal[to] ?? 0) + 1;
+for (const [from] of REFS) outTotal[from] = (outTotal[from] ?? 0) + 1;
+const outK: Record<number, number> = {}, inK: Record<number, number> = {}, colK: Record<number, number> = {};
+const next = (m: Record<number, number>, k: number) => (m[k] = (m[k] ?? -1) + 1);
+const spread = (total: number, k: number) => (total > 1 ? (k - (total - 1) / 2) * 9 : 0);
+
+const refPaths = REFS.map(([from, to]) => {
+  const a = pos[from], b = pos[to];
+  const ody = spread(outTotal[from], next(outK, from));
+  const idy = spread(inTotal[to], next(inK, to));
+  if (a.col === b.col) {
+    // same group: bulge out the right side (staggered per column)
+    const bulge = 30 + next(colK, a.col) * 13;
+    const x1 = a.x + NW, x2 = b.x + NW;
+    return { d: `M ${x1} ${a.cy + ody} C ${x1 + bulge} ${a.cy + ody}, ${x2 + bulge} ${b.cy + idy}, ${x2} ${b.cy + idy}` };
+  }
+  // newer → older: sweep through the inter-column gap
+  const x1 = a.x, x2 = b.x + NW;
+  return { d: `M ${x1} ${a.cy + ody} C ${x1 - COLGAP / 2} ${a.cy + ody}, ${x2 + COLGAP / 2} ${b.cy + idy}, ${x2} ${b.cy + idy}` };
+});
+
+const svgW = 20 + groups.length * GW + (groups.length - 1) * COLGAP + 8;
+const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
+---
+
+<section class="section graph" id="graph">
+  <div class="section__inner">
+    <div class="reveal">
+      <p class="section__eyebrow">{t('graph.eyebrow')}</p>
+      <h2 class="section__title">{t('graph.title')}</h2>
+      <p class="section__lead">{t('graph.lead')}</p>
+    </div>
+    <div class="graph__panel reveal">
+      <div class="graph__figwrap">
+        <svg
+          class="graph__svg"
+          viewBox={`0 0 ${svgW} ${svgH}`}
+          role="img"
+          aria-label="Decision graph from a real repository: fifteen decisions in four creation-date groups, one formal supersede edge, and dashed arrows for the references between decisions"
+        >
+          <defs>
+            <marker id="g-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#ffffff80"></path>
+            </marker>
+          </defs>
+
+          {boxes.map((b) => (
+            <g>
+              <rect x={b.gx} y={GY} width={GW} height={b.h} rx="10" class="graph__group"></rect>
+              <text x={b.gx + 16} y={GY + 30} class="graph__grouplabel">{b.date}</text>
+            </g>
+          ))}
+
+          {/* mined reference edges: dashed, pointing at what a decision builds on */}
+          {refPaths.map(({ d }) => (
+            <path
+              d={d}
+              fill="none"
+              stroke="#ffffff5e"
+              stroke-width="1.4"
+              stroke-dasharray="4 4"
+              marker-end="url(#g-arrow)"
+            ></path>
+          ))}
+
+          {/* formal supersede: long dashes — clearly distinct from the refs' short dashes */}
+          <path d={supPath} fill="none" stroke="#ffffff5e" stroke-width="1.4" stroke-dasharray="11 7" marker-end="url(#g-arrow)"></path>
+          <text x={supLabelX} y={supLabelY} text-anchor="middle" class="graph__suplabel">superseded by</text>
+
+          {Object.entries(pos).map(([n, p]) => (
+            <g class="graph__nodebox">
+              <rect x={p.x} y={p.y} width={NW} height={NH} rx="7" style={`stroke: ${tagColor[tagOf[Number(n)]]}`}></rect>
+              <text x={p.cx} y={p.cy + 4.5} text-anchor="middle">{titles[Number(n)]}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+      <p class="graph__caption">{t('graph.caption')}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+
+  .graph__panel {
+    margin-top: 44px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 18px 18px 12px;
+  }
+  .graph__figwrap {
+    overflow-x: auto;
+    /* selection-lock-demo: 纯展示图锁选区，防误选拖出一大片高亮 */
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  /* keep node labels legible on small screens: swipe instead of shrink */
+  .graph__svg { display: block; width: 100%; height: auto; min-width: 940px; }
+
+  .graph__group { fill: #ffffff03; stroke: var(--border); }
+  .graph__grouplabel {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    fill: var(--fg-50);
+  }
+  .graph__nodebox rect:first-child { fill: #ffffff08; stroke-width: 1.5; }
+  .graph__nodebox text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    fill: var(--fg-70);
+  }
+  .graph__suplabel {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    fill: var(--fg-30);
+  }
+  .graph__caption {
+    margin: 10px 4px 0;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--fg-30);
+    text-align: right;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .graph__panel { scroll-behavior: auto; }
+  }
+</style>

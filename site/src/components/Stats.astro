@@ -1,0 +1,58 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const stats = [1, 2, 3, 4] as const;
+---
+
+<section class="stats">
+  <div class="stats__inner reveal">
+    {stats.map((n) => (
+      <div class="stats__cell">
+        <span class="stats__value">{t(`stats.${n}.value` as const)}</span>
+        <span class="stats__label">{t(`stats.${n}.label` as const)}</span>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+
+  .stats__inner {
+    max-width: var(--inner);
+    margin: 0 auto;
+    padding: 40px 24px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  /* gap-as-divider: 1px columns drawn by the cell border, no wrappers */
+  .stats__cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    text-align: center;
+    padding: 14px 16px;
+  }
+  .stats__cell + .stats__cell { border-left: 1px solid var(--border); }
+  .stats__value {
+    font-family: var(--font-mono);
+    font-size: clamp(38px, 5.5vw, 58px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: var(--fg);
+  }
+  .stats__label {
+    font-size: 12.5px;
+    color: var(--fg-30);
+  }
+  @media (max-width: 640px) {
+    .stats__inner { grid-template-columns: repeat(2, 1fr); row-gap: 8px; }
+    /* on two columns the border only belongs on odd cells (1,3) */
+    .stats__cell:nth-child(3) { border-left: none; }
+  }
+</style>

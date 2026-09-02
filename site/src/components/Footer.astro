@@ -28,7 +28,7 @@ const year = new Date().getFullYear();
 </footer>
 
 <style>
-  .footer { border-top: 1px solid var(--border); overflow: hidden; }
+  .footer { overflow: hidden; }
   .footer__inner {
     max-width: var(--inner);
     margin: 0 auto;
@@ -62,7 +62,7 @@ const year = new Date().getFullYear();
     font-weight: 800;
     font-size: clamp(120px, 24vw, 340px);
     line-height: 1;
-    height: 0.67em; /* clip plane: slices a sliver off the glyph bottoms flush with the footer edge */
+    height: 0.82em; /* clip plane: baseline sits ~0.86em into the line box, so this leaves a 4% sliver cropped off the cap bottoms; rev 4 — user wants more of the word visible again */
     overflow: hidden;
     letter-spacing: -0.05em;
     margin: 64px 0 0;

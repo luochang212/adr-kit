@@ -1,0 +1,161 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const steps = [
+  { label: t('start.step1'), cmd: 'npm install -g adr-kit' },
+  { label: t('start.step2'), cmd: 'adrkit init' },
+  { label: t('start.step3'), cmd: 'adrkit propose "Use SQLite for session storage"' },
+];
+---
+
+<section class="section start" id="get-started">
+  <div class="section__inner">
+    <div class="reveal">
+      <p class="section__eyebrow">{t('start.eyebrow')}</p>
+      <h2 class="section__title">{t('start.title')}</h2>
+      <p class="section__lead">{t('start.lead')}</p>
+    </div>
+    <div class="start__grid reveal">
+      <div class="start__card start__card--agent">
+        <p class="start__label start__label--agent">{t('start.agent.label')}</p>
+        <div class="start__prompt">
+          <code class="start__text">{t('start.agent.prompt')}</code>
+          <button class="start__copy" data-copy={t('start.agent.prompt')}>
+            <span class="start__copy-label">{t('hero.copy')}</span>
+            <span class="start__copy-label start__copy-label--alt" aria-hidden="true">{t('hero.copied')}</span>
+          </button>
+        </div>
+        <p class="start__footnote">{t('start.agents.footnote')}</p>
+        <p class="start__footnote">{t('start.workflows')}</p>
+      </div>
+      <div class="start__card start__card--human">
+        <p class="start__label">{t('start.human.label')}</p>
+        <div class="start__steps">
+          {steps.map((s, i) => (
+            <div class="start__step">
+              <span class="start__num">{i + 1}</span>
+              <div>
+                <p class="start__steplabel">{s.label}</p>
+                <code class="start__cmd">{s.cmd}</code>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p class="start__footnote">{t('start.node')}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+
+  .start__grid {
+    margin-top: 44px;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 20px;
+    align-items: stretch;
+  }
+  .start__card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 26px 26px 22px;
+    display: flex;
+    flex-direction: column;
+  }
+  /* the agent path is the front door of an agent-native tool: cyan edge */
+  .start__card--agent { border-color: #22d3ee55; }
+  .start__label {
+    margin: 0 0 18px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-30);
+  }
+  .start__label--agent { color: var(--cyan); }
+
+  .start__prompt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 16px 16px 16px 20px;
+  }
+  .start__text {
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-word;
+  }
+  .start__copy {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-70);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, transform 0.1s;
+    display: inline-grid;
+    flex: none;
+  }
+  .start__copy:hover { color: var(--fg); border-color: var(--border-strong); }
+  .start__copy:active { transform: scale(0.96); }
+  .start__copy-label { grid-area: 1 / 1; }
+  .start__copy-label--alt { visibility: hidden; color: var(--cyan); }
+  .start__copy.copied .start__copy-label { visibility: hidden; }
+  .start__copy.copied .start__copy-label--alt { visibility: visible; }
+
+  .start__footnote {
+    margin: 0;
+    padding-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-30);
+  }
+  /* first footnote absorbs the leftover card height, so both cards end flush */
+  .start__footnote:first-of-type { margin-top: auto; padding-top: 18px; }
+
+  .start__steps { display: flex; flex-direction: column; }
+  .start__step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 13px 0;
+  }
+  .start__step + .start__step { border-top: 1px solid var(--border); }
+  .start__num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cyan);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    margin-top: 2px;
+  }
+  .start__steplabel { margin: 0 0 4px; font-size: 13.5px; color: var(--fg-70); }
+  .start__cmd { font-size: 13px; color: var(--fg); word-break: break-all; }
+
+  @media (max-width: 860px) {
+    .start__grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .start__prompt { flex-direction: column; align-items: stretch; }
+  }
+</style>

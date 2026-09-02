@@ -56,6 +56,11 @@ code, pre { font-family: var(--font-mono); }
 
 ::selection { background: #22d3ee33; }
 
+/* focus-visible-ring (interaction.md): keyboard focus gets a ring, mouse
+   clicks don't — a11y without visual noise */
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
 /* shared layout */
 .section { width: 100%; }
 .section__inner {

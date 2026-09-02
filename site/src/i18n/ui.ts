@@ -31,6 +31,15 @@ const ui = {
     'hero.copied': 'Copied',
     'hero.copy': 'Copy',
 
+    'stats.1.value': '1',
+    'stats.1.label': 'directory in your repo',
+    'stats.2.value': '7',
+    'stats.2.label': 'workflow skills',
+    'stats.3.value': '0',
+    'stats.3.label': 'runtime dependencies',
+    'stats.4.value': '100%',
+    'stats.4.label': 'plain Markdown records',
+
     'lifecycle.eyebrow': 'Lifecycle',
     'lifecycle.title': 'One decision, one file, one state machine',
     'lifecycle.lead':
@@ -40,41 +49,28 @@ const ui = {
     'lifecycle.rejected': 'A rejected idea is not a record: it lives in the winner\u2019s \u201cAlternatives considered\u201d so the no never disappears.',
     'lifecycle.superseded': 'Replaced by a newer decision. Stays in decisions/ as history, linked to its successor.',
 
-    'features.eyebrow': 'Why ADR Kit',
-    'features.title': 'The record format is the product',
-    'features.1.title': 'Plain Markdown',
-    'features.1.body': 'Records are readable text first. The parser and validator are the format contract.',
-    'features.2.title': 'Machine-checkable lifecycle',
-    'features.2.body': 'adrkit validate checks durable decisions; a draft is validated right before accept promotes it. Validation failures are success signals: they tell humans and agents exactly what is missing.',
-    'features.3.title': 'Agent-native',
-    'features.3.body': 'adrkit init --tools installs skills and slash commands for your AI coding assistant, so agents propose, validate, and accept decisions the same way humans do.',
-    'features.4.title': 'Numbered only when accepted',
-    'features.4.body': 'Drafts carry dates, not numbers. A decision earns its N when it is accepted, so the sequence always means "decisions we actually made".',
+    'graph.eyebrow': 'Decision graph',
+    'graph.title': 'A history you can look at',
+    'graph.lead':
+      'One command turns the adr/ directory into a live map of your decisions: grouped by date, tinted by tag, linked by the references between them.',
+    'graph.caption': 'Real graph topology from a production repository; titles generalized',
 
-    'integrations.eyebrow': 'Integrations',
-    'integrations.title': 'Works with your AI coding assistant',
-    'integrations.lead':
-      'Integrations install into the open .agents/ standard by default: one set of skills and slash commands every mainstream agent reads. Claude Code is the one exception: add --tools claude.',
-    'integrations.generic': 'Any AGENTS-compatible agent',
-    'integrations.claude': 'Claude Code (via --tools claude)',
-
-    'install.eyebrow': 'Install',
-    'install.title': 'Up and running in a minute',
-    'install.node': 'Requires Node.js 20.19 or later.',
-    'install.step1': 'Install the CLI',
-    'install.step2': 'Initialize your project',
-    'install.step3': 'Record your first decision',
-    'install.github': 'Star on GitHub',
-    'install.githubBody': 'Source, issues, and the full documentation live on GitHub.',
-
-    'agent.eyebrow': 'For AI agents',
-    'agent.title': 'One line to wire it in',
-    'agent.lead':
-      'Paste this into any AI coding agent and it will record your key decisions as ADRs automatically.',
-    'agent.prompt':
+    'start.eyebrow': 'Get started',
+    'start.title': 'Two ways in',
+    'start.lead':
+      'Paste one line into your AI coding agent and it drives the whole workflow. Prefer running the show yourself? Three commands.',
+    'start.agent.label': 'Let your AI agent drive',
+    'start.agent.prompt':
       'Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.',
-    'agent.copy': 'Copy',
-    'agent.copied': 'Copied',
+    'start.agents.footnote':
+      'Works with any agent that reads the open .agents/ standard; Claude Code via --tools claude.',
+    'start.workflows':
+      'Small repo that only records decisions? --workflows init,decide,validate installs a lean subset.',
+    'start.human.label': 'Or run it yourself',
+    'start.step1': 'Install the CLI',
+    'start.step2': 'Initialize your project',
+    'start.step3': 'Record your first decision',
+    'start.node': 'Requires Node.js 20.19 or later.',
 
     'faq.eyebrow': 'FAQ',
     'faq.title': 'Questions',
@@ -108,6 +104,15 @@ const ui = {
     'hero.copied': '已复制',
     'hero.copy': '复制',
 
+    'stats.1.value': '1',
+    'stats.1.label': '只占用一个目录',
+    'stats.2.value': '7',
+    'stats.2.label': '个工作流技能',
+    'stats.3.value': '0',
+    'stats.3.label': '运行时依赖',
+    'stats.4.value': '100%',
+    'stats.4.label': '纯 Markdown 记录',
+
     'lifecycle.eyebrow': '生命周期',
     'lifecycle.title': '一个决策，一个文件，一台状态机',
     'lifecycle.lead': '决策是持久记录，提案是临时草稿。CLI 在每次状态迁移时盖日期与 commit 戳，并拒绝非法流转。',
@@ -116,38 +121,27 @@ const ui = {
     'lifecycle.rejected': '被否决的想法不是记录：它留在胜出决策的 “Alternatives considered” 里，让“不”永不消失。',
     'lifecycle.superseded': '被更新的决策取代。作为历史留在 decisions/，并链接到继任者。',
 
-    'features.eyebrow': '为什么是 ADR Kit',
-    'features.title': '记录格式即产品',
-    'features.1.title': '纯 Markdown',
-    'features.1.body': '记录首先是可读的文本。解析器和校验器就是格式契约。',
-    'features.2.title': '机检生命周期',
-    'features.2.body': 'adrkit validate 检查持久决策；草稿在 accept 提升之前才会被校验。校验失败是成功信号：它精确告诉人和 Agent 缺了什么。',
-    'features.3.title': 'Agent 原生',
-    'features.3.body': 'adrkit init --tools 为你的 AI 编码助手安装技能和斜杠命令，Agent 与人用同一套流程提案、校验、批准决策。',
-    'features.4.title': '批准才编号',
-    'features.4.body': '草稿只有日期，没有编号。决策被批准的那一刻才获得 N，编号序列因此永远只代表"真正做过的决策"。',
+    'graph.eyebrow': '决策图谱',
+    'graph.title': '看得见的历史',
+    'graph.lead': '一条命令，把 adr/ 目录变成全部决策的地图：按日期分组、按标签着色、引用连成线。',
+    'graph.caption': '结构取自真实仓库，标题已做泛化',
 
-    'integrations.eyebrow': '集成',
-    'integrations.title': '与你的 AI 编码助手协同工作',
-    'integrations.lead': '集成默认写入开放的 .agents/ 标准：一套技能和斜杠命令，所有主流 Agent 通用。Claude Code 是唯一例外：加 --tools claude。',
-    'integrations.generic': '任何兼容 AGENTS 的 Agent',
-    'integrations.claude': 'Claude Code（需 --tools claude）',
-
-    'install.eyebrow': '安装',
-    'install.title': '一分钟跑起来',
-    'install.node': '需要 Node.js 20.19 或更高版本。',
-    'install.step1': '安装 CLI',
-    'install.step2': '初始化项目',
-    'install.step3': '记录第一个决策',
-    'install.github': '在 GitHub 上 Star',
-    'install.githubBody': '源码、Issue 和完整文档都在 GitHub。',
-
-    'agent.eyebrow': '给 AI Agent',
-    'agent.title': '一行接入你的 Agent',
-    'agent.lead': '把这行贴给任意 AI 编码 Agent，它就会自动把关键决策记录成 ADR。',
-    'agent.prompt': '在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策',
-    'agent.copy': '复制',
-    'agent.copied': '已复制',
+    'start.eyebrow': '开始使用',
+    'start.title': '两种接入方式',
+    'start.lead':
+      '把一句话贴给你的 AI 编码 Agent，整个流程由它驱动；想自己掌舵，三条命令就够。',
+    'start.agent.label': '交给 AI Agent 驱动',
+    'start.agent.prompt':
+      '在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策',
+    'start.agents.footnote':
+      '任何读开放 .agents/ 标准的 Agent 都能用；Claude Code 加 --tools claude。',
+    'start.workflows':
+      '只记录决策的小仓库？--workflows init,decide,validate 装精简子集。',
+    'start.human.label': '或自己动手',
+    'start.step1': '安装 CLI',
+    'start.step2': '初始化项目',
+    'start.step3': '记录第一个决策',
+    'start.node': '需要 Node.js 20.19 或更高版本。',
 
     'faq.eyebrow': '常见问题',
     'faq.title': 'Q&A',

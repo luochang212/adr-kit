@@ -10,48 +10,63 @@ const faqs = [1, 2, 3] as const;
 
 <section class="section faq" id="faq">
   <div class="section__inner">
-    <div class="reveal">
+    <div class="reveal faq__head">
       <p class="section__eyebrow">{t('faq.eyebrow')}</p>
       <h2 class="section__title">{t('faq.title')}</h2>
     </div>
     <div class="faq__list reveal">
       {faqs.map((n) => (
-        <details class="faq__item">
-          <summary class="faq__q">
+        <div class="faq__item">
+          <button class="faq__q" type="button" aria-expanded="false" aria-controls={`faq-panel-${n}`} data-faq-toggle>
             {t(`faq.${n}.q` as const)}
             <span class="faq__chev" aria-hidden="true">+</span>
-          </summary>
-          <p class="faq__a">{t(`faq.${n}.a` as const)}</p>
-        </details>
+          </button>
+          <div class="faq__acc" id={`faq-panel-${n}`}>
+            <div class="faq__acc-inner">
+              <p class="faq__a">{t(`faq.${n}.a` as const)}</p>
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   </div>
 </section>
 
 <style>
-  .faq { border-top: 1px solid var(--border); }
+
+  /* one centered reading column: header and list share the same measure, so
+     expanded answers never hug the left of a full-width card */
+  .faq__head, .faq__list {
+    max-width: 660px;
+    margin-left: auto;
+    margin-right: auto;
+  }
   .faq__list {
     margin-top: 40px;
     border: 1px solid var(--border);
     border-radius: 14px;
     overflow: hidden;
   }
-  .faq__item { background: var(--bg); }
+  .faq__item { background: transparent; }
   .faq__item + .faq__item { border-top: 1px solid var(--border); }
   .faq__q {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
+    width: 100%;
     padding: 22px 26px;
     cursor: pointer;
     color: var(--fg);
     font-weight: 550;
     font-size: 15.5px;
+    font-family: var(--font-sans);
+    text-align: left;
     list-style: none;
+    background: transparent;
+    border: none;
     transition: background-color 0.2s;
   }
-  .faq__q::-webkit-details-marker { display: none; }
   .faq__q:hover { background: var(--surface); }
   .faq__chev {
     font-family: var(--font-mono);
@@ -60,12 +75,37 @@ const faqs = [1, 2, 3] as const;
     flex: none;
     transition: transform 0.2s ease;
   }
-  .faq__item[open] .faq__chev { transform: rotate(45deg); }
+  .faq__item.open .faq__chev { transform: rotate(45deg); }
+  /* grid 手风琴（interaction.md · grid-accordion）：0fr→1fr 过渡让高度
+     CSS 自动插值。JS 缺席时不收起，答案照常可读 */
+  .faq__acc { display: grid; }
+  .faq__acc-inner { min-height: 0; overflow: hidden; }
+  html.js .faq__acc {
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html.js .faq__item.open .faq__acc { grid-template-rows: 1fr; }
+  @media (prefers-reduced-motion: reduce) {
+    html.js .faq__acc { transition: none; }
+  }
   .faq__a {
     margin: 0;
     padding: 0 26px 24px;
     color: var(--fg-50);
-    font-size: 14px;
-    max-width: 72ch;
+    font-size: 15px;
+    line-height: 1.8;
   }
 </style>
+
+<script is:inline>
+  // accordion toggle (no-JS: answers stay expanded and readable)
+  (function () {
+    document.querySelectorAll('[data-faq-toggle]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var item = btn.closest('.faq__item');
+        var open = item.classList.toggle('open');
+        btn.setAttribute('aria-expanded', String(open));
+      });
+    });
+  })();
+</script>

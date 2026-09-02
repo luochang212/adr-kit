@@ -84,6 +84,7 @@ const t = useTranslations(lang);
     color: var(--fg);
   }
   .hero__prompt { color: var(--cyan); margin-right: 4px; }
+  .hero__copy:active { transform: scale(0.96); }
   .hero__copy {
     font-family: var(--font-mono);
     font-size: 11.5px;
@@ -95,7 +96,7 @@ const t = useTranslations(lang);
     border-radius: 7px;
     padding: 8px 14px;
     cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
+    transition: color 0.2s, border-color 0.2s, transform 0.1s;
   }
   .hero__copy:hover { color: var(--fg); border-color: var(--border-strong); }
   /* both labels stacked in one grid cell: the button is always as wide as
