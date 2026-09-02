@@ -60,17 +60,21 @@ const ui = {
     'start.lead':
       'Paste one line into your AI coding agent and it drives the whole workflow. Prefer running the show yourself? Three commands.',
     'start.agent.label': 'Let your AI agent drive',
-    'start.agent.prompt':
+    'start.agent.short': 'Simple',
+    'start.agent.full': 'Detailed',
+    'start.agent.prompt.short':
       'Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.',
+    'start.agent.prompt.full':
+      'Use github.com/luochang212/adr-kit in this repository. Record each key architecture decision as an ADR: adrkit decide for calls already made, adrkit propose when one still needs review, adrkit accept once it settles.',
     'start.agents.footnote':
-      'Works with any agent that reads the open .agents/ standard; Claude Code via --tools claude.',
-    'start.workflows':
-      'Small repo that only records decisions? --workflows init,decide,validate installs a lean subset.',
+      'Pick one, paste it into your coding assistant, and it will record this repository\u2019s architecture decisions as ADRs.',
     'start.human.label': 'Or run it yourself',
     'start.step1': 'Install the CLI',
     'start.step2': 'Initialize your project',
     'start.step3': 'Record your first decision',
     'start.node': 'Requires Node.js 20.19 or later.',
+    'start.workflows':
+      'Small repo that only records decisions? --workflows init,decide,validate installs a lean subset.',
 
     'faq.eyebrow': 'FAQ',
     'faq.title': 'Questions',
@@ -131,17 +135,21 @@ const ui = {
     'start.lead':
       '把一句话贴给你的 AI 编码 Agent，整个流程由它驱动；想自己掌舵，三条命令就够。',
     'start.agent.label': '交给 AI Agent 驱动',
-    'start.agent.prompt':
+    'start.agent.short': '简单版',
+    'start.agent.full': '详细版',
+    'start.agent.prompt.short':
       '在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策',
+    'start.agent.prompt.full':
+      '在本仓库使用 github.com/luochang212/adr-kit。每做一次关键架构决策就记一条 ADR：已定夺的用 adrkit decide，需要评审的用 adrkit propose，落定后 adrkit accept。',
     'start.agents.footnote':
-      '任何读开放 .agents/ 标准的 Agent 都能用；Claude Code 加 --tools claude。',
-    'start.workflows':
-      '只记录决策的小仓库？--workflows init,decide,validate 装精简子集。',
+      '任选一段，贴给你的 AI 编码助手，它就会在本仓库帮你把架构决策记录成 ADR。',
     'start.human.label': '或自己动手',
     'start.step1': '安装 CLI',
     'start.step2': '初始化项目',
     'start.step3': '记录第一个决策',
     'start.node': '需要 Node.js 20.19 或更高版本。',
+    'start.workflows':
+      '只记录决策的小仓库可装精简子集：--workflows init,decide,validate。',
 
     'faq.eyebrow': '常见问题',
     'faq.title': 'Q&A',

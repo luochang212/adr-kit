@@ -19,6 +19,10 @@ const stats = [1, 2, 3, 4] as const;
 </section>
 
 <style>
+  /* the stats band keeps its own top/bottom hairlines: it reads as a
+     bounded strip across the page even though other sections space with
+     plain whitespace */
+  .stats { border-block: 1px solid var(--border); }
 
   .stats__inner {
     max-width: var(--inner);
