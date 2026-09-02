@@ -11,7 +11,13 @@ const stats = [1, 2, 3, 4] as const;
   <div class="stats__inner reveal">
     {stats.map((n) => (
       <div class="stats__cell">
-        <span class="stats__value">{t(`stats.${n}.value` as const)}</span>
+        {/* only the real count (7 workflow skills) plays the count-up; the
+            other cells are descriptive numbers and stay static */}
+        {n === 2 ? (
+          <span class="stats__value" data-count={t(`stats.${n}.value` as const)}>{t(`stats.${n}.value` as const)}</span>
+        ) : (
+          <span class="stats__value">{t(`stats.${n}.value` as const)}</span>
+        )}
         <span class="stats__label">{t(`stats.${n}.label` as const)}</span>
       </div>
     ))}
@@ -60,3 +66,43 @@ const stats = [1, 2, 3, 4] as const;
     .stats__cell:nth-child(3) { border-left: none; }
   }
 </style>
+
+<script is:inline>
+  // count-up on first view: SSR already renders the final value (no-JS /
+  // reduced-motion users see it immediately); JS only re-plays from zero.
+  (function () {
+    var nums = Array.prototype.slice.call(document.querySelectorAll('.stats__value[data-count]'));
+    if (!nums.length) return;
+    if (
+      matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      typeof IntersectionObserver !== 'function'
+    ) {
+      return;
+    }
+    var io = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          io.unobserve(entry.target);
+          var el = entry.target;
+          var match = el.getAttribute('data-count').match(/^([0-9.]+)(.*)$/);
+          if (!match) return;
+          var target = parseFloat(match[1]);
+          var suffix = match[2];
+          var dur = 900;
+          var start = null;
+          function frame(t) {
+            if (start === null) start = t;
+            var p = Math.min(1, (t - start) / dur);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased) + suffix;
+            if (p < 1) requestAnimationFrame(frame);
+          }
+          requestAnimationFrame(frame);
+        });
+      },
+      { threshold: 0.6 },
+    );
+    nums.forEach(function (el) { io.observe(el); });
+  })();
+</script>

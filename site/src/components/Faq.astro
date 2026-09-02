@@ -95,6 +95,15 @@ const faqs = [1, 2, 3] as const;
     font-size: 15px;
     line-height: 1.8;
   }
+  /* the answer fades in as the grid rows expand */
+  html.js .faq__item.open .faq__a { animation: faq-in 0.3s ease both; }
+  @keyframes faq-in {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html.js .faq__item.open .faq__a { animation: none; }
+  }
 </style>
 
 <script is:inline>

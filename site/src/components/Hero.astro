@@ -39,6 +39,20 @@ const t = useTranslations(lang);
     mask-image: radial-gradient(at 50% 28%, #000 15%, #0000 68%);
     -webkit-mask-image: radial-gradient(at 50% 28%, #000 15%, #0000 68%);
   }
+  /* one-shot mount cascade for the hero copy: title → tagline → lead →
+     install, each rising in turn. The terminal keeps its own in-view reveal. */
+  html.js .hero__inner > :not(.term) { animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  html.js .hero__inner > :nth-child(1) { animation-delay: 0.05s; }
+  html.js .hero__inner > :nth-child(2) { animation-delay: 0.15s; }
+  html.js .hero__inner > :nth-child(3) { animation-delay: 0.25s; }
+  html.js .hero__inner > :nth-child(4) { animation-delay: 0.4s; }
+  @keyframes hero-rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html.js .hero__inner > :not(.term) { animation: none; }
+  }
   .hero__inner {
     position: relative;
     max-width: var(--inner);
