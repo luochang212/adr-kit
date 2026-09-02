@@ -10,6 +10,9 @@ const { lang } = Astro.props;
 // `note` lines; the CLI itself speaks English.
 const fillNote = lang === 'zh' ? '# 填满必填章节之后' : '# after filling the required sections';
 const moreNote = lang === 'zh' ? '# …… 另外 13 个文件' : '# … 13 more files';
+// example date for the draft filename; static on purpose (this is a scripted
+// demo, not a live capture — the date is decorative)
+const demoDate = '2026-09-03';
 
 type Line = { kind: 'cmd' | 'out' | 'ok' | 'note'; text: string };
 const lines: Line[] = [
@@ -22,8 +25,11 @@ const lines: Line[] = [
   { kind: 'out', text: '  created adr/README.md' },
   { kind: 'out', text: '  created .agents/skills/adrkit-propose/SKILL.md (agents)' },
   { kind: 'note', text: moreNote },
+  { kind: 'out', text: 'Next:' },
+  { kind: 'out', text: '  adrkit decide "use sqlite for sessions" # record a decision (default path)' },
+  { kind: 'out', text: '  adrkit propose "your first decision"    # draft a proposal for review' },
   { kind: 'cmd', text: 'adrkit propose "Use SQLite for session storage"' },
-  { kind: 'out', text: 'created adr/.drafts/2026-08-19-use-sqlite-for-session-storage.md' },
+  { kind: 'out', text: `created adr/.drafts/${demoDate}-use-sqlite-for-session-storage.md` },
   { kind: 'out', text: '' },
   { kind: 'out', text: 'A draft is ephemeral: promote it with' },
   { kind: 'out', text: '  adrkit accept "Use SQLite for session storage"' },
@@ -31,7 +37,7 @@ const lines: Line[] = [
   { kind: 'out', text: '  adrkit reject "Use SQLite for session storage"' },
   { kind: 'note', text: fillNote },
   { kind: 'cmd', text: 'adrkit accept "Use SQLite for session storage"' },
-  { kind: 'ok', text: 'accepted adr/.drafts/2026-08-19-use-sqlite-for-session-storage.md as adr/decisions/1-use-sqlite-for-session-storage.md' },
+  { kind: 'ok', text: `accepted adr/.drafts/${demoDate}-use-sqlite-for-session-storage.md as adr/decisions/1-use-sqlite-for-session-storage.md` },
   { kind: 'cmd', text: 'adrkit validate' },
   { kind: 'ok', text: 'OK' },
   { kind: 'cmd', text: 'adrkit list' },
