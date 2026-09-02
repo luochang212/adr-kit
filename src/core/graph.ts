@@ -149,6 +149,14 @@ export function mermaidGraph(graph: DecisionGraph): string {
   );
   const references = graph.referenceEdges.map((edge) => `  n${edge.from} -.-> n${edge.to}`);
 
+  // mermaid linkStyle indexes every link in declaration order (formal edges
+  // are declared before references), so the k-th formal edge has index k.
+  // Override its stroke to long dashes — the decision-graph idiom that keeps
+  // a supersession distinct from a mined reference without a heavy stroke.
+  const linkStyles = graph.supersedeEdges.map(
+    (_, k) => `  linkStyle ${k} stroke-dasharray:11 7`,
+  );
+
   const retired = graph.nodes
     .filter((node) => node.status === 'superseded')
     .map((node) => `n${node.number}`);
@@ -163,7 +171,7 @@ export function mermaidGraph(graph: DecisionGraph): string {
   const tagClasses = tagStyleBlocks(graph);
   const clicks = graph.nodes.map((node) => `  click n${node.number} "${node.path}"`);
 
-  const blocks = [header, formal, references, tagClasses, style, clicks].filter(
+  const blocks = [header, formal, references, tagClasses, style, clicks, linkStyles].filter(
     (block) => block.length > 0,
   );
   return blocks.map((block) => block.join('\n')).join('\n\n');

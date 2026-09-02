@@ -129,6 +129,8 @@ describe('graphCommand formats', () => {
 
   click n1 "adr/decisions/1-first.md"
   click n2 "adr/decisions/2-second.md"`);
+    // references only — no formal edges, so no linkStyle is emitted
+    expect(graphCommand(root, {})).not.toContain('linkStyle');
   });
 
   it('groups by date, styles superseded nodes, and links formal and mined edges', () => {
@@ -144,6 +146,27 @@ describe('graphCommand formats', () => {
     expect(output).toContain('classDef retired');
     expect(output).toContain('class n1 retired');
     expect(output).toContain('click n1 "adr/decisions/1-old.md"');
+    // the one formal edge gets a long-dash override via linkStyle
+    expect(output).toContain('linkStyle 0 stroke-dasharray:11 7');
+    // reference edges keep their default style: no linkStyle targets them
+    expect(output).not.toMatch(/linkStyle \d+[^0]\s/);
+  });
+
+  it('indexes one linkStyle per formal edge, references untouched', () => {
+    const root = makeRepo();
+    // two formal supersede edges, declared 1->3 then 2->4
+    writeDecision(root, 1, 'Old1', { date: '2026-08-17', status: 'superseded', supersededBy: 3 });
+    writeDecision(root, 2, 'Old2', { date: '2026-08-17', status: 'superseded', supersededBy: 4 });
+    writeDecision(root, 3, 'New1', { date: '2026-08-19', decisionBody: 'Builds on ADR-1.' });
+    writeDecision(root, 4, 'New2', { date: '2026-08-19', decisionBody: 'Builds on ADR-3.' });
+    const output = graphCommand(root, {});
+    expect(output).toContain('linkStyle 0 stroke-dasharray:11 7');
+    expect(output).toContain('linkStyle 1 stroke-dasharray:11 7');
+    expect(output).toContain('n1 ==>|superseded by| n3');
+    expect(output).toContain('n2 ==>|superseded by| n4');
+    // references still render, and only the two formal edges get linkStyles
+    const matches = output.match(/linkStyle \d+ stroke-dasharray:11 7/g) ?? [];
+    expect(matches.length).toBe(2);
   });
 
   it('emits a Graphviz digraph with --dot', () => {
