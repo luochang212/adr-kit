@@ -97,12 +97,12 @@ adrkit version                          Print the version
 
 > [!IMPORTANT]
 > Integrations install into the open [`.agents/`](https://agents.md/) standard
-> by default - one set of skills and slash commands every mainstream agent
+> by default: one set of skills and slash commands every mainstream agent
 > reads. Claude Code is the one holdout: it even [closed the AGENTS.md support
 > request](https://github.com/anthropics/claude-code/issues/6235), and Shopify's
 > CEO [publicly threatened to ban it over this](https://thenewstack.io/shopify-claude-code-agentsmd/).
 > If your team uses Claude Code, pass `--tools claude` to also install
-> `.claude/` copies - an exception we carry until Anthropic adopts the standard.
+> `.claude/` copies; an exception we carry until Anthropic adopts the standard.
 
 > [!TIP]
 > Every integration ships all seven workflow skills by default. A small
@@ -155,7 +155,7 @@ live in code, not in the record.
 - **Drafts** (`adr/.drafts/YYYY-MM-DD-slug.md`) are ephemeral proposals with
   `status: proposed`, require `Problem`, `Proposal`, `Alternatives
   considered`, `Acceptance criteria`, and `Risks`, and are never checked by
-  `validate` - `adrkit accept` validates a draft right before promoting it.
+  `validate`: `adrkit accept` validates a draft right before promoting it.
 - **Rejected** ideas are not standalone records: a decision's
   `Alternatives considered` documents what was considered and why it lost.
 - **Superseded** decisions stay in `adr/decisions/` as history, with the
@@ -170,15 +170,15 @@ owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 
 ## Compatibility with other tools
 
-ADR Kit owns one directory - `adr/` - and reads and validates only its own
+ADR Kit owns one directory, `adr/`, and reads and validates only its own
 files, so it can share a repository with any tool that does not collide
 with that layout. Its agent skills are namespaced per tool (`adrkit-*`),
 and `adrkit update` only rewrites its own integrations.
 
 | Tool | Role | Relationship |
 |---|---|---|
-| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | Forward-looking: specifies what to build | Complementary - specs vs records |
-| [Changesets](https://changesets.dev) | Release tooling: versions and changelog | Orthogonal - cite the ADR number in the changeset body |
+| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | Forward-looking: specifies what to build | Complementary: specs vs records |
+| [Changesets](https://changesets.dev) | Release tooling: versions and changelog | Orthogonal: cite the ADR number in the changeset body |
 
 When a change makes an architectural decision that should outlive the
 change, record it as an ADR.

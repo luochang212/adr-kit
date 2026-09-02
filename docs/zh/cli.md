@@ -17,7 +17,7 @@
 ### `adrkit init [path] [--tools <list>]`
 
 在 `path`（默认当前目录）创建 `adr/` 仓库，并把 agent 集成写入 `.agents/`
-（`commands/` + `skills/`）——所有主流 Agent 都识别的供应商中立约定。
+（`commands/` + `skills/`），即所有主流 Agent 都识别的供应商中立约定。
 `--tools claude` 额外安装 `.claude/` 副本给 Claude Code（唯一不读
 `.agents/` 的 Agent）；`--tools none` 不安装任何集成。
 
@@ -49,7 +49,7 @@ adr/
 
 ### `adrkit reject <name> [--reason <text>]`
 
-从 `adr/.drafts/` 丢弃提案草稿。不产生任何记录——拒绝记录在胜出决策的
+从 `adr/.drafts/` 丢弃提案草稿。不产生任何记录：拒绝记录在胜出决策的
 `Alternatives considered` 里。`--reason` 可选，仅回显。
 
 ### `adrkit list [--json]`

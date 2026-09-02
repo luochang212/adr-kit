@@ -46,7 +46,7 @@ fast unit gate; CI also runs `npm run build` and `npm run typecheck`.
 `site/` is the bilingual (en/zh) project homepage, an Astro app deployed to
 GitHub Pages by `.github/workflows/site.yml`. It has its own
 `package.json` and build (`cd site && npm run build`); the CLI's build does
-not cover it. Copy lives in `site/src/i18n/ui.ts` — edit both languages in
+not cover it. Copy lives in `site/src/i18n/ui.ts`: edit both languages in
 the same change. The integration story in
 `site/src/components/Integrations.astro` (default `.agents/` target plus the
 Claude Code exception) mirrors the targets in `src/core/tool-integrations.ts`;

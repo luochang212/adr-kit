@@ -26,7 +26,7 @@ does not read `.agents/`); `--tools none` installs nothing.
 
 `--workflows <list>` installs a subset of the seven workflow skills
 (`init, propose, decide, validate, accept, reject, supersede`) instead of
-all of them - useful for small repositories that only exercise the
+all of them, useful for small repositories that only exercise the
 decide/validate path. Entries may carry the `adrkit-` prefix;
 `--workflows all` is the explicit full set (also the default). The subset
 is recorded in `adr/config.yaml` so a bare `adrkit update` keeps it.

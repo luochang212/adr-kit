@@ -93,12 +93,12 @@ adrkit version                         查看版本
 ```
 
 > [!IMPORTANT]
-> 集成默认写入开放的 [`.agents/`](https://agents.md/) 标准——一套技能和斜杠
+> 集成默认写入开放的 [`.agents/`](https://agents.md/) 标准：一套技能和斜杠
 > 命令，所有主流 Agent 通用。Claude Code 是唯一的例外：它不仅[关闭了
 > AGENTS.md 支持请求](https://github.com/anthropics/claude-code/issues/6235)，
 > 还让 [Shopify CEO 公开放话要因此禁用它](https://thenewstack.io/shopify-claude-code-agentsmd/)。
 > 如果你的团队用 Claude Code，加 `--tools claude` 会同时安装 `.claude/`
-> 副本——这个例外我们一直背到 Anthropic 采纳标准为止。
+> 副本；这个例外我们一直背到 Anthropic 采纳标准为止。
 
 > [!TIP]
 > 集成默认安装全部七个工作流技能。只记录决策的小仓库可传
@@ -146,7 +146,7 @@ tags: [frontend]
   `validate` 会拒绝提案时代的标题出现在已接受决策中。
 - **草稿**（`adr/.drafts/YYYY-MM-DD-slug.md`）是 `status: proposed` 的临时
   提案，需要 `Problem`、`Proposal`、`Alternatives considered`、
-  `Acceptance criteria`、`Risks`，`validate` 不检查它们——`adrkit accept`
+  `Acceptance criteria`、`Risks`，`validate` 不检查它们：`adrkit accept`
   在提升前才校验草稿。
 - **被否决**的想法不是独立记录：决策的 `Alternatives considered` 记录了
   考虑过什么、为什么落选。
@@ -160,14 +160,14 @@ tags: [frontend]
 
 ## 工具兼容性
 
-ADR Kit 只拥有一个目录——`adr/`——并且只读取和校验自己的文件，因此可以
+ADR Kit 只拥有 `adr/` 这一个目录，并且只读取和校验自己的文件，因此可以
 与任何不占用该布局的工具共处于一个仓库。它的 agent skills 按工具命名空间
 隔离（`adrkit-*`），`adrkit update` 只重写自己的集成文件。
 
 | 工具 | 角色 | 与 ADR Kit 的关系 |
 |---|---|---|
-| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | 前瞻：规定要构建什么 | 互补——规格与记录各司其职 |
-| [Changesets](https://changesets.dev) | 发布：版本号与 changelog | 正交——changeset 正文引用 ADR 编号 |
+| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | 前瞻：规定要构建什么 | 互补：规格与记录各司其职 |
+| [Changesets](https://changesets.dev) | 发布：版本号与 changelog | 正交：changeset 正文引用 ADR 编号 |
 
 当某个变更做出了应比变更本身更长命的架构决策时，把它记成一条 ADR。
 
