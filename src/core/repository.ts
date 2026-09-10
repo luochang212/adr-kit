@@ -63,6 +63,9 @@ machine-checkable header. Decisions are durable; proposals are ephemeral drafts.
 | \`decisions/\` | Decisions, numbered sequentially, immutable history (accepted or superseded) |
 | \`.drafts/\` | Proposal drafts, gitignored and ephemeral - promote one with \`adrkit accept\` or discard it with \`adrkit reject\` |
 
+Never delete or modify a decision: retire one with \`adrkit supersede\` instead.
+Deleting reuses its number, which silently breaks every \`ADR-N\` reference to it.
+
 Rejection is recorded in a decision's \`Alternatives considered\` section, never
 as a standalone record.
 

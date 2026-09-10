@@ -100,6 +100,16 @@ describe('initCommand', () => {
     expect(readme).toContain('immutable history');
   });
 
+  it('states the no-deletion invariant the decision numbering depends on', () => {
+    const root = makeRepo();
+    const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
+    // Deleting a decision reuses its number (nextDecisionNumber derives the next
+    // number from the files present), so the generated README must forbid it and
+    // point at the command that retires a decision without deleting it.
+    expect(readme).toContain('Never delete or modify a decision');
+    expect(readme).toContain('adrkit supersede');
+  });
+
   it('documents the created and tags fields in the generated README', () => {
     const root = makeRepo();
     const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
