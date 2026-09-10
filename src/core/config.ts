@@ -14,8 +14,6 @@ export interface AdrKitConfig {
   tools?: string[];
   /** Workflow subset for integrations, e.g. `["init", "decide", "validate"]`. */
   workflows?: string[];
-  /** The raw parsed YAML document (for forward compatibility). */
-  raw: Record<string, unknown>;
 }
 
 /**
@@ -69,8 +67,9 @@ function parseConfigDocument(text: string): ParsedConfig {
 export function readConfig(root: string): AdrKitConfig {
   const file = configPath(root);
   const { map } = parseConfigDocument(readFileSync(file, 'utf8'));
-  const raw = map.toJSON() as Record<string, unknown>;
-  const config: AdrKitConfig = { raw };
+  const raw = map.toJSON() as Record<string, unknown> | null;
+  const config: AdrKitConfig = {};
+  if (raw === null) return config;
   if (typeof raw.context === 'string') {
     config.context = raw.context;
   }

@@ -200,8 +200,11 @@ export function droppedSections(proposal: AdrRecord): string[] {
  * block, merge `patch` over it, and re-emit the fields in canonical order.
  * Every non-creating move (accept, reject, supersede) must stamp the date so
  * the front matter always reflects the current status; the Markdown body is
- * left untouched. Unknown keys are preserved after the canonical ones so a
- * mechanical rewrite never loses data silently (validate flags them).
+ * left untouched. Only canonical fields survive: a key outside
+ * `FRONT_MATTER_ORDER` is dropped rather than copied through, because writing
+ * back a field this version does not understand would hide a version mismatch
+ * instead of surfacing it. `validate` reports those keys, so the record is
+ * fixed before any lifecycle move rewrites it.
  */
 export function stampLifecycleMove(content: string, patch: Record<string, string | number>): string {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -219,12 +222,6 @@ export function stampLifecycleMove(content: string, patch: Record<string, string
     const kept = existing[key];
     if (typeof kept === 'string' || typeof kept === 'number') {
       merged[key] = kept;
-    }
-  }
-  for (const [key, value] of Object.entries(existing)) {
-    if ((FRONT_MATTER_ORDER as readonly string[]).includes(key)) continue;
-    if (typeof value === 'string' || typeof value === 'number') {
-      merged[key] = value;
     }
   }
   return `---\n${stringify(merged)}---${content.slice(match[0].length)}`;
