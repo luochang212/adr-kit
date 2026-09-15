@@ -13,18 +13,26 @@ without leaving a record.
 
 ## Steps
 
-1. Run:
+1. Run `adrkit list` and read every decision in full with `adrkit show <N>`
+   (or read its file), even if you ran it earlier in this conversation.
+   Check whether this decision supersedes or overlaps an existing one against
+   current code and requirements. Treat superseded records as history and
+   pending drafts as unaccepted proposals. Reuse an existing decision when
+   it already captures the same choice; explain changed assumptions when
+   replacing one, and use `adrkit supersede` after its replacement is recorded
+   and validated.
+2. Run:
 
 ```bash
 adrkit propose "<title>"
 ```
 
-2. Edit the created draft. Fill every section with real content:
+3. Edit the created draft. Fill every section with real content:
    `## Problem`, `## Proposal`, `## Alternatives considered`,
    `## Acceptance criteria`, `## Risks`.
-3. Add 2-4 kebab-case `tags` to the front matter (for example `frontend`,
+4. Add 2-4 kebab-case `tags` to the front matter (for example `frontend`,
    `execution-layer`) so the decision graph can group by theme.
-4. Promote the completed draft with `adrkit accept "<title>"`; the CLI
+5. Promote the completed draft with `adrkit accept "<title>"`; the CLI
    validates it before promoting.
 
 ## Rules
@@ -35,7 +43,3 @@ adrkit propose "<title>"
   `decided-by`: the CLI stamps it at promotion from the environment that
   promotes the draft, and a hand-written value is rejected while the draft
   exists and dropped when it is promoted.
-- Before proposing, run `adrkit list` and check whether this decision
-  supersedes or overlaps an existing one; mention that in the record. Re-run
-  it even if you ran it earlier in this conversation: session memory can be
-  stale, and the repo may have changed.

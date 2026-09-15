@@ -71,6 +71,13 @@ Paste this into any AI coding agent to record key decisions automatically:
 Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.
 ```
 
+To use decisions in later coding tasks, add the [reading rule](docs/workflow.md#read-decisions-before-coding)
+to the project's `AGENTS.md` (and `CLAUDE.md` for Claude Code teams). Start tasks
+with `adrkit list` and `adrkit show <N>` to read the existing decisions, then
+check them against current code and requirements. The init skill guides this
+setup; existing projects should run `adrkit update` and add the rule too.
+The CLI does not edit project instruction files automatically.
+
 ## Commands
 
 ```text

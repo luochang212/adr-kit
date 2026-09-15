@@ -25,6 +25,35 @@ afterEach(() => {
 });
 
 describe('initCommand tool integrations', () => {
+  it('installs and refreshes reading guidance without replacing project instructions', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude');
+    for (const file of ['AGENTS.md', 'CLAUDE.md']) {
+      writeFileSync(join(root, file), '# Existing project instructions\n');
+    }
+    for (const target of ['.agents', '.claude']) {
+      const skill = join(root, target, 'skills/adrkit-init/SKILL.md');
+      expect(readFileSync(skill, 'utf8')).toContain('At the start of a coding, design, or review task');
+      writeFileSync(skill, 'old installed skill');
+    }
+    updateCommand(root);
+    for (const target of ['.agents', '.claude']) {
+      const init = readFileSync(join(root, target, 'skills/adrkit-init/SKILL.md'), 'utf8');
+      expect(init).toContain('read every decision in full');
+      expect(init).toContain('update an equivalent section');
+      expect(init).toContain('reading does not require creating an ADR');
+      for (const workflow of ['propose', 'decide']) {
+        const command = readFileSync(join(root, target, `commands/adrkit-${workflow}.md`), 'utf8');
+        expect(command).toContain('adrkit show <N>');
+        expect(command).toContain('current code and requirements');
+        expect(command).toContain('Reuse an existing decision');
+      }
+    }
+    for (const file of ['AGENTS.md', 'CLAUDE.md']) {
+      expect(readFileSync(join(root, file), 'utf8')).toBe('# Existing project instructions\n');
+    }
+  });
+
   it('installs the standard .agents integration by default', () => {
     const root = makeTarget();
     initCommand(root);

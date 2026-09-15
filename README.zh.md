@@ -68,6 +68,12 @@ adrkit list
 在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策
 ```
 
+让后续编码任务也用上决策：在项目 `AGENTS.md`（Claude Code 团队也包括
+`CLAUDE.md`）加入[查阅规则](docs/zh/workflow.md#编码前查阅决策)。任务开始时用
+`adrkit list`、`adrkit show <N>` 读完现有决策，结合代码和新需求判断是否仍适用。
+初始化技能会引导补入规则；已有项目运行 `adrkit update` 后也需补入。
+CLI 不会自动修改项目指令文件。
+
 ## 命令
 
 ```text

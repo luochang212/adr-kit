@@ -53,6 +53,38 @@ adrkit supersede 1 --by 2
 环境执行。`validate` 会校验被引用的编号存在且自身未被取代，所以链条总是
 终止于当前仍被接受的决策。
 
+## 编码前查阅决策
+
+ADR 通常只有十几条。开始或恢复编码、设计、审查任务时，运行 `adrkit list`，
+用 `adrkit show <N>`（或直接读文件）读完现有决策，不仅凭标题筛选。
+已接受记录提供决策背景；已替代记录是历史；待决草稿不代表已经批准。
+结合当前代码和本次需求判断哪些约束仍适用。若前提变化或存在冲突，在选择
+不同方案前说明原因，并在实现或审查总结中引用相关 ADR、验证受影响行为。
+没有相关决定时正常继续；查阅不意味着每次任务都要新建 ADR。范围或相关文件
+变化时重新读取，无需每编辑一行都重读。
+
+把下面的规则加入项目的 `AGENTS.md`；团队以 `CLAUDE.md` 为入口时也放在那里。
+保留已有指令，已有同类规则时合并，避免重复。初始化技能会引导 agent 完成此步骤；
+CLI 的 `init` / `update` 只安装工作流文件，不修改这些项目指令。
+已有项目运行 `adrkit update` 更新技能后，也需要补入此规则。
+
+```markdown
+## Reading architecture decisions
+
+At the start of a coding, design, or review task, if `adr/` exists, run
+`adrkit list` and read every decision in full with `adrkit show <N>` (or read
+its file). ADR sets are small; do not filter by title alone. Treat accepted
+records as decision context, superseded records as history, and pending
+drafts as unaccepted proposals. Check relevant decisions against current
+code and the task's requirements. Apply the constraints that still hold;
+explain conflicts or changed assumptions before choosing a different approach.
+Mention relevant ADR numbers in the implementation or review summary and
+verify the affected behavior. If no decisions apply, continue normally;
+reading does not require creating an ADR. Re-read on a new or resumed task,
+or when scope or relevant files change, rather than relying on conversation
+memory.
+```
+
 ## Agent 工作流
 
 Agent 可以通过 JSON 输出来驱动同样的生命周期：

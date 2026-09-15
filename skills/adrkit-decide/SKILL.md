@@ -12,17 +12,25 @@ Record an already-made decision directly in `adr/decisions/` with the next
 
 ## Steps
 
-1. Run:
+1. Run `adrkit list` and read every decision in full with `adrkit show <N>`
+   (or read its file), even if you ran it earlier in this conversation.
+   Check whether this decision supersedes or overlaps an existing one against
+   current code and requirements. Treat superseded records as history and
+   pending drafts as unaccepted proposals. Reuse an existing decision when
+   it already captures the same choice; explain changed assumptions when
+   replacing one, and use `adrkit supersede` after its replacement is recorded
+   and validated.
+2. Run:
 
 ```bash
 adrkit decide "<title>"
 ```
 
-2. Edit the created file and fill `## Problem`, `## Decision`,
+3. Edit the created file and fill `## Problem`, `## Decision`,
    `## Alternatives considered`, and `## Consequences`. Add 2-4 kebab-case
    `tags` to the front matter (for example `frontend`, `execution-layer`)
    so the decision graph can group by theme.
-3. Run `adrkit validate <N>` until it returns OK.
+4. Run `adrkit validate <N>` until it returns OK.
 
 ## Rules
 

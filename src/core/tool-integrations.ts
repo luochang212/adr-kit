@@ -48,16 +48,43 @@ Create an \`adr/\` repository in the target directory.
 ## Steps
 
 1. Decide the target directory (default: current working directory).
-2. Run:
+2. For a new repository, run:
 
 \`\`\`bash
 adrkit init [path]
 \`\`\`
 
-3. Confirm the output lists \`adr/config.yaml\`, \`adr/decisions\`, and
+   If \`adr/\` already exists, run \`adrkit update\` instead and continue with
+   the project instruction setup below.
+
+3. For a new repository, confirm the output lists \`adr/config.yaml\`, \`adr/decisions\`, and
    \`adr/.gitignore\`. Proposals are not a separate folder: they are ephemeral
    drafts in \`adr/.drafts/\`, created by \`adrkit propose\`. Durable records
    carry a machine-stamped \`decided-by\` field; drafts never do.
+
+4. Add the following section to the project's agent instruction file
+   (\`AGENTS.md\`; also \`CLAUDE.md\` if that is the team's entry point). Preserve
+   existing instructions and update an equivalent section instead of adding
+   a duplicate. This agent step supplies the task-start entry point; the CLI
+   only installs workflow files. If ADR Kit is already initialized, use
+   \`adrkit update\` to refresh those files and still check this section.
+
+\`\`\`markdown
+## Reading architecture decisions
+
+At the start of a coding, design, or review task, if \`adr/\` exists, run
+\`adrkit list\` and read every decision in full with \`adrkit show <N>\` (or read
+its file). ADR sets are small; do not filter by title alone. Treat accepted
+records as decision context, superseded records as history, and pending
+drafts as unaccepted proposals. Check relevant decisions against current
+code and the task's requirements. Apply the constraints that still hold;
+explain conflicts or changed assumptions before choosing a different approach.
+Mention relevant ADR numbers in the implementation or review summary and
+verify the affected behavior. If no decisions apply, continue normally;
+reading does not require creating an ADR. Re-read on a new or resumed task,
+or when scope or relevant files change, rather than relying on conversation
+memory.
+\`\`\`
 
 ## Rules
 
@@ -79,18 +106,26 @@ without leaving a record.
 
 ## Steps
 
-1. Run:
+1. Run \`adrkit list\` and read every decision in full with \`adrkit show <N>\`
+   (or read its file), even if you ran it earlier in this conversation.
+   Check whether this decision supersedes or overlaps an existing one against
+   current code and requirements. Treat superseded records as history and
+   pending drafts as unaccepted proposals. Reuse an existing decision when
+   it already captures the same choice; explain changed assumptions when
+   replacing one, and use \`adrkit supersede\` after its replacement is recorded
+   and validated.
+2. Run:
 
 \`\`\`bash
 adrkit propose "<title>"
 \`\`\`
 
-2. Edit the created draft. Fill every section with real content:
+3. Edit the created draft. Fill every section with real content:
    \`## Problem\`, \`## Proposal\`, \`## Alternatives considered\`,
    \`## Acceptance criteria\`, \`## Risks\`.
-3. Add 2-4 kebab-case \`tags\` to the front matter (for example \`frontend\`,
+4. Add 2-4 kebab-case \`tags\` to the front matter (for example \`frontend\`,
    \`execution-layer\`) so the decision graph can group by theme.
-4. Promote the completed draft with \`adrkit accept "<title>"\`; the CLI
+5. Promote the completed draft with \`adrkit accept "<title>"\`; the CLI
    validates it before promoting.
 
 ## Rules
@@ -100,11 +135,7 @@ adrkit propose "<title>"
 - Keep the front matter exactly \`status: proposed\`. Never write
   \`decided-by\`: the CLI stamps it at promotion from the environment that
   promotes the draft, and a hand-written value is rejected while the draft
-  exists and dropped when it is promoted.
-- Before proposing, run \`adrkit list\` and check whether this decision
-  supersedes or overlaps an existing one; mention that in the record. Re-run
-  it even if you ran it earlier in this conversation: session memory can be
-  stale, and the repo may have changed.`,
+  exists and dropped when it is promoted.`,
   },
   {
     name: 'adrkit-decide',
@@ -118,17 +149,25 @@ Record an already-made decision directly in \`adr/decisions/\` with the next
 
 ## Steps
 
-1. Run:
+1. Run \`adrkit list\` and read every decision in full with \`adrkit show <N>\`
+   (or read its file), even if you ran it earlier in this conversation.
+   Check whether this decision supersedes or overlaps an existing one against
+   current code and requirements. Treat superseded records as history and
+   pending drafts as unaccepted proposals. Reuse an existing decision when
+   it already captures the same choice; explain changed assumptions when
+   replacing one, and use \`adrkit supersede\` after its replacement is recorded
+   and validated.
+2. Run:
 
 \`\`\`bash
 adrkit decide "<title>"
 \`\`\`
 
-2. Edit the created file and fill \`## Problem\`, \`## Decision\`,
+3. Edit the created file and fill \`## Problem\`, \`## Decision\`,
    \`## Alternatives considered\`, and \`## Consequences\`. Add 2-4 kebab-case
    \`tags\` to the front matter (for example \`frontend\`, \`execution-layer\`)
    so the decision graph can group by theme.
-3. Run \`adrkit validate <N>\` until it returns OK.
+4. Run \`adrkit validate <N>\` until it returns OK.
 
 ## Rules
 
