@@ -11,6 +11,13 @@ Create an ephemeral proposal draft in `adr/.drafts/`. A draft is temporary:
 `adrkit accept` promotes it into a decision, `adrkit reject` discards it
 without leaving a record.
 
+## When to record
+
+Use this workflow for architectural choices that constrain future development
+and whose rationale is not apparent from code alone. Routine implementation
+details, local fixes, and easily reversible choices need no ADR. Do not create
+an ADR for every task or invent alternatives and reasons to fill a template.
+
 ## Steps
 
 1. Run `adrkit list` and read every decision in full with `adrkit show <N>`

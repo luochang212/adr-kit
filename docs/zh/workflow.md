@@ -1,5 +1,14 @@
 # 工作流
 
+## 何时值得记录
+
+当架构选择会持续约束后续开发，且理由难以从代码直接看出时，才记录 ADR，
+例如存储方案、模块边界、兼容策略或部署方式。只写实际作出的决定与真实取舍；
+相同选择沿用已有记录，重要前提改变时记录替代决定。普通实现细节、局部修复
+和可轻易调整的选择无需记录。没有重要架构决定的任务，不需要新建 ADR 或提交
+决策汇报。`accepted` 表示正式记录的决定，不代表人已审阅批准；`decided-by`
+只是执行环境推断，不能证明是谁自主拍板或授权。
+
 ## 默认路径：直接记录决策
 
 ```text
@@ -49,8 +58,8 @@ adrkit supersede 1 --by 2
 
 旧记录留在 `adr/decisions/`，front matter 为 `status: superseded` 加
 `superseded-by: 2`。只改写 front matter；正文是冻结历史。记录的 `decided-by`
-值会被保留而不是重盖：这个字段回答的是谁做的决策，而不是退役动作由哪个
-环境执行。`validate` 会校验被引用的编号存在且自身未被取代，所以链条总是
+值会被保留而不是重盖：它描述记录决策时推断的执行环境，而不是退役动作的
+执行环境。`validate` 会校验被引用的编号存在且自身未被取代，所以链条总是
 终止于当前仍被接受的决策。
 
 ## 编码前查阅决策
@@ -83,6 +92,16 @@ verify the affected behavior. If no decisions apply, continue normally;
 reading does not require creating an ADR. Re-read on a new or resumed task,
 or when scope or relevant files change, rather than relying on conversation
 memory.
+
+Record an ADR when an architectural choice will constrain future development
+and its rationale is not apparent from code alone. Record only decisions
+actually made and genuine alternatives and trade-offs; do not invent reasons
+to fill a template. Reuse an existing record for the same choice; record a
+replacement when important assumptions change. Routine implementation details,
+local fixes, and easily reversible choices need no ADR. If no important
+architectural decision was made, create none. `accepted` means a recorded
+decision, not proof of human review. `decided-by` infers the execution
+environment, not who independently chose or authorized the decision.
 ```
 
 ## Agent 工作流

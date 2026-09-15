@@ -77,6 +77,9 @@ with `adrkit list` and `adrkit show <N>` to read the existing decisions, then
 check them against current code and requirements. The init skill guides this
 setup; existing projects should run `adrkit update` and add the rule too.
 The CLI does not edit project instruction files automatically.
+Record only architectural choices that constrain future development and whose
+rationale is not apparent from code alone; routine fixes need no ADR. See
+[when to record](docs/workflow.md#when-to-record).
 
 ## Commands
 
@@ -157,14 +160,13 @@ re-stamped, so the time axis survives later lifecycle moves. Optional
 by theme. Decisions are immutable history; the current facts
 live in code, not in the record.
 
-`decided-by` is `human` or `machine`, stamped by the CLI from the
-environment the command runs in: it states whether a person authorized the
-decision or a machine recorded it, which is the one thing git cannot say,
-because an agent session commits as the human user. `supersede` preserves
-the value rather than re-stamping it. Read it as an inferred stamp, not
-proof; [the record format reference](docs/record-format.md) spells out what
-defeats it. Identity stays in git, and `validate` never back-fills the field
-for records that predate it.
+`accepted` denotes a recorded decision, not proof of human review.
+`decided-by` is `human` or `machine`, inferred by the CLI from the execution
+environment when `decide` or `accept` runs. A human's choice recorded by an
+agent may still be stamped `machine`; the field does not establish who chose
+or authorized it. `supersede` preserves the original value. See the
+[record format reference](docs/record-format.md) for limitations. Identity
+stays in git, and `validate` never back-fills the field for older records.
 
 - **Decisions** (`adr/decisions/N-slug.md`) are `accepted` or `superseded`
   and require `Problem`, `Decision`, `Alternatives considered`, and

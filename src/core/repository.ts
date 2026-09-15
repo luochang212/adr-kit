@@ -92,16 +92,16 @@ Decisions use \`# ADR: N <title>\` and require \`Problem\`, \`Decision\`,
 reached; the CLI stamps it at every lifecycle move, alongside the git \`commit\`
 the decision was recorded against. \`created\` is the birth date, stamped once
 and never re-stamped, so the time axis survives later lifecycle moves. The
-\`decided-by\` field states whether a person or a machine initiated the
-decision; the CLI stamps it at the same moves from the environment the command
-runs in, and never rewrites it when a decision is superseded. It is an inferred
-stamp, not proof, and it is the only place git cannot answer: identity itself
-stays in git. Optional \`tags\` (kebab-case keywords) let \`adrkit graph\` group
-and filter decisions by theme. Drafts (\`adr/.drafts/\`, \`status:
-proposed\`) require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
-\`Acceptance criteria\`, and \`Risks\`, and carry no \`decided-by\`; \`adrkit
-accept\` promotes one into a decision, and \`adrkit reject\` discards it without
-leaving a record.
+\`decided-by\` field is inferred from the execution environment when the
+decision was recorded; it does not establish who chose or authorized it. The
+CLI stamps it at the same moves and preserves it when a decision is superseded.
+Likewise, \`accepted\` means a recorded decision, not proof of human review.
+Commit identity stays in git. Optional \`tags\` (kebab-case keywords) let
+\`adrkit graph\` group and filter decisions by theme. Drafts (\`adr/.drafts/\`,
+\`status: proposed\`) require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
+\`Acceptance criteria\`, and \`Risks\`, and carry no \`decided-by\`; \`adrkit accept\`
+promotes one into a decision, and \`adrkit reject\` discards it without leaving
+a record.
 
 Run \`adrkit validate\` to check every record.
 `;

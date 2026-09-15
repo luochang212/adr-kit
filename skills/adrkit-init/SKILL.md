@@ -48,11 +48,22 @@ verify the affected behavior. If no decisions apply, continue normally;
 reading does not require creating an ADR. Re-read on a new or resumed task,
 or when scope or relevant files change, rather than relying on conversation
 memory.
+
+Record an ADR when an architectural choice will constrain future development
+and its rationale is not apparent from code alone. Record only decisions
+actually made and genuine alternatives and trade-offs; do not invent reasons
+to fill a template. Reuse an existing record for the same choice; record a
+replacement when important assumptions change. Routine implementation details,
+local fixes, and easily reversible choices need no ADR. If no important
+architectural decision was made, create none. `accepted` means a recorded
+decision, not proof of human review. `decided-by` infers the execution
+environment, not who independently chose or authorized the decision.
 ```
 
 ## Rules
 
 - Never create `adr/` directories by hand; use the CLI so the config and
   README stay canonical.
-- After init, the next action is usually `adrkit decide "<title>"`, or
-  `adrkit propose "<title>"` when the decision still needs review.
+- After init, read existing decisions and continue the task. Use
+  `adrkit decide "<title>"` only for an important architectural choice already
+  made, or `adrkit propose "<title>"` when such a choice still needs review.

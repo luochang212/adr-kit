@@ -30,8 +30,9 @@ adrkit accept "<name>"
 - Re-run `adrkit show "<name>"` immediately before accepting, even if you
   reviewed it earlier in this conversation; the repo may have changed since.
 - The CLI stamps `decided-by` on the promoted decision from the environment
-  the command runs in, so the record states whether a person or a machine
-  promoted it. Do not try to set it.
+  the command runs in. It does not establish who independently chose or
+  authorized the decision. Do not try to set it.
+- `accepted` means a recorded decision, not proof of human review.
 - Review the generated `## Consequences` after accepting.
 - The command warns when a proposal contains sections that have no place in
   an accepted decision (for example `## Plan`); save their content elsewhere

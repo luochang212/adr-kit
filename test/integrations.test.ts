@@ -42,11 +42,17 @@ describe('initCommand tool integrations', () => {
       expect(init).toContain('read every decision in full');
       expect(init).toContain('update an equivalent section');
       expect(init).toContain('reading does not require creating an ADR');
+      expect(init).toContain('Record an ADR when an architectural choice will constrain future development');
+      expect(init).toContain('do not invent reasons');
+      expect(init).toContain('not proof of human review');
+      expect(init).toContain('not who independently chose or authorized the decision');
       for (const workflow of ['propose', 'decide']) {
         const command = readFileSync(join(root, target, `commands/adrkit-${workflow}.md`), 'utf8');
         expect(command).toContain('adrkit show <N>');
         expect(command).toContain('current code and requirements');
         expect(command).toContain('Reuse an existing decision');
+        expect(command).toContain('whose rationale is not apparent from code alone');
+        expect(command).toContain('local fixes, and easily reversible choices need no ADR');
       }
     }
     for (const file of ['AGENTS.md', 'CLAUDE.md']) {

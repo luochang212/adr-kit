@@ -1,6 +1,6 @@
 ---
 name: adrkit-decide
-description: Use when recording a decision that is already accepted and does not need a proposal phase.
+description: Use when work establishes an important architectural choice that will constrain future development and whose rationale is not apparent from code alone; record it after the choice is made.
 ---
 
 # ADR Kit Decide
@@ -9,6 +9,13 @@ description: Use when recording a decision that is already accepted and does not
 
 Record an already-made decision directly in `adr/decisions/` with the next
 `N` number.
+
+## When to record
+
+Use this workflow for architectural choices that constrain future development
+and whose rationale is not apparent from code alone. Routine implementation
+details, local fixes, and easily reversible choices need no ADR. Do not create
+an ADR for every task or invent alternatives and reasons to fill a template.
 
 ## Steps
 
@@ -33,6 +40,10 @@ adrkit decide "<title>"
 4. Run `adrkit validate <N>` until it returns OK.
 
 ## Rules
+
+- `accepted` means a recorded decision, not proof of human review.
+- `decided-by` infers the execution environment, not who independently chose
+  or authorized the decision.
 
 - Accepted decisions must not contain `## Proposal`, `## Acceptance
   criteria`, or `## Risks` sections.

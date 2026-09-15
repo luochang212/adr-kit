@@ -1,12 +1,13 @@
 # decision-provenance Specification
 
 ## Purpose
-Records and maintains the `decided-by` front matter field, which states
-whether a decision was initiated by a human or a machine, so a durable
-record no longer reads the same when a person authorized it and when an
-agent did. The capability stamps that field across the record lifecycle from
-the environment the command ran in, and defines the limits of the claim so
-the field is never presented as stronger evidence than it is.
+Records and maintains the `decided-by` front matter field, which the CLI
+infers from the environment the recording command ran in, so a durable record
+no longer reads the same whether an agent session or a plain human shell
+recorded it. The field does not establish who chose, authorized, or approved
+a decision. The capability stamps it across the record lifecycle from that
+environment, and defines the limits of the claim so the field is never
+presented as stronger evidence than it is.
 
 ## Requirements
 
@@ -155,14 +156,22 @@ The record-format reference SHALL state, in one place, that `decided-by` is
 an inferred environment stamp rather than an attested fact, that it is
 weaker evidence than the observed `date` and `commit` fields, and which
 actions defeat it (clearing or masking the detected session, invoking the
-command through a wrapper, or editing the file afterwards). Identity SHALL
-remain git's responsibility and SHALL NOT be duplicated into the record.
+command through a wrapper, or editing the file afterwards). It SHALL also
+state that the field does not establish who chose or authorized the decision.
+Identity SHALL remain git's responsibility and SHALL NOT be duplicated into
+the record.
 
 #### Scenario: reference states the trust boundary
 
 - **WHEN** a reader consults the record-format reference for `decided-by`
 - **THEN** the same section explains the inference, names it weaker than
   `date` and `commit`, and lists the ways it can be defeated
+
+#### Scenario: reference denies an authorization claim
+
+- **WHEN** a reader consults the record-format reference for `decided-by`
+- **THEN** the same section states that the field does not establish who chose
+  or authorized the decision
 
 #### Scenario: identity is not recorded
 

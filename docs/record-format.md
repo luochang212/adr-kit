@@ -37,18 +37,18 @@ never requires them.
 superseded decisions; a draft carries no value, and `validate` rejects one
 that does. The CLI stamps it from the environment the command runs in:
 `decide` and `accept` write it, `propose` never does, and `supersede`
-preserves the value the record already had, because the field states who
-made the decision and not who last rewrote the file. There is no flag to set
-it.
+preserves the original value. There is no flag to set it.
 
-Read it as an inferred stamp, weaker evidence than the observed `date` and
-`commit` fields. It proves nothing: clearing or masking the session markers,
-invoking `adrkit` through a wrapper, or editing the file afterwards all
-defeat it. Its job is to end accidental mislabeling, so a record no longer
-looks identical whether a person authorized it or an agent recorded it on its
-own. Identity is not recorded here; git owns who committed, and this field
-covers only the axis git cannot answer, because an agent session commits as
-the human user. `validate` never back-fills the field: a record that predates
+This is an execution-environment inference, not an authorization record, and it
+is weaker evidence than the observed `date` and `commit` fields. A human's
+choice recorded by an agent may be stamped `machine`; an unrecognized agent
+environment may be stamped `human`. Clearing session markers, invoking `adrkit`
+through a wrapper, or editing the file afterwards can defeat the inference. It
+cannot establish who independently chose or approved a decision. Likewise,
+`accepted` means the decision is formally recorded, not that a human has
+reviewed it. Git records commit identity separately.
+
+`validate` never back-fills the field: a record that predates
 it reports a missing `decided-by` until a person supplies the value they know
 to be true.
 

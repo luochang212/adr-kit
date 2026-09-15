@@ -72,7 +72,8 @@ adrkit list
 `CLAUDE.md`）加入[查阅规则](docs/zh/workflow.md#编码前查阅决策)。任务开始时用
 `adrkit list`、`adrkit show <N>` 读完现有决策，结合代码和新需求判断是否仍适用。
 初始化技能会引导补入规则；已有项目运行 `adrkit update` 后也需补入。
-CLI 不会自动修改项目指令文件。
+CLI 不会自动修改项目指令文件。只有持续约束后续开发、且理由难以从代码直接
+看出的架构选择才值得记录；普通修复无需 ADR，详见[记录门槛](docs/zh/workflow.md#何时值得记录)。
 
 ## 命令
 
@@ -148,11 +149,11 @@ tags: [frontend]
 关键词）让 `adrkit graph` 按主题分组和过滤决策。决策是不可变历史；当前
 事实以代码为准，不在记录里。
 
-`decided-by` 取值为 `human` 或 `machine`，由 CLI 按命令运行的环境盖章：
-它说明这条决策是人授权的，还是机器自行落盘的——这正是 git 答不了的一维，
-因为 agent 会话通常以人类用户身份提交。`supersede` 保留原值而不重盖。请把
-它读作推断出来的戳，而不是证明；它会被哪些手段推翻，[记录格式参考](docs/zh/record-format.md)
-写得很清楚。身份留在 git 里，且 `validate` 从不替早于该字段的记录回填。
+`accepted` 表示正式记录的决定，不代表人已审阅批准。`decided-by` 取值为
+`human` 或 `machine`，由 CLI 根据 `decide` 或 `accept` 运行时的环境推断。
+人作出的选择由 agent 代为记录，也可能标为 `machine`；它不能证明是谁自主
+拍板或授权。`supersede` 保留原值。局限见[记录格式参考](docs/zh/record-format.md)。
+身份留在 git 里，`validate` 从不替早于该字段的记录回填。
 
 - **决策**（`adr/decisions/N-slug.md`）是 `accepted` 或 `superseded`，
   需要 `Problem`、`Decision`、`Alternatives considered`、`Consequences`；

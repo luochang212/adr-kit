@@ -75,9 +75,10 @@ rejection lives in the winning decision's `Alternatives considered`. The
 Mark an accepted decision as superseded by a newer accepted decision. The
 old record's front matter becomes `status: superseded` with
 `superseded-by: N` and its `date` field is stamped with the supersede
-date; its `decided-by` value is preserved rather than re-stamped, since the
-field states who made the decision, not who rewrote the file; the file stays in
-`adr/decisions/` as history. `--by` must resolve to an existing accepted
+date; its `decided-by` value is preserved rather than re-stamped, since it
+describes the environment inferred when the decision was recorded, not the
+environment that ran the retirement; the file stays in `adr/decisions/` as
+history. `--by` must resolve to an existing accepted
 decision that is not itself superseded.
 
 ### `adrkit list [--json]`

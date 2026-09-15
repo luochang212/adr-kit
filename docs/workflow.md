@@ -1,5 +1,16 @@
 # Workflow
 
+## When to record
+
+Record architectural choices that constrain future development and whose
+rationale is not apparent from code alone, such as storage, module boundaries,
+compatibility, or deployment decisions. Record real choices and trade-offs;
+reuse existing records, and supersede them when important assumptions change.
+Routine implementation details and local fixes need no ADR. A task without
+an important architectural decision needs no new record or decision report.
+`accepted` denotes a recorded decision, not proof of human review;
+`decided-by` is an execution-environment inference, not an authorization record.
+
 ## The default path: record a decision
 
 ```text
@@ -52,10 +63,10 @@ adrkit supersede 1 --by 2
 The old record stays in `adr/decisions/` with `status: superseded` and
 `superseded-by: 2` in its front matter. Only the front matter is
 rewritten; the body is frozen history. The record's `decided-by` value is
-preserved rather than re-stamped: the field answers who made the decision,
-not which environment ran the retirement. `validate` checks that the
-referenced number exists and is not itself superseded, so a chain always
-ends at a currently-accepted decision.
+preserved rather than re-stamped: it describes the inferred environment when
+the decision was recorded, not the environment that ran the retirement.
+`validate` checks that the referenced number exists and is not itself
+superseded, so a chain always ends at a currently-accepted decision.
 
 ## Read decisions before coding
 
@@ -83,6 +94,16 @@ verify the affected behavior. If no decisions apply, continue normally;
 reading does not require creating an ADR. Re-read on a new or resumed task,
 or when scope or relevant files change, rather than relying on conversation
 memory.
+
+Record an ADR when an architectural choice will constrain future development
+and its rationale is not apparent from code alone. Record only decisions
+actually made and genuine alternatives and trade-offs; do not invent reasons
+to fill a template. Reuse an existing record for the same choice; record a
+replacement when important assumptions change. Routine implementation details,
+local fixes, and easily reversible choices need no ADR. If no important
+architectural decision was made, create none. `accepted` means a recorded
+decision, not proof of human review. `decided-by` infers the execution
+environment, not who independently chose or authorized the decision.
 ```
 
 ## Agent workflow

@@ -125,6 +125,8 @@ describe('initCommand', () => {
     // The generated README is where a repository's readers meet the field, so
     // it must state that the value is inferred rather than attested.
     expect(readme).toContain('inferred');
+    expect(readme).toContain('does not establish who chose or authorized it');
+    expect(readme).toContain('not proof of human review');
   });
 });
 

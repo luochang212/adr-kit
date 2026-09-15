@@ -84,14 +84,25 @@ verify the affected behavior. If no decisions apply, continue normally;
 reading does not require creating an ADR. Re-read on a new or resumed task,
 or when scope or relevant files change, rather than relying on conversation
 memory.
+
+Record an ADR when an architectural choice will constrain future development
+and its rationale is not apparent from code alone. Record only decisions
+actually made and genuine alternatives and trade-offs; do not invent reasons
+to fill a template. Reuse an existing record for the same choice; record a
+replacement when important assumptions change. Routine implementation details,
+local fixes, and easily reversible choices need no ADR. If no important
+architectural decision was made, create none. \`accepted\` means a recorded
+decision, not proof of human review. \`decided-by\` infers the execution
+environment, not who independently chose or authorized the decision.
 \`\`\`
 
 ## Rules
 
 - Never create \`adr/\` directories by hand; use the CLI so the config and
   README stay canonical.
-- After init, the next action is usually \`adrkit decide "<title>"\`, or
-  \`adrkit propose "<title>"\` when the decision still needs review.`,
+- After init, read existing decisions and continue the task. Use
+  \`adrkit decide "<title>"\` only for an important architectural choice already
+  made, or \`adrkit propose "<title>"\` when such a choice still needs review.`,
   },
   {
     name: 'adrkit-propose',
@@ -103,6 +114,13 @@ memory.
 Create an ephemeral proposal draft in \`adr/.drafts/\`. A draft is temporary:
 \`adrkit accept\` promotes it into a decision, \`adrkit reject\` discards it
 without leaving a record.
+
+## When to record
+
+Use this workflow for architectural choices that constrain future development
+and whose rationale is not apparent from code alone. Routine implementation
+details, local fixes, and easily reversible choices need no ADR. Do not create
+an ADR for every task or invent alternatives and reasons to fill a template.
 
 ## Steps
 
@@ -139,13 +157,20 @@ adrkit propose "<title>"
   },
   {
     name: 'adrkit-decide',
-    description: 'Use when recording a decision that is already accepted and does not need a proposal phase.',
+    description: 'Use when work establishes an important architectural choice that will constrain future development and whose rationale is not apparent from code alone; record it after the choice is made.',
     body: `# ADR Kit Decide
 
 ## Overview
 
 Record an already-made decision directly in \`adr/decisions/\` with the next
 \`N\` number.
+
+## When to record
+
+Use this workflow for architectural choices that constrain future development
+and whose rationale is not apparent from code alone. Routine implementation
+details, local fixes, and easily reversible choices need no ADR. Do not create
+an ADR for every task or invent alternatives and reasons to fill a template.
 
 ## Steps
 
@@ -170,6 +195,10 @@ adrkit decide "<title>"
 4. Run \`adrkit validate <N>\` until it returns OK.
 
 ## Rules
+
+- \`accepted\` means a recorded decision, not proof of human review.
+- \`decided-by\` infers the execution environment, not who independently chose
+  or authorized the decision.
 
 - Accepted decisions must not contain \`## Proposal\`, \`## Acceptance
   criteria\`, or \`## Risks\` sections.
@@ -236,8 +265,9 @@ adrkit accept "<name>"
 - Re-run \`adrkit show "<name>"\` immediately before accepting, even if you
   reviewed it earlier in this conversation; the repo may have changed since.
 - The CLI stamps \`decided-by\` on the promoted decision from the environment
-  the command runs in, so the record states whether a person or a machine
-  promoted it. Do not try to set it.
+  the command runs in. It does not establish who independently chose or
+  authorized the decision. Do not try to set it.
+- \`accepted\` means a recorded decision, not proof of human review.
 - Review the generated \`## Consequences\` after accepting.
 - The command warns when a proposal contains sections that have no place in
   an accepted decision (for example \`## Plan\`); save their content elsewhere

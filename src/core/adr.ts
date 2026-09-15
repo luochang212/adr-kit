@@ -54,9 +54,10 @@ export interface AdrRecord {
   /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
   date: string;
   /**
-   * For durable records: whether a person or a machine initiated the
-   * decision, stamped by the CLI from its execution environment. A draft
-   * never carries it (see the proposal-era rules in validate).
+   * For durable records: the environment (`human` or `machine`) the CLI
+   * inferred when it stamped the record. It does not establish who chose or
+   * authorized the decision. A draft never carries it (see the proposal-era
+   * rules in validate).
    */
   decidedBy?: DecidedBy;
   /** Date the record was created; stamped once and never re-stamped, so the
