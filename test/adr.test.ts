@@ -268,6 +268,43 @@ describe('created and tags', () => {
   });
 });
 
+describe('decided-by', () => {
+  it('parses both values and writes them between date and created', () => {
+    for (const value of ['human', 'machine'] as const) {
+      const text = renderAdr({
+        title: '1 Use SQLite',
+        fields: {
+          status: 'accepted',
+          date: '2026-08-19',
+          'decided-by': value,
+          created: '2026-08-17',
+        },
+        sections: [{ heading: 'Problem', body: 'Body.\n' }],
+      });
+      expect(text).toContain(`date: 2026-08-19\ndecided-by: ${value}\ncreated: 2026-08-17`);
+
+      const record = parseAdrFile(write('1-x.md', text));
+      expect(record.decidedBy).toBe(value);
+      expect(record.frontMatterExtras).toBeUndefined();
+    }
+  });
+
+  it('rejects any other value and names the accepted ones', () => {
+    expect(() =>
+      parseAdrFile(
+        write(
+          '1-x.md',
+          renderAdr({
+            title: '1 Use SQLite',
+            fields: { status: 'accepted', date: '2026-08-19', 'decided-by': 'robot' },
+            sections: [{ heading: 'Problem', body: 'Body.\n' }],
+          }),
+        ),
+      ),
+    ).toThrow(/decided-by must be "human" or "machine"/);
+  });
+});
+
 describe('renderAdr', () => {
   it('renders the canonical front matter field order', () => {
     const text = renderAdr({

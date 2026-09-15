@@ -51,7 +51,9 @@ adrkit supersede 1 --by 2
 
 The old record stays in `adr/decisions/` with `status: superseded` and
 `superseded-by: 2` in its front matter. Only the front matter is
-rewritten; the body is frozen history. `validate` checks that the
+rewritten; the body is frozen history. The record's `decided-by` value is
+preserved rather than re-stamped: the field answers who made the decision,
+not which environment ran the retirement. `validate` checks that the
 referenced number exists and is not itself superseded, so a chain always
 ends at a currently-accepted decision.
 

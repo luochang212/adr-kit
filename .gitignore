@@ -2,6 +2,11 @@ node_modules/
 dist/
 coverage/
 archived/
+
+# This repository implements adr-kit, so it governs its own changes with
+# OpenSpec instead of dogfooding adr/ records: a durable, immutable decision
+# log would block the breaking format changes the tool needs to make.
+adr/
 *.tgz
 .DS_Store
 *.log

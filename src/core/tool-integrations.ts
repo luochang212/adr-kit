@@ -56,7 +56,8 @@ adrkit init [path]
 
 3. Confirm the output lists \`adr/config.yaml\`, \`adr/decisions\`, and
    \`adr/.gitignore\`. Proposals are not a separate folder: they are ephemeral
-   drafts in \`adr/.drafts/\`, created by \`adrkit propose\`.
+   drafts in \`adr/.drafts/\`, created by \`adrkit propose\`. Durable records
+   carry a machine-stamped \`decided-by\` field; drafts never do.
 
 ## Rules
 
@@ -96,7 +97,10 @@ adrkit propose "<title>"
 
 - Do not skip \`## Alternatives considered\`. A proposal without alternatives
   is invalid by design.
-- Keep the front matter exactly \`status: proposed\`.
+- Keep the front matter exactly \`status: proposed\`. Never write
+  \`decided-by\`: the CLI stamps it at promotion from the environment that
+  promotes the draft, and a hand-written value is rejected while the draft
+  exists and dropped when it is promoted.
 - Before proposing, run \`adrkit list\` and check whether this decision
   supersedes or overlaps an existing one; mention that in the record. Re-run
   it even if you ran it earlier in this conversation: session memory can be
@@ -130,6 +134,10 @@ adrkit decide "<title>"
 
 - Accepted decisions must not contain \`## Proposal\`, \`## Acceptance
   criteria\`, or \`## Risks\` sections.
+- Never edit the \`decided-by\` field: the CLI stamps it from the environment
+  the command runs in. Hand-editing it is a false provenance claim, and
+  \`adrkit validate\` reports the field as missing on records that predate it -
+  say so and let the human supply the value rather than inventing one.
 - \`adrkit accept\` is the better path when a proposal already exists.`,
   },
   {
@@ -153,6 +161,9 @@ adrkit validate [name] [--all] [--json]
 ## Rules
 
 - Treat any non-OK output as a blocker for \`adrkit accept\`.
+- A \`front matter must include "decided-by"\` issue on a record that predates
+  the field is not yours to repair: report it and let a human supply the
+  value, because only they know who initiated that decision.
 - \`adrkit validate\` checks durable decisions only; a draft in \`adr/.drafts/\`
   is validated by \`adrkit accept\` right before it is promoted.`,
   },
@@ -185,6 +196,9 @@ adrkit accept "<name>"
 - Never accept an invalid draft; the command refuses.
 - Re-run \`adrkit show "<name>"\` immediately before accepting, even if you
   reviewed it earlier in this conversation; the repo may have changed since.
+- The CLI stamps \`decided-by\` on the promoted decision from the environment
+  the command runs in, so the record states whether a person or a machine
+  promoted it. Do not try to set it.
 - Review the generated \`## Consequences\` after accepting.
 - The command warns when a proposal contains sections that have no place in
   an accepted decision (for example \`## Plan\`); save their content elsewhere
@@ -242,7 +256,9 @@ adrkit supersede "<old name or number>" --by "<new name or number>"
 - Re-run \`adrkit list\` right before superseding to confirm the \`--by\` target
   still exists and is not itself superseded, even if you checked earlier in
   this conversation.
-- Never hand-edit a superseded record afterwards; it is history.
+- Never hand-edit a superseded record afterwards; it is history, including
+  its \`decided-by\` value, which the command preserves rather than re-stamping
+  with the environment that ran the supersede.
 - Mention what it supersedes in the new decision's \`## Problem\` section so
   the causal link survives in prose.`,
   },

@@ -31,7 +31,10 @@ adrkit propose "<title>"
 
 - Do not skip `## Alternatives considered`. A proposal without alternatives
   is invalid by design.
-- Keep the front matter exactly `status: proposed`.
+- Keep the front matter exactly `status: proposed`. Never write
+  `decided-by`: the CLI stamps it at promotion from the environment that
+  promotes the draft, and a hand-written value is rejected while the draft
+  exists and dropped when it is promoted.
 - Before proposing, run `adrkit list` and check whether this decision
   supersedes or overlaps an existing one; mention that in the record. Re-run
   it even if you ran it earlier in this conversation: session memory can be

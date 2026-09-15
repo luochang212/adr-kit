@@ -20,7 +20,9 @@ import { validateCommand } from './commands/validate.js';
 const HELP = `adrkit ${VERSION} - A lightweight ADR workflow for humans and agents
 
 Decisions are durable records in adr/decisions/. Proposals are ephemeral drafts
-in adr/.drafts/ that are promoted by accept or discarded by reject.
+in adr/.drafts/ that are promoted by accept or discarded by reject. A durable
+record's decided-by field (human or machine) is stamped by the CLI from the
+environment it runs in.
 
 Usage:
   adrkit init [path] [--tools <list>] [--workflows <list>]

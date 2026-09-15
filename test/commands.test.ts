@@ -117,6 +117,57 @@ describe('initCommand', () => {
     expect(readme).toContain('tags: [frontend]');
     expect(readme).toContain('never re-stamped');
   });
+
+  it('documents the decided-by field in the generated README', () => {
+    const root = makeRepo();
+    const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
+    expect(readme).toContain('decided-by: human | machine');
+    // The generated README is where a repository's readers meet the field, so
+    // it must state that the value is inferred rather than attested.
+    expect(readme).toContain('inferred');
+  });
+});
+
+describe('decided-by stamping', () => {
+  it('stamps a human decide between date and created', () => {
+    const root = makeRepo();
+    decideCommand('Use SQLite', root, {});
+    const lines = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8').split(
+      /\r?\n/,
+    );
+    expect(lines[1]).toBe('status: accepted');
+    expect(lines[2]).toBe(`date: ${todayStamp()}`);
+    expect(lines[3]).toBe('decided-by: human');
+    expect(lines[4]).toBe(`created: ${todayStamp()}`);
+  });
+
+  it('stamps a machine decide when an agent session is detected', () => {
+    const root = makeRepo();
+    decideCommand('Use SQLite', root, { CLAUDECODE: '1' });
+    expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
+      'decided-by: machine',
+    );
+  });
+
+  it('writes no decided-by into a fresh draft', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const draft = readFileSync(draftPath(root, `${todayStamp()}-use-sqlite.md`), 'utf8');
+    expect(draft).not.toContain('decided-by');
+  });
+
+  it('rejects an origin-naming flag instead of honoring it', () => {
+    const root = makeRepo();
+    const previousCwd = process.cwd();
+    try {
+      process.chdir(root);
+      // parseArgs rejects the option before any command runs; the bin wrapper
+      // is what turns the rejection into a message and a non-zero exit code.
+      expect(() => main(['list', '--decided-by', 'human'])).toThrow(/Unknown option '--decided-by'/);
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
 });
 
 describe('propose and accept', () => {

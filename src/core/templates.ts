@@ -5,6 +5,7 @@ import {
   section,
   todayStamp,
   type AdrRecord,
+  type DecidedBy,
 } from './adr.js';
 
 /** Proposal sections that survive the mechanical accept rewrite. */
@@ -82,12 +83,19 @@ ${contextBlock(context)}## Problem
 `;
 }
 
-export function decisionTemplate(number: number, title: string, context?: string, commit?: string): string {
+export function decisionTemplate(
+  number: number,
+  title: string,
+  context?: string,
+  commit?: string,
+  decidedBy?: DecidedBy,
+): string {
   const fields: Record<string, string | number> = {
     status: 'accepted',
     date: todayStamp(),
     created: todayStamp(),
   };
+  if (decidedBy !== undefined) fields['decided-by'] = decidedBy;
   if (commit !== undefined) fields.commit = commit;
   return `${frontMatter(fields)}
 # ADR: ${number} ${title}
@@ -116,8 +124,17 @@ ${contextBlock(context)}## Problem
  * rewrite the format requires: Proposal becomes Decision, and the
  * acceptance criteria and risks are folded into Consequences. `commit` anchors
  * the decision to the code state it was recorded against.
+ *
+ * `decidedBy` is the origin detected at promotion time, not the draft's: the
+ * front matter below is rebuilt from a fixed field map, so a `decided-by` key
+ * written by hand into a draft has no path into the decision.
  */
-export function proposalToDecision(proposal: AdrRecord, number: number, commit?: string): string {
+export function proposalToDecision(
+  proposal: AdrRecord,
+  number: number,
+  commit?: string,
+  decidedBy?: DecidedBy,
+): string {
   const problem = sectionBody(proposal, 'Problem');
   const decision = sectionBody(proposal, 'Proposal');
   const alternatives = sectionBody(proposal, 'Alternatives considered');
@@ -152,6 +169,7 @@ export function proposalToDecision(proposal: AdrRecord, number: number, commit?:
     // once, at propose time, and survives the promotion.
     created: proposal.created ?? todayStamp(),
   };
+  if (decidedBy !== undefined) fields['decided-by'] = decidedBy;
   if (commit !== undefined) fields.commit = commit;
   let output = `${frontMatter(fields)}
 # ADR: ${number} ${proposal.title}

@@ -46,19 +46,23 @@ on the first `adrkit propose`.
 
 Record an already-made decision in `adr/decisions/N-slug.md` with the
 next available number. This is the default path. Titles must not start with
-a number.
+a number. The new record is stamped with `decided-by: human` or `machine`,
+detected from the environment the command runs in; there is no flag to set
+it.
 
 ### `adrkit propose <title>`
 
 Create an ephemeral proposal draft in `adr/.drafts/YYYY-MM-DD-slug.md`. A
 draft is temporary: `accept` promotes it to a numbered decision, `reject`
 discards it without leaving a record. Titles must not start with a number.
+Drafts carry no `decided-by`; writing one into a draft is an error.
 
 ### `adrkit accept <name>`
 
 Validate a draft, assign the next `N` number, rewrite the lifecycle
 sections, write `adr/decisions/N-slug.md`, and discard the draft.
-The draft's title must not start with a number.
+The draft's title must not start with a number. The promoted decision is
+stamped with the `decided-by` value detected at promotion time.
 
 ### `adrkit reject <name> [--reason <text>]`
 
@@ -71,7 +75,8 @@ rejection lives in the winning decision's `Alternatives considered`. The
 Mark an accepted decision as superseded by a newer accepted decision. The
 old record's front matter becomes `status: superseded` with
 `superseded-by: N` and its `date` field is stamped with the supersede
-date; the file stays in
+date; its `decided-by` value is preserved rather than re-stamped, since the
+field states who made the decision, not who rewrote the file; the file stays in
 `adr/decisions/` as history. `--by` must resolve to an existing accepted
 decision that is not itself superseded.
 

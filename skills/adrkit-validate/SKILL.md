@@ -21,5 +21,8 @@ adrkit validate [name] [--all] [--json]
 ## Rules
 
 - Treat any non-OK output as a blocker for `adrkit accept`.
+- A `front matter must include "decided-by"` issue on a record that predates
+  the field is not yours to repair: report it and let a human supply the
+  value, because only they know who initiated that decision.
 - `adrkit validate` checks durable decisions only; a draft in `adr/.drafts/`
   is validated by `adrkit accept` right before it is promoted.

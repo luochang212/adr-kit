@@ -48,8 +48,10 @@ adrkit supersede 1 --by 2
 ```
 
 旧记录留在 `adr/decisions/`，front matter 为 `status: superseded` 加
-`superseded-by: 2`。只改写 front matter；正文是冻结历史。`validate` 会校验
-被引用的编号存在且自身未被取代，所以链条总是终止于当前仍被接受的决策。
+`superseded-by: 2`。只改写 front matter；正文是冻结历史。记录的 `decided-by`
+值会被保留而不是重盖：这个字段回答的是谁做的决策，而不是退役动作由哪个
+环境执行。`validate` 会校验被引用的编号存在且自身未被取代，所以链条总是
+终止于当前仍被接受的决策。
 
 ## Agent 工作流
 

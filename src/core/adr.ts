@@ -4,6 +4,13 @@ import { parse } from 'yaml';
 
 export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
 /**
+ * Whether the decision was initiated by a person or by a machine, stamped by
+ * the CLI from the environment it ran in. Identity is git's job; this is the
+ * one axis git cannot answer, because an agent session commits as the human
+ * user. The value is an inferred environment stamp, not attestation.
+ */
+export type DecidedBy = 'human' | 'machine';
+/**
  * The durable records folder (`decisions/`) and the ephemeral drafts folder
  * (`adr/.drafts/`). Status is never implied by location: durable records carry
  * their own status, and drafts are proposals that will either be promoted or
@@ -12,7 +19,7 @@ export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
 export type AdrFolder = 'decisions' | 'drafts';
 
 /** Canonical front matter field order; only fields that exist are written. */
-export const FRONT_MATTER_ORDER = ['status', 'date', 'created', 'commit', 'superseded-by', 'reason', 'tags'] as const;
+export const FRONT_MATTER_ORDER = ['status', 'date', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'tags'] as const;
 
 /** Sections that only make sense during the proposal era and must not appear in an accepted decision. */
 export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
@@ -46,6 +53,12 @@ export interface AdrRecord {
   status: AdrStatus;
   /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
   date: string;
+  /**
+   * For durable records: whether a person or a machine initiated the
+   * decision, stamped by the CLI from its execution environment. A draft
+   * never carries it (see the proposal-era rules in validate).
+   */
+  decidedBy?: DecidedBy;
   /** Date the record was created; stamped once and never re-stamped, so the
    * time axis survives later lifecycle moves. */
   created?: string;
@@ -90,6 +103,7 @@ export function hasMeaningfulBody(body: string | undefined): boolean {
  *   ---
  *   status: proposed | accepted | rejected | superseded
  *   date: YYYY-MM-DD
+ *   decided-by: human | machine   (durable records only)
  *   reason: <why>            (rejected only)
  *   superseded-by: <N>       (superseded only)
  *   ---
@@ -156,6 +170,18 @@ export function parseAdrFile(filePath: string): AdrRecord {
     throw new AdrFormatError('date must be a "YYYY-MM-DD" string', filePath);
   }
   const date = dateText;
+
+  let decidedBy: DecidedBy | undefined;
+  const decidedByField = fields['decided-by'];
+  if (decidedByField !== undefined) {
+    if (decidedByField !== 'human' && decidedByField !== 'machine') {
+      throw new AdrFormatError(
+        'decided-by must be "human" or "machine"',
+        filePath,
+      );
+    }
+    decidedBy = decidedByField;
+  }
 
   let created: string | undefined;
   const createdField = fields['created'];
@@ -258,6 +284,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
     sections,
   };
   if (commit !== undefined) parsed.commit = commit;
+  if (decidedBy !== undefined) parsed.decidedBy = decidedBy;
   if (created !== undefined) parsed.created = created;
   if (tags !== undefined) parsed.tags = tags;
   if (rejectionReason !== undefined) parsed.rejectionReason = rejectionReason;

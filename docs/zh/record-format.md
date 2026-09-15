@@ -6,6 +6,7 @@
 ---
 status: accepted | superseded
 date: YYYY-MM-DD
+decided-by: human | machine
 created: YYYY-MM-DD
 commit: abc1234
 tags: [frontend]
@@ -14,16 +15,32 @@ tags: [frontend]
 # ADR: N <title>
 ```
 
-front matter 字段按 `status`、`date`、`created`、`commit`、`superseded-by`、
-`reason`、`tags` 的顺序书写，只写适用的字段。`commit` 是该决策对应的短 git
-hash，仓库处于 git 下时自动盖章。`superseded-by` 仅在 superseded 决策上必填，
-其他状态禁止出现。未知字段会被 `validate` 报告。
+front matter 字段按 `status`、`date`、`decided-by`、`created`、`commit`、
+`superseded-by`、`reason`、`tags` 的顺序书写，只写适用的字段。`commit` 是该决策
+对应的短 git hash，仓库处于 git 下时自动盖章。`superseded-by` 仅在
+superseded 决策上必填，其他状态禁止出现。未知字段会被 `validate` 报告。
 
 `date` 字段记录当前状态达成的日期。CLI 在每次生命周期迁移时自动盖章
 （`decide`、`accept`、`supersede`），由机器写入，不靠人工维护。`created`
 是创建日期，创建时盖一次、永不重盖，让时间轴在后续生命周期迁移后依然成立。
 `tags` 是可选的 kebab-case 关键词列表（如 `frontend`、`execution-layer`），
 `adrkit graph` 用它按主题分组和过滤决策；`validate` 只校验形状、从不要求必填。
+
+## 人还是机器：`decided-by`
+
+`decided-by` 取值为 `human` 或 `machine`，accepted 与 superseded 决策必填；
+草稿不带这个字段，带了会被 `validate` 拒绝。这个值由 CLI 按命令运行的环境
+盖章：`decide` 与 `accept` 会写，`propose` 从不写，`supersede` 保留记录原有
+的值——因为该字段回答的是「谁做的这个决策」，不是「谁最后重写了这个文件」。
+没有任何命令行参数可以设置它。
+
+请把它读作一个**推断出来的戳**，可信度低于客观观测的 `date` 与 `commit`。
+它证明不了任何事：清掉或掩盖会话标记、用 wrapper 调用 `adrkit`、事后手改
+文件，都能推翻它。它的作用是终结「无意间标错」：让一条记录不再看起来人
+授权和 agent 自行落盘完全一样。它不记录身份——谁提交由 git 负责，这个字段
+只覆盖 git 回答不了的那一维，因为 agent 会话通常就是以人类用户身份提交的。
+`validate` 从不回填这个字段：早于该字段存在的记录会一直报缺少 `decided-by`，
+直到有人填上自己知道为真的值。
 
 ## 草稿（提案）
 

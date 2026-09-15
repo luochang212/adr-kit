@@ -130,6 +130,7 @@ Every record is YAML front matter followed by a Markdown body:
 ---
 status: accepted
 date: 2026-08-19
+decided-by: human
 created: 2026-08-17
 commit: abc1234
 tags: [frontend]
@@ -148,6 +149,15 @@ re-stamped, so the time axis survives later lifecycle moves. Optional
 `tags` (kebab-case keywords) let `adrkit graph` group and filter decisions
 by theme. Decisions are immutable history; the current facts
 live in code, not in the record.
+
+`decided-by` is `human` or `machine`, stamped by the CLI from the
+environment the command runs in: it states whether a person authorized the
+decision or a machine recorded it, which is the one thing git cannot say,
+because an agent session commits as the human user. `supersede` preserves
+the value rather than re-stamping it. Read it as an inferred stamp, not
+proof; [the record format reference](docs/record-format.md) spells out what
+defeats it. Identity stays in git, and `validate` never back-fills the field
+for records that predate it.
 
 - **Decisions** (`adr/decisions/N-slug.md`) are `accepted` or `superseded`
   and require `Problem`, `Decision`, `Alternatives considered`, and

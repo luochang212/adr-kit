@@ -1,10 +1,12 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
 import { initCommand } from '../src/commands/init.js';
+import { proposeCommand } from '../src/commands/propose.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { folderPath } from '../src/core/repository.js';
+import { folderPath, listDrafts } from '../src/core/repository.js';
+import { formatIssues, validateDraft } from '../src/core/validate.js';
 
 const tempDirs: string[] = [];
 
@@ -16,11 +18,17 @@ function makeRepo(): string {
 }
 
 function decision(title: string, fields: Record<string, string | number>): string {
-  // `created` is required; default it to the status date so fixtures stay terse.
+  // `decided-by` and `created` are required; default them so fixtures stay
+  // terse. A fixture that needs the field missing passes `decided-by: ''`,
+  // which renders an invalid value the parser rejects — tests that omit the
+  // field build their front matter by hand instead.
   const entries: Array<[string, string | number]> = [];
   for (const [key, value] of Object.entries(fields)) {
     entries.push([key, value]);
-    if (key === 'date' && !('created' in fields)) entries.push(['created', value]);
+    if (key === 'date') {
+      if (!('decided-by' in fields)) entries.push(['decided-by', 'human']);
+      if (!('created' in fields)) entries.push(['created', value]);
+    }
   }
   const frontMatter = entries.map(([key, value]) => `${key}: ${value}`).join('\n');
   return `---
@@ -262,8 +270,7 @@ Body.
     expect(result.output).toContain('created contains an invalid calendar date');
   });
 
-  it('flags malformed, duplicate, and empty tags', () => {
-    const root = makeRepo();
+  it('flags malformed, duplicate, and empty tags', () => {    const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-first.md'),
       `---
@@ -325,5 +332,101 @@ Body.
     expect(result.output).toContain('tag "Execution Layer" must be lowercase kebab-case');
     expect(result.output).toContain('duplicate tag "sandbox"');
     expect(result.output).toContain('tags must not be empty');
+  });
+});
+
+describe('decided-by', () => {
+  /** The `decision()` helper always writes the field; drop it for these fixtures. */
+  function withoutDecidedBy(title: string, fields: Record<string, string | number>): string {
+    return decision(title, fields).replace('decided-by: human\n', '');
+  }
+
+  it('flags a record missing decided-by and leaves the file untouched', () => {
+    const root = makeRepo();
+    const content = withoutDecidedBy('1 First', ACCEPTED);
+    const path = join(folderPath(root, 'decisions'), '1-first.md');
+    writeFileSync(path, content);
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('front matter must include "decided-by"');
+    // Nothing repairs history: validation is read-only, so a machine never
+    // invents an origin for a decision recorded before the field existed.
+    expect(readFileSync(path, 'utf8')).toBe(content);
+  });
+
+  it('flags a superseded record missing decided-by', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      withoutDecidedBy('1 First', { status: 'superseded', date: '2026-08-19', 'superseded-by': 2 }),
+    );
+    writeFileSync(join(folderPath(root, 'decisions'), '2-second.md'), decision('2 Second', ACCEPTED));
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('front matter must include "decided-by"');
+  });
+
+  it('passes records carrying either accepted value', () => {
+    for (const value of ['human', 'machine'] as const) {
+      const root = makeRepo();
+      writeFileSync(
+        join(folderPath(root, 'decisions'), '1-first.md'),
+        decision('1 First', { ...ACCEPTED, 'decided-by': value }),
+      );
+      expect(validateCommand(root).valid).toBe(true);
+    }
+  });
+
+  it('flags decided-by on a draft', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    const content = readFileSync(file, 'utf8').replace('created:', 'decided-by: human\ncreated:');
+    writeFileSync(file, content);
+
+    const issues = validateDraft(root, listDrafts(root)[0]!);
+    expect(formatIssues(issues)).toContain(
+      '"decided-by" is stamped at promotion and must not appear on a draft',
+    );
+  });
+
+  it('accepts a draft without the field', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    writeFileSync(
+      file,
+      `---
+status: proposed
+date: 2026-08-19
+created: 2026-08-19
+---
+
+# ADR: Use SQLite
+
+## Problem
+
+We need durable storage.
+
+## Proposal
+
+Use SQLite.
+
+## Alternatives considered
+
+- **JSON files**: rejected.
+
+## Acceptance criteria
+
+It works.
+
+## Risks
+
+Some risk.
+`,
+    );
+    expect(validateDraft(root, listDrafts(root)[0]!)).toEqual([]);
   });
 });

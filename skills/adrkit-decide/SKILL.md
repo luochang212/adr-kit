@@ -28,4 +28,8 @@ adrkit decide "<title>"
 
 - Accepted decisions must not contain `## Proposal`, `## Acceptance
   criteria`, or `## Risks` sections.
+- Never edit the `decided-by` field: the CLI stamps it from the environment
+  the command runs in. Hand-editing it is a false provenance claim, and
+  `adrkit validate` reports the field as missing on records that predate it -
+  say so and let the human supply the value rather than inventing one.
 - `adrkit accept` is the better path when a proposal already exists.

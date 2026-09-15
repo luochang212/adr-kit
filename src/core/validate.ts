@@ -156,6 +156,16 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   const dateError = dateIssue(record);
   if (dateError !== undefined) issues.push({ path, message: dateError });
   issues.push(...createdIssues(path, record));
+  /**
+   * The parser enforces the two allowed values; this enforces presence. The
+   * field is stamped by the CLI from its execution environment, so a durable
+   * record missing it was either written by hand or predates the field.
+   * Nothing here repairs it: a machine inventing an origin for a past
+   * decision is the fabricated history this field exists to prevent.
+   */
+  if (record.decidedBy === undefined) {
+    issues.push({ path, message: 'front matter must include "decided-by"' });
+  }
   if (record.tags !== undefined) issues.push(...tagsIssues(path, record.tags));
 
   if (!/^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/.test(record.fileName)) {
@@ -199,6 +209,13 @@ export function validateDraft(root: string, draft: AdrRecord): ValidationIssue[]
 
   if (draft.status !== 'proposed') {
     issues.push({ path, message: `draft status must be "proposed"` });
+  }
+
+  // A draft has not taken effect, so it has no decision to attribute. The key
+  // is rejected rather than ignored: promotion rebuilds the front matter from
+  // the canonical fields, so a value written here would silently vanish.
+  if (draft.decidedBy !== undefined) {
+    issues.push({ path, message: '"decided-by" is stamped at promotion and must not appear on a draft' });
   }
 
   const dateError = dateIssue(draft);

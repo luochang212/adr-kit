@@ -124,6 +124,7 @@ adrkit version                         查看版本
 ---
 status: accepted
 date: 2026-08-19
+decided-by: human
 created: 2026-08-17
 commit: abc1234
 tags: [frontend]
@@ -140,6 +141,12 @@ tags: [frontend]
 永不重盖，让时间轴在后续生命周期迁移后依然成立。可选的 `tags`（kebab-case
 关键词）让 `adrkit graph` 按主题分组和过滤决策。决策是不可变历史；当前
 事实以代码为准，不在记录里。
+
+`decided-by` 取值为 `human` 或 `machine`，由 CLI 按命令运行的环境盖章：
+它说明这条决策是人授权的，还是机器自行落盘的——这正是 git 答不了的一维，
+因为 agent 会话通常以人类用户身份提交。`supersede` 保留原值而不重盖。请把
+它读作推断出来的戳，而不是证明；它会被哪些手段推翻，[记录格式参考](docs/zh/record-format.md)
+写得很清楚。身份留在 git 里，且 `validate` 从不替早于该字段的记录回填。
 
 - **决策**（`adr/decisions/N-slug.md`）是 `accepted` 或 `superseded`，
   需要 `Problem`、`Decision`、`Alternatives considered`、`Consequences`；

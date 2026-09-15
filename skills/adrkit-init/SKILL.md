@@ -20,7 +20,8 @@ adrkit init [path]
 
 3. Confirm the output lists `adr/config.yaml`, `adr/decisions`, and
    `adr/.gitignore`. Proposals are not a separate folder: they are ephemeral
-   drafts in `adr/.drafts/`, created by `adrkit propose`.
+   drafts in `adr/.drafts/`, created by `adrkit propose`. Durable records
+   carry a machine-stamped `decided-by` field; drafts never do.
 
 ## Rules
 

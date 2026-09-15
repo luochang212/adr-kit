@@ -68,6 +68,7 @@ Body.
       `---
 status: accepted
 date: 2026-08-19
+decided-by: human
 created: 2026-08-19
 ---
 

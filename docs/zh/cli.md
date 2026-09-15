@@ -34,18 +34,20 @@ adr/
 ### `adrkit decide <title>`
 
 直接记录一条已做的决策到 `adr/decisions/N-slug.md`（默认路径）。标题不得
-以数字开头。
+以数字开头。新记录会盖上 `decided-by: human` 或 `machine`，值由命令运行的
+环境探测得出，没有参数可以设置它。
 
 ### `adrkit propose <title>`
 
 在 `adr/.drafts/YYYY-MM-DD-slug.md` 创建临时提案草稿。草稿是临时的：
 `accept` 把它提升为编号决策，`reject` 直接丢弃、不留记录。标题不得以数字
-开头。
+开头。草稿不带 `decided-by`；写进去会被判为错误。
 
 ### `adrkit accept <name>`
 
 校验草稿，分配下一个 `N` 编号，改写生命周期 section，写入
-`adr/decisions/N-slug.md` 并删除草稿。草稿标题不得以数字开头。
+`adr/decisions/N-slug.md` 并删除草稿。草稿标题不得以数字开头。提升后的决策
+盖上提升时刻探测到的 `decided-by` 值。
 
 ### `adrkit reject <name> [--reason <text>]`
 

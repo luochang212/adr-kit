@@ -10,6 +10,8 @@ import { statusCommand } from '../src/commands/status.js';
 import { supersedeCommand } from '../src/commands/supersede.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { todayStamp } from '../src/core/adr.js';
+import { listDrafts } from '../src/core/repository.js';
+import { formatIssues, validateDraft } from '../src/core/validate.js';
 
 const tempDirs: string[] = [];
 
@@ -20,8 +22,12 @@ function makeRepo(): string {
   return dir;
 }
 
-/** propose → fill → accept，返回 slug。 */
-function acceptDecision(root: string, title: string): string {
+/** propose → fill → accept，返回 slug。可选 env 用于驱动 decided-by 两个分支。 */
+function acceptDecision(
+  root: string,
+  title: string,
+  env: Record<string, string | undefined> = {},
+): string {
   proposeCommand(title, root);
   const listing = JSON.parse(listCommand(root, true)) as Array<{ fileName: string; folder: string }>;
   const draft = listing.find((record) => record.folder === 'drafts');
@@ -55,7 +61,7 @@ It works.
 
 Some risk.
 `);
-  acceptCommand(title, root);
+  acceptCommand(title, root, env);
   return slug;
 }
 
@@ -78,8 +84,11 @@ describe('supersedeCommand', () => {
     const lines = old.split(/\r?\n/);
     expect(lines[1]).toBe('status: superseded');
     expect(lines[2]).toBe(`date: ${todayStamp()}`);
-    expect(lines[3]).toBe('created: 2026-08-19');
-    expect(lines[4]).toBe('superseded-by: 2');
+    // decided-by survives the retirement untouched: the field says who made
+    // the decision, not who last rewrote the file.
+    expect(lines[3]).toBe('decided-by: human');
+    expect(lines[4]).toBe('created: 2026-08-19');
+    expect(lines[5]).toBe('superseded-by: 2');
 
     const result = validateCommand(root, undefined, false);
     expect(result.valid).toBe(true);
@@ -141,6 +150,88 @@ describe('supersedeCommand', () => {
     acceptDecision(root, 'Use Spanner');
     supersedeCommand('2', '3', root);
     expect(() => supersedeCommand('1', '2', root)).toThrow('is itself superseded');
+  });
+});
+
+describe('decided-by across the lifecycle', () => {
+  const DRAFT = `---
+status: proposed
+date: 2026-08-19
+created: 2026-08-19
+---
+
+# ADR: Use SQLite
+
+## Problem
+
+We need durability.
+
+## Proposal
+
+Use SQLite.
+
+## Alternatives considered
+
+- **JSON files**: rejected.
+
+## Acceptance criteria
+
+It works.
+
+## Risks
+
+Some risk.
+`;
+
+  it('stamps the promotion environment, not the draft', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
+      'decided-by: human',
+    );
+
+    acceptDecision(root, 'Use Postgres', { CURSOR_TRACE_ID: 'abc' });
+    expect(readFileSync(join(root, 'adr', 'decisions', '2-use-postgres.md'), 'utf8')).toContain(
+      'decided-by: machine',
+    );
+  });
+
+  it('drops a decided-by smuggled into a draft, and rejects the draft while it exists', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    writeFileSync(file, DRAFT.replace('created:', 'decided-by: human\ncreated:'));
+
+    const issues = validateDraft(root, listDrafts(root)[0]!);
+    expect(formatIssues(issues)).toContain(
+      '"decided-by" is stamped at promotion and must not appear on a draft',
+    );
+
+    // Promote from a machine session: the decision must carry the promotion
+    // environment, proving the draft's value found no path into the record.
+    writeFileSync(file, DRAFT);
+    acceptCommand('Use SQLite', root, { CLAUDECODE: '1' });
+    expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
+      'decided-by: machine',
+    );
+  });
+
+  it('preserves observed origins across supersede', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres', { CLAUDECODE: '1' });
+    supersedeCommand('1', '2', root);
+
+    const frontMatter = (file: string): string => {
+      const text = readFileSync(join(root, 'adr', 'decisions', file), 'utf8');
+      return text.split('---')[1] ?? '';
+    };
+    // The retiring record is moved from accepted to superseded in a human
+    // environment, yet its own origin survives untouched while the
+    // replacement keeps the origin it was recorded with.
+    expect(frontMatter('1-use-sqlite.md')).toContain('decided-by: human');
+    expect(frontMatter('2-use-postgres.md')).toContain('decided-by: machine');
+    expect(validateCommand(root, undefined, false).valid).toBe(true);
   });
 });
 
