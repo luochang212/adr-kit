@@ -181,18 +181,14 @@ describe('graphCommand formats', () => {
     expect(output.trimEnd().endsWith('}')).toBe(true);
   });
 
-  it('exposes the full graph as JSON with --json', () => {
+  it('builds the full graph model with nodes and edges', () => {
     const root = fixtureRepo();
-    const parsed = JSON.parse(graphCommand(root, { json: true })) as {
-      decisions: Array<{ number: number; references: number[]; supersededBy?: number }>;
-      supersedeEdges: Array<{ from: number; to: number }>;
-      referenceEdges: Array<{ from: number; to: number }>;
-    };
-    expect(parsed.decisions.map((decision) => decision.number)).toEqual([1, 2, 3]);
-    expect(parsed.decisions.find((decision) => decision.number === 1)?.supersededBy).toBe(3);
-    expect(parsed.decisions.find((decision) => decision.number === 3)?.references).toEqual([2]);
-    expect(parsed.supersedeEdges).toEqual([{ from: 1, to: 3 }]);
-    expect(parsed.referenceEdges).toEqual([
+    const graph = buildDecisionGraph(listRecords(root), {});
+    expect(graph.nodes.map((node) => node.number)).toEqual([1, 2, 3]);
+    expect(graph.nodes.find((node) => node.number === 1)?.supersededBy).toBe(3);
+    expect(graph.nodes.find((node) => node.number === 3)?.references).toEqual([2]);
+    expect(graph.supersedeEdges).toEqual([{ from: 1, to: 3 }]);
+    expect(graph.referenceEdges).toEqual([
       { from: 2, to: 1 },
       { from: 3, to: 2 },
     ]);
@@ -200,12 +196,9 @@ describe('graphCommand formats', () => {
 
   it('suppresses mined edges with --formal-only', () => {
     const root = fixtureRepo();
-    const parsed = JSON.parse(graphCommand(root, { json: true, formalOnly: true })) as {
-      referenceEdges: unknown[];
-      supersedeEdges: unknown[];
-    };
-    expect(parsed.referenceEdges).toEqual([]);
-    expect(parsed.supersedeEdges).toEqual([{ from: 1, to: 3 }]);
+    const graph = buildDecisionGraph(listRecords(root), { formalOnly: true });
+    expect(graph.referenceEdges).toEqual([]);
+    expect(graph.supersedeEdges).toEqual([{ from: 1, to: 3 }]);
   });
 
   it('rejects conflicting format flags naming both', () => {
@@ -255,10 +248,8 @@ ac
 r
 `,
     );
-    const parsed = JSON.parse(graphCommand(root, { json: true })) as {
-      decisions: Array<{ number: number }>;
-    };
-    expect(parsed.decisions.map((decision) => decision.number)).toEqual([1, 2, 3]);
+    const graph = buildDecisionGraph(listRecords(root), {});
+    expect(graph.nodes.map((node) => node.number)).toEqual([1, 2, 3]);
   });
 });
 
@@ -314,12 +305,9 @@ describe('created grouping, tags, and tree output', () => {
     writeDecision(root, 1, 'Sandbox', { date: '2026-08-17', tags: ['execution', 'sandbox'] });
     writeDecision(root, 2, 'Frontend', { date: '2026-08-17', tags: ['frontend'] });
     writeDecision(root, 3, 'Uses sandbox', { date: '2026-08-19', decisionBody: 'Builds on ADR-1.', tags: ['execution'] });
-    const parsed = JSON.parse(graphCommand(root, { json: true, tag: 'execution' })) as {
-      decisions: Array<{ number: number }>;
-      referenceEdges: Array<{ from: number; to: number }>;
-    };
-    expect(parsed.decisions.map((decision) => decision.number)).toEqual([1, 3]);
-    expect(parsed.referenceEdges).toEqual([{ from: 3, to: 1 }]);
+    const graph = buildDecisionGraph(listRecords(root), { tag: 'execution' });
+    expect(graph.nodes.map((node) => node.number)).toEqual([1, 3]);
+    expect(graph.referenceEdges).toEqual([{ from: 3, to: 1 }]);
     const tree = graphCommand(root, { text: true, tag: 'execution' });
     expect(tree).not.toContain('2 Frontend');
   });
@@ -339,13 +327,11 @@ describe('created grouping, tags, and tree output', () => {
     expect(output).toContain('class n3 retired');
   });
 
-  it('exposes created and tags in the JSON graph', () => {
+  it('carries created and tags into the graph model', () => {
     const root = makeRepo();
     writeDecision(root, 1, 'First', { date: '2026-08-19', created: '2026-08-17', tags: ['execution'] });
-    const parsed = JSON.parse(graphCommand(root, { json: true })) as {
-      decisions: Array<{ created: string; tags: string[] }>;
-    };
-    expect(parsed.decisions[0]?.created).toBe('2026-08-17');
-    expect(parsed.decisions[0]?.tags).toEqual(['execution']);
+    const graph = buildDecisionGraph(listRecords(root), {});
+    expect(graph.nodes[0]?.created).toBe('2026-08-17');
+    expect(graph.nodes[0]?.tags).toEqual(['execution']);
   });
 });

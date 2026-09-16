@@ -10,10 +10,6 @@ directory by walking upward.
 | `-h, --help` | Print help (`adrkit help` does the same) |
 | `-V, --version` | Print the version |
 
-The agent-facing commands (`list`, `status`, `instructions`, `validate`,
-`config`) accept `--json` for machine-readable output; other commands reject
-the flag instead of silently ignoring it.
-
 ## Commands
 
 ### `adrkit init [path] [--tools <list>] [--workflows <list>]`
@@ -88,7 +84,7 @@ records who made the original decision, not who retired it; the file stays in
 history. `--by` must resolve to an existing accepted
 decision that is not itself superseded.
 
-### `adrkit list [--json]`
+### `adrkit list`
 
 List decisions (accepted and superseded) and any pending drafts.
 
@@ -98,20 +94,18 @@ Print a decision or draft. `name` resolves by title, file name, or decision
 number. A record that fails to parse elsewhere in the repository does not
 block `show`; `adrkit validate` still reports it.
 
-### `adrkit status [--json]`
+### `adrkit status`
 
 Print lifecycle counts (accepted, superseded, pending drafts) and
 repository validity.
 
-### `adrkit instructions [--json]`
+### `adrkit instructions`
 
 Print the next workflow step (init, fix validation, decide, or propose). When
 drafts are pending, each one is flagged as validated (ready to accept) or
-needs work, so the next action is executable rather than a direction. In
-`--json` mode the readiness is exposed as `readyToAccept` and `needsWork`
-next to the `pending` list.
+needs work, so the next action is executable rather than a direction.
 
-### `adrkit validate [name] [--all] [--json]`
+### `adrkit validate [name] [--all]`
 
 Validate one record, or the whole repository when `name` is omitted or
 `--all` is given. Single-record validation also checks that a
@@ -126,21 +120,20 @@ selected are removed, and so are workflow skills outside the selection
 (`--workflows all` restores every skill). Without `--tools`/`--workflows`,
 the values recorded in `adr/config.yaml` are used.
 
-### `adrkit config [--json]`
+### `adrkit config`
 
 Print the current `adr/config.yaml` configuration: `context`, `tools`, the
 effective `workflows` selection (the recorded subset, or the full default set
 when the key is absent), and `rules`.
 
-### `adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]`
+### `adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]`
 
 Emit a relationship graph of the decisions: solid edges for formal
 `superseded-by` references, dashed edges for `ADR-N` mentions mined from
 record bodies, grouped by the `created` date so decision bursts are visible
 without implying a continuous timeline. `--mermaid` (the default) renders
 natively on GitHub and tints active nodes by their first `tag`; `--dot`
-emits Graphviz; `--text` prints a terminal-friendly tree; `--json` exposes
-the graph (including `created` and `tags`) for other tools. `--tag <tag>`
+emits Graphviz; `--text` prints a terminal-friendly tree. `--tag <tag>`
 filters to decisions carrying that theme; `--formal-only` drops the mined
 edges. Note that `date` records the current status date, while `created` is
 the birth date.

@@ -39,15 +39,15 @@ Usage:
                                            Promote a draft to a decision (assigns the next number)
   adrkit reject <name> [--reason <reason>]   Discard a draft (leaves no record)
   adrkit supersede <name> --by <name>        Mark an accepted decision as superseded
-  adrkit list [--json]                       List decisions and pending drafts
+  adrkit list                                List decisions and pending drafts
   adrkit show <name>                         Show a decision or draft
-  adrkit status [--json]                     Show lifecycle counts and validity
-  adrkit instructions [--json]               Print the next workflow step
-  adrkit validate [name] [--all] [--json]    Validate one record or the whole repo
+  adrkit status                              Show lifecycle counts and validity
+  adrkit instructions                        Print the next workflow step
+  adrkit validate [name] [--all]             Validate one record or the whole repo
   adrkit update [--tools <list>] [--workflows <list>]
                                            Rewrite AI tool integrations
-  adrkit config [--json]                     Print the current configuration
-  adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
+  adrkit config                              Print the current configuration
+  adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]
                                            Emit the decision relationship graph
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
@@ -58,14 +58,11 @@ adrkit graph visualizes the decision history: solid edges are formal
 superseded-by links, dashed edges are ADR-N references mined from record
 bodies, and nodes group by their created date. --mermaid pastes into any
 Markdown and renders natively on GitHub (nodes are tinted by their tags),
---dot feeds Graphviz (dot -Tpng), --text prints a terminal-friendly tree,
---json exposes the graph to other tools; --tag <tag> filters to one theme,
---formal-only drops the mined edges.
+--dot feeds Graphviz (dot -Tpng), --text prints a terminal-friendly tree;
+--tag <tag> filters to one theme, --formal-only drops the mined edges.
 
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
-
-const JSON_COMMANDS = new Set(['list', 'status', 'instructions', 'validate', 'config', 'graph']);
 
 export function main(argv: string[]): void {
   const { values, positionals } = parseArgs({
@@ -77,7 +74,6 @@ export function main(argv: string[]): void {
       'decided-by': { type: 'string' },
       dot: { type: 'boolean', default: false },
       'formal-only': { type: 'boolean', default: false },
-      json: { type: 'boolean', default: false },
       mermaid: { type: 'boolean', default: false },
       text: { type: 'boolean', default: false },
       tag: { type: 'string' },
@@ -89,19 +85,19 @@ export function main(argv: string[]): void {
     },
   });
 
+  if (values.version) {
+    console.log(VERSION);
+    return;
+  }
+  if (values.help) {
+    console.log(HELP);
+    return;
+  }
+
   const command = positionals[0] ?? '';
   const rest = positionals.slice(1);
 
   try {
-    // A stray option is a mistake on every surface, help and version
-    // included: these checks run before the early returns so --help and
-    // --version cannot swallow a mistyped --decided-by or --json. The message
-    // names whichever surface the flag landed on.
-    const surface =
-      command.length > 0 ? command : values.help ? '--help' : values.version ? '--version' : '(no command)';
-    if (values.json && !JSON_COMMANDS.has(command)) {
-      throw new Error(`adrkit ${surface} does not support --json`);
-    }
     // Only decide and accept record a decision. Anywhere else the flag is a
     // mistake, not something to ignore, and this has to run before the switch
     // so a non-recording command never reaches the required-declaration check.
@@ -110,16 +106,9 @@ export function main(argv: string[]): void {
       command !== 'decide' &&
       command !== 'accept'
     ) {
-      throw new Error(`adrkit ${surface} does not take --decided-by`);
-    }
-
-    if (values.version) {
-      console.log(VERSION);
-      return;
-    }
-    if (values.help) {
-      console.log(HELP);
-      return;
+      throw new Error(
+        `adrkit ${command.length > 0 ? command : '(no command)'} does not take --decided-by`,
+      );
     }
 
     switch (command) {
@@ -171,7 +160,7 @@ export function main(argv: string[]): void {
         return;
       }
       case 'list': {
-        console.log(listCommand(process.cwd(), values.json));
+        console.log(listCommand(process.cwd()));
         return;
       }
       case 'show': {
@@ -180,13 +169,13 @@ export function main(argv: string[]): void {
         return;
       }
       case 'status': {
-        const result = statusCommand(process.cwd(), values.json);
+        const result = statusCommand(process.cwd());
         console.log(result.output);
         if (result.valid === false) process.exitCode = 1;
         return;
       }
       case 'instructions': {
-        console.log(instructionsCommand(process.cwd(), values.json));
+        console.log(instructionsCommand(process.cwd()));
         return;
       }
       case 'update': {
@@ -194,7 +183,7 @@ export function main(argv: string[]): void {
         return;
       }
       case 'config': {
-        console.log(configCommand(process.cwd(), values.json));
+        console.log(configCommand(process.cwd()));
         return;
       }
       case 'graph': {
@@ -202,7 +191,6 @@ export function main(argv: string[]): void {
           graphCommand(process.cwd(), {
             mermaid: values.mermaid,
             dot: values.dot,
-            json: values.json,
             text: values.text,
             formalOnly: values['formal-only'],
             tag: values.tag,
@@ -216,7 +204,7 @@ export function main(argv: string[]): void {
         return;
       }
       case 'validate': {
-        const result = validateCommand(process.cwd(), values.all ? undefined : rest[0], values.json);
+        const result = validateCommand(process.cwd(), values.all ? undefined : rest[0]);
         console.log(result.output);
         if (result.valid === false) process.exitCode = 1;
         return;

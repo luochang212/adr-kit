@@ -24,12 +24,9 @@ declared by the caller instead of inferred from the environment.
 - `propose` writes nothing and takes no declaration. `supersede` preserves the
   declared value instead of asking for a new one: retiring a decision does not
   change who made it.
-- `--decided-by` and `--json` are rejected wherever they are not accepted,
-  `--help` and `--version` included. Those two so far printed and exited 0
-  before the rejection ran, so a mistyped flag looked like a success.
-- `adrkit list --json` exposes `decidedBy` on every record that carries one, so
-  the machine-readable surface is not missing the field the human-readable one
-  is built around.
+- `--decided-by` is rejected on every command that records no decision instead
+  of being silently ignored, so a declaration cannot look recorded when the
+  command had nowhere to put it.
 - Completion declares the value-taking options (`--tag`, `--tools`,
   `--workflows`, `--by`, `--reason`) as taking a value, so bash, zsh, and fish
   stop offering the option list where the CLI is waiting for a value; zsh also

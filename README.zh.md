@@ -87,16 +87,16 @@ adrkit accept <name> --decided-by <human|agent>
                                        把草稿提升为决策（分配 N 编号）
 adrkit reject <name> [--reason <text>] 丢弃草稿（不留记录）
 adrkit supersede <name> --by <name>    标记已接受决策被新决策取代
-adrkit list [--json]                   列出决策与待决草稿
-adrkit show <name>                     查看决策或草稿
-adrkit status [--json]                 查看生命周期计数与校验状态
-adrkit instructions [--json]           查看下一步；标注待决草稿已就绪或需修改
-adrkit validate [name] [--all] [--json] 校验单条记录或整个仓库
+adrkit list                             列出决策与待决草稿
+adrkit show <name>                      查看决策或草稿
+adrkit status                           查看生命周期计数与校验状态
+adrkit instructions                     查看下一步；标注待决草稿已就绪或需修改
+adrkit validate [name] [--all]          校验单条记录或整个仓库
 adrkit update [--tools <list>] [--workflows <list>]
-                                       重写 AI 工具集成文件
-adrkit config [--json]                 查看当前配置
-adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
-                                       输出决策关系图
+                                        重写 AI 工具集成文件
+adrkit config                           查看当前配置
+adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]
+                                        输出决策关系图
 adrkit completion <bash|zsh|fish>      打印 shell 补全脚本
 adrkit version                         查看版本
 ```
@@ -120,7 +120,7 @@ adrkit version                         查看版本
 
 | 文档 | 内容 |
 | --- | --- |
-| [CLI 参考](https://github.com/luochang212/adr-kit/blob/main/docs/zh/cli.md) | 命令参考：参数与 `--json` 输出 |
+| [CLI 参考](https://github.com/luochang212/adr-kit/blob/main/docs/zh/cli.md) | 命令参考：参数与输出形态 |
 | [记录格式](https://github.com/luochang212/adr-kit/blob/main/docs/zh/record-format.md) | ADR 文件格式与校验规则 |
 | [工作流](https://github.com/luochang212/adr-kit/blob/main/docs/zh/workflow.md) | 从提案到决策的生命周期 |
 | [Agent 技能](https://github.com/luochang212/adr-kit/blob/main/skills/README.md) | 驱动 `adrkit` CLI 的 agent 技能 |
@@ -195,8 +195,8 @@ ADR Kit 只拥有 `adr/` 这一个目录，并且只读取和校验自己的文�
 ADR Kit 站在两个项目之上，两者角色不同：
 
 - **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** 决定了这个工具*怎么建*：
-  agent 优先的 CLI、指令以 agent skills 安装、确定性的 `validate`、
-  机器可读的 `--json` 输出，以及"灵活而不僵化"的工作流。和 OpenSpec 一样，
+  agent 优先的 CLI、指令以 agent skills 安装、确定性的 `validate`，
+  以及"灵活而不僵化"的工作流。和 OpenSpec 一样，
   ADR Kit 靠*引导* agent（会话开始可见的 skills），而不是硬性阶段门禁，
   也不强制每次变更都记录。
 - **[deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)**
@@ -217,7 +217,8 @@ ADR Kit 站在两个项目之上，两者角色不同：
 - **备选方案是强制项。** 没有记录被否决方案的决策，是在邀请未来的重复争论。
 - **生命周期是机械操作，不是编辑操作。** 提升草稿、退役已接受决策都是命令
   （`accept`、`supersede`），`validate` 强制检查结果形态。
-- **Agent 是一等用户。** 纯 Markdown、可预测的路径、需要时可输出 JSON。
+- **Agent 是一等用户。** 记录本身就是接口：纯 Markdown 加 YAML front matter，
+  agent 直接读，路径可预测，`validate` 充当机器检查。
 
 ## 开发
 

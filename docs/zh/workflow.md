@@ -111,10 +111,11 @@ proposed and who approved in the body when that matters.
 
 ## Agent 工作流
 
-Agent 可以通过 JSON 输出来驱动同样的生命周期：
+记录本身就是接口：agent 直接读 `adr/decisions/*.md`——front matter 是 YAML，
+正文就是决策。CLI 只提供单看某个文件读不出来的状态：
 
 ```bash
-adrkit status --json
-adrkit instructions --json
-adrkit validate --json
+adrkit status        # 生命周期计数与仓库校验状态
+adrkit instructions  # 下一步可执行动作，按待决草稿逐条标注
+adrkit validate      # 格式闸门；任何问题都以非零退出
 ```

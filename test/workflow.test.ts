@@ -32,16 +32,16 @@ describe('statusCommand', () => {
     expect(result.output).toContain('drafts (pending): 0');
   });
 
-  it('reports json with issues when a decision is invalid', () => {
+  it('reports the invalid decision and its count in the text status', () => {
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-broken.md'),
       '---\nstatus: accepted\ndate: 2026-08-19\n---\n\n# ADR: 1 Broken\n\n## Problem\n\nBody.\n',
     );
-    const result = statusCommand(root, true);
+    const result = statusCommand(root);
     expect(result.valid).toBe(false);
-    const parsed = JSON.parse(result.output) as { counts: { decisions: number } };
-    expect(parsed.counts).toBeDefined();
+    expect(result.output).toContain('accepted: 1');
+    expect(result.output).toContain('validation:');
   });
 });
 
@@ -144,7 +144,7 @@ Body.
     expect(output).toContain(`adrkit reject ${sqlite.fileName}`);
   });
 
-  it('reports readiness in JSON without changing the pending shape', () => {
+  it('marks readiness per pending proposal in the text steer', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
     const sqlite = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
@@ -185,17 +185,11 @@ Body.
 Body.
 `,
     );
-    const parsed = JSON.parse(instructionsCommand(root, true)) as {
-      step: string;
-      pending: string[];
-      readyToAccept: string[];
-      needsWork: Record<string, string[]>;
-    };
-    expect(parsed.step).toBe('decide');
-    expect(parsed.pending).toEqual(expect.arrayContaining([plugin.fileName, sqlite.fileName]));
-    expect(parsed.readyToAccept).toEqual([plugin.fileName]);
-    expect(parsed.needsWork[sqlite.fileName]!.length).toBeGreaterThan(0);
-    expect(parsed.needsWork[plugin.fileName]).toBeUndefined();
+    const output = instructionsCommand(root);
+    // Readiness is per draft and lives in the marker: the complete one is ready
+    // to accept, the one missing a section is not.
+    expect(output).toMatch(new RegExp(`✓ ${plugin.fileName}\\s+validated - ready to accept`));
+    expect(output).toMatch(new RegExp(`✗ ${sqlite.fileName}\\s+missing required section`));
   });
 
   it('prioritizes pending proposals over unrelated validation issues', () => {

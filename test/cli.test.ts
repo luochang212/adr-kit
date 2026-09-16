@@ -31,71 +31,56 @@ afterEach(() => {
   }
 });
 
-describe('cli --json handling', () => {
-  it('rejects --json on commands that do not support it instead of ignoring it', () => {
+describe('cli option handling', () => {
+  it('rejects the removed --json flag as an unknown option', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    // parseArgs runs in strict mode, so a flag this CLI no longer declares is
+    // rejected before any command runs: there is no JSON output mode left for a
+    // hand-written guard to protect.
+    expect(() => main(['list', '--json'])).toThrow(/Unknown option '--json'/);
+  });
+
+  it('rejects --decided-by on a command that records no decision', () => {
     const root = makeRepo();
     process.chdir(root);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    main(['show', 'anything', '--json']);
+    main(['show', 'anything', '--decided-by', 'human']);
     expect(process.exitCode).toBe(1);
     expect(errorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('adrkit show does not support --json'),
+      expect.stringContaining('adrkit show does not take --decided-by'),
     );
   });
 
-  it('keeps --json working on commands that support it', () => {
+  it('names no command when the flag lands with no command at all', () => {
     const root = makeRepo();
     process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['--decided-by', 'human']);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('adrkit (no command) does not take --decided-by'),
+    );
+  });
+
+  it('lets --help and --version answer for themselves', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    // Help and version are meta-flags, not commands: they answer and exit
+    // successfully, and a stray declaration alongside them does not change that.
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    main(['list', '--json']);
+    main(['--help']);
     expect(process.exitCode).toBeUndefined();
-    const output = logSpy.mock.calls[0]?.[0] as string;
-    expect(() => JSON.parse(output)).not.toThrow();
-  });
-});
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Usage:'));
 
-describe('stray options are rejected before help and version print', () => {
-  // The spec says a non-recording command rejects --decided-by rather than
-  // ignoring it; --help and --version are not an exemption from that rule,
-  // because printing help and exiting 0 hides the mistake from the caller.
-  it('rejects --decided-by alongside --help and --version', () => {
-    const root = makeRepo();
-    process.chdir(root);
-    // The message names the surface the flag landed on, so `--help` does not
-    // read as "(no command)" when that is exactly what the caller typed.
-    for (const [args, expected] of [
-      [['--help', '--decided-by', 'human'], 'adrkit --help does not take --decided-by'],
-      [['--version', '--decided-by', 'human'], 'adrkit --version does not take --decided-by'],
-      [['init', '--help', '--decided-by', 'human'], 'adrkit init does not take --decided-by'],
-      [['-V', '--decided-by', 'human'], 'adrkit --version does not take --decided-by'],
-    ] as const) {
-      process.exitCode = undefined;
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      main([...args]);
-      expect(process.exitCode, args.join(' ')).toBe(1);
-      expect(errorSpy, args.join(' ')).toHaveBeenCalledWith(
-        expect.stringContaining(expected),
-      );
-      errorSpy.mockRestore();
-    }
-  });
+    logSpy.mockClear();
+    main(['--version']);
+    expect(process.exitCode).toBeUndefined();
+    expect(logSpy).toHaveBeenCalledTimes(1);
 
-  it('rejects --json alongside --help and --version', () => {
-    const root = makeRepo();
-    process.chdir(root);
-    for (const [args, expected] of [
-      [['--version', '--json'], 'adrkit --version does not support --json'],
-      [['--help', '--json'], 'adrkit --help does not support --json'],
-      [['--json'], 'adrkit (no command) does not support --json'],
-    ] as const) {
-      process.exitCode = undefined;
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      main([...args]);
-      expect(process.exitCode, args.join(' ')).toBe(1);
-      expect(errorSpy, args.join(' ')).toHaveBeenCalledWith(
-        expect.stringContaining(expected),
-      );
-      errorSpy.mockRestore();
-    }
+    logSpy.mockClear();
+    main(['--help', '--decided-by', 'human']);
+    expect(process.exitCode).toBeUndefined();
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Usage:'));
   });
 });

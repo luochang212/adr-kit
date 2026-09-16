@@ -113,10 +113,12 @@ proposed and who approved in the body when that matters.
 
 ## Agent workflow
 
-Agents can drive the same lifecycle through JSON output:
+The records are the interface: an agent reads `adr/decisions/*.md` directly,
+because the front matter is YAML and the body is the decision. The CLI supplies
+the state a single file cannot show:
 
 ```bash
-adrkit status --json
-adrkit instructions --json
-adrkit validate --json
+adrkit status        # lifecycle counts and repository validity
+adrkit instructions  # the next executable step, per pending draft
+adrkit validate      # the format gate; non-zero exit on any issue
 ```

@@ -262,29 +262,6 @@ function dotLabel(title: string): string {
   return title.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
 }
 
-export function jsonGraph(graph: DecisionGraph): string {
-  return JSON.stringify(
-    {
-      decisions: graph.nodes.map((node) => ({
-        number: node.number,
-        title: node.title,
-        status: node.status,
-        date: node.date,
-        created: node.created,
-        fileName: node.fileName,
-        path: node.path,
-        supersededBy: node.supersededBy,
-        references: node.references,
-        tags: node.tags,
-      })),
-      supersedeEdges: graph.supersedeEdges,
-      referenceEdges: graph.referenceEdges,
-    },
-    null,
-    2,
-  );
-}
-
 /**
  * Terminal-friendly tree: birth dates as branches, decisions as leaves,
  * lifecycle and tag annotations inline. The tree shape is the same date

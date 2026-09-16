@@ -93,15 +93,15 @@ adrkit accept <name> --decided-by <human|agent>
                                         Promote a draft to a decision (assigns N)
 adrkit reject <name> [--reason <text>]  Discard a draft (leaves no record)
 adrkit supersede <name> --by <name>     Mark an accepted decision as superseded
-adrkit list [--json]                    List decisions and pending drafts
+adrkit list                             List decisions and pending drafts
 adrkit show <name>                      Show a decision or draft
-adrkit status [--json]                  Show lifecycle counts and validity
-adrkit instructions [--json]            Print the next step; flag pending drafts as ready or needing work
-adrkit validate [name] [--all] [--json] Validate one record or the repository
+adrkit status                           Show lifecycle counts and validity
+adrkit instructions                     Print the next step; flag pending drafts as ready or needing work
+adrkit validate [name] [--all]          Validate one record or the repository
 adrkit update [--tools <list>] [--workflows <list>]
                                         Rewrite AI tool integrations
-adrkit config [--json]                  Print the current configuration
-adrkit graph [--mermaid|--dot|--json|--text] [--formal-only] [--tag <tag>]
+adrkit config                           Print the current configuration
+adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]
                                         Emit the decision relationship graph
 adrkit completion <bash|zsh|fish>       Print a shell completion script
 adrkit version                          Print the version
@@ -129,7 +129,7 @@ adrkit version                          Print the version
 
 | Document | Content |
 | --- | --- |
-| [CLI reference](https://github.com/luochang212/adr-kit/blob/main/docs/cli.md) | Command reference with arguments and `--json` output |
+| [CLI reference](https://github.com/luochang212/adr-kit/blob/main/docs/cli.md) | Command reference with arguments and output shapes |
 | [Record format](https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md) | ADR file format and validation rules |
 | [Workflow](https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md) | Lifecycle from proposal to decision |
 | [Agent skills](https://github.com/luochang212/adr-kit/blob/main/skills/README.md) | Agent skills that drive the `adrkit` CLI |
@@ -214,8 +214,8 @@ ADR Kit stands on two projects, in two different roles:
 
 - **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** shaped *how* the
   tool is built: an agent-first CLI whose instructions are installed as
-  agent skills, a deterministic `validate`, machine-readable `--json`
-  output, and a "fluid not rigid" workflow. Like OpenSpec, ADR Kit
+  agent skills, a deterministic `validate`, and a "fluid not rigid" workflow.
+  Like OpenSpec, ADR Kit
   *steers* agents: session-visible skills rather than imposing hard phase
   gates or mandating that every change be recorded.
 - **[deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)**
@@ -240,9 +240,9 @@ history, and current facts live in code, not in the record.
 - **Lifecycle is mechanical, not editorial.** Promoting a draft and retiring
   an accepted decision are commands (`accept`, `supersede`), and `validate`
   enforces the resulting shape.
-- **Agents are first-class users.** The format is plain Markdown, paths are
-  predictable, and agent-facing commands print machine-readable `--json`
-  output; the rest reject the flag instead of silently ignoring it.
+- **Agents are first-class users.** The record is the interface: plain
+  Markdown with YAML front matter an agent reads directly, at predictable
+  paths, with `validate` as the machine check.
 
 ## Development
 

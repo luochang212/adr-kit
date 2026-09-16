@@ -7,7 +7,7 @@ export interface ValidateResult {
   output: string;
 }
 
-export function validateCommand(cwd: string, query?: string, asJson = false): ValidateResult {
+export function validateCommand(cwd: string, query?: string): ValidateResult {
   const root = requireRoot(cwd);
   if (query !== undefined && query.trim().length > 0) {
     const record = resolveRecord(root, query);
@@ -22,16 +22,6 @@ export function validateCommand(cwd: string, query?: string, asJson = false): Va
         message: error instanceof Error ? error.message : String(error),
       });
     }
-    if (asJson) {
-      return {
-        valid: issues.length === 0,
-        output: JSON.stringify({
-          path: relativePath(record),
-          valid: issues.length === 0,
-          issues,
-        }, null, 2),
-      };
-    }
     return {
       valid: issues.length === 0,
       output: issues.length === 0
@@ -41,12 +31,6 @@ export function validateCommand(cwd: string, query?: string, asJson = false): Va
   }
 
   const issues = validateRepository(root);
-  if (asJson) {
-    return {
-      valid: issues.length === 0,
-      output: JSON.stringify({ valid: issues.length === 0, issues }, null, 2),
-    };
-  }
   return {
     valid: issues.length === 0,
     output: issues.length === 0 ? 'OK' : formatIssues(issues),

@@ -2,7 +2,7 @@ import { findRoot } from '../core/config.js';
 import { listDrafts, listRecords } from '../core/repository.js';
 import { formatIssues, validateDraft, validateRepository } from '../core/validate.js';
 
-export function instructionsCommand(cwd: string, asJson = false): string {
+export function instructionsCommand(cwd: string): string {
   const root = findRoot(cwd);
   if (root === undefined) {
     const output = [
@@ -13,9 +13,7 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       '  adrkit decide "your first decision" --decided-by human',
       '    (agent if the choice came from the agent\'s own judgment)',
     ].join('\n');
-    return asJson
-      ? JSON.stringify({ step: 'init', message: output }, null, 2)
-      : output;
+    return output;
   }
 
   // Pending drafts come first: promoting or discarding them is the steer, and a
@@ -34,9 +32,7 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       'Next:',
       '  adrkit validate',
     ].join('\n');
-    return asJson
-      ? JSON.stringify({ step: 'fix-validation', issues, message: output }, null, 2)
-      : output;
+    return output;
   }
 
   const drafts = listDrafts(root);
@@ -72,19 +68,7 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       lines.push(`  adrkit reject ${name}   # or fix adr/.drafts/${name} and accept it`);
     }
     const output = lines.join('\n');
-    return asJson
-      ? JSON.stringify(
-          {
-            step: 'decide',
-            pending: drafts.map((draft) => draft.fileName),
-            readyToAccept: ready,
-            needsWork,
-            message: output,
-          },
-          null,
-          2,
-        )
-      : output;
+    return output;
   }
 
   const issues = validateRepository(root);
@@ -97,9 +81,7 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       'Next:',
       '  adrkit validate',
     ].join('\n');
-    return asJson
-      ? JSON.stringify({ step: 'fix-validation', issues, message: output }, null, 2)
-      : output;
+    return output;
   }
 
   const output = [
@@ -110,7 +92,5 @@ export function instructionsCommand(cwd: string, asJson = false): string {
     '  adrkit decide "an already-made decision" --decided-by human',
     "    (agent if the choice came from the agent's own judgment)",
   ].join('\n');
-  return asJson
-    ? JSON.stringify({ step: 'propose', message: output }, null, 2)
-    : output;
+  return output;
 }

@@ -110,32 +110,6 @@ in-between buckets).
 - **THEN** the Mermaid output places their nodes in one subgraph whose
   title contains `2026-08-17`
 
-### Requirement: output formats
-
-`adrkit graph` SHALL support `--mermaid` (default), `--dot`, and `--json`.
-DOT output SHALL be a valid Graphviz directed graph of the same nodes and
-edges. JSON output SHALL expose, per decision: number, title, status, date,
-file name, superseded-by, and the list of mined reference targets; and the
-edge lists. Requesting two different formats in one invocation MUST fail
-with an error naming the conflicting flags.
-
-#### Scenario: conflicting format flags fail
-
-- **WHEN** `adrkit graph --mermaid --dot` runs
-- **THEN** the command exits non-zero with an error naming both flags
-
-#### Scenario: DOT output
-
-- **WHEN** `adrkit graph --dot` runs
-- **THEN** the output is a `digraph` statement containing the same node and
-  edge sets as the Mermaid output
-
-#### Scenario: JSON output
-
-- **WHEN** `adrkit graph --json` runs
-- **THEN** the output parses as JSON with a decisions array and edge lists
-  sufficient to rebuild the graph
-
 ### Requirement: formal-only mode
 
 `adrkit graph --formal-only` SHALL emit only the formal `superseded-by`
@@ -143,9 +117,10 @@ edges, omitting all mined reference edges, in every format.
 
 #### Scenario: mined edges suppressed
 
-- **WHEN** `adrkit graph --formal-only --json` runs on a repository whose
+- **WHEN** `adrkit graph --formal-only --dot` runs on a repository whose
   records cross-reference each other in prose
-- **THEN** the reference edge list is empty and supersede edges remain
+- **THEN** the output contains the supersede edge and none of the mined
+  reference edges
 
 ### Requirement: reads only durable decisions
 
@@ -164,3 +139,28 @@ error, consistent with `adrkit list`.
 
 - **WHEN** `adrkit graph` runs in a directory with no ADR Kit repository
 - **THEN** the command exits non-zero with the init hint
+
+### Requirement: graph output formats
+
+`adrkit graph` SHALL support `--mermaid` (default), `--dot`, and `--text`.
+DOT output SHALL be a valid Graphviz directed graph of the same nodes and
+edges. `--text` output SHALL print a terminal-readable tree of the same
+graph. Requesting two different formats in one invocation MUST fail with an
+error naming the conflicting flags.
+
+#### Scenario: conflicting format flags fail
+
+- **WHEN** `adrkit graph --mermaid --dot` runs
+- **THEN** the command exits non-zero with an error naming both flags
+
+#### Scenario: DOT output
+
+- **WHEN** `adrkit graph --dot` runs
+- **THEN** the output is a `digraph` statement containing the same node and
+  edge sets as the Mermaid output
+
+#### Scenario: text output
+
+- **WHEN** `adrkit graph --text` runs
+- **THEN** the output is a tree naming the same decisions as the Mermaid
+  output

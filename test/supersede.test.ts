@@ -29,8 +29,7 @@ function acceptDecision(
   decidedBy: 'human' | 'agent' = 'human',
 ): string {
   proposeCommand(title, root);
-  const listing = JSON.parse(listCommand(root, true)) as Array<{ fileName: string; folder: string }>;
-  const draft = listing.find((record) => record.folder === 'drafts');
+  const draft = listDrafts(root)[0];
   if (draft === undefined) throw new Error('draft not found');
   const slug = draft.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
   writeFileSync(join(root, 'adr', '.drafts', draft.fileName), `---
@@ -90,7 +89,7 @@ describe('supersedeCommand', () => {
     expect(lines[4]).toBe('created: 2026-08-19');
     expect(lines[5]).toBe('superseded-by: 2');
 
-    const result = validateCommand(root, undefined, false);
+    const result = validateCommand(root);
     expect(result.valid).toBe(true);
   });
 
@@ -100,10 +99,9 @@ describe('supersedeCommand', () => {
     acceptDecision(root, 'Use Postgres');
     supersedeCommand('1', '2', root);
 
-    const parsed = JSON.parse(statusCommand(root, true).output) as {
-      counts: { accepted: number; superseded: number };
-    };
-    expect(parsed.counts).toMatchObject({ accepted: 1, superseded: 1 });
+    const output = statusCommand(root).output;
+    expect(output).toContain('accepted: 1');
+    expect(output).toContain('superseded: 1');
   });
 
   it('annotates superseded records in the text listing', () => {
@@ -112,7 +110,7 @@ describe('supersedeCommand', () => {
     acceptDecision(root, 'Use Postgres');
     supersedeCommand('1', '2', root);
 
-    expect(listCommand(root, false)).toContain('[superseded by 2]');
+    expect(listCommand(root)).toContain('[superseded by 2]');
   });
 
   it('refuses to supersede a proposal', () => {
@@ -231,7 +229,7 @@ Some risk.
     // with; nobody re-declares on retirement.
     expect(frontMatter('1-use-sqlite.md')).toContain('decided-by: human');
     expect(frontMatter('2-use-postgres.md')).toContain('decided-by: agent');
-    expect(validateCommand(root, undefined, false).valid).toBe(true);
+    expect(validateCommand(root).valid).toBe(true);
   });
 });
 
@@ -243,7 +241,7 @@ describe('validate superseded references', () => {
     const content = readFileSync(path, 'utf8');
     writeFileSync(path, content.replace('status: accepted', 'status: superseded\nsuperseded-by: 9999'));
 
-    const result = validateCommand(root, undefined, false);
+    const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('references a missing decision');
   });
@@ -280,7 +278,7 @@ Use Spanner.
 
 Operational overhead.
 `);
-    const result = validateCommand(root, undefined, false);
+    const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('references a superseded decision');
   });

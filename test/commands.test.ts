@@ -12,6 +12,7 @@ import { rejectCommand } from '../src/commands/reject.js';
 import { showCommand } from '../src/commands/show.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { todayStamp } from '../src/core/adr.js';
+import { listDrafts, listRecords } from '../src/core/repository.js';
 
 const tempDirs: string[] = [];
 
@@ -28,8 +29,7 @@ function draftPath(root: string, fileName: string): string {
 
 /** The path of the sole pending draft (used right after `proposeCommand`). */
 function pendingDraftPath(root: string): string {
-  const listing = JSON.parse(listCommand(root, true)) as Array<{ folder: string; fileName: string }>;
-  const draft = listing.find((entry) => entry.folder === 'drafts');
+  const draft = listDrafts(root)[0];
   if (draft === undefined) throw new Error('no draft found');
   return draftPath(root, draft.fileName);
 }
@@ -253,9 +253,9 @@ describe('propose and accept', () => {
       '"decided-by" is declared at promotion and must not appear on a draft',
     );
     expect(readFileSync(file, 'utf8')).toBe(invalid);
-    expect(JSON.parse(listCommand(root, true))).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ folder: 'decisions' })]),
-    );
+    // A refused promotion writes nothing: the draft is the only record on disk.
+    expect(listRecords(root)).toEqual([]);
+    expect(listDrafts(root)).toHaveLength(1);
 
     writeFileSync(file, valid);
     acceptCommand('Use SQLite', root, 'agent');
@@ -284,9 +284,9 @@ describe('propose and accept', () => {
     const output = acceptCommand('Use SQLite', root, 'human');
     expect(output).toContain('adr/decisions/1-use-sqlite.md');
 
-    const list = JSON.parse(listCommand(root, true)) as Array<Record<string, unknown>>;
-    expect(list).toHaveLength(1);
-    expect(list[0]!.folder).toBe('decisions');
+    const records = listRecords(root);
+    expect(records).toHaveLength(1);
+    expect(records[0]!.folder).toBe('decisions');
     const accepted = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
     expect(accepted.split(/\r?\n/)[2]).toBe(`date: ${todayStamp()}`);
     expect(validateCommand(root).valid).toBe(true);
@@ -307,20 +307,14 @@ describe('propose and accept', () => {
     );
   });
 
-  it('exposes decidedBy on the JSON surface for decisions and not drafts', () => {
-    // --json is the agent-facing surface: an agent reading the listing must
-    // see the provenance of every decision, while drafts never carry it.
+  it('records the declared value on decisions and never on drafts', () => {
+    // The declaration lives in the record itself: a decision carries what the
+    // caller supplied, and a draft has no decision to attribute.
     const root = makeRepo();
     decideCommand('Agent call', root, 'agent');
     proposeCommand('Use SQLite', root);
-    const list = JSON.parse(listCommand(root, true)) as Array<{
-      folder: string;
-      decidedBy?: string;
-    }>;
-    const decision = list.find((entry) => entry.folder === 'decisions')!;
-    expect(decision.decidedBy).toBe('agent');
-    const draft = list.find((entry) => entry.folder === 'drafts')!;
-    expect('decidedBy' in draft).toBe(false);
+    expect(listRecords(root)[0]!.decidedBy).toBe('agent');
+    expect(listDrafts(root)[0]!.decidedBy).toBeUndefined();
   });
 
   it('rejects a draft and leaves no record', () => {
@@ -332,7 +326,8 @@ describe('propose and accept', () => {
     expect(output).toContain('adr/.drafts/');
     expect(output).toContain('reason: we prefer files');
     expect(existsSync(file)).toBe(false);
-    expect(listCommand(root, true)).toBe('[]');
+    expect(listRecords(root)).toEqual([]);
+    expect(listDrafts(root)).toEqual([]);
   });
 
   it('rejects a draft without a reason (optional --reason)', () => {
@@ -368,8 +363,7 @@ describe('propose and accept', () => {
     );
     const output = acceptCommand('Use SQLite', root, 'human');
     expect(output).not.toContain('warning');
-    const listing = JSON.parse(listCommand(root, true)) as Array<{ folder: string; fileName: string }>;
-    const decisionFile = join(root, 'adr', 'decisions', listing[0]!.fileName);
+    const decisionFile = listRecords(root)[0]!.path;
     const content = readFileSync(decisionFile, 'utf8');
     expect(content).toContain('## Implementation');
     expect(content).toContain('PR #123: https://github.com/example/repo/pull/123');
@@ -491,9 +485,8 @@ describe('config context injection', () => {
     withContext(root, '  Domain: payments\n');
     decideCommand('Use Postgres', root, 'human');
 
-    const listing = JSON.parse(listCommand(root, true)) as Array<{ folder: string; fileName: string }>;
-    const record = listing.find((entry) => entry.folder === 'decisions');
-    const content = readFileSync(join(root, 'adr', 'decisions', record!.fileName), 'utf8');
+    const record = listRecords(root)[0]!;
+    const content = readFileSync(record.path, 'utf8');
     expect(content).toContain('Domain: payments');
   });
 
@@ -511,10 +504,29 @@ describe('config context injection', () => {
     fillDraft(root);
     acceptCommand('Use SQLite', root, 'human');
 
-    const listing = JSON.parse(listCommand(root, true)) as Array<{ folder: string; fileName: string }>;
-    const record = listing.find((entry) => entry.folder === 'decisions');
-    const content = readFileSync(join(root, 'adr', 'decisions', record!.fileName), 'utf8');
+    const record = listRecords(root)[0]!;
+    const content = readFileSync(record.path, 'utf8');
     expect(content).not.toContain('Project context');
     expect(validateCommand(root).valid).toBe(true);
+  });
+});
+
+describe('list output', () => {
+  it('lists decisions and pending drafts as text', () => {
+    const root = makeRepo();
+    decideCommand('Use SQLite', root, 'human');
+    proposeCommand('Use Postgres', root);
+    const output = listCommand(root);
+    expect(output).toContain('Accepted');
+    expect(output).toContain('adr/decisions/1-use-sqlite.md');
+    expect(output).toContain('Drafts (pending)');
+    expect(output).toContain('adr/.drafts/');
+  });
+
+  it('points a fresh repository at the two creation commands', () => {
+    const root = makeRepo();
+    // The empty-repo hint is the first thing a new caller reads, so it names the
+    // required declaration rather than a decide command that would now fail.
+    expect(listCommand(root)).toContain('--decided-by human');
   });
 });

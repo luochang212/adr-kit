@@ -8,7 +8,7 @@ export interface StatusResult {
   output: string;
 }
 
-export function statusCommand(cwd: string, asJson = false): StatusResult {
+export function statusCommand(cwd: string): StatusResult {
   const root = requireRoot(cwd);
   const issues = validateRepository(root);
   let records: AdrRecord[] = [];
@@ -30,21 +30,6 @@ export function statusCommand(cwd: string, asJson = false): StatusResult {
     else counts.accepted += 1;
   }
   counts.drafts = drafts.length;
-
-  if (asJson) {
-    return {
-      valid: issues.length === 0,
-      output: JSON.stringify(
-        {
-          valid: issues.length === 0,
-          counts,
-          issues,
-        },
-        null,
-        2,
-      ),
-    };
-  }
 
   const lines = ['Lifecycle', ''];
   lines.push(`  accepted: ${counts.accepted}`);

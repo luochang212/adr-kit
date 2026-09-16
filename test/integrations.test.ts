@@ -9,7 +9,7 @@ import { configCommand } from '../src/commands/config.js';
 import { initCommand } from '../src/commands/init.js';
 import { updateCommand } from '../src/commands/update.js';
 import { readConfig } from '../src/core/config.js';
-import { WORKFLOWS } from '../src/core/tool-integrations.js';
+import { WORKFLOWS, WORKFLOW_NAMES } from '../src/core/tool-integrations.js';
 
 const tempDirs: string[] = [];
 
@@ -86,7 +86,7 @@ describe('initCommand tool integrations', () => {
   it('persists tools in config and update rewrites them', () => {
     const root = makeTarget();
     initCommand(root, 'claude');
-    const config = configCommand(root, true);
+    const config = configCommand(root);
     expect(config).toContain('agents');
     const output = updateCommand(root);
     expect(output).toContain(join('.agents', 'commands', 'adrkit-propose.md'));
@@ -163,19 +163,15 @@ describe('workflow subsets for tool integrations', () => {
   it('config reports the effective workflow selection', () => {
     const root = makeTarget();
     initCommand(root, undefined, 'init,decide,validate');
-    const json = JSON.parse(configCommand(root, true)) as { workflows: string[] };
-    expect(json.workflows).toEqual(['init', 'decide', 'validate']);
     expect(configCommand(root)).toContain('workflows: init, decide, validate');
   });
 
   it('config reports the full default set when the key is absent', () => {
     const root = makeTarget();
     initCommand(root);
-    const json = JSON.parse(configCommand(root, true)) as { workflows: string[] };
-    expect(json.workflows).toHaveLength(7);
-    expect(json.workflows).toContain('init');
-    expect(json.workflows).toContain('supersede');
-    expect(configCommand(root)).toContain('workflows: init');
+    // An absent key means the full set, and the report must name every workflow
+    // so `config` never hides what `update` would install.
+    expect(configCommand(root)).toContain(`workflows: ${WORKFLOW_NAMES.join(', ')}`);
   });
 
   it('prunes workflows that are no longer selected', () => {
@@ -373,9 +369,9 @@ describe('completionCommand', () => {
         new RegExp(`__fish_seen_subcommand_from \\w+" -l ${option} -x`),
       );
     }
-    // Booleans stay valueless in both shells.
-    expect(fish).toMatch(/__fish_seen_subcommand_from list" -l json$/m);
-    expect(zsh).toMatch(/list\) _arguments --json --help '1:argument:'/);
+    // Booleans stay valueless in both shells: list now takes only --help.
+    expect(fish).toMatch(/__fish_seen_subcommand_from list" -l help$/m);
+    expect(zsh).toMatch(/list\) _arguments --help '1:argument:'/);
   });
 
   it('gives commands outside the option table a fallback branch in zsh', () => {
@@ -484,7 +480,7 @@ describe('completionCommand', () => {
       expect(answer('adrkit propose SQLite --decided-by ')).not.toContain('human');
       // `-x` on a value option suppresses both the option list and file
       // candidates, since the CLI expects a value the shell cannot enumerate.
-      expect(answer('adrkit graph --tag ')).not.toContain('--json');
+      expect(answer('adrkit graph --tag ')).not.toContain('--dot');
       expect(answer('adrkit init --tools ')).not.toContain('--workflows');
     },
   );
