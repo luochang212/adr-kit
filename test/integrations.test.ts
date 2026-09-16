@@ -45,7 +45,8 @@ describe('initCommand tool integrations', () => {
       expect(init).toContain('Record an ADR when an architectural choice will constrain future development');
       expect(init).toContain('do not invent reasons');
       expect(init).toContain('not proof of human review');
-      expect(init).toContain('not who independently chose or authorized the decision');
+      expect(init).toContain('is a declaration of where the');
+      expect(init).toContain('including when a person only let it through');
       for (const workflow of ['propose', 'decide']) {
         const command = readFileSync(join(root, target, `commands/adrkit-${workflow}.md`), 'utf8');
         expect(command).toContain('adrkit show <N>');

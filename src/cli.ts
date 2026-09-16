@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { VERSION } from './version.js';
+import type { DecidedBy } from './core/adr.js';
 import { acceptCommand } from './commands/accept.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
@@ -20,16 +21,21 @@ import { validateCommand } from './commands/validate.js';
 const HELP = `adrkit ${VERSION} - A lightweight ADR workflow for humans and agents
 
 Decisions are durable records in adr/decisions/. Proposals are ephemeral drafts
-in adr/.drafts/ that are promoted by accept or discarded by reject. A durable
-record's decided-by field (human or machine) is stamped by the CLI from the
-environment it runs in.
+in adr/.drafts/ that are promoted by accept or discarded by reject. decide and
+accept require --decided-by, which records who made the choice: human when a
+person determined the direction (they stated it, changed a proposal into what
+shipped, or you are recording one they made earlier), agent when it came from
+the agent's own judgment. It records where the choice came from, not who ran
+the command, and the CLI neither infers nor verifies it.
 
 Usage:
   adrkit init [path] [--tools <list>] [--workflows <list>]
                                            Initialize an ADR Kit repository
-  adrkit decide <title>                      Record a decision (default path)
+  adrkit decide <title> --decided-by <human|agent>
+                                           Record a decision (default path)
   adrkit propose <title>                     Create an ephemeral proposal draft
-  adrkit accept <name>                       Promote a draft to a decision (assigns the next number)
+  adrkit accept <name> --decided-by <human|agent>
+                                           Promote a draft to a decision (assigns the next number)
   adrkit reject <name> [--reason <reason>]   Discard a draft (leaves no record)
   adrkit supersede <name> --by <name>        Mark an accepted decision as superseded
   adrkit list [--json]                       List decisions and pending drafts
@@ -67,6 +73,7 @@ export function main(argv: string[]): void {
     options: {
       all: { type: 'boolean', default: false },
       by: { type: 'string' },
+      'decided-by': { type: 'string' },
       dot: { type: 'boolean', default: false },
       'formal-only': { type: 'boolean', default: false },
       json: { type: 'boolean', default: false },
@@ -98,6 +105,18 @@ export function main(argv: string[]): void {
     if (values.json && command.length > 0 && !JSON_COMMANDS.has(command)) {
       throw new Error(`adrkit ${command} does not support --json`);
     }
+    // Only decide and accept record a decision. Anywhere else the flag is a
+    // mistake, not something to ignore, and this has to run before the switch
+    // so a non-recording command never reaches the required-declaration check.
+    if (
+      values['decided-by'] !== undefined &&
+      command !== 'decide' &&
+      command !== 'accept'
+    ) {
+      throw new Error(
+        `adrkit ${command.length > 0 ? command : '(no command)'} does not take --decided-by`,
+      );
+    }
     switch (command) {
       case '': {
         console.error(HELP);
@@ -124,12 +143,12 @@ export function main(argv: string[]): void {
       }
       case 'decide': {
         requireTitle(rest, 'decide');
-        console.log(decideCommand(rest[0]!, process.cwd()));
+        console.log(decideCommand(rest[0]!, process.cwd(), requireDecidedBy(values['decided-by'])));
         return;
       }
       case 'accept': {
         requireTitle(rest, 'accept');
-        console.log(acceptCommand(rest[0]!, process.cwd()));
+        console.log(acceptCommand(rest[0]!, process.cwd(), requireDecidedBy(values['decided-by'])));
         return;
       }
       case 'reject': {
@@ -211,6 +230,24 @@ function requireTitle(rest: string[], command: string): void {
   if (rest.length === 0 || rest[0]!.trim().length === 0) {
     throw new Error(`${command} requires a title or name`);
   }
+}
+
+/**
+ * `decided-by` is a declaration of where the choice came from, so the CLI asks
+ * for it instead of guessing: no environment, terminal, or agent marker can
+ * tell it who chose. The prompt states the same boundary the docs do, because
+ * whoever reads this message is about to record a decision.
+ */
+function requireDecidedBy(value: string | undefined): DecidedBy {
+  if (value === 'human' || value === 'agent') return value;
+  const problem = value === undefined ? 'is required' : `must be "human" or "agent", got "${value}"`;
+  throw new Error(
+    `--decided-by ${problem}:\n` +
+      '  human   a person determined the direction: they stated it, changed a proposal\n' +
+      '          into what shipped, or you are recording one they made earlier\n' +
+      '  agent   the choice came from the agent\'s own judgment, not a person\'s;\n' +
+      '          a person merely letting it through does not make it human',
+  );
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -22,11 +22,11 @@ function makeRepo(): string {
   return dir;
 }
 
-/** propose → fill → accept，返回 slug。可选 env 用于驱动 decided-by 两个分支。 */
+/** propose → fill → accept，返回 slug。`decidedBy` 默认 human，agent 分支显式传入。 */
 function acceptDecision(
   root: string,
   title: string,
-  env: Record<string, string | undefined> = {},
+  decidedBy: 'human' | 'agent' = 'human',
 ): string {
   proposeCommand(title, root);
   const listing = JSON.parse(listCommand(root, true)) as Array<{ fileName: string; folder: string }>;
@@ -61,7 +61,7 @@ It works.
 
 Some risk.
 `);
-  acceptCommand(title, root, env);
+  acceptCommand(title, root, decidedBy);
   return slug;
 }
 
@@ -183,16 +183,16 @@ It works.
 Some risk.
 `;
 
-  it('stamps the promotion environment, not the draft', () => {
+  it('records the declaration made at promotion, not the draft', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
       'decided-by: human',
     );
 
-    acceptDecision(root, 'Use Postgres', { CURSOR_TRACE_ID: 'abc' });
+    acceptDecision(root, 'Use Postgres', 'agent');
     expect(readFileSync(join(root, 'adr', 'decisions', '2-use-postgres.md'), 'utf8')).toContain(
-      'decided-by: machine',
+      'decided-by: agent',
     );
   });
 
@@ -204,33 +204,33 @@ Some risk.
 
     const issues = validateDraft(root, listDrafts(root)[0]!);
     expect(formatIssues(issues)).toContain(
-      '"decided-by" is stamped at promotion and must not appear on a draft',
+      '"decided-by" is declared at promotion and must not appear on a draft',
     );
 
-    // Promote from a machine session: the decision must carry the promotion
-    // environment, proving the draft's value found no path into the record.
+    // Promote with an agent declaration: the decision must carry what the
+    // caller declared, proving the draft's value found no path into the record.
     writeFileSync(file, DRAFT);
-    acceptCommand('Use SQLite', root, { CLAUDECODE: '1' });
+    acceptCommand('Use SQLite', root, 'agent');
     expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
-      'decided-by: machine',
+      'decided-by: agent',
     );
   });
 
-  it('preserves observed origins across supersede', () => {
+  it('preserves declared origins across supersede', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres', { CLAUDECODE: '1' });
+    acceptDecision(root, 'Use Postgres', 'agent');
     supersedeCommand('1', '2', root);
 
     const frontMatter = (file: string): string => {
       const text = readFileSync(join(root, 'adr', 'decisions', file), 'utf8');
       return text.split('---')[1] ?? '';
     };
-    // The retiring record is moved from accepted to superseded in a human
-    // environment, yet its own origin survives untouched while the
-    // replacement keeps the origin it was recorded with.
+    // Superseding rewrites the retiring record's status, yet its declaration
+    // survives untouched while the replacement keeps the one it was recorded
+    // with; nobody re-declares on retirement.
     expect(frontMatter('1-use-sqlite.md')).toContain('decided-by: human');
-    expect(frontMatter('2-use-postgres.md')).toContain('decided-by: machine');
+    expect(frontMatter('2-use-postgres.md')).toContain('decided-by: agent');
     expect(validateCommand(root, undefined, false).valid).toBe(true);
   });
 });

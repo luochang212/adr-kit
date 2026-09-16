@@ -7,13 +7,13 @@
 相同选择沿用已有记录，重要前提改变时记录替代决定。普通实现细节、局部修复
 和可轻易调整的选择无需记录。没有重要架构决定的任务，不需要新建 ADR 或提交
 决策汇报。`accepted` 表示正式记录的决定，不代表人已审阅批准；`decided-by`
-只是执行环境推断，不能证明是谁自主拍板或授权。
+记录这条选择从哪来（方向由人决定，还是由 agent 自主判断得出），不是授权记录。
 
 ## 默认路径：直接记录决策
 
 ```text
 adrkit init
-adrkit decide "使用 SQLite 存储会话"
+adrkit decide "使用 SQLite 存储会话" --decided-by human
 # 填写决策
 adrkit validate
 ```
@@ -28,7 +28,7 @@ adrkit validate
 ```text
 adrkit propose "使用 SQLite 存储会话"
 # 填写草稿
-adrkit accept "使用 SQLite 存储会话"
+adrkit accept "使用 SQLite 存储会话" --decided-by human
 ```
 
 `adrkit accept` 校验草稿并完成生命周期迁移所要求的改写：
@@ -51,15 +51,15 @@ considered` 里，不是独立记录。
 决策会被推翻。先记录替代决策，再退役过时记录：
 
 ```text
-adrkit decide "使用 Postgres 存储会话"
+adrkit decide "使用 Postgres 存储会话" --decided-by human
 # 填写新决策并校验
 adrkit supersede 1 --by 2
 ```
 
 旧记录留在 `adr/decisions/`，front matter 为 `status: superseded` 加
 `superseded-by: 2`。只改写 front matter；正文是冻结历史。记录的 `decided-by`
-值会被保留而不是重盖：它描述记录决策时推断的执行环境，而不是退役动作的
-执行环境。`validate` 会校验被引用的编号存在且自身未被取代，所以链条总是
+值会被保留而不是替换：它记录当初是谁做出的决定，而不是谁退役了它。
+`validate` 会校验被引用的编号存在且自身未被取代，所以链条总是
 终止于当前仍被接受的决策。
 
 ## 编码前查阅决策
@@ -100,8 +100,12 @@ to fill a template. Reuse an existing record for the same choice; record a
 replacement when important assumptions change. Routine implementation details,
 local fixes, and easily reversible choices need no ADR. If no important
 architectural decision was made, create none. `accepted` means a recorded
-decision, not proof of human review. `decided-by` infers the execution
-environment, not who independently chose or authorized the decision.
+decision, not proof of human review. `decided-by` is a declaration, not an
+inference: `human` when a person determined the direction — they stated it,
+changed a proposal into what shipped, or you are recording one they made
+earlier — `agent` when it came from the agent's own judgment, including when a
+person only let it through. The CLI neither infers nor verifies it, so say who
+proposed and who approved in the body when that matters.
 ```
 
 ## Agent 工作流

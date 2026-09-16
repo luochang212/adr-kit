@@ -24,7 +24,7 @@ adrkit init [path]
 3. For a new repository, confirm the output lists `adr/config.yaml`, `adr/decisions`, and
    `adr/.gitignore`. Proposals are not a separate folder: they are ephemeral
    drafts in `adr/.drafts/`, created by `adrkit propose`. Durable records
-   carry a machine-stamped `decided-by` field; drafts never do.
+   carry a `decided-by` field you declare; drafts never do.
 
 4. Add the following section to the project's agent instruction file
    (`AGENTS.md`; also `CLAUDE.md` if that is the team's entry point). Preserve
@@ -56,8 +56,12 @@ to fill a template. Reuse an existing record for the same choice; record a
 replacement when important assumptions change. Routine implementation details,
 local fixes, and easily reversible choices need no ADR. If no important
 architectural decision was made, create none. `accepted` means a recorded
-decision, not proof of human review. `decided-by` infers the execution
-environment, not who independently chose or authorized the decision.
+decision, not proof of human review. `decided-by` is a declaration of where the
+choice came from, not an inference: `human` when a person determined the
+direction — they stated it, changed a proposal into what shipped, or you are
+recording one they made earlier — `agent` when it came from the agent's own
+judgment, including when a person only let it through. The CLI neither infers
+nor verifies it.
 ```
 
 ## Rules
@@ -65,5 +69,7 @@ environment, not who independently chose or authorized the decision.
 - Never create `adr/` directories by hand; use the CLI so the config and
   README stay canonical.
 - After init, read existing decisions and continue the task. Use
-  `adrkit decide "<title>"` only for an important architectural choice already
-  made, or `adrkit propose "<title>"` when such a choice still needs review.
+  `adrkit decide "<title>" --decided-by human` (`agent` when the choice came
+  from your own judgment) only for an important
+  architectural choice already made, or `adrkit propose "<title>"` when such a
+  choice still needs review.

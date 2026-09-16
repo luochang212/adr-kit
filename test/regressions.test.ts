@@ -129,7 +129,7 @@ Body.
 `,
     );
     // Drafts are outside the validate surface; the gate is accept.
-    expect(() => acceptCommand('Use SQLite', root)).toThrow(/invalid calendar date/);
+    expect(() => acceptCommand('Use SQLite', root, 'human')).toThrow(/invalid calendar date/);
   });
 
   it('rejects a record whose status does not match its folder', () => {
@@ -239,7 +239,7 @@ Sessions survive restart.
 Native dependency.
 `,
     );
-    const output = acceptCommand('Use SQLite', root);
+    const output = acceptCommand('Use SQLite', root, 'human');
     expect(output).toContain('adr/decisions/1-use-sqlite.md');
     const decision = listRecords(root).find((record) => record.folder === 'decisions')!;
     expect(decision.fileName).toBe('1-use-sqlite.md');

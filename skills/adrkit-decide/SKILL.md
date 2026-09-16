@@ -30,7 +30,7 @@ an ADR for every task or invent alternatives and reasons to fill a template.
 2. Run:
 
 ```bash
-adrkit decide "<title>"
+adrkit decide "<title>" --decided-by human   # or agent, per the rule below
 ```
 
 3. Edit the created file and fill `## Problem`, `## Decision`,
@@ -41,14 +41,20 @@ adrkit decide "<title>"
 
 ## Rules
 
-- `accepted` means a recorded decision, not proof of human review.
-- `decided-by` infers the execution environment, not who independently chose
-  or authorized the decision.
-
+- `decided-by` declares where the choice came from: `human` when a person
+  determined the direction — they stated it, changed your proposal into what
+  shipped, or made it earlier and you are only recording it now; `agent` when
+  it came from your own judgment, including when a person let your choice
+  through without engaging with it. It records the source of the choice, not
+  who ran the command: recording a person's decision makes it `human`, not
+  `agent`. The CLI neither infers nor verifies it, so put the nuance (who
+  proposed, who redirected or approved) in the body.
 - Accepted decisions must not contain `## Proposal`, `## Acceptance
   criteria`, or `## Risks` sections.
-- Never edit the `decided-by` field: the CLI stamps it from the environment
-  the command runs in. Hand-editing it is a false provenance claim, and
-  `adrkit validate` reports the field as missing on records that predate it -
-  say so and let the human supply the value rather than inventing one.
+- Never edit the `decided-by` value afterwards. A wrong value is a false
+  provenance claim no later check can detect. A record missing the field is
+  not a blank to fill on a hunch: write the value only when you know where the
+  choice came from — your own judgment, or the person who directed it — and ask
+  the person when you do not.
+- `accepted` means a recorded decision, not proof of human review.
 - `adrkit accept` is the better path when a proposal already exists.

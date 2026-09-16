@@ -34,8 +34,12 @@ adr/
 ### `adrkit decide <title>`
 
 直接记录一条已做的决策到 `adr/decisions/N-slug.md`（默认路径）。标题不得
-以数字开头。新记录会盖上 `decided-by: human` 或 `machine`，值由命令运行的
-环境探测得出，没有参数可以设置它。
+以数字开头。
+
+`--decided-by` 必填，记录这条选择由谁做出：方向由人决定时写 `human`（人说出的、
+人把 agent 的提案改成最终落地方案的、或人此前定过而现在只是补记的），由 AI 自主
+判断得出时写 `agent`，包括人只是放行的情况。CLI 既不推断也不校验，只记录声明。
+分不清时先问再记；谁提出、谁批准的细节写进正文。
 
 ### `adrkit propose <title>`
 
@@ -46,8 +50,8 @@ adr/
 ### `adrkit accept <name>`
 
 校验草稿，分配下一个 `N` 编号，改写生命周期 section，写入
-`adr/decisions/N-slug.md` 并删除草稿。草稿标题不得以数字开头。提升后的决策
-盖上提升时刻探测到的 `decided-by` 值。
+`adr/decisions/N-slug.md` 并删除草稿。草稿标题不得以数字开头。这里同样必须
+提供 `--decided-by`，含义与 `decide` 一致：提升是声明进入持久记录的时刻。
 
 ### `adrkit reject <name> [--reason <text>]`
 

@@ -9,13 +9,14 @@ reuse existing records, and supersede them when important assumptions change.
 Routine implementation details and local fixes need no ADR. A task without
 an important architectural decision needs no new record or decision report.
 `accepted` denotes a recorded decision, not proof of human review;
-`decided-by` is an execution-environment inference, not an authorization record.
+`decided-by` records where the choice came from (a person determined the
+direction, or the agent's own judgment did) and is not an authorization record.
 
 ## The default path: record a decision
 
 ```text
 adrkit init
-adrkit decide "Use SQLite for session storage"
+adrkit decide "Use SQLite for session storage" --decided-by human
 # fill in the decision
 adrkit validate
 ```
@@ -30,7 +31,7 @@ When a decision still needs review, create a draft instead:
 ```text
 adrkit propose "Use SQLite for session storage"
 # fill in the draft
-adrkit accept "Use SQLite for session storage"
+adrkit accept "Use SQLite for session storage" --decided-by human
 ```
 
 `adrkit accept` validates the draft and performs the mechanical rewrite a
@@ -55,7 +56,7 @@ Decisions get overturned. Record the replacement first, then retire the
 outdated record:
 
 ```text
-adrkit decide "Use Postgres for session storage"
+adrkit decide "Use Postgres for session storage" --decided-by human
 # fill in the new decision, validate it
 adrkit supersede 1 --by 2
 ```
@@ -63,8 +64,8 @@ adrkit supersede 1 --by 2
 The old record stays in `adr/decisions/` with `status: superseded` and
 `superseded-by: 2` in its front matter. Only the front matter is
 rewritten; the body is frozen history. The record's `decided-by` value is
-preserved rather than re-stamped: it describes the inferred environment when
-the decision was recorded, not the environment that ran the retirement.
+preserved rather than replaced: it records who made the original decision,
+not who retired it.
 `validate` checks that the referenced number exists and is not itself
 superseded, so a chain always ends at a currently-accepted decision.
 
@@ -102,8 +103,12 @@ to fill a template. Reuse an existing record for the same choice; record a
 replacement when important assumptions change. Routine implementation details,
 local fixes, and easily reversible choices need no ADR. If no important
 architectural decision was made, create none. `accepted` means a recorded
-decision, not proof of human review. `decided-by` infers the execution
-environment, not who independently chose or authorized the decision.
+decision, not proof of human review. `decided-by` is a declaration, not an
+inference: `human` when a person determined the direction — they stated it,
+changed a proposal into what shipped, or you are recording one they made
+earlier — `agent` when it came from the agent's own judgment, including when a
+person only let it through. The CLI neither infers nor verifies it, so say who
+proposed and who approved in the body when that matters.
 ```
 
 ## Agent workflow

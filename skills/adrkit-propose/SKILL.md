@@ -39,14 +39,21 @@ adrkit propose "<title>"
    `## Acceptance criteria`, `## Risks`.
 4. Add 2-4 kebab-case `tags` to the front matter (for example `frontend`,
    `execution-layer`) so the decision graph can group by theme.
-5. Promote the completed draft with `adrkit accept "<title>"`; the CLI
-   validates it before promoting.
+5. Promote the completed draft with
+   `adrkit accept "<title>" --decided-by human` (`agent` when the choice came
+   from your own judgment); the CLI validates it
+   before promoting. Declare `human` when a person determined the direction
+   (they stated it, changed your proposal into what shipped, or you are
+   recording one they made earlier), `agent` when it came from your own
+   judgment. A person who merely lets a proposal through without engaging with
+   the choice leaves the source with you: that is `agent`, and the body is
+   where you say they approved it.
 
 ## Rules
 
 - Do not skip `## Alternatives considered`. A proposal without alternatives
   is invalid by design.
 - Keep the front matter exactly `status: proposed`. Never write
-  `decided-by`: the CLI stamps it at promotion from the environment that
-  promotes the draft, and a hand-written value is rejected while the draft
-  exists and dropped when it is promoted.
+  `decided-by`: a draft has no decision to attribute, so the value belongs to
+  `adrkit accept`, which requires you to declare it. A value written here is
+  rejected while the draft exists and dropped when it is promoted.

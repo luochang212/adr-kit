@@ -10,7 +10,8 @@ export function instructionsCommand(cwd: string, asJson = false): string {
       '',
       'Next:',
       '  adrkit init',
-      '  adrkit decide "your first decision"',
+      '  adrkit decide "your first decision" --decided-by human',
+      '    (agent if the choice came from the agent\'s own judgment)',
     ].join('\n');
     return asJson
       ? JSON.stringify({ step: 'init', message: output }, null, 2)
@@ -63,7 +64,7 @@ export function instructionsCommand(cwd: string, asJson = false): string {
     }
     lines.push('', 'Next:');
     for (const name of ready) {
-      lines.push(`  adrkit accept ${name}   # promote to a decision`);
+      lines.push(`  adrkit accept ${name} --decided-by human   # promote to a decision`);
     }
     for (const name of Object.keys(needsWork)) {
       lines.push(`  adrkit reject ${name}   # or fix adr/.drafts/${name} and accept it`);
@@ -104,7 +105,8 @@ export function instructionsCommand(cwd: string, asJson = false): string {
     '',
     'Next:',
     '  adrkit propose "a decision you are unsure about"   # ephemeral draft',
-    '  adrkit decide "an already-made decision"',
+    '  adrkit decide "an already-made decision" --decided-by human',
+    "    (agent if the choice came from the agent's own judgment)",
   ].join('\n');
   return asJson
     ? JSON.stringify({ step: 'propose', message: output }, null, 2)

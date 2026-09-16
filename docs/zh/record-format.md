@@ -6,7 +6,7 @@
 ---
 status: accepted | superseded
 date: YYYY-MM-DD
-decided-by: human | machine
+decided-by: human | agent
 created: YYYY-MM-DD
 commit: abc1234
 tags: [frontend]
@@ -26,21 +26,29 @@ superseded 决策上必填，其他状态禁止出现。未知字段会被 `vali
 `tags` 是可选的 kebab-case 关键词列表（如 `frontend`、`execution-layer`），
 `adrkit graph` 用它按主题分组和过滤决策；`validate` 只校验形状、从不要求必填。
 
-## 人还是机器：`decided-by`
+## 人还是 agent：`decided-by`
 
-`decided-by` 取值为 `human` 或 `machine`，accepted 与 superseded 决策必填；
-草稿不带这个字段，带了会被 `validate` 拒绝。这个值由 CLI 按命令运行的环境
-盖章：`decide` 与 `accept` 会写，`propose` 从不写，`supersede` 保留记录原有
-的值。没有任何命令行参数可以设置它。
+`decided-by` 取值为 `human` 或 `agent`，accepted 与 superseded 决策必填；
+草稿不带这个字段，带了会被 `validate` 拒绝。`decide` 与 `accept` 要求调用方用
+`--decided-by human|agent` 声明它；`propose` 从不写，`supersede` 保留记录原有
+的值。
 
-这是执行环境推断，不是授权记录，可信度低于客观观测的 `date` 与 `commit`。
-人作出的选择由 agent 代为记录，也可能标为 `machine`；未识别的 agent 环境
-可能被标为 `human`。清除会话标记、通过 wrapper 调用或事后编辑文件，都能
-使推断失效。它不能证明是谁自主拍板或批准决定。同样，`accepted` 表示正式
-记录的决定，不代表人已审阅批准。提交身份由 git 记录。
+`human` 表示方向由人决定：人给出的选择；或者 agent 提出、人改成了最终落地方案的
+选择；或者人此前已经定过、agent 现在只是补记。`agent` 表示方向由 AI 自主判断得出。
+人只是放行 agent 的提案、没有真正参与这个选择时，来源仍是 `agent`，记录就写
+`agent`，人批准这一点写进正文。这个字段只回答"选择从哪来"一个问题，因此取值唯一、
+不做共同署名；谁提出、谁改写、谁批准属于正文 `## Decision` 的叙述，不放进 front
+matter。分不清时，先问再记。
 
-`validate` 从不回填这个字段：早于该字段存在的记录会一直报缺少 `decided-by`，
-直到有人填上自己知道为真的值。
+这个值是声明，不是观测。CLI 既不推断也不校验它：环境、终端、会话标记都无法
+暴露是谁做的选择，所以命令直接问调用方并记录答案。因此它的可信度低于客观观测的 `date` 与 `commit`，
+也不能证明是谁自主拍板或批准决定。它会被随意的或虚假的声明击败——这类声明不会留下
+任何可被检查发现的痕迹——也会被事后编辑文件击败，值可以任意改变。同样，
+`accepted` 表示正式记录的决定，不代表
+人已审阅批准。提交身份由 git 记录。
+
+`validate` 从不回填这个字段：记录里没有 `decided-by` 就一直报缺少，直到知道这条
+选择从哪来的人（agent 自己的判断，或给出方向的人）把值写上。校验本身只读。
 
 ## 草稿（提案）
 

@@ -6,7 +6,7 @@ Every ADR is YAML front matter followed by a Markdown body:
 ---
 status: accepted | superseded
 date: YYYY-MM-DD
-decided-by: human | machine
+decided-by: human | agent
 created: YYYY-MM-DD
 commit: abc1234
 tags: [frontend]
@@ -31,26 +31,39 @@ later lifecycle moves. `tags` is an optional list of kebab-case keywords
 group and filter decisions by theme; `validate` checks their shape but
 never requires them.
 
-## Human or machine: `decided-by`
+## Human or agent: `decided-by`
 
-`decided-by` is `human` or `machine` and is required on accepted and
+`decided-by` is `human` or `agent` and is required on accepted and
 superseded decisions; a draft carries no value, and `validate` rejects one
-that does. The CLI stamps it from the environment the command runs in:
-`decide` and `accept` write it, `propose` never does, and `supersede`
-preserves the original value. There is no flag to set it.
+that does. `decide` and `accept` require the caller to declare it with
+`--decided-by human|agent`; `propose` never writes it, and `supersede`
+preserves the original value.
 
-This is an execution-environment inference, not an authorization record, and it
-is weaker evidence than the observed `date` and `commit` fields. A human's
-choice recorded by an agent may be stamped `machine`; an unrecognized agent
-environment may be stamped `human`. Clearing session markers, invoking `adrkit`
-through a wrapper, or editing the file afterwards can defeat the inference. It
-cannot establish who independently chose or approved a decision. Likewise,
-`accepted` means the decision is formally recorded, not that a human has
-reviewed it. Git records commit identity separately.
+`human` means a person determined the direction: they stated the choice, or an
+agent proposed one and the person changed it into what actually shipped — or the
+person made the choice earlier and an agent is only now recording it. `agent`
+means the direction came from the agent's own judgment. A person simply letting
+an agent's proposal through without engaging with the choice does not move the
+source to `human`: the record stays `agent`, and the body is where you say they
+approved it. The field answers one question — where the choice came from — so it
+carries a single value and is never co-signed. Who proposed, who redirected, and
+who approved belong in `## Decision` as prose, not in the front matter. When the
+writer cannot tell which value applies, the workflow is to ask before recording.
 
-`validate` never back-fills the field: a record that predates
-it reports a missing `decided-by` until a person supplies the value they know
-to be true.
+The value is a declaration, not an observation. The CLI neither infers nor
+verifies it: no environment, terminal, or session marker can reveal who chose,
+so the command asks the caller and records the answer. The declaration is
+weaker evidence than the observed `date` and `commit` fields, and it
+cannot establish who independently chose or approved a decision. It is defeated
+by a careless or false declaration, which leaves no trace any check can detect,
+and by editing the file afterwards, which changes the value freely. Likewise,
+`accepted` means the decision is
+formally recorded, not that a human has reviewed it. Git records commit
+identity separately.
+
+`validate` never back-fills the field: a record that carries no `decided-by`
+reports it as missing until someone who knows where that choice came from
+writes the value. Validation itself stays read-only.
 
 ## Drafts (proposals)
 

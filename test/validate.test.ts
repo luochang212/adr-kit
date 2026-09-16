@@ -350,8 +350,8 @@ describe('decided-by', () => {
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('front matter must include "decided-by"');
-    // Nothing repairs history: validation is read-only, so a machine never
-    // invents an origin for a decision recorded before the field existed.
+    // Nothing repairs history: validation is read-only, so an agent never
+    // invents who made a decision the record does not name.
     expect(readFileSync(path, 'utf8')).toBe(content);
   });
 
@@ -369,7 +369,7 @@ describe('decided-by', () => {
   });
 
   it('passes records carrying either accepted value', () => {
-    for (const value of ['human', 'machine'] as const) {
+    for (const value of ['human', 'agent'] as const) {
       const root = makeRepo();
       writeFileSync(
         join(folderPath(root, 'decisions'), '1-first.md'),
@@ -388,7 +388,7 @@ describe('decided-by', () => {
 
     const issues = validateDraft(root, listDrafts(root)[0]!);
     expect(formatIssues(issues)).toContain(
-      '"decided-by" is stamped at promotion and must not appear on a draft',
+      '"decided-by" is declared at promotion and must not appear on a draft',
     );
   });
 

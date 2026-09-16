@@ -158,10 +158,10 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   issues.push(...createdIssues(path, record));
   /**
    * The parser enforces the two allowed values; this enforces presence. The
-   * field is stamped by the CLI from its execution environment, so a durable
-   * record missing it was either written by hand or predates the field.
-   * Nothing here repairs it: a machine inventing an origin for a past
-   * decision is the fabricated history this field exists to prevent.
+   * field is declared by the caller at decide or accept time, so a durable
+   * record missing it was written by hand or by an older format. Nothing here
+   * repairs it: an agent inventing who made a past decision is the fabricated
+   * provenance this field exists to prevent.
    */
   if (record.decidedBy === undefined) {
     issues.push({ path, message: 'front matter must include "decided-by"' });
@@ -215,7 +215,7 @@ export function validateDraft(root: string, draft: AdrRecord): ValidationIssue[]
   // is rejected rather than ignored: promotion rebuilds the front matter from
   // the canonical fields, so a value written here would silently vanish.
   if (draft.decidedBy !== undefined) {
-    issues.push({ path, message: '"decided-by" is stamped at promotion and must not appear on a draft' });
+    issues.push({ path, message: '"decided-by" is declared at promotion and must not appear on a draft' });
   }
 
   const dateError = dateIssue(draft);

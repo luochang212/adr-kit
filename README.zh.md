@@ -36,7 +36,7 @@ agent 原生代码库的决策记录纪律：每条记录都必须说明它解�
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit decide "使用 SQLite 存储会话"
+adrkit decide "使用 SQLite 存储会话" --decided-by human
 ```
 
 `adrkit init` 会创建 `adr/` 目录：
@@ -65,7 +65,7 @@ adrkit list
 把下面这行贴给任意 AI 编码 Agent，它就会自动把关键决策记录成 ADR：
 
 ```text
-在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策
+在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策。每条记录都要声明 `decided-by`：方向由人决定用 `human`，由你自己的判断得出用 `agent`，即使人只是放行。
 ```
 
 让后续编码任务也用上决策：在项目 `AGENTS.md`（Claude Code 团队也包括
@@ -80,9 +80,11 @@ CLI 不会自动修改项目指令文件。只有持续约束后续开发、且�
 ```text
 adrkit init [path] [--tools <list>] [--workflows <list>]
                                        初始化 ADR Kit 仓库
-adrkit decide <title>                  直接记录已做的决策（默认路径）
+adrkit decide <title> --decided-by <human|agent>
+                                       直接记录已做的决策（默认路径）
 adrkit propose <title>                 创建临时提案草稿
-adrkit accept <name>                   把草稿提升为决策（分配 N 编号）
+adrkit accept <name> --decided-by <human|agent>
+                                       把草稿提升为决策（分配 N 编号）
 adrkit reject <name> [--reason <text>] 丢弃草稿（不留记录）
 adrkit supersede <name> --by <name>    标记已接受决策被新决策取代
 adrkit list [--json]                   列出决策与待决草稿
@@ -150,9 +152,11 @@ tags: [frontend]
 事实以代码为准，不在记录里。
 
 `accepted` 表示正式记录的决定，不代表人已审阅批准。`decided-by` 取值为
-`human` 或 `machine`，由 CLI 根据 `decide` 或 `accept` 运行时的环境推断。
-人作出的选择由 agent 代为记录，也可能标为 `machine`；它不能证明是谁自主
-拍板或授权。`supersede` 保留原值。局限见[记录格式参考](docs/zh/record-format.md)。
+`human` 或 `agent`，在 `decide` 或 `accept` 时声明：方向由人决定时写 `human`
+（人说出的、人把 agent 的提案改成最终落地方案的、或人此前定过而现在只是补记的），
+由 AI 自主判断得出时写 `agent`，包括人只是放行的情况。CLI 既不推断也不校验，
+只记录声明，所以它不能证明是谁自主拍板或授权；谁提出、谁批准写进正文。`supersede`
+保留原值。局限见[记录格式参考](docs/zh/record-format.md)。
 身份留在 git 里，`validate` 从不替早于该字段的记录回填。
 
 - **决策**（`adr/decisions/N-slug.md`）是 `accepted` 或 `superseded`，

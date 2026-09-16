@@ -1,17 +1,17 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import type { DecidedBy } from '../core/adr.js';
 import { readConfig, requireRoot } from '../core/config.js';
-import { detectDecidedBy } from '../core/execution-env.js';
 import { gitHead } from '../core/git.js';
 import { folderPath, nextDecisionNumber, writeRecord } from '../core/repository.js';
 import { decisionTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
 
-export function decideCommand(
-  title: string,
-  cwd: string,
-  env: Record<string, string | undefined> = process.env,
-): string {
+/**
+ * `decidedBy` is the declaration the caller made for this decision: the CLI
+ * cannot observe who chose, so the value travels in rather than being inferred.
+ */
+export function decideCommand(title: string, cwd: string, decidedBy: DecidedBy): string {
   const trimmed = title.trim();
   if (trimmed.length === 0) {
     throw new Error('title must not be empty');
@@ -31,7 +31,7 @@ export function decideCommand(
     trimmed,
     readConfig(root).context,
     gitHead(root),
-    detectDecidedBy(env),
+    decidedBy,
   );
   writeRecord(root, 'decisions', fileName, content);
   return `created adr/decisions/${fileName}\n\nfill in the decision and validate it with:\n  adrkit validate ${number}`;

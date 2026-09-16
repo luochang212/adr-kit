@@ -22,13 +22,20 @@ Requires Node.js 20.19 or later.
 npm install -g adr-kit
 cd your-project
 adrkit init --tools claude
-adrkit decide "Use SQLite for session storage"
+adrkit decide "Use SQLite for session storage" --decided-by human
 adrkit validate
 ```
 
+`--decided-by` is required on `decide` and `accept`, one value per record: use
+`human` when a person determined the direction (they stated it, changed a
+proposal into what shipped, or you are recording one they made earlier), `agent`
+when it came from the agent's own judgment, including when a person only let it
+through. The CLI neither infers nor verifies it; who proposed and who approved
+belongs in the record body.
+
 To record a decision that still needs review, use `adrkit propose "<title>"`
-(a draft in `adr/.drafts/`), then `adrkit accept "<title>"` to promote it or
-`adrkit reject "<title>"` to discard it.
+(a draft in `adr/.drafts/`), then `adrkit accept "<title>" --decided-by human`
+to promote it or `adrkit reject "<title>"` to discard it.
 
 ## Key facts
 

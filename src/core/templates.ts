@@ -83,19 +83,24 @@ ${contextBlock(context)}## Problem
 `;
 }
 
+/**
+ * The decision skeleton. `decidedBy` is required, not optional: a durable
+ * record without the field is invalid, so the only path that creates one must
+ * name where the choice came from.
+ */
 export function decisionTemplate(
   number: number,
   title: string,
-  context?: string,
-  commit?: string,
-  decidedBy?: DecidedBy,
+  context: string | undefined,
+  commit: string | undefined,
+  decidedBy: DecidedBy,
 ): string {
   const fields: Record<string, string | number> = {
     status: 'accepted',
     date: todayStamp(),
     created: todayStamp(),
+    'decided-by': decidedBy,
   };
-  if (decidedBy !== undefined) fields['decided-by'] = decidedBy;
   if (commit !== undefined) fields.commit = commit;
   return `${frontMatter(fields)}
 # ADR: ${number} ${title}
@@ -125,15 +130,17 @@ ${contextBlock(context)}## Problem
  * acceptance criteria and risks are folded into Consequences. `commit` anchors
  * the decision to the code state it was recorded against.
  *
- * `decidedBy` is the origin detected at promotion time, not the draft's: the
- * front matter below is rebuilt from a fixed field map, so a `decided-by` key
- * written by hand into a draft has no path into the decision.
+ * `decidedBy` is the declaration made for the promoted decision, not the
+ * draft's: the front matter below is rebuilt from a fixed field map, so a
+ * `decided-by` key written by hand into a draft has no path into the decision.
+ * It is required for the same reason the skeleton requires it: every durable
+ * record has to name where the choice came from.
  */
 export function proposalToDecision(
   proposal: AdrRecord,
   number: number,
-  commit?: string,
-  decidedBy?: DecidedBy,
+  commit: string | undefined,
+  decidedBy: DecidedBy,
 ): string {
   const problem = sectionBody(proposal, 'Problem');
   const decision = sectionBody(proposal, 'Proposal');
@@ -168,8 +175,8 @@ export function proposalToDecision(
     // The decision inherits the proposal's birth date: created is stamped
     // once, at propose time, and survives the promotion.
     created: proposal.created ?? todayStamp(),
+    'decided-by': decidedBy,
   };
-  if (decidedBy !== undefined) fields['decided-by'] = decidedBy;
   if (commit !== undefined) fields.commit = commit;
   let output = `${frontMatter(fields)}
 # ADR: ${number} ${proposal.title}

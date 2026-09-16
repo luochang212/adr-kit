@@ -60,7 +60,7 @@ adrkit init [path]
 3. For a new repository, confirm the output lists \`adr/config.yaml\`, \`adr/decisions\`, and
    \`adr/.gitignore\`. Proposals are not a separate folder: they are ephemeral
    drafts in \`adr/.drafts/\`, created by \`adrkit propose\`. Durable records
-   carry a machine-stamped \`decided-by\` field; drafts never do.
+   carry a \`decided-by\` field you declare; drafts never do.
 
 4. Add the following section to the project's agent instruction file
    (\`AGENTS.md\`; also \`CLAUDE.md\` if that is the team's entry point). Preserve
@@ -92,8 +92,12 @@ to fill a template. Reuse an existing record for the same choice; record a
 replacement when important assumptions change. Routine implementation details,
 local fixes, and easily reversible choices need no ADR. If no important
 architectural decision was made, create none. \`accepted\` means a recorded
-decision, not proof of human review. \`decided-by\` infers the execution
-environment, not who independently chose or authorized the decision.
+decision, not proof of human review. \`decided-by\` is a declaration of where the
+choice came from, not an inference: \`human\` when a person determined the
+direction — they stated it, changed a proposal into what shipped, or you are
+recording one they made earlier — \`agent\` when it came from the agent's own
+judgment, including when a person only let it through. The CLI neither infers
+nor verifies it.
 \`\`\`
 
 ## Rules
@@ -101,8 +105,10 @@ environment, not who independently chose or authorized the decision.
 - Never create \`adr/\` directories by hand; use the CLI so the config and
   README stay canonical.
 - After init, read existing decisions and continue the task. Use
-  \`adrkit decide "<title>"\` only for an important architectural choice already
-  made, or \`adrkit propose "<title>"\` when such a choice still needs review.`,
+  \`adrkit decide "<title>" --decided-by human\` (\`agent\` when the choice came
+  from your own judgment) only for an important
+  architectural choice already made, or \`adrkit propose "<title>"\` when such a
+  choice still needs review.`,
   },
   {
     name: 'adrkit-propose',
@@ -143,17 +149,24 @@ adrkit propose "<title>"
    \`## Acceptance criteria\`, \`## Risks\`.
 4. Add 2-4 kebab-case \`tags\` to the front matter (for example \`frontend\`,
    \`execution-layer\`) so the decision graph can group by theme.
-5. Promote the completed draft with \`adrkit accept "<title>"\`; the CLI
-   validates it before promoting.
+5. Promote the completed draft with
+   \`adrkit accept "<title>" --decided-by human\` (\`agent\` when the choice came
+   from your own judgment); the CLI validates it
+   before promoting. Declare \`human\` when a person determined the direction
+   (they stated it, changed your proposal into what shipped, or you are
+   recording one they made earlier), \`agent\` when it came from your own
+   judgment. A person who merely lets a proposal through without engaging with
+   the choice leaves the source with you: that is \`agent\`, and the body is
+   where you say they approved it.
 
 ## Rules
 
 - Do not skip \`## Alternatives considered\`. A proposal without alternatives
   is invalid by design.
 - Keep the front matter exactly \`status: proposed\`. Never write
-  \`decided-by\`: the CLI stamps it at promotion from the environment that
-  promotes the draft, and a hand-written value is rejected while the draft
-  exists and dropped when it is promoted.`,
+  \`decided-by\`: a draft has no decision to attribute, so the value belongs to
+  \`adrkit accept\`, which requires you to declare it. A value written here is
+  rejected while the draft exists and dropped when it is promoted.`,
   },
   {
     name: 'adrkit-decide',
@@ -185,7 +198,7 @@ an ADR for every task or invent alternatives and reasons to fill a template.
 2. Run:
 
 \`\`\`bash
-adrkit decide "<title>"
+adrkit decide "<title>" --decided-by human   # or agent, per the rule below
 \`\`\`
 
 3. Edit the created file and fill \`## Problem\`, \`## Decision\`,
@@ -196,16 +209,22 @@ adrkit decide "<title>"
 
 ## Rules
 
-- \`accepted\` means a recorded decision, not proof of human review.
-- \`decided-by\` infers the execution environment, not who independently chose
-  or authorized the decision.
-
+- \`decided-by\` declares where the choice came from: \`human\` when a person
+  determined the direction — they stated it, changed your proposal into what
+  shipped, or made it earlier and you are only recording it now; \`agent\` when
+  it came from your own judgment, including when a person let your choice
+  through without engaging with it. It records the source of the choice, not
+  who ran the command: recording a person's decision makes it \`human\`, not
+  \`agent\`. The CLI neither infers nor verifies it, so put the nuance (who
+  proposed, who redirected or approved) in the body.
 - Accepted decisions must not contain \`## Proposal\`, \`## Acceptance
   criteria\`, or \`## Risks\` sections.
-- Never edit the \`decided-by\` field: the CLI stamps it from the environment
-  the command runs in. Hand-editing it is a false provenance claim, and
-  \`adrkit validate\` reports the field as missing on records that predate it -
-  say so and let the human supply the value rather than inventing one.
+- Never edit the \`decided-by\` value afterwards. A wrong value is a false
+  provenance claim no later check can detect. A record missing the field is
+  not a blank to fill on a hunch: write the value only when you know where the
+  choice came from — your own judgment, or the person who directed it — and ask
+  the person when you do not.
+- \`accepted\` means a recorded decision, not proof of human review.
 - \`adrkit accept\` is the better path when a proposal already exists.`,
   },
   {
@@ -229,9 +248,10 @@ adrkit validate [name] [--all] [--json]
 ## Rules
 
 - Treat any non-OK output as a blocker for \`adrkit accept\`.
-- A \`front matter must include "decided-by"\` issue on a record that predates
-  the field is not yours to repair: report it and let a human supply the
-  value, because only they know who initiated that decision.
+- A \`front matter must include "decided-by"\` issue on a record that lacks the
+  field is not yours to repair on a hunch: the value comes from whoever knows
+  where that choice came from — your own judgment, or the person who directed
+  it — so ask when you do not.
 - \`adrkit validate\` checks durable decisions only; a draft in \`adr/.drafts/\`
   is validated by \`adrkit accept\` right before it is promoted.`,
   },
@@ -254,19 +274,23 @@ the next \`N\` number, rewrites \`## Proposal\` to \`## Decision\`, folds
 2. Run:
 
 \`\`\`bash
-adrkit accept "<name>"
+adrkit accept "<name>" --decided-by human   # or agent, per the rule below
 \`\`\`
 
 3. Confirm the output names the new \`adr/decisions/N-*.md\` file.
 
 ## Rules
 
+- Declare \`decided-by\` when you promote: \`human\` when a person determined the
+  direction (they stated it, changed this draft into what shipped, or you are
+  recording one they made earlier), \`agent\` when it came from your own
+  judgment, including when a person only let the draft through. Promotion is
+  the last moment the value can be set; the CLI records what you declare
+  without inferring or checking it. If the person redirected or approved your
+  proposal, say so in the body.
 - Never accept an invalid draft; the command refuses.
 - Re-run \`adrkit show "<name>"\` immediately before accepting, even if you
   reviewed it earlier in this conversation; the repo may have changed since.
-- The CLI stamps \`decided-by\` on the promoted decision from the environment
-  the command runs in. It does not establish who independently chose or
-  authorized the decision. Do not try to set it.
 - \`accepted\` means a recorded decision, not proof of human review.
 - Review the generated \`## Consequences\` after accepting.
 - The command warns when a proposal contains sections that have no place in
@@ -326,8 +350,9 @@ adrkit supersede "<old name or number>" --by "<new name or number>"
   still exists and is not itself superseded, even if you checked earlier in
   this conversation.
 - Never hand-edit a superseded record afterwards; it is history, including
-  its \`decided-by\` value, which the command preserves rather than re-stamping
-  with the environment that ran the supersede.
+  its \`decided-by\` value, which the command preserves rather than replacing
+  with whoever retired it. Superseding changes the record's status, not who
+  made the decision.
 - Mention what it supersedes in the new decision's \`## Problem\` section so
   the causal link survives in prose.`,
   },

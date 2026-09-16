@@ -19,19 +19,23 @@ the next `N` number, rewrites `## Proposal` to `## Decision`, folds
 2. Run:
 
 ```bash
-adrkit accept "<name>"
+adrkit accept "<name>" --decided-by human   # or agent, per the rule below
 ```
 
 3. Confirm the output names the new `adr/decisions/N-*.md` file.
 
 ## Rules
 
+- Declare `decided-by` when you promote: `human` when a person determined the
+  direction (they stated it, changed this draft into what shipped, or you are
+  recording one they made earlier), `agent` when it came from your own
+  judgment, including when a person only let the draft through. Promotion is
+  the last moment the value can be set; the CLI records what you declare
+  without inferring or checking it. If the person redirected or approved your
+  proposal, say so in the body.
 - Never accept an invalid draft; the command refuses.
 - Re-run `adrkit show "<name>"` immediately before accepting, even if you
   reviewed it earlier in this conversation; the repo may have changed since.
-- The CLI stamps `decided-by` on the promoted decision from the environment
-  the command runs in. It does not establish who independently chose or
-  authorized the decision. Do not try to set it.
 - `accepted` means a recorded decision, not proof of human review.
 - Review the generated `## Consequences` after accepting.
 - The command warns when a proposal contains sections that have no place in

@@ -38,7 +38,7 @@ Requires Node.js 20.19 or later.
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit decide "Use SQLite for session storage"
+adrkit decide "Use SQLite for session storage" --decided-by human
 ```
 
 `adrkit init` creates an `adr/` directory:
@@ -68,7 +68,7 @@ adrkit list
 Paste this into any AI coding agent to record key decisions automatically:
 
 ```text
-Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.
+Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions. Every record declares `decided-by`: use `human` when a person determined the direction, `agent` when the choice came from your own judgment, even if a person let it through.
 ```
 
 To use decisions in later coding tasks, add the [reading rule](docs/workflow.md#read-decisions-before-coding)
@@ -86,9 +86,11 @@ rationale is not apparent from code alone; routine fixes need no ADR. See
 ```text
 adrkit init [path] [--tools <list>] [--workflows <list>]
                                         Initialize an ADR Kit repository
-adrkit decide <title>                   Record an already-made decision (default path)
+adrkit decide <title> --decided-by <human|agent>
+                                        Record an already-made decision (default path)
 adrkit propose <title>                  Create an ephemeral proposal draft
-adrkit accept <name>                    Promote a draft to a decision (assigns N)
+adrkit accept <name> --decided-by <human|agent>
+                                        Promote a draft to a decision (assigns N)
 adrkit reject <name> [--reason <text>]  Discard a draft (leaves no record)
 adrkit supersede <name> --by <name>     Mark an accepted decision as superseded
 adrkit list [--json]                    List decisions and pending drafts
@@ -161,10 +163,14 @@ by theme. Decisions are immutable history; the current facts
 live in code, not in the record.
 
 `accepted` denotes a recorded decision, not proof of human review.
-`decided-by` is `human` or `machine`, inferred by the CLI from the execution
-environment when `decide` or `accept` runs. A human's choice recorded by an
-agent may still be stamped `machine`; the field does not establish who chose
-or authorized it. `supersede` preserves the original value. See the
+`decided-by` is `human` or `agent`, declared when `decide` or `accept` runs:
+`human` when a person determined the direction (they stated it, changed a
+proposal into what shipped, or you are recording one they made earlier),
+`agent` when it came from the agent's own judgment, including when a person only
+let it through. The CLI records the declaration without inferring or verifying
+it, so the field does not establish who chose or authorized the decision; when
+who proposed and who approved matters, write it in the body. `supersede`
+preserves the original value. See the
 [record format reference](docs/record-format.md) for limitations. Identity
 stays in git, and `validate` never back-fills the field for older records.
 

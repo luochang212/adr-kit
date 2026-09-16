@@ -4,12 +4,17 @@ import { parse } from 'yaml';
 
 export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
 /**
- * Whether the decision was initiated by a person or by a machine, stamped by
- * the CLI from the environment it ran in. Identity is git's job; this is the
+ * Who made the decision: `human` when a person determined the direction (they
+ * stated it, changed a proposal into what shipped, or someone is recording one
+ * they made earlier), `agent` when it came from the agent's own judgment. This
+ * is a declaration by whoever writes the record, not an observation — the CLI
+ * cannot see who chose, so it asks for the value instead of inferring one. It
+ * records where the choice came from, not who ran the command, and a passive
+ * approval leaves the source with the agent. Identity is git's job; this is the
  * one axis git cannot answer, because an agent session commits as the human
- * user. The value is an inferred environment stamp, not attestation.
+ * user.
  */
-export type DecidedBy = 'human' | 'machine';
+export type DecidedBy = 'human' | 'agent';
 /**
  * The durable records folder (`decisions/`) and the ephemeral drafts folder
  * (`adr/.drafts/`). Status is never implied by location: durable records carry
@@ -54,10 +59,12 @@ export interface AdrRecord {
   /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
   date: string;
   /**
-   * For durable records: the environment (`human` or `machine`) the CLI
-   * inferred when it stamped the record. It does not establish who chose or
-   * authorized the decision. A draft never carries it (see the proposal-era
-   * rules in validate).
+   * For durable records: who made the decision. `human` covers a person's own
+   * choice, a proposal they changed into what shipped, and a choice they made
+   * earlier that is only now being recorded; `agent` means the direction came
+   * from the agent's own judgment, even when a person let it through. Declared
+   * by the writer at decide or accept time, never inferred or verified. A draft
+   * never carries it (see the proposal-era rules in validate).
    */
   decidedBy?: DecidedBy;
   /** Date the record was created; stamped once and never re-stamped, so the
@@ -104,7 +111,7 @@ export function hasMeaningfulBody(body: string | undefined): boolean {
  *   ---
  *   status: proposed | accepted | rejected | superseded
  *   date: YYYY-MM-DD
- *   decided-by: human | machine   (durable records only)
+ *   decided-by: human | agent   (durable records only)
  *   reason: <why>            (rejected only)
  *   superseded-by: <N>       (superseded only)
  *   ---
@@ -175,9 +182,9 @@ export function parseAdrFile(filePath: string): AdrRecord {
   let decidedBy: DecidedBy | undefined;
   const decidedByField = fields['decided-by'];
   if (decidedByField !== undefined) {
-    if (decidedByField !== 'human' && decidedByField !== 'machine') {
+    if (decidedByField !== 'human' && decidedByField !== 'agent') {
       throw new AdrFormatError(
-        'decided-by must be "human" or "machine"',
+        'decided-by must be "human" or "agent"',
         filePath,
       );
     }

@@ -21,11 +21,11 @@ const lines: Line[] = [
   { kind: 'out', text: `created adr/.drafts/${demoDate}-use-sqlite-for-session-storage.md` },
   { kind: 'out', text: '' },
   { kind: 'out', text: 'A draft is ephemeral: promote it with' },
-  { kind: 'out', text: '  adrkit accept "Use SQLite for session storage"' },
+  { kind: 'out', text: '  adrkit accept "Use SQLite for session storage" --decided-by human' },
   { kind: 'out', text: 'or discard it with' },
   { kind: 'out', text: '  adrkit reject "Use SQLite for session storage"' },
   { kind: 'note', text: fillNote },
-  { kind: 'cmd', text: 'adrkit accept "Use SQLite for session storage"' },
+  { kind: 'cmd', text: 'adrkit accept "Use SQLite for session storage" --decided-by human' },
   { kind: 'ok', text: `accepted adr/.drafts/${demoDate}-use-sqlite-for-session-storage.md as adr/decisions/1-use-sqlite-for-session-storage.md` },
 ];
 const esc = (s: string) =>

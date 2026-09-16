@@ -65,7 +65,7 @@ const ui = {
     'start.agent.prompt.short':
       'Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.',
     'start.agent.prompt.full':
-      'Use github.com/luochang212/adr-kit in this repository. Record each key architecture decision as an ADR: adrkit decide for calls already made, adrkit propose when one still needs review, adrkit accept once it settles.',
+      'Use github.com/luochang212/adr-kit in this repository. Record each key architecture decision as an ADR: adrkit decide for calls already made, adrkit propose when one still needs review, adrkit accept once it settles. Every record declares --decided-by: human when a person determined the direction, agent when the choice came from your own judgment, even if a person let it through.',
     'start.agents.footnote':
       'Pick one, paste it into your coding assistant, and it will record this repository\u2019s architecture decisions as ADRs.',
     'start.human.label': 'Or run it yourself',
@@ -83,7 +83,7 @@ const ui = {
       'It adds one adr/ directory: a config file, a README with the conventions, and a decisions/ folder. Ephemeral proposal drafts live in a gitignored adr/.drafts/ that the CLI creates on demand. Optionally, adrkit init --tools also writes skill files for your AI assistant (for example .claude/skills/). That is all: records are plain Markdown, there is no runtime dependency, no service, and no lock-in; delete the directory and everything is gone.',
     'faq.2.q': 'How do I use ADR Kit day to day?',
     'faq.2.a':
-      'Run adrkit decide "<title>" to record a decision that is already made, or adrkit propose "<title>" when one still needs review. Fill in the required sections (Problem, Decision, Alternatives considered, Consequences) and run adrkit validate until it passes. If you proposed, adrkit accept "<title>" numbers the decision and promotes the draft into decisions/. AI coding assistants can drive the same workflow through the installed skills: you review, they type.',
+      'Run adrkit decide "<title>" --decided-by human to record a decision that is already made, or adrkit propose "<title>" when one still needs review. Fill in the required sections (Problem, Decision, Alternatives considered, Consequences) and run adrkit validate until it passes. If you proposed, adrkit accept "<title>" --decided-by human numbers the decision and promotes the draft into decisions/. Declare agent instead when the direction came from the agent\'s own judgment, including when a person only let it through. AI coding assistants can drive the same workflow through the installed skills: you review, they type.',
     'faq.3.q': 'Can I use ADR Kit alongside tools like OpenSpec?',
     'faq.3.a':
       'Yes: they answer different questions. Spec-driven tools like OpenSpec track what you are building and how it changes; ADR Kit records why a technical direction was chosen and what was given up. Many teams run both: OpenSpec manages the change, and the pivotal choices inside it become ADRs. They live in separate directories and never conflict.',
@@ -140,7 +140,7 @@ const ui = {
     'start.agent.prompt.short':
       '在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策',
     'start.agent.prompt.full':
-      '在本仓库使用 github.com/luochang212/adr-kit。每做一次关键架构决策就记一条 ADR：已定夺的用 adrkit decide，需要评审的用 adrkit propose，落定后 adrkit accept。',
+      '在本仓库使用 github.com/luochang212/adr-kit。每做一次关键架构决策就记一条 ADR：已定夺的用 adrkit decide，需要评审的用 adrkit propose，落定后 adrkit accept。每条记录都要声明 --decided-by：方向由人决定用 human，由你自己的判断得出用 agent，即使人只是放行。',
     'start.agents.footnote':
       '任选一段，贴给你的 AI 编码助手，它就会在本仓库帮你把架构决策记录成 ADR。',
     'start.human.label': '或自己动手',
@@ -158,7 +158,7 @@ const ui = {
       '只添加一个 adr/ 目录：一个配置文件、一份写明约定的 README、一个 decisions/ 文件夹。临时提案草稿放在 gitignored 的 adr/.drafts/ 里，由 CLI 按需创建。如果执行 adrkit init --tools，还会为你的 AI 助手写入技能文件（例如 .claude/skills/）。仅此而已：记录是纯 Markdown，没有运行时依赖、没有服务、没有锁定；删掉目录就什么都不剩。',
     'faq.2.q': '日常如何在项目中使用 ADR Kit？',
     'faq.2.a':
-      '已做的决策直接运行 adrkit decide "<标题>"；还需要审议的用 adrkit propose "<标题>"。填满必填章节（问题、决策、备选、后果），反复运行 adrkit validate 直到通过。如果走了提案，adrkit accept "<标题>" 为决策编号并把草稿提升进 decisions/。AI 编码助手可以通过安装的技能驱动同一流程：它动手，你审阅。',
+      '已做的决策直接运行 adrkit decide "<标题>" --decided-by human；还需要审议的用 adrkit propose "<标题>"。填满必填章节（问题、决策、备选、后果），反复运行 adrkit validate 直到通过。如果走了提案，adrkit accept "<标题>" --decided-by human 为决策编号并把草稿提升进 decisions/；方向由 AI 自主判断得出时写 agent，人只是放行也写 agent。AI 编码助手可以通过安装的技能驱动同一流程：它动手，你审阅。',
     'faq.3.q': 'ADR Kit 能与 OpenSpec 这类工具同时使用吗？',
     'faq.3.a':
       '可以，它们回答的是不同的问题。OpenSpec 这类规约驱动工具跟踪"在构建什么、如何变更"；ADR Kit 记录"为什么选这个技术方向、放弃了什么"。很多团队两者并用：OpenSpec 管理变更过程，其中的关键抉择落成 ADR。两者分处不同目录，互不冲突。',

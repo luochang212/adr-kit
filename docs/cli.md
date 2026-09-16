@@ -46,9 +46,15 @@ on the first `adrkit propose`.
 
 Record an already-made decision in `adr/decisions/N-slug.md` with the
 next available number. This is the default path. Titles must not start with
-a number. The new record is stamped with `decided-by: human` or `machine`,
-detected from the environment the command runs in; there is no flag to set
-it.
+a number.
+
+`--decided-by` is required and records who made the choice: `human` when a
+person determined the direction (they stated it, changed a proposal into what
+shipped, or you are recording one they made earlier), `agent` when it came from
+the agent's own judgment, including when a person only let it through. The CLI
+records the declaration without inferring or checking it. When the writer cannot
+tell which value applies, ask before recording; the body is where nuance about
+who proposed and who approved belongs.
 
 ### `adrkit propose <title>`
 
@@ -61,8 +67,9 @@ Drafts carry no `decided-by`; writing one into a draft is an error.
 
 Validate a draft, assign the next `N` number, rewrite the lifecycle
 sections, write `adr/decisions/N-slug.md`, and discard the draft.
-The draft's title must not start with a number. The promoted decision is
-stamped with the `decided-by` value detected at promotion time.
+The draft's title must not start with a number. `--decided-by` is required
+here too, with the same meaning as for `decide`: promotion is where the value
+enters the durable record.
 
 ### `adrkit reject <name> [--reason <text>]`
 
@@ -75,9 +82,9 @@ rejection lives in the winning decision's `Alternatives considered`. The
 Mark an accepted decision as superseded by a newer accepted decision. The
 old record's front matter becomes `status: superseded` with
 `superseded-by: N` and its `date` field is stamped with the supersede
-date; its `decided-by` value is preserved rather than re-stamped, since it
-describes the environment inferred when the decision was recorded, not the
-environment that ran the retirement; the file stays in `adr/decisions/` as
+date; its `decided-by` value is preserved rather than replaced, since it
+records who made the original decision, not who retired it; the file stays in
+`adr/decisions/` as
 history. `--by` must resolve to an existing accepted
 decision that is not itself superseded.
 

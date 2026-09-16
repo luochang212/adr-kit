@@ -24,7 +24,7 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
     ...integrationSummary(root, integrations),
     '',
     'Next:',
-    '  adrkit decide "use sqlite for sessions" # record a decision (default path)',
+    '  adrkit decide "use sqlite for sessions" --decided-by human # record a decision',
     '  adrkit propose "your first decision"    # draft a proposal for review',
   ].join('\n');
 }
