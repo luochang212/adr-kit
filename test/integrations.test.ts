@@ -1,4 +1,5 @@
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -344,6 +345,108 @@ describe('completionCommand', () => {
   it('prints bash completion', () => {
     expect(completionCommand('bash')).toContain('complete -F _adrkit_completion adrkit');
   });
+
+  it('names the required declaration and its two values in every shell', () => {
+    // `--decided-by` is required to record a decision, so leaving it out of the
+    // completion would leave the caller to guess a required argument. Fish
+    // spells a long option `-l name`; the others carry the literal flag.
+    expect(completionCommand('bash')).toContain('--decided-by');
+    expect(completionCommand('zsh')).toContain(
+      "'--decided-by=[who made the decision]:declared by:(human agent)'",
+    );
+    expect(completionCommand('fish')).toContain('-l decided-by -x -a "human"');
+    expect(completionCommand('fish')).toContain('-l decided-by -x -a "agent"');
+  });
+
+  it.skipIf(process.platform === 'win32')(
+    'completes the declaration values through a real bash',
+    () => {
+      // Piping the script through stdin keeps bash away from re-parsing the
+      // completion script (and its quoting) a second time.
+      const answer = (words: string, cword: number): string =>
+        execFileSync(
+          'bash',
+          ['-s'],
+          {
+            encoding: 'utf8',
+            input: [
+              completionCommand('bash'),
+              `COMP_WORDS=${words}`,
+              `COMP_CWORD=${cword}`,
+              '_adrkit_completion',
+              'printf "%s " "${COMPREPLY[@]}"',
+            ].join('\n'),
+          },
+        ).trim();
+
+      // The two branches that matter: offering the values after the flag, and
+      // still offering the command names themselves.
+      expect(answer(`(adrkit decide SQLite --decided-by '')`, 4)).toBe('human agent');
+      expect(answer(`(adrkit accept draft --decided-by '')`, 4)).toBe('human agent');
+      // The flag is offered only where it is accepted, and its values only
+      // after it: no command list leaks into an argument position.
+      expect(answer(`(adrkit decide --dec)`, 2)).toBe('--decided-by');
+      expect(answer(`(adrkit decide '')`, 2)).toContain('--decided-by');
+      expect(answer(`(adrkit list --dec)`, 2)).toBe('');
+      expect(answer(`(adrkit propose SQLite --decided-by '')`, 4)).not.toContain('human');
+      expect(answer(`(adrkit val)`, 1)).toBe('validate');
+    },
+  );
+
+  it.skipIf(spawnSync('zsh', ['--version']).status !== 0)(
+    'completes options and values in a real zsh completion context',
+    () => {
+      const dir = mkdtempSync(join(tmpdir(), 'adrkit-zsh-'));
+      tempDirs.push(dir);
+      writeFileSync(join(dir, '_adrkit'), completionCommand('zsh'));
+      const cases = [
+        ['adrkit val', 'adrkit validate'],
+        ['adrkit decide SQLite --dec', 'adrkit decide SQLite --decided-by='],
+        ['adrkit decide "Use SQLite" --decided-by h', 'adrkit decide "Use SQLite" --decided-by human'],
+        ['adrkit accept draft --decided-by a', 'adrkit accept draft --decided-by agent'],
+        ['adrkit decide --decided-by h', 'adrkit decide --decided-by human'],
+        ['adrkit decide SQLite --decided-by=a', 'adrkit decide SQLite --decided-by=agent'],
+        ['adrkit propose SQLite --dec', 'adrkit propose SQLite --dec'],
+      ];
+      // zpty provides the real ZLE context required by _arguments. Ctrl-X
+      // reports the buffer after Tab without executing the proposed command.
+      const output = execFileSync('zsh', ['-f'], {
+        encoding: 'utf8',
+        timeout: 10000,
+        env: { ...process.env, TERM: 'xterm', ADRKIT_COMPLETION_DIR: dir },
+        input: [
+          'zmodload zsh/zpty',
+          'zpty shell zsh -f',
+          `trap 'zpty -d shell 2>/dev/null' EXIT`,
+          `zpty -w shell 'fpath=("$ADRKIT_COMPLETION_DIR" $fpath); autoload -Uz compinit; compinit -D; bindkey "^I" expand-or-complete; report() { print -r -- "RESULT:$BUFFER"; zle .kill-whole-line; }; zle -N report; bindkey "^X" report; print READY'`,
+          `zpty -r shell output '*READY\r\n*'`,
+          ...cases.flatMap(([input]) => [
+            `zpty -w -n shell $'${input}\\t\\x18'`,
+            `zpty -r shell output '*RESULT:*\r\n*'`,
+            'print -r -- "$output"',
+          ]),
+          'zpty -d shell',
+        ].join('\n'),
+      });
+      const buffers = [...output.matchAll(/RESULT:([^\r\n]*)/g)].map((match) => match[1]!.trimEnd());
+      expect(buffers).toEqual(cases.map(([, expected]) => expected));
+    },
+    15000,
+  );
+
+  it.skipIf(spawnSync('fish', ['--version']).status !== 0)(
+    'completes space-separated declaration values through a real fish',
+    () => {
+      const answer = (command: string): string[] => execFileSync('fish', ['--no-config'], {
+        encoding: 'utf8',
+        input: `${completionCommand('fish')}\ncomplete -C '${command}'\n`,
+      }).trim().split('\n').map((line) => line.split('\t')[0]!);
+      expect(answer('adrkit decide SQLite --decided-by ')).toEqual(['agent', 'human']);
+      expect(answer('adrkit accept draft --decided-by h')).toEqual(['human']);
+      expect(answer('adrkit decide SQLite --decided-by=a')).toContain('--decided-by=agent');
+      expect(answer('adrkit propose SQLite --decided-by ')).not.toContain('human');
+    },
+  );
 
   it('rejects unsupported shells', () => {
     expect(() => completionCommand('powershell')).toThrow(/unsupported shell/);
