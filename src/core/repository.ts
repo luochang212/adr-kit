@@ -95,8 +95,9 @@ and never re-stamped, so the time axis survives later lifecycle moves. The
 \`decided-by\` records who made the decision: \`human\` when a person determined the
 direction — they stated it, changed a proposal into what shipped, or you are
 recording one they made earlier — \`agent\` when it came from the agent's own
-judgment, including when a person only let it through. It records where the
-choice came from, not who ran the command. \`decide\` and \`accept\` require the
+judgment, including when a person only let it through. "Who made it" means
+whoever originated the choice, not whoever ran the command. \`decide\` and
+\`accept\` require the
 caller to declare it with \`--decided-by\`, and the CLI neither infers nor
 verifies it, so it does not establish who chose or authorized the decision. The
 CLI writes it at those moves and preserves it when a decision is superseded.

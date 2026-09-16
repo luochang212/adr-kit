@@ -241,6 +241,31 @@ describe('the CLI requires an explicit declaration', () => {
 });
 
 describe('propose and accept', () => {
+  it('requires removing a draft-supplied declaration before promotion', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillDraft(root);
+    const valid = readFileSync(file, 'utf8');
+    const invalid = valid.replace('status: proposed', 'status: proposed\ndecided-by: human');
+    writeFileSync(file, invalid);
+
+    expect(() => acceptCommand('Use SQLite', root, 'agent')).toThrow(
+      '"decided-by" is declared at promotion and must not appear on a draft',
+    );
+    expect(readFileSync(file, 'utf8')).toBe(invalid);
+    expect(JSON.parse(listCommand(root, true))).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ folder: 'decisions' })]),
+    );
+
+    writeFileSync(file, valid);
+    acceptCommand('Use SQLite', root, 'agent');
+    expect(existsSync(file)).toBe(false);
+    expect(readFileSync(join(root, 'adr/decisions/1-use-sqlite.md'), 'utf8')).toContain(
+      'decided-by: agent',
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
   it('creates a draft that accept refuses to promote until alternatives are written', () => {
     const root = makeRepo();
     const output = proposeCommand('Use SQLite', root);

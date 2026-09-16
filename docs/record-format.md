@@ -45,7 +45,8 @@ person made the choice earlier and an agent is only now recording it. `agent`
 means the direction came from the agent's own judgment. A person simply letting
 an agent's proposal through without engaging with the choice does not move the
 source to `human`: the record stays `agent`, and the body is where you say they
-approved it. The field answers one question — where the choice came from — so it
+approved it. The field answers one question — where the choice came from, that
+is, who originated it rather than who ran the command — so it
 carries a single value and is never co-signed. Who proposed, who redirected, and
 who approved belong in `## Decision` as prose, not in the front matter. When the
 writer cannot tell which value applies, the workflow is to ask before recording.

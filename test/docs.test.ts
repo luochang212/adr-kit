@@ -37,8 +37,10 @@ describe('the record-format reference states the decided-by trust boundary', () 
   it('never resurrects the retired inference or authorization claims', () => {
     // The value is declared by the writer and the CLI cannot check it. No page
     // may claim the environment observed it or that the record proves who
-    // authorized the decision; "who made the decision" is no longer on that
-    // list, because declaring the source of the choice is exactly the job now.
+    // authorized the decision, and no page may call the value an inference.
+    // "who made the decision" is deliberately not banned: the record says who
+    // originated the choice, and every page says so in the same breath as
+    // "not whoever ran the command".
     for (const file of ['record-format.md', 'zh/record-format.md', 'cli.md', 'workflow.md']) {
       expect(readDoc(file), file).not.toContain('whether a person or a machine initiated');
       expect(readDoc(file), file).not.toContain('execution-environment inference');

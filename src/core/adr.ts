@@ -59,12 +59,13 @@ export interface AdrRecord {
   /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
   date: string;
   /**
-   * For durable records: who made the decision. `human` covers a person's own
-   * choice, a proposal they changed into what shipped, and a choice they made
-   * earlier that is only now being recorded; `agent` means the direction came
-   * from the agent's own judgment, even when a person let it through. Declared
-   * by the writer at decide or accept time, never inferred or verified. A draft
-   * never carries it (see the proposal-era rules in validate).
+   * For durable records: who made the decision. "Who made it" means whoever
+   * originated the choice, not whoever ran the command. `human` covers a
+   * person's own choice, a proposal they changed into what shipped, and a
+   * choice they made earlier that is only now being recorded; `agent` means the
+   * direction came from the agent's own judgment, even when a person let it
+   * through. Declared by the writer at decide or accept time, never inferred or
+   * verified. A draft never carries it (see the proposal-era rules in validate).
    */
   decidedBy?: DecidedBy;
   /** Date the record was created; stamped once and never re-stamped, so the
