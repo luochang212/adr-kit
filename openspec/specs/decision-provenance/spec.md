@@ -43,14 +43,18 @@ those two is a format error and SHALL be reported as such.
 ### Requirement: Proposed drafts carry no decided-by
 
 A draft with `status: proposed` SHALL NOT carry `decided-by`, because a
-draft has not taken effect and has no decision to attribute. Validation of a
-draft SHALL report the field as an error, and promotion SHALL NOT carry a
-draft-supplied value into a decision.
+draft has not taken effect and has no decision to attribute. `accept` SHALL
+report the field as an error and refuse promotion, and promotion SHALL NOT
+carry a draft-supplied value into a decision. The `validate` command covers
+durable records only: drafts are ephemeral and outside its surface, so the
+gate that reports this error is `accept`.
 
-#### Scenario: draft with the field is invalid
+#### Scenario: the validate command leaves drafts to accept
 
-- **WHEN** a draft in `adr/.drafts/` declares `decided-by`
-- **THEN** validating the draft reports an error for that field
+- **WHEN** `adrkit validate` runs in a repository whose draft declares
+  `decided-by`
+- **THEN** the draft is not read by validation and the run is unaffected by
+  it; the draft is gated by `accept`, not by `validate`
 
 #### Scenario: promotion rejects a draft-supplied value
 
@@ -149,24 +153,18 @@ existing value and SHALL NOT ask for or write a new one.
 - **THEN** it carries the value declared for it, independent of the record it
   replaces
 
-### Requirement: Historical records are not back-filled
+### Requirement: Validation never writes the field
 
-The tooling SHALL NOT write `decided-by` into records that already exist in
-order to satisfy validation. A record created before this capability SHALL
-remain unmodified by any command except the lifecycle move the user
-explicitly requests, and the migration SHALL be documented in release notes.
+The tooling SHALL NOT supply `decided-by` on a record's behalf: the value is
+a declaration only the caller can make, so `adrkit validate` reports a
+missing or unknown value instead of filling one in.
 
 #### Scenario: validate does not repair
 
-- **WHEN** `adrkit validate` (or any other command) encounters an existing
-  accepted record with no `decided-by`
-- **THEN** the record file is left byte-identical on disk
-
-#### Scenario: migration is documented
-
-- **WHEN** the release containing this capability is published
-- **THEN** its notes state that pre-existing accepted records fail
-  validation until a value is supplied, and that the tool will not supply it
+- **WHEN** `adrkit validate` (or any other command) encounters an accepted
+  record with no `decided-by`
+- **THEN** validation reports the missing field and the record file is left
+  byte-identical on disk
 
 ### Requirement: The claim and its limits are documented
 

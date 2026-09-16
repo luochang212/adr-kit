@@ -136,6 +136,10 @@ Body.
     expect(output).toContain('validated - ready to accept');
     expect(output).toContain('missing required section "## Proposal"');
     expect(output).toContain(`adrkit accept ${plugin.fileName}`);
+    // The ready line names both values instead of presetting one, so an agent
+    // following it verbatim cannot label its own judgment as human.
+    expect(output).toContain(`adrkit accept ${plugin.fileName} --decided-by <human|agent>`);
+    expect(output).not.toContain('--decided-by human   # promote to a decision');
     expect(output).not.toContain(`adrkit accept ${sqlite.fileName}`);
     expect(output).toContain(`adrkit reject ${sqlite.fileName}`);
   });

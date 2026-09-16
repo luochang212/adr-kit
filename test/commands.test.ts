@@ -292,6 +292,37 @@ describe('propose and accept', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 
+  it('steers a new caller to declare, in both the init and propose output', () => {
+    // These lines are the agent's steer at the moment it creates work. Naming
+    // only `human` would invite an agent to label its own judgment as human,
+    // which is the one thing the declaration exists to prevent.
+    const dir = mkdtempSync(join(tmpdir(), 'adrkit-steer-'));
+    tempDirs.push(dir);
+    const init = initCommand(dir);
+    expect(init).toContain('--decided-by human');
+    const proposed = proposeCommand('Use SQLite', dir);
+    expect(proposed).toContain('--decided-by human');
+    expect(proposed).toContain(
+      "use --decided-by agent when the choice came from the agent's own judgment",
+    );
+  });
+
+  it('exposes decidedBy on the JSON surface for decisions and not drafts', () => {
+    // --json is the agent-facing surface: an agent reading the listing must
+    // see the provenance of every decision, while drafts never carry it.
+    const root = makeRepo();
+    decideCommand('Agent call', root, 'agent');
+    proposeCommand('Use SQLite', root);
+    const list = JSON.parse(listCommand(root, true)) as Array<{
+      folder: string;
+      decidedBy?: string;
+    }>;
+    const decision = list.find((entry) => entry.folder === 'decisions')!;
+    expect(decision.decidedBy).toBe('agent');
+    const draft = list.find((entry) => entry.folder === 'drafts')!;
+    expect('decidedBy' in draft).toBe(false);
+  });
+
   it('rejects a draft and leaves no record', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);

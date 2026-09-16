@@ -354,8 +354,34 @@ describe('completionCommand', () => {
     expect(completionCommand('zsh')).toContain(
       "'--decided-by=[who made the decision]:declared by:(human agent)'",
     );
-    expect(completionCommand('fish')).toContain('-l decided-by -x -a "human"');
-    expect(completionCommand('fish')).toContain('-l decided-by -x -a "agent"');
+    expect(completionCommand('fish')).toContain('-l decided-by -x -a "human agent"');
+  });
+
+  it('declares the value-taking options as taking a value', () => {
+    // Registering `--tag`, `--tools`, `--workflows`, `--by`, or `--reason` as a
+    // flag makes each shell offer the option list where the CLI expects a
+    // value. zsh needs the `=` and an argument slot, fish needs `-x`.
+    const zsh = completionCommand('zsh');
+    expect(zsh).toContain("'--tools=[AI tools to install integrations for]:tools:'");
+    expect(zsh).toContain("'--workflows=[workflows to install]:workflows:'");
+    expect(zsh).toContain("'--by=[the decision that replaces this one]:by:'");
+    expect(zsh).toContain("'--reason=[why the draft is discarded]:reason:'");
+    expect(zsh).toContain("'--tag=[filter to one theme]:tag:'");
+    const fish = completionCommand('fish');
+    for (const option of ['tools', 'workflows', 'by', 'reason', 'tag']) {
+      expect(fish, option).toMatch(
+        new RegExp(`__fish_seen_subcommand_from \\w+" -l ${option} -x`),
+      );
+    }
+    // Booleans stay valueless in both shells.
+    expect(fish).toMatch(/__fish_seen_subcommand_from list" -l json$/m);
+    expect(zsh).toMatch(/list\) _arguments --json --help '1:argument:'/);
+  });
+
+  it('gives commands outside the option table a fallback branch in zsh', () => {
+    // Without a default arm a command that has no entry completes nothing at
+    // all (zsh falls back to files); the fallback keeps the surface uniform.
+    expect(completionCommand('zsh')).toContain("*) _arguments '--help' '1:argument:' ;;");
   });
 
   it.skipIf(process.platform === 'win32')(
@@ -390,6 +416,11 @@ describe('completionCommand', () => {
       expect(answer(`(adrkit list --dec)`, 2)).toBe('');
       expect(answer(`(adrkit propose SQLite --decided-by '')`, 4)).not.toContain('human');
       expect(answer(`(adrkit val)`, 1)).toBe('validate');
+      // A value option consumes the next word, so the option list must not
+      // come back where the CLI is waiting for a value.
+      expect(answer(`(adrkit graph '')`, 2)).toContain('--tag');
+      expect(answer(`(adrkit graph --tag '')`, 3)).toBe('');
+      expect(answer(`(adrkit init --tools '')`, 3)).toBe('');
     },
   );
 
@@ -407,6 +438,12 @@ describe('completionCommand', () => {
         ['adrkit decide --decided-by h', 'adrkit decide --decided-by human'],
         ['adrkit decide SQLite --decided-by=a', 'adrkit decide SQLite --decided-by=agent'],
         ['adrkit propose SQLite --dec', 'adrkit propose SQLite --dec'],
+        // A value option declares an argument slot, so zsh offers no candidate
+        // and leaves the buffer alone instead of repeating the option list.
+        // (Valueless options are pinned by the string assertions above: this
+        // harness only observes insertion for options that take an argument.)
+        ['adrkit graph --tag ', 'adrkit graph --tag'],
+        ['adrkit init --tools ', 'adrkit init --tools'],
       ];
       // zpty provides the real ZLE context required by _arguments. Ctrl-X
       // reports the buffer after Tab without executing the proposed command.
@@ -445,6 +482,10 @@ describe('completionCommand', () => {
       expect(answer('adrkit accept draft --decided-by h')).toEqual(['human']);
       expect(answer('adrkit decide SQLite --decided-by=a')).toContain('--decided-by=agent');
       expect(answer('adrkit propose SQLite --decided-by ')).not.toContain('human');
+      // `-x` on a value option suppresses both the option list and file
+      // candidates, since the CLI expects a value the shell cannot enumerate.
+      expect(answer('adrkit graph --tag ')).not.toContain('--json');
+      expect(answer('adrkit init --tools ')).not.toContain('--workflows');
     },
   );
 

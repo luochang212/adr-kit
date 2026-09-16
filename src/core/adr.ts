@@ -4,6 +4,12 @@ import { parse } from 'yaml';
 
 export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
 /**
+ * The two declaration values, single-sourced: the parser, the CLI prompt, and
+ * the shell completion scripts all read the set from here, so a third value
+ * could never be added in one place and forgotten in another.
+ */
+export const DECIDED_BY_VALUES = ['human', 'agent'] as const;
+/**
  * Who made the decision: `human` when a person determined the direction (they
  * stated it, changed a proposal into what shipped, or someone is recording one
  * they made earlier), `agent` when it came from the agent's own judgment. This
@@ -14,7 +20,12 @@ export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
  * one axis git cannot answer, because an agent session commits as the human
  * user.
  */
-export type DecidedBy = 'human' | 'agent';
+export type DecidedBy = (typeof DECIDED_BY_VALUES)[number];
+
+/** Narrow an unknown front matter value to a declaration. */
+export function isDecidedBy(value: unknown): value is DecidedBy {
+  return typeof value === 'string' && (DECIDED_BY_VALUES as readonly string[]).includes(value);
+}
 /**
  * The durable records folder (`decisions/`) and the ephemeral drafts folder
  * (`adr/.drafts/`). Status is never implied by location: durable records carry
@@ -183,7 +194,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
   let decidedBy: DecidedBy | undefined;
   const decidedByField = fields['decided-by'];
   if (decidedByField !== undefined) {
-    if (decidedByField !== 'human' && decidedByField !== 'agent') {
+    if (!isDecidedBy(decidedByField)) {
       throw new AdrFormatError(
         'decided-by must be "human" or "agent"',
         filePath,

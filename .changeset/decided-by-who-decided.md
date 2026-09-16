@@ -16,8 +16,7 @@ declared by the caller instead of inferred from the environment.
   refuse to write a record without it. There is no default and no inference:
   the CLI cannot observe who chose, and the old probe measured a different
   question (who ran the command), so it recorded every unrecognized agent as a
-  person. The probe, the marker list, and the terminal detection are deleted,
-  not deprecated.
+  person. The probe and the marker list are deleted, not deprecated.
 - The format allows exactly `human` or `agent`; any other value, including the
   removed `machine`, fails to load with an error naming the two. Nothing
   normalizes or back-fills it: `validate` reports a missing or unknown value and
@@ -25,6 +24,16 @@ declared by the caller instead of inferred from the environment.
 - `propose` writes nothing and takes no declaration. `supersede` preserves the
   declared value instead of asking for a new one: retiring a decision does not
   change who made it.
+- `--decided-by` and `--json` are rejected wherever they are not accepted,
+  `--help` and `--version` included. Those two so far printed and exited 0
+  before the rejection ran, so a mistyped flag looked like a success.
+- `adrkit list --json` exposes `decidedBy` on every record that carries one, so
+  the machine-readable surface is not missing the field the human-readable one
+  is built around.
+- Completion declares the value-taking options (`--tag`, `--tools`,
+  `--workflows`, `--by`, `--reason`) as taking a value, so bash, zsh, and fish
+  stop offering the option list where the CLI is waiting for a value; zsh also
+  gains a fallback branch instead of silently completing nothing.
 - The installed skills tell agents how to declare: `human` when the person
   determined the direction, `agent` when the choice came from the agent's own
   judgment even if a person let it through, and to ask the person when they

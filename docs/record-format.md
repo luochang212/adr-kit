@@ -34,8 +34,8 @@ never requires them.
 ## Human or agent: `decided-by`
 
 `decided-by` is `human` or `agent` and is required on accepted and
-superseded decisions; a draft carries no value, and `validate` rejects one
-that does. `decide` and `accept` require the caller to declare it with
+superseded decisions; a draft carries no value, and `accept` refuses to
+promote one that does. `decide` and `accept` require the caller to declare it with
 `--decided-by human|agent`; `propose` never writes it, and `supersede`
 preserves the original value.
 
@@ -62,9 +62,8 @@ and by editing the file afterwards, which changes the value freely. Likewise,
 formally recorded, not that a human has reviewed it. Git records commit
 identity separately.
 
-`validate` never back-fills the field: a record that carries no `decided-by`
-reports it as missing until someone who knows where that choice came from
-writes the value. Validation itself stays read-only.
+`validate` is read-only: it reports a missing or unknown `decided-by` and
+never writes one, because the value is a declaration only the caller can make.
 
 ## Drafts (proposals)
 

@@ -7,6 +7,9 @@ export function listCommand(cwd: string, asJson = false): string {
   const drafts = listDrafts(root);
 
   if (asJson) {
+    // --json is the agent-facing surface, and decided-by is part of what an
+    // agent needs to know about a record, so it is exposed alongside the
+    // other lifecycle fields (absent on drafts, which never carry it).
     const payload = [...records, ...drafts].map((record) => ({
       folder: record.folder,
       status: record.status,
@@ -14,6 +17,7 @@ export function listCommand(cwd: string, asJson = false): string {
       title: record.title,
       fileName: record.fileName,
       path: relativePath(record),
+      decidedBy: record.decidedBy,
       rejectionReason: record.rejectionReason,
       supersededBy: record.supersededBy,
     }));

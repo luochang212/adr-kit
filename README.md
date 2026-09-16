@@ -172,7 +172,7 @@ it, so the field does not establish who chose or authorized the decision; when
 who proposed and who approved matters, write it in the body. `supersede`
 preserves the original value. See the
 [record format reference](docs/record-format.md) for limitations. Identity
-stays in git, and `validate` never back-fills the field for older records.
+stays in git.
 
 - **Decisions** (`adr/decisions/N-slug.md`) are `accepted` or `superseded`
   and require `Problem`, `Decision`, `Alternatives considered`, and

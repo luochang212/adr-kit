@@ -53,3 +53,49 @@ describe('cli --json handling', () => {
     expect(() => JSON.parse(output)).not.toThrow();
   });
 });
+
+describe('stray options are rejected before help and version print', () => {
+  // The spec says a non-recording command rejects --decided-by rather than
+  // ignoring it; --help and --version are not an exemption from that rule,
+  // because printing help and exiting 0 hides the mistake from the caller.
+  it('rejects --decided-by alongside --help and --version', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    // The message names the surface the flag landed on, so `--help` does not
+    // read as "(no command)" when that is exactly what the caller typed.
+    for (const [args, expected] of [
+      [['--help', '--decided-by', 'human'], 'adrkit --help does not take --decided-by'],
+      [['--version', '--decided-by', 'human'], 'adrkit --version does not take --decided-by'],
+      [['init', '--help', '--decided-by', 'human'], 'adrkit init does not take --decided-by'],
+      [['-V', '--decided-by', 'human'], 'adrkit --version does not take --decided-by'],
+    ] as const) {
+      process.exitCode = undefined;
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      main([...args]);
+      expect(process.exitCode, args.join(' ')).toBe(1);
+      expect(errorSpy, args.join(' ')).toHaveBeenCalledWith(
+        expect.stringContaining(expected),
+      );
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('rejects --json alongside --help and --version', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    for (const [args, expected] of [
+      [['--version', '--json'], 'adrkit --version does not support --json'],
+      [['--help', '--json'], 'adrkit --help does not support --json'],
+      [['--json'], 'adrkit (no command) does not support --json'],
+    ] as const) {
+      process.exitCode = undefined;
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      main([...args]);
+      expect(process.exitCode, args.join(' ')).toBe(1);
+      expect(errorSpy, args.join(' ')).toHaveBeenCalledWith(
+        expect.stringContaining(expected),
+      );
+      errorSpy.mockRestore();
+    }
+  });
+});

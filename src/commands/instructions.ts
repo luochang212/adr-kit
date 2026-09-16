@@ -64,7 +64,9 @@ export function instructionsCommand(cwd: string, asJson = false): string {
     }
     lines.push('', 'Next:');
     for (const name of ready) {
-      lines.push(`  adrkit accept ${name} --decided-by human   # promote to a decision`);
+      // The placeholder keeps an agent from copy-pasting a human declaration
+      // for its own judgment: whoever runs this must pick the value.
+      lines.push(`  adrkit accept ${name} --decided-by <human|agent>   # promote to a decision`);
     }
     for (const name of Object.keys(needsWork)) {
       lines.push(`  adrkit reject ${name}   # or fix adr/.drafts/${name} and accept it`);

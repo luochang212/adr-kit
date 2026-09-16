@@ -158,7 +158,7 @@ tags: [frontend]
 只记录声明，所以它不能证明是谁自主拍板或授权；这里的"谁"指选择的来源，不是谁执行了
 命令，谁提出、谁批准写进正文。`supersede`
 保留原值。局限见[记录格式参考](docs/zh/record-format.md)。
-身份留在 git 里，`validate` 从不替早于该字段的记录回填。
+身份留在 git 里。
 
 - **决策**（`adr/decisions/N-slug.md`）是 `accepted` 或 `superseded`，
   需要 `Problem`、`Decision`、`Alternatives considered`、`Consequences`；

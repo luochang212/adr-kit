@@ -67,4 +67,32 @@ describe('the record-format reference states the decided-by trust boundary', () 
     expect(zhFlat).toContain('来源仍是`agent`');
     expect(zhFlat).toContain('不放进front');
   });
+
+  it('sends a draft that carries the field to accept, not validate', () => {
+    // `validate` covers durable records only: a draft is ephemeral and the
+    // gate that rejects the field on one is `accept`. The reference used to
+    // claim `validate` rejects it, which is not what the command does — hand
+    // the draft to `validate` and it is simply not read.
+    const en = readDoc('record-format.md').replace(/\s+/g, ' ');
+    expect(en).toContain('`accept` refuses to promote one that does');
+    expect(en).not.toContain('`validate` rejects one that does');
+    const zh = readDoc('zh/record-format.md').replace(/\s+/g, '');
+    expect(zh).toContain('带了`accept`会拒绝提升');
+    expect(zh).not.toContain('带了会被`validate`拒绝');
+  });
+
+  it('keeps the retired migration framing out of the reference and the spec', () => {
+    // The format has no adopters and the retired `machine` value never
+    // shipped, so nothing needs a migration story: release notes for records
+    // that do not exist promise something the tool cannot keep or break.
+    expect(readDoc('record-format.md')).not.toContain('back-fill');
+    expect(readDoc('zh/record-format.md')).not.toContain('回填');
+    const spec = readFileSync(
+      fileURLToPath(new URL('../openspec/specs/decision-provenance/spec.md', import.meta.url)),
+      'utf8',
+    );
+    expect(spec).not.toContain('migration');
+    expect(spec).not.toContain('pre-existing');
+    expect(spec).toContain('### Requirement: Validation never writes the field');
+  });
 });

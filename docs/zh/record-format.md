@@ -29,7 +29,7 @@ superseded 决策上必填，其他状态禁止出现。未知字段会被 `vali
 ## 人还是 agent：`decided-by`
 
 `decided-by` 取值为 `human` 或 `agent`，accepted 与 superseded 决策必填；
-草稿不带这个字段，带了会被 `validate` 拒绝。`decide` 与 `accept` 要求调用方用
+草稿不带这个字段，带了 `accept` 会拒绝提升。`decide` 与 `accept` 要求调用方用
 `--decided-by human|agent` 声明它；`propose` 从不写，`supersede` 保留记录原有
 的值。
 
@@ -47,8 +47,8 @@ superseded 决策上必填，其他状态禁止出现。未知字段会被 `vali
 `accepted` 表示正式记录的决定，不代表
 人已审阅批准。提交身份由 git 记录。
 
-`validate` 从不回填这个字段：记录里没有 `decided-by` 就一直报缺少，直到知道这条
-选择从哪来的人（agent 自己的判断，或给出方向的人）把值写上。校验本身只读。
+`validate` 只读：缺 `decided-by` 或取值未知时报告问题，从不代写，因为只有
+调用方才能做出这个声明。
 
 ## 草稿（提案）
 

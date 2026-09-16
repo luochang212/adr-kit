@@ -2,6 +2,7 @@ import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { VERSION } from './version.js';
 import type { DecidedBy } from './core/adr.js';
+import { isDecidedBy } from './core/adr.js';
 import { acceptCommand } from './commands/accept.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
@@ -88,22 +89,18 @@ export function main(argv: string[]): void {
     },
   });
 
-  if (values.version) {
-    console.log(VERSION);
-    return;
-  }
-  if (values.help) {
-    console.log(HELP);
-    return;
-  }
-
   const command = positionals[0] ?? '';
   const rest = positionals.slice(1);
 
   try {
-    // Commands without JSON output reject --json instead of ignoring it.
-    if (values.json && command.length > 0 && !JSON_COMMANDS.has(command)) {
-      throw new Error(`adrkit ${command} does not support --json`);
+    // A stray option is a mistake on every surface, help and version
+    // included: these checks run before the early returns so --help and
+    // --version cannot swallow a mistyped --decided-by or --json. The message
+    // names whichever surface the flag landed on.
+    const surface =
+      command.length > 0 ? command : values.help ? '--help' : values.version ? '--version' : '(no command)';
+    if (values.json && !JSON_COMMANDS.has(command)) {
+      throw new Error(`adrkit ${surface} does not support --json`);
     }
     // Only decide and accept record a decision. Anywhere else the flag is a
     // mistake, not something to ignore, and this has to run before the switch
@@ -113,10 +110,18 @@ export function main(argv: string[]): void {
       command !== 'decide' &&
       command !== 'accept'
     ) {
-      throw new Error(
-        `adrkit ${command.length > 0 ? command : '(no command)'} does not take --decided-by`,
-      );
+      throw new Error(`adrkit ${surface} does not take --decided-by`);
     }
+
+    if (values.version) {
+      console.log(VERSION);
+      return;
+    }
+    if (values.help) {
+      console.log(HELP);
+      return;
+    }
+
     switch (command) {
       case '': {
         console.error(HELP);
@@ -239,7 +244,7 @@ function requireTitle(rest: string[], command: string): void {
  * whoever reads this message is about to record a decision.
  */
 function requireDecidedBy(value: string | undefined): DecidedBy {
-  if (value === 'human' || value === 'agent') return value;
+  if (isDecidedBy(value)) return value;
   const problem = value === undefined ? 'is required' : `must be "human" or "agent", got "${value}"`;
   throw new Error(
     `--decided-by ${problem}:\n` +
