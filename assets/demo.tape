@@ -22,7 +22,7 @@ Sleep 500ms
 Enter
 Sleep 1200ms
 
-Type "adrkit decide \"Use SQLite for session storage\""
+Type "adrkit decide \"Use SQLite for session storage\" --decided-by human"
 Sleep 500ms
 Enter
 Sleep 1200ms

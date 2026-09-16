@@ -52,10 +52,17 @@ draft-supplied value into a decision.
 - **WHEN** a draft in `adr/.drafts/` declares `decided-by`
 - **THEN** validating the draft reports an error for that field
 
-#### Scenario: promotion discards a draft-supplied value
+#### Scenario: promotion rejects a draft-supplied value
 
-- **WHEN** a draft that declares `decided-by: human` is promoted with
+- **WHEN** a draft that declares `decided-by: human` is submitted to `accept` with
   `--decided-by agent`
+- **THEN** the command reports that the field must not appear on a draft,
+  leaves the draft unchanged, and writes no decision
+
+#### Scenario: promotion records the declaration after the draft is corrected
+
+- **WHEN** the caller removes the invalid `decided-by` field from an otherwise
+  valid draft and runs `accept` with `--decided-by agent`
 - **THEN** the promoted decision records `decided-by: agent`
 
 ### Requirement: Validation requires decided-by on durable records
