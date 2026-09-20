@@ -4,14 +4,16 @@
  * rendered to text, mermaid, or a single HTML document on demand. The stored
  * outline is the source of truth; every renderer is a view.
  *
- * Grammar (ADR 5):
+ * Grammar (ADR 5, extended by ADR 6):
  *
- *   - [Q: | A: ]<text>[ [status]][ (recommended)][ em-dash <reason>]
+ *   - [Q: | A: ]<text>[ [status]][ (round N)][ (recommended)][ em-dash <reason>]
  *
  * Q:/A: marks a question or an option (inferred when omitted: a node with
  * children is a question, a leaf is an option, the top level is the root).
- * [settled], [rejected], [open] is the state. (recommended) marks the option
- * the agent recommended. The em-dash reason explains the node.
+ * [settled], [rejected], [open] is the state. (round N) is the frontier round
+ * in which the session settled the node; options inherit their question's
+ * round. (recommended) marks the option the agent recommended. The em-dash
+ * reason explains the node.
  */
 
 export type DeliberationStatus = 'settled' | 'rejected' | 'open';
@@ -21,6 +23,7 @@ export interface DeliberationNode {
   text: string;
   type?: DeliberationType;
   status?: DeliberationStatus;
+  round?: number;
   recommended?: boolean;
   reason?: string;
   children: DeliberationNode[];
@@ -30,6 +33,7 @@ interface ParsedNode {
   text: string;
   type?: DeliberationType;
   status?: DeliberationStatus;
+  round?: number;
   recommended?: boolean;
   reason?: string;
 }
@@ -37,6 +41,7 @@ interface ParsedNode {
 const BULLET = /^(\s*)-\s+(.*?)\s*$/;
 const STATUS = /\[(settled|rejected|open)\]/i;
 const RECOMMENDED = /\(recommended\)\s*$/i;
+const ROUND = /\(round\s+([1-9]\d*)\)\s*$/i;
 const TYPE = /^([QA]):\s+/i;
 
 /** Parse one bullet from the end inward, so a reason never hides the status. */
@@ -52,6 +57,12 @@ function parseNodeText(raw: string): ParsedNode | undefined {
   if (RECOMMENDED.test(content)) {
     recommended = true;
     content = content.replace(RECOMMENDED, '').trimEnd();
+  }
+  let round: number | undefined;
+  const roundMatch = content.match(ROUND);
+  if (roundMatch !== null) {
+    round = Number(roundMatch[1]);
+    content = content.replace(ROUND, '').trimEnd();
   }
   let status: DeliberationStatus | undefined;
   const statusMatch = content.match(STATUS);
@@ -70,6 +81,7 @@ function parseNodeText(raw: string): ParsedNode | undefined {
   const node: ParsedNode = { text };
   if (type !== undefined) node.type = type;
   if (status !== undefined) node.status = status;
+  if (round !== undefined) node.round = round;
   if (recommended !== undefined) node.recommended = recommended;
   if (reason !== undefined && reason.length > 0) node.reason = reason;
   return node;
@@ -88,6 +100,7 @@ export function parseDeliberation(body: string | undefined): DeliberationNode[] 
     const node: DeliberationNode = { text: parsed.text, children: [] };
     if (parsed.type !== undefined) node.type = parsed.type;
     if (parsed.status !== undefined) node.status = parsed.status;
+    if (parsed.round !== undefined) node.round = parsed.round;
     if (parsed.recommended !== undefined) node.recommended = parsed.recommended;
     if (parsed.reason !== undefined) node.reason = parsed.reason;
     while (stack.length > 0 && stack[stack.length - 1]!.indent >= indent) stack.pop();
@@ -96,7 +109,16 @@ export function parseDeliberation(body: string | undefined): DeliberationNode[] 
     else parent.node.children.push(node);
     stack.push({ indent, node });
   }
+  propagateRounds(roots, undefined);
   return roots;
+}
+
+/** Options inherit the round of their parent question. */
+function propagateRounds(nodes: DeliberationNode[], inherited: number | undefined): void {
+  for (const node of nodes) {
+    if (node.round === undefined && inherited !== undefined) node.round = inherited;
+    propagateRounds(node.children, node.round ?? inherited);
+  }
 }
 
 /** Explicit Q:/A:, else children decide. */
@@ -120,6 +142,7 @@ function isOverride(node: DeliberationNode): boolean {
 function markers(node: DeliberationNode): string {
   const parts: string[] = [];
   if (node.status !== undefined) parts.push('[' + node.status + ']');
+  if (node.round !== undefined && typeOf(node) === 'question') parts.push('(round ' + node.round + ')');
   if (node.recommended === true) parts.push('(recommended)');
   if (isOverride(node)) parts.push('(override)');
   if (node.reason !== undefined) parts.push('\u2014 ' + node.reason);
@@ -144,30 +167,62 @@ function escapeLabel(text: string): string {
   return text.replace(/"/g, "'");
 }
 
+interface MermaidEntry {
+  id: string;
+  node: DeliberationNode;
+  parentId?: string;
+  isRoot: boolean;
+}
+
 export function renderDeliberationMermaid(nodes: DeliberationNode[]): string {
+  const entries: MermaidEntry[] = [];
+  let counter = 0;
+  const collect = (list: DeliberationNode[], parentId: string | undefined, depth: number): void => {
+    for (const node of list) {
+      const id = 'n' + (++counter);
+      const entry: MermaidEntry = { id, node, isRoot: depth === 0 && node.type === undefined };
+      if (parentId !== undefined) entry.parentId = parentId;
+      entries.push(entry);
+      collect(node.children, id, depth + 1);
+    }
+  };
+  collect(nodes, undefined, 0);
+
   const lines: string[] = ['graph TD'];
+  const labelOf = (node: DeliberationNode): string =>
+    escapeLabel(node.reason === undefined ? node.text : node.text + ' \u2014 ' + node.reason);
+  const nodeLine = (entry: MermaidEntry, indent: string): void => {
+    const label = labelOf(entry.node);
+    const shape = entry.isRoot
+      ? '(["' + label + '"])'
+      : (typeOf(entry.node) === 'question' ? '{{"' + label + '"}}' : '["' + label + '"]');
+    lines.push(indent + entry.id + shape);
+  };
+
+  const rounds = [...new Set(entries.map((entry) => entry.node.round).filter((round): round is number => round !== undefined))].sort((a, b) => a - b);
+  if (rounds.length === 0) {
+    for (const entry of entries) nodeLine(entry, '  ');
+  } else {
+    for (const entry of entries) if (entry.isRoot && entry.node.round === undefined) nodeLine(entry, '  ');
+    for (const round of rounds) {
+      lines.push('  subgraph r' + round + '["Round ' + round + '"]');
+      for (const entry of entries) if (entry.node.round === round) nodeLine(entry, '    ');
+      lines.push('  end');
+    }
+    for (const entry of entries) if (!entry.isRoot && entry.node.round === undefined) nodeLine(entry, '  ');
+  }
+  for (const entry of entries) {
+    if (entry.parentId !== undefined) lines.push('  ' + entry.parentId + ' --> ' + entry.id);
+  }
+
   const byStatus: Record<DeliberationStatus, string[]> = { settled: [], rejected: [], open: [] };
   const recommended: string[] = [];
   const overridden: string[] = [];
-  let counter = 0;
-  const walk = (list: DeliberationNode[], parentId: string | undefined, depth: number): void => {
-    for (const node of list) {
-      const id = 'n' + (++counter);
-      const raw = node.reason === undefined ? node.text : node.text + ' \u2014 ' + node.reason;
-      const label = escapeLabel(raw);
-      const isRoot = depth === 0 && node.type === undefined;
-      const shape = isRoot
-        ? '(["' + label + '"])'
-        : (typeOf(node) === 'question' ? '{{"' + label + '"}}' : '["' + label + '"]');
-      lines.push('  ' + id + shape);
-      if (parentId !== undefined) lines.push('  ' + parentId + ' --> ' + id);
-      if (node.status !== undefined) byStatus[node.status].push(id);
-      if (node.recommended === true) recommended.push(id);
-      if (isOverride(node)) overridden.push(id);
-      walk(node.children, id, depth + 1);
-    }
-  };
-  walk(nodes, undefined, 0);
+  for (const entry of entries) {
+    if (entry.node.status !== undefined) byStatus[entry.node.status].push(entry.id);
+    if (entry.node.recommended === true) recommended.push(entry.id);
+    if (isOverride(entry.node)) overridden.push(entry.id);
+  }
   lines.push(
     '  classDef settled fill:#dcfce7,stroke:#16a34a;',
     '  classDef rejected fill:#fee2e2,stroke:#dc2626;',

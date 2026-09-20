@@ -84,6 +84,53 @@ describe('override detection', () => {
   });
 });
 
+describe('frontier rounds', () => {
+  it('reads a round annotation and ignores a malformed one', () => {
+    const [question] = parseDeliberation('- Q: Where does the tree live? [settled] (round 2)');
+    expect(question!.status).toBe('settled');
+    expect(question!.round).toBe(2);
+
+    const [malformed] = parseDeliberation('- Q: Where does the tree live? [settled] (round x)');
+    expect(malformed!.round).toBeUndefined();
+    expect(malformed!.text).toContain('(round x)');
+  });
+
+  it('options inherit their question round', () => {
+    const [question] = parseDeliberation([
+      '- Q: Pick one [settled] (round 2)',
+      '  - A: First [rejected]',
+      '  - A: Second [settled]',
+    ].join('\n'));
+    expect(question!.round).toBe(2);
+    expect(question!.children.map((child) => child.round)).toEqual([2, 2]);
+  });
+
+  it('text marks the round on the question, not on its options', () => {
+    const lines = renderDeliberationText(parseDeliberation([
+      '- Q: Pick one [settled] (round 2)',
+      '  - A: Second [settled]',
+    ].join('\n'))).split('\n');
+    expect(lines[0]).toContain('(round 2)');
+    expect(lines[1]).not.toContain('(round 2)');
+  });
+
+  it('mermaid groups annotated questions into labeled round subgraphs', () => {
+    const mermaid = renderDeliberationMermaid(parseDeliberation([
+      '- Root [settled]',
+      '  - Q: First? [settled] (round 1)',
+      '    - A: yes [settled]',
+      '  - Q: Second? [settled] (round 2)',
+      '    - A: no [settled]',
+    ].join('\n')));
+    expect(mermaid).toContain('subgraph r1["Round 1"]');
+    expect(mermaid).toContain('subgraph r2["Round 2"]');
+  });
+
+  it('mermaid leaves an unannotated tree ungrouped', () => {
+    expect(renderDeliberationMermaid(parseDeliberation(BODY))).not.toContain('subgraph');
+  });
+});
+
 describe('renderers', () => {
   it('text shows types, states, reason, and override', () => {
     const text = renderDeliberationText(parseDeliberation(BODY));

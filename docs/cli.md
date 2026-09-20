@@ -141,13 +141,14 @@ filters to decisions carrying that theme; `--formal-only` drops the mined
 edges. Note that `date` records the current status date, while `created` is
 the birth date.
 
-### `adrkit tree <name> [--mermaid|--text]`
+### `adrkit tree <name> [--mermaid|--text|--html]`
 
 Render a record's optional `## Deliberation` appendix: the design tree behind
 the decision, stored in the record as a nested Markdown list whose nodes may be
-tagged `[settled]`, `[rejected]`, or `[open]`. `name` resolves by title,
-file name, or decision number, like the other commands. The default `--text`
-output reproduces the nested outline:
+tagged `[settled]`, `[rejected]`, or `[open]` and whose questions may record
+their frontier round as `(round N)`. `name` resolves by title, file name, or
+decision number, like the other commands. The default `--text` output
+reproduces the nested outline:
 
 ```text
 - Which store? [settled]
@@ -158,7 +159,9 @@ output reproduces the nested outline:
 
 `--mermaid` emits a Mermaid graph: a `graph TD` header, one node per entry,
 parent-to-child edges, a `classDef` line for each status, and one `class` line
-for each status the tree actually uses.
+for each status the tree actually uses. When questions carry `(round N)`, the
+nodes of each round are grouped into a labeled subgraph. `--html` wraps the
+same Mermaid source in one self-contained HTML document.
 
 ```mermaid
 graph TD

@@ -102,10 +102,11 @@ adr/
 `--tag <tag>` 只保留带该主题标签的决策；`--formal-only` 丢弃挖掘边。
 注意 `date` 记录的是当前状态日期，`created` 才是创建日期。
 
-### `adrkit tree <name> [--mermaid|--text]`
+### `adrkit tree <name> [--mermaid|--text|--html]`
 
 渲染记录的可选 `## Deliberation` 附录：决策背后的设计树，以嵌套 Markdown
-列表保存在记录里，节点可标注 `[settled]`、`[rejected]` 或 `[open]`。
+列表保存在记录里，节点可标注 `[settled]`、`[rejected]` 或 `[open]`，问题还可
+用 `(round N)` 记录 frontier 轮次。
 `name` 的解析方式与其他命令一致（标题、文件名或决策编号）。默认 `--text`
 输出嵌套大纲：
 
@@ -117,7 +118,9 @@ adr/
 ```
 
 `--mermaid` 输出 Mermaid 图：`graph TD` 头、每个条目一个节点、父子边、每个
-状态一行 `classDef`，以及树实际用到的每个状态一行 `class`。
+状态一行 `classDef`，以及树实际用到的每个状态一行 `class`。问题带 `(round N)`
+时，每一轮的节点会归入一个带标签的 subgraph。`--html` 把同一份 Mermaid 源码
+包进一个自包含的 HTML 文档。
 
 ```mermaid
 graph TD

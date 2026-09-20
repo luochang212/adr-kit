@@ -201,10 +201,12 @@ owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 
 A decision may also carry an optional `## Deliberation` appendix: the design
 tree behind the choice, stored as a nested Markdown list whose nodes may be
-tagged `[settled]`, `[rejected]`, or `[open]`. Render it with
-`adrkit tree <name>` (text by default, `--mermaid` for a graph). The
-`adrkit-grill` workflow produces that tree: it interrogates a decision in
-frontier rounds and records every decision the session settles.
+tagged `[settled]`, `[rejected]`, or `[open]` and whose questions may
+record their frontier round as `(round N)`. Render it with
+`adrkit tree <name>` (text by default, `--mermaid` for a graph, `--html`
+for a single document). The `adrkit-grill` workflow produces that tree: it
+interrogates a decision in frontier rounds, records each round as it is
+answered, and records every decision the session settles.
 
 ## Compatibility with other tools
 

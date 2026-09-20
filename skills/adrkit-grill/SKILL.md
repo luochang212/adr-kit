@@ -32,10 +32,10 @@ decisions are not filtered again at record time.
    settled decision is a supersede, not a question.
 2. Map the decision as a design tree: every decision branches into the
    decisions that hang off it.
-3. Work the tree in rounds. The frontier is every question whose
-   prerequisites are already settled: the questions you can ask now without
-   guessing at answers you have not heard. Ask the whole frontier in one
-   round, then wait for the user's answers before the next round. Format
+3. Work the tree in rounds, numbered from 1. The frontier is every question
+   whose prerequisites are already settled: the questions you can ask now
+   without guessing at answers you have not heard. Ask the whole frontier in
+   one round, then wait for the user's answers before the next round. Format
    each question like:
 
 ```
@@ -47,7 +47,8 @@ decisions are not filtered again at record time.
 4. Each round of answers reshapes the tree: settled decisions push the
    frontier outward and unblock the questions that depended on them. A
    question whose answer depends on another question still open in this
-   round belongs to a later round.
+   round belongs to a later round. Record each question's number as the
+   round is answered, so the round comes from the session, not from memory.
 5. Finding facts is your job, never the user's: when a question needs a fact
    from the repository or the environment, look it up yourself (or dispatch
    a sub-agent) instead of asking. Do not block on a running lookup; only
@@ -71,7 +72,8 @@ decisions are not filtered again at record time.
    the frontier options they rejected, `## Consequences` from the branches
    their answers unlocked. Keep the design tree in an optional
    `## Deliberation` appendix: prefix a question `Q:` and an option `A:`, tag
-   each node `[settled]`, `[rejected]`, or `[open]`, mark the option you
+   each node `[settled]`, `[rejected]`, or `[open]`, record each question's
+   frontier round `(round N)` as it was answered, mark the option you
    recommended `(recommended)`, and give a rejected option a ` — reason`.
    `adrkit tree <N>` renders it (`--mermaid`, or `--html` for a file). Add 2-4
    kebab-case `tags` to the front matter.

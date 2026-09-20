@@ -181,9 +181,11 @@ CLI 既不推断也不校验，只记录声明，所以它不能证明是谁自�
 `## Decision`，`Acceptance criteria` 与 `Risks` 合并进 `## Consequences`。
 
 决策还可以携带可选的 `## Deliberation` 附录：记录选择背后的 design tree，
-用嵌套 Markdown 列表存储，节点可标注 `[settled]`、`[rejected]`、`[open]`。
-用 `adrkit tree <name>` 渲染（默认文本，加 `--mermaid` 输出图形）。这棵树通常
-来自 `adrkit-grill` 工作流：它按 frontier 分轮盘问，并记录会话定下的每个决策。
+用嵌套 Markdown 列表存储，节点可标注 `[settled]`、`[rejected]`、`[open]`，
+问题还可以用 `(round N)` 记录所在的 frontier 轮次。用 `adrkit tree <name>` 渲染
+（默认文本，加 `--mermaid` 输出图形，加 `--html` 输出单文件）。这棵树通常来自
+`adrkit-grill` 工作流：它按 frontier 分轮盘问，每轮问完即记录轮次，并记录会话
+定下的每个决策。
 
 ## 工具兼容性
 
