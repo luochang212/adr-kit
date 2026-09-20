@@ -46,6 +46,7 @@ npm install
 npm run typecheck
 npm test
 npm run build
+npm run check:upstream   # fails if the pinned upstream grilling directory drifted
 ```
 
 Run the smallest check that covers the changed surface. `npm test` is the
@@ -63,6 +64,11 @@ fast unit gate; CI also runs `npm run build` and `npm run typecheck`.
   `src/core/tool-integrations.ts`; each one mirrors `skills/<name>/SKILL.md`
   exactly, and `test/integrations.test.ts` machine-checks the sync. Edit one
   side and the test tells you to fix the other.
+- The `adrkit-grill` method is adapted from `mattpocock/skills` (MIT). The
+  upstream grilling directory is vendored under `assets/upstream/grilling/`
+  and pinned in `MANIFEST.json`; CI hard-fails (`npm run check:upstream`) when
+  it drifts. Review with `npm run grilling:diff`, then update the adaptation and
+  the pin by hand — never auto-sync it.
 - Shell completion scripts live in `src/commands/completion.ts`. Add new
   commands there when the CLI surface changes.
 - Record files are YAML front matter plus a Markdown body. The parser and
@@ -99,9 +105,11 @@ skeletons are machine-checked. The `date` field is machine-stamped at
 every lifecycle move. When you change a template or a validation rule,
 update:
 
+- `src/core/adr.ts` (parser and `FRONT_MATTER_ORDER`)
 - `src/core/templates.ts`
 - `src/core/validate.ts`
-- `README.md`
+- `README.md` and `README.zh.md`
+- `docs/record-format.md` and `docs/zh/record-format.md`
 - at least one test in `test/commands.test.ts`
 
 ## Validation failures are success signals

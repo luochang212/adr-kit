@@ -70,7 +70,7 @@ adrkit list
 Paste this into any AI coding agent to record key decisions automatically:
 
 ```text
-Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions. Prefer `adrkit decide`; use `adrkit propose` only when a decision still needs review. Every record declares two flags: `--raised-by` (who put the decision on the table) and `--decided-by` (whose judgment settled it). Use `human` when a person determined it, `agent` when it came from your own judgment, even if a person let it through.
+Use github.com/luochang212/adr-kit in this repository to automatically record key decisions. Prefer `adrkit decide`; use `adrkit propose` only when a decision still needs review. Every record declares two flags: `--raised-by` (who put the decision on the table) and `--decided-by` (whose judgment settled it). Use `human` when a person determined it, `agent` when it came from your own judgment, even if a person let it through.
 ```
 
 To use decisions in later coding tasks, add the [reading rule](docs/workflow.md#read-decisions-before-coding)
@@ -202,7 +202,9 @@ owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 A decision may also carry an optional `## Deliberation` appendix: the design
 tree behind the choice, stored as a nested Markdown list whose nodes may be
 tagged `[settled]`, `[rejected]`, or `[open]`. Render it with
-`adrkit tree <name>` (text by default, `--mermaid` for a graph).
+`adrkit tree <name>` (text by default, `--mermaid` for a graph). The
+`adrkit-grill` workflow produces that tree: it interrogates a decision in
+frontier rounds and records every decision the session settles.
 
 ## Compatibility with other tools
 

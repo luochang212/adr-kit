@@ -66,7 +66,7 @@ adrkit list
 把下面这行贴给任意 AI 编码 Agent，它就会自动把关键决策记录成 ADR：
 
 ```text
-在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策。优先用 `adrkit decide`，仅当决策还需评审时才用 `adrkit propose`。每条记录都要声明两个值：`raised-by`（谁把决策提上台面）与 `decided-by`（谁的判断定下它）；方向由人决定用 `human`，由你自己的判断得出用 `agent`，即使人只是放行。
+在本仓库用 github.com/luochang212/adr-kit 自动记录关键决策。优先用 `adrkit decide`，仅当决策还需评审时才用 `adrkit propose`。每条记录都要声明两个值：`raised-by`（谁把决策提上台面）与 `decided-by`（谁的判断定下它）；方向由人决定用 `human`，由你自己的判断得出用 `agent`，即使人只是放行。
 ```
 
 让后续编码任务也用上决策：在项目 `AGENTS.md`（Claude Code 团队也包括
@@ -182,7 +182,8 @@ CLI 既不推断也不校验，只记录声明，所以它不能证明是谁自�
 
 决策还可以携带可选的 `## Deliberation` 附录：记录选择背后的 design tree，
 用嵌套 Markdown 列表存储，节点可标注 `[settled]`、`[rejected]`、`[open]`。
-用 `adrkit tree <name>` 渲染（默认文本，加 `--mermaid` 输出图形）。
+用 `adrkit tree <name>` 渲染（默认文本，加 `--mermaid` 输出图形）。这棵树通常
+来自 `adrkit-grill` 工作流：它按 frontier 分轮盘问，并记录会话定下的每个决策。
 
 ## 工具兼容性
 
