@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.9.0
+
+### Minor Changes
+
+- ba15e73: Add the `adrkit-grill` workflow skill, shipped by every integration and
+  selectable through `--workflows`. It interrogates the user about a decision
+  (design tree, frontier rounds) until nothing is silently assumed, then records
+  the settled decisions with `adrkit decide`, mapping the session's questions,
+  rejected options, and overrules onto the record sections and the provenance
+  fields. Method adapted from the `grilling` skill in mattpocock/skills (MIT).
+- fbfea95: Add a required `raised-by` provenance field alongside `decided-by`: who put a
+  decision on the table versus whose judgment settled it. Add a `## Deliberation`
+  appendix that stores a grilling session's design tree as a nested outline, with
+  the new `adrkit tree <name> [--mermaid|--text]` command to render it. Grilling
+  now ends in `adrkit decide` only (the `grill -> propose` path is removed), and
+  `decide` leads the product's hints and website demo while `propose` stays the
+  supported exception.
+  
+  This is a breaking record-format change: every durable record must carry
+  `raised-by`, and `adrkit decide` / `adrkit accept` require the new
+  `--raised-by` flag.
+- af0c9dc: Record every decision a grilling session settles, with no record-time
+  importance filter: the session is itself the importance signal, and the ADR bar
+  now governs only the direct `decide`/`propose` path. The `adrkit-grill`
+  contract says so explicitly, and the reading rule and workflow docs split the
+  rule into the grill path and the direct path.
+  
+  Pin the upstream `mattpocock/skills` grilling directory and add a hard CI gate:
+  `npm run check:upstream` fails on push and pull request when the upstream path
+  changes, and `npm run grilling:diff` shows the change for review. The check
+  never auto-syncs the adaptation.
+
+### Patch Changes
+
+- 62fc433: Align `adrkit init`'s config template with the yaml library's flow-array
+  emission (`tools: [ agents ]`, `workflows: [ a, b ]`, `[]` when empty), so a
+  bare `adrkit update` no longer rewrites a freshly initialized
+  `adr/config.yaml` (`[agents]` -> `[ agents ]`) and manufactures a spurious
+  diff. Existing compact configs normalize once at the next update, then stay
+  byte-stable.
+
 ## 0.8.0
 
 ### Minor Changes
