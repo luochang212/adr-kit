@@ -31,6 +31,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "check:upstream": "node tools/check-grilling-upstream.mjs",
+    "grilling:diff": "node tools/check-grilling-upstream.mjs --diff",
     "changeset": "changeset",
     "release": "changeset publish",
     "prepublishOnly": "npm run build"

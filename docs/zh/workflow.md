@@ -6,7 +6,8 @@
 例如存储方案、模块边界、兼容策略或部署方式。只写实际作出的决定与真实取舍；
 相同选择沿用已有记录，重要前提改变时记录替代决定。普通实现细节、局部修复
 和可轻易调整的选择无需记录。没有重要架构决定的任务，不需要新建 ADR 或提交
-决策汇报。`accepted` 表示正式记录的决定，不代表人已审阅批准；`raised-by` 与
+决策汇报。这个门槛只约束直接路径；grill 会话本身就是"值得记录"的信号，
+所以它会话中定下的每个决策都记录。`accepted` 表示正式记录的决定，不代表人已审阅批准；`raised-by` 与
 `decided-by` 记录这条选择从哪来（谁把它提上台面，谁的判断定下了它），不是授权记录。
 
 ## 默认路径：直接记录决策
@@ -126,7 +127,10 @@ actually made and genuine alternatives and trade-offs; do not invent reasons
 to fill a template. Reuse an existing record for the same choice; record a
 replacement when important assumptions change. Routine implementation details,
 local fixes, and easily reversible choices need no ADR. If no important
-architectural decision was made, create none. `accepted` means a recorded
+architectural decision was made, create none. When you grill a decision with
+the `adrkit-grill` workflow, record every decision the session settles: the
+session is itself the importance signal, so the bar above governs only the
+direct `decide`/`propose` path. `accepted` means a recorded
 decision, not proof of human review. `decided-by` is a declaration, not an
 inference: `human` when a person determined the direction — they stated it,
 changed a proposal into what shipped, or you are recording one they made

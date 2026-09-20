@@ -8,6 +8,8 @@ compatibility, or deployment decisions. Record real choices and trade-offs;
 reuse existing records, and supersede them when important assumptions change.
 Routine implementation details and local fixes need no ADR. A task without
 an important architectural decision needs no new record or decision report.
+This bar governs the direct path; a grilling session is itself the signal that
+its output is key, so every decision the session settles is recorded.
 `accepted` denotes a recorded decision, not proof of human review; the
 `raised-by` and `decided-by` fields record where the choice came from (who
 raised it, and whose judgment settled it) and are not an authorization record.
@@ -131,7 +133,10 @@ actually made and genuine alternatives and trade-offs; do not invent reasons
 to fill a template. Reuse an existing record for the same choice; record a
 replacement when important assumptions change. Routine implementation details,
 local fixes, and easily reversible choices need no ADR. If no important
-architectural decision was made, create none. `accepted` means a recorded
+architectural decision was made, create none. When you grill a decision with
+the `adrkit-grill` workflow, record every decision the session settles: the
+session is itself the importance signal, so the bar above governs only the
+direct `decide`/`propose` path. `accepted` means a recorded
 decision, not proof of human review. `decided-by` is a declaration, not an
 inference: `human` when a person determined the direction — they stated it,
 changed a proposal into what shipped, or you are recording one they made

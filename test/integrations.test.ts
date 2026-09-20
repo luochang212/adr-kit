@@ -331,7 +331,9 @@ rules:
     expect(grill?.body).toContain('adrkit validate <N>');
     expect(grill?.body).toContain('--raised-by');
     expect(grill?.body).toContain('## Deliberation');
+    expect(grill?.body).toContain('no record-time filter');
     expect(grill?.body).not.toContain('adrkit propose');
+    expect(grill?.description).toContain('record every decision the session settles');
   });
 });
 

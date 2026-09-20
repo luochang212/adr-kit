@@ -95,7 +95,10 @@ actually made and genuine alternatives and trade-offs; do not invent reasons
 to fill a template. Reuse an existing record for the same choice; record a
 replacement when important assumptions change. Routine implementation details,
 local fixes, and easily reversible choices need no ADR. If no important
-architectural decision was made, create none. \`accepted\` means a recorded
+architectural decision was made, create none. When you grill a decision with
+the \`adrkit-grill\` workflow, record every decision the session settles: the
+session is itself the importance signal, so the bar above governs only the
+direct \`decide\`/\`propose\` path. \`accepted\` means a recorded
 decision, not proof of human review. \`decided-by\` is a declaration of where the
 choice came from, not an inference: \`human\` when a person determined the
 direction — they stated it, changed a proposal into what shipped, or you are
@@ -117,13 +120,13 @@ nor verifies it.
   {
     name: 'adrkit-grill',
     description:
-      "Use when an important architectural choice is under discussion and the direction is not yet settled; grill the user to shared understanding before recording, or on any 'grill' trigger phrase.",
+      "Use when a decision is still being shaped and its direction is not settled, in a repository with an adr/ directory, or on any 'grill' trigger phrase; grill the user to shared understanding and record every decision the session settles.",
     body: `# ADR Kit Grill
 
 ## Overview
 
-Interrogate the user about an architectural decision until nothing is left
-silently assumed, then record the settled decision. The session feeds the
+Interrogate the user about a decision until nothing is left silently
+assumed, then record every decision the session settled. The session feeds the
 record directly: the root questions become \`## Problem\`, the rejected options
 become \`## Alternatives considered\`, and who raised and who overrode feeds
 \`raised-by\` and \`decided-by\`.
@@ -133,11 +136,11 @@ The interrogation method is adapted from the \`grilling\` skill in
 
 ## When to grill
 
-Use this workflow for architectural choices that constrain future development
-and whose rationale is not apparent from code alone, while the direction is
-still being shaped. Routine implementation details, local fixes, and easily
-reversible choices need neither grilling nor an ADR. Do not grill every task
-to manufacture content for a record.
+Grill when a decision is still being shaped and its direction is not settled:
+an architectural choice, or any other decision worth stress-testing before it
+is recorded. The direct \`decide\`/\`propose\` paths keep the ADR importance bar;
+a grilling session is itself the signal that its output is key, so its
+decisions are not filtered again at record time.
 
 ## Method
 
@@ -174,11 +177,13 @@ to manufacture content for a record.
 
 ## Recording the outcome
 
-1. Record only the settled decisions that clear the bar above; one session
-   often settles several, and usually one primary record suffices. Run
-   \`adrkit decide "<title>" --raised-by human --decided-by human\` (or
-   \`agent\` on either axis, per the rule below); grilling ends in a decision,
-   never a proposal. Then follow the decide workflow.
+1. Record every decision the session settled; there is no record-time filter.
+   One session often settles several decisions: usually one primary record
+   with the rest as branches, but split them when they can be superseded
+   independently. Run \`adrkit decide "<title>" --raised-by human
+   --decided-by human\` (or \`agent\` on either axis, per the rule below);
+   grilling ends in a decision, never a proposal. Then follow the decide
+   workflow.
 2. Fill the record from the session: \`## Problem\` from the root questions,
    \`## Decision\` from the user's answers, \`## Alternatives considered\` from
    the frontier options they rejected, \`## Consequences\` from the branches
@@ -200,7 +205,8 @@ to manufacture content for a record.
   question still open in the same round.
 - Never ask the user for a fact you could look up yourself.
 - Never write a record mid-session; records follow the user's confirmation
-  of shared understanding, and only for decisions that clear the bar.
+  of shared understanding, and then every decision the session settled is
+  recorded.
 - A settled decision the user reopens becomes a supersede once its
   replacement is recorded and validated: use \`adrkit supersede\`, and say in
   the new record's \`## Problem\` what assumption changed.`,
