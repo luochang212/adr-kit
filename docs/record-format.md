@@ -122,6 +122,13 @@ superseded-by: 6
 `validate` checks that the referenced number exists and is not itself
 superseded. Superseded records stay in `adr/decisions/` as frozen history.
 
+## Cross-references
+
+A record body may name another decision with `ADR-N` or `ADR N`. These are the
+references `adrkit graph` draws as dashed edges, and `adrkit validate` reports a
+reference to a decision number that does not exist; a record's own number is not
+a reference. Front-matter links (`superseded-by`) are checked the same way.
+
 ## The deliberation appendix
 
 A decision may carry an optional `## Deliberation` appendix: the design tree

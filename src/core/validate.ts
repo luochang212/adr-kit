@@ -286,6 +286,7 @@ export function validateRepository(root: string): ValidationIssue[] {
 
   for (const record of records) {
     issues.push(...supersedeReferenceIssues(root, record, decisionRecords));
+    issues.push(...danglingReferenceIssues(relative(root, record.path), record, decisionRecords));
   }
 
   return issues;
@@ -332,7 +333,40 @@ export function validateRecordReferences(
       decisions.set(candidate.number, candidate);
     }
   }
-  return supersedeReferenceIssues(root, record, decisions);
+  return [
+    ...supersedeReferenceIssues(root, record, decisions),
+    ...danglingReferenceIssues(relative(root, record.path), record, decisions),
+  ];
+}
+
+/**
+ * A record body may name other decisions. `adrkit graph` mines those
+ * references but silently drops the ones that resolve to nothing, so this
+ * reports a reference to a decision number that does not exist. The record's
+ * own number is not a reference, and the title line is not scanned because it
+ * is not a section.
+ */
+function danglingReferenceIssues(
+  path: string,
+  record: AdrRecord,
+  decisions: Map<number, AdrRecord>,
+): ValidationIssue[] {
+  // The same prose vocabulary `adrkit graph` mines: `ADR-12`, `ADR 4`, `ADR12`.
+  const pattern = /ADR-?\s*([1-9]\d*)/g;
+  const numbers = new Set<number>();
+  for (const section of record.sections) {
+    const text = `${section.heading}\n${section.body}`;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+      numbers.add(Number(match[1]));
+    }
+  }
+  const issues: ValidationIssue[] = [];
+  for (const number of [...numbers].sort((a, b) => a - b)) {
+    if (number === record.number || decisions.has(number)) continue;
+    issues.push({ path, message: `body references decision ${number}, which does not exist` });
+  }
+  return issues;
 }
 
 export function formatIssues(issues: ValidationIssue[]): string {

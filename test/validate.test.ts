@@ -335,6 +335,42 @@ Body.
   });
 });
 
+describe('body references', () => {
+  it('flags a body reference to a decision that does not exist', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      decision('1 First', ACCEPTED).replace('Body.', 'See ADR-99 for the follow-up.'),
+    );
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('body references decision 99, which does not exist');
+  });
+
+  it('accepts a body reference that resolves', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      decision('1 First', ACCEPTED).replace('Body.', 'See ADR 2 for the follow-up.'),
+    );
+    writeFileSync(join(folderPath(root, 'decisions'), '2-second.md'), decision('2 Second', ACCEPTED));
+
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('resolves references against the whole repository in single-record validation', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'decisions'), '1-first.md'),
+      decision('1 First', ACCEPTED).replace('Body.', 'See ADR-2 for the follow-up.'),
+    );
+    writeFileSync(join(folderPath(root, 'decisions'), '2-second.md'), decision('2 Second', ACCEPTED));
+
+    expect(validateCommand(root, '1').valid).toBe(true);
+  });
+});
+
 describe('decided-by', () => {
   /** The `decision()` helper always writes the field; drop it for these fixtures. */
   function withoutDecidedBy(title: string, fields: Record<string, string | number>): string {

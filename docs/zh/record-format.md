@@ -100,6 +100,12 @@ superseded-by: 6
 `validate` 会校验被引用的编号存在且自身未被取代。被取代的记录留在
 `adr/decisions/` 作为冻结历史。
 
+## 交叉引用
+
+记录正文可以用 `ADR-N` 或 `ADR N` 指向另一条决策。这些引用就是 `adrkit graph`
+画成虚线的边；`adrkit validate` 会报告指向不存在编号的引用，记录自身的编号不算
+引用。front matter 里的 `superseded-by` 按同样规则校验。
+
 ## Deliberation 附录
 
 决策可以携带可选的 `## Deliberation` 附录：记录选择背后的 design tree，用嵌套
