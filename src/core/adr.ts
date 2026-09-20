@@ -27,6 +27,18 @@ export function isDecidedBy(value: unknown): value is DecidedBy {
   return typeof value === 'string' && (DECIDED_BY_VALUES as readonly string[]).includes(value);
 }
 /**
+ * Who put the decision on the table, as opposed to `decided-by`, whose
+ * judgment settled it. The same two values on a different axis: a person may
+ * raise what the agent settles, and the agent may raise what a person settles.
+ * Declared by the writer at decide or accept time, never inferred; a draft
+ * never carries it.
+ */
+export type RaisedBy = DecidedBy;
+/** Narrow an unknown front matter value to a raised-by declaration. */
+export function isRaisedBy(value: unknown): value is RaisedBy {
+  return isDecidedBy(value);
+}
+/**
  * The durable records folder (`decisions/`) and the ephemeral drafts folder
  * (`adr/.drafts/`). Status is never implied by location: durable records carry
  * their own status, and drafts are proposals that will either be promoted or
@@ -35,7 +47,7 @@ export function isDecidedBy(value: unknown): value is DecidedBy {
 export type AdrFolder = 'decisions' | 'drafts';
 
 /** Canonical front matter field order; only fields that exist are written. */
-export const FRONT_MATTER_ORDER = ['status', 'date', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'tags'] as const;
+export const FRONT_MATTER_ORDER = ['status', 'date', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'tags'] as const;
 
 /** Sections that only make sense during the proposal era and must not appear in an accepted decision. */
 export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
@@ -69,6 +81,13 @@ export interface AdrRecord {
   status: AdrStatus;
   /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
   date: string;
+  /**
+   * For durable records: who put the decision on the table. The `decided-by`
+   * axis turned around: a person may raise what the agent settles, and vice
+   * versa. Declared by the writer at decide or accept time, never inferred or
+   * verified. A draft never carries it.
+   */
+  raisedBy?: RaisedBy;
   /**
    * For durable records: who made the decision. "Who made it" means whoever
    * originated the choice, not whoever ran the command. `human` covers a
@@ -123,6 +142,7 @@ export function hasMeaningfulBody(body: string | undefined): boolean {
  *   ---
  *   status: proposed | accepted | rejected | superseded
  *   date: YYYY-MM-DD
+ *   raised-by: human | agent    (durable records only)
  *   decided-by: human | agent   (durable records only)
  *   reason: <why>            (rejected only)
  *   superseded-by: <N>       (superseded only)
@@ -190,6 +210,15 @@ export function parseAdrFile(filePath: string): AdrRecord {
     throw new AdrFormatError('date must be a "YYYY-MM-DD" string', filePath);
   }
   const date = dateText;
+
+  let raisedBy: RaisedBy | undefined;
+  const raisedByField = fields['raised-by'];
+  if (raisedByField !== undefined) {
+    if (!isRaisedBy(raisedByField)) {
+      throw new AdrFormatError('raised-by must be "human" or "agent"', filePath);
+    }
+    raisedBy = raisedByField;
+  }
 
   let decidedBy: DecidedBy | undefined;
   const decidedByField = fields['decided-by'];
@@ -304,6 +333,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
     sections,
   };
   if (commit !== undefined) parsed.commit = commit;
+  if (raisedBy !== undefined) parsed.raisedBy = raisedBy;
   if (decidedBy !== undefined) parsed.decidedBy = decidedBy;
   if (created !== undefined) parsed.created = created;
   if (tags !== undefined) parsed.tags = tags;

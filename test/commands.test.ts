@@ -124,33 +124,35 @@ describe('initCommand', () => {
     // Collapse whitespace so the assertion pins the rule, not where the
     // generated prose happens to wrap.
     const flat = readme.replace(/\s+/g, ' ');
+    expect(flat).toContain('raised-by: human | agent');
     expect(flat).toContain('decided-by: human | agent');
-    // The generated README is where a repository's readers meet the field, so
+    // The generated README is where a repository's readers meet the fields, so
     // it must state the single-source boundary rather than a co-signed one.
-    expect(flat).toContain('require the caller to declare it');
+    expect(flat).toContain('require the caller to declare both');
     expect(flat).toContain('including when a person only let it through');
-    expect(flat).toContain('so it does not establish who chose or authorized the decision');
+    expect(flat).toContain('so neither establishes who chose or authorized the decision');
     expect(flat).toContain('The record body is where the nuance lives');
     expect(flat).toContain('not proof of human review');
   });
 });
 
 describe('decided-by declaration', () => {
-  it('writes the declared value between date and created', () => {
+  it('writes both declarations between date and created', () => {
     const root = makeRepo();
-    decideCommand('Use SQLite', root, 'human');
+    decideCommand('Use SQLite', root, 'human', 'human');
     const lines = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8').split(
       /\r?\n/,
     );
     expect(lines[1]).toBe('status: accepted');
     expect(lines[2]).toBe(`date: ${todayStamp()}`);
-    expect(lines[3]).toBe('decided-by: human');
-    expect(lines[4]).toBe(`created: ${todayStamp()}`);
+    expect(lines[3]).toBe('raised-by: human');
+    expect(lines[4]).toBe('decided-by: human');
+    expect(lines[5]).toBe(`created: ${todayStamp()}`);
   });
 
   it('records an autonomous decision as agent', () => {
     const root = makeRepo();
-    decideCommand('Use SQLite', root, 'agent');
+    decideCommand('Use SQLite', root, 'agent', 'human');
     expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
       'decided-by: agent',
     );
@@ -161,6 +163,7 @@ describe('decided-by declaration', () => {
     proposeCommand('Use SQLite', root);
     const draft = readFileSync(draftPath(root, `${todayStamp()}-use-sqlite.md`), 'utf8');
     expect(draft).not.toContain('decided-by');
+    expect(draft).not.toContain('raised-by');
   });
 });
 
@@ -225,10 +228,10 @@ describe('the CLI requires an explicit declaration', () => {
 
   it('records what the caller declared', () => {
     const root = makeRepo();
-    runMain(['decide', 'Use SQLite', '--decided-by', 'agent'], root);
-    expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
-      'decided-by: agent',
-    );
+    runMain(['decide', 'Use SQLite', '--decided-by', 'agent', '--raised-by', 'human'], root);
+    const record = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
+    expect(record).toContain('decided-by: agent');
+    expect(record).toContain('raised-by: human');
   });
 
   it('rejects --decided-by on a command that takes no declaration', () => {
@@ -236,6 +239,28 @@ describe('the CLI requires an explicit declaration', () => {
     const { message, exitCode } = runMain(['list', '--decided-by', 'human'], root);
     expect(message).toContain('does not take --decided-by');
     expect(message).not.toContain('--decided-by is required');
+    expect(exitCode).toBe(1);
+  });
+
+  it('refuses decide without --raised-by once --decided-by is given', () => {
+    const root = makeRepo();
+    const { message, exitCode } = runMain(['decide', 'Use SQLite', '--decided-by', 'human'], root);
+    expect(message).toContain('--raised-by is required');
+    expect(exitCode).toBe(1);
+  });
+
+  it('refuses accept without --raised-by once --decided-by is given', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const { message, exitCode } = runMain(['accept', 'Use SQLite', '--decided-by', 'human'], root);
+    expect(message).toContain('--raised-by is required');
+    expect(exitCode).toBe(1);
+  });
+
+  it('rejects --raised-by on a command that takes no declaration', () => {
+    const root = makeRepo();
+    const { message, exitCode } = runMain(['list', '--raised-by', 'human'], root);
+    expect(message).toContain('does not take --raised-by');
     expect(exitCode).toBe(1);
   });
 });
@@ -249,7 +274,7 @@ describe('propose and accept', () => {
     const invalid = valid.replace('status: proposed', 'status: proposed\ndecided-by: human');
     writeFileSync(file, invalid);
 
-    expect(() => acceptCommand('Use SQLite', root, 'agent')).toThrow(
+    expect(() => acceptCommand('Use SQLite', root, 'agent', 'human')).toThrow(
       '"decided-by" is declared at promotion and must not appear on a draft',
     );
     expect(readFileSync(file, 'utf8')).toBe(invalid);
@@ -258,7 +283,7 @@ describe('propose and accept', () => {
     expect(listDrafts(root)).toHaveLength(1);
 
     writeFileSync(file, valid);
-    acceptCommand('Use SQLite', root, 'agent');
+    acceptCommand('Use SQLite', root, 'agent', 'human');
     expect(existsSync(file)).toBe(false);
     expect(readFileSync(join(root, 'adr/decisions/1-use-sqlite.md'), 'utf8')).toContain(
       'decided-by: agent',
@@ -274,14 +299,14 @@ describe('propose and accept', () => {
     expect(draft.split(/\r?\n/)[2]).toBe(`date: ${todayStamp()}`);
     // Drafts are outside the validate surface; the gate is accept.
     expect(validateCommand(root).valid).toBe(true);
-    expect(() => acceptCommand('Use SQLite', root, 'human')).toThrow(/Alternatives considered/);
+    expect(() => acceptCommand('Use SQLite', root, 'human', 'human')).toThrow(/Alternatives considered/);
   });
 
   it('accepts a filled draft and assigns the next decision number', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
     fillDraft(root);
-    const output = acceptCommand('Use SQLite', root, 'human');
+    const output = acceptCommand('Use SQLite', root, 'human', 'human');
     expect(output).toContain('adr/decisions/1-use-sqlite.md');
 
     const records = listRecords(root);
@@ -299,11 +324,13 @@ describe('propose and accept', () => {
     const dir = mkdtempSync(join(tmpdir(), 'adrkit-steer-'));
     tempDirs.push(dir);
     const init = initCommand(dir);
+    expect(init).toContain('--raised-by human');
     expect(init).toContain('--decided-by human');
     const proposed = proposeCommand('Use SQLite', dir);
+    expect(proposed).toContain('--raised-by human');
     expect(proposed).toContain('--decided-by human');
     expect(proposed).toContain(
-      "use --decided-by agent when the choice came from the agent's own judgment",
+      "use --raised-by agent when the agent raised it; --decided-by agent when the choice was the agent's own judgment",
     );
   });
 
@@ -311,10 +338,12 @@ describe('propose and accept', () => {
     // The declaration lives in the record itself: a decision carries what the
     // caller supplied, and a draft has no decision to attribute.
     const root = makeRepo();
-    decideCommand('Agent call', root, 'agent');
+    decideCommand('Agent call', root, 'agent', 'human');
     proposeCommand('Use SQLite', root);
     expect(listRecords(root)[0]!.decidedBy).toBe('agent');
+    expect(listRecords(root)[0]!.raisedBy).toBe('human');
     expect(listDrafts(root)[0]!.decidedBy).toBeUndefined();
+    expect(listDrafts(root)[0]!.raisedBy).toBeUndefined();
   });
 
   it('rejects a draft and leaves no record', () => {
@@ -347,7 +376,7 @@ describe('propose and accept', () => {
     // Plan is a legitimate proposal-era heading that has no place in an
     // accepted decision; accept must not lose it silently.
     writeFileSync(file, readFileSync(file, 'utf8') + '## Plan\n\nPhase 1: swap adapter.\n');
-    const output = acceptCommand('Use SQLite', root, 'human');
+    const output = acceptCommand('Use SQLite', root, 'human', 'human');
     expect(output).toContain('warning: dropped section(s)');
     expect(output).toContain('## Plan');
     expect(validateCommand(root).valid).toBe(true);
@@ -361,7 +390,7 @@ describe('propose and accept', () => {
       file,
       readFileSync(file, 'utf8') + '## Implementation\n\nPR #123: https://github.com/example/repo/pull/123\n',
     );
-    const output = acceptCommand('Use SQLite', root, 'human');
+    const output = acceptCommand('Use SQLite', root, 'human', 'human');
     expect(output).not.toContain('warning');
     const decisionFile = listRecords(root)[0]!.path;
     const content = readFileSync(decisionFile, 'utf8');
@@ -374,7 +403,7 @@ describe('propose and accept', () => {
 describe('cli --all flag', () => {
   it('validate <name> --all validates the whole repository', () => {
     const root = makeRepo();
-    decideCommand('Use SQLite', root, 'human');
+    decideCommand('Use SQLite', root, 'human', 'human');
     writeFileSync(
       join(root, 'adr', 'decisions', '1-use-sqlite.md'),
       `---
@@ -445,7 +474,7 @@ created: 2026-08-19
 describe('decide and show', () => {
   it('creates an accepted decision directly', () => {
     const root = makeRepo();
-    decideCommand('Use SQLite', root, 'human');
+    decideCommand('Use SQLite', root, 'human', 'human');
     const shown = showCommand('1', root);
     expect(shown).toContain('status: accepted');
     expect(shown).toContain(`date: ${todayStamp()}`);
@@ -477,13 +506,13 @@ describe('config context injection', () => {
     expect(content).toContain('Tech stack: TypeScript');
     // 游离注释不破坏解析；填内容后 accept 应能提升
     fillDraft(root);
-    expect(() => acceptCommand('Use SQLite', root, 'human')).not.toThrow();
+    expect(() => acceptCommand('Use SQLite', root, 'human', 'human')).not.toThrow();
   });
 
   it('injects context into a new decision', () => {
     const root = makeRepo();
     withContext(root, '  Domain: payments\n');
-    decideCommand('Use Postgres', root, 'human');
+    decideCommand('Use Postgres', root, 'human', 'human');
 
     const record = listRecords(root)[0]!;
     const content = readFileSync(record.path, 'utf8');
@@ -502,7 +531,7 @@ describe('config context injection', () => {
     withContext(root, '  Tech stack: TypeScript\n');
     proposeCommand('Use SQLite', root);
     fillDraft(root);
-    acceptCommand('Use SQLite', root, 'human');
+    acceptCommand('Use SQLite', root, 'human', 'human');
 
     const record = listRecords(root)[0]!;
     const content = readFileSync(record.path, 'utf8');
@@ -514,7 +543,7 @@ describe('config context injection', () => {
 describe('list output', () => {
   it('lists decisions and pending drafts as text', () => {
     const root = makeRepo();
-    decideCommand('Use SQLite', root, 'human');
+    decideCommand('Use SQLite', root, 'human', 'human');
     proposeCommand('Use Postgres', root);
     const output = listCommand(root);
     expect(output).toContain('Accepted');

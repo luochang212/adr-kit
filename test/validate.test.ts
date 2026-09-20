@@ -18,14 +18,14 @@ function makeRepo(): string {
 }
 
 function decision(title: string, fields: Record<string, string | number>): string {
-  // `decided-by` and `created` are required; default them so fixtures stay
-  // terse. A fixture that needs the field missing passes `decided-by: ''`,
-  // which renders an invalid value the parser rejects — tests that omit the
-  // field build their front matter by hand instead.
+  // `raised-by`, `decided-by`, and `created` are required; default them so
+  // fixtures stay terse. A fixture that needs a field missing drops it from the
+  // rendered front matter instead.
   const entries: Array<[string, string | number]> = [];
   for (const [key, value] of Object.entries(fields)) {
     entries.push([key, value]);
     if (key === 'date') {
+      if (!('raised-by' in fields)) entries.push(['raised-by', 'human']);
       if (!('decided-by' in fields)) entries.push(['decided-by', 'human']);
       if (!('created' in fields)) entries.push(['created', value]);
     }
@@ -341,6 +341,16 @@ describe('decided-by', () => {
     return decision(title, fields).replace('decided-by: human\n', '');
   }
 
+  it('flags a record missing raised-by', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace('raised-by: human\n', '');
+    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'), content);
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('front matter must include "raised-by"');
+  });
+
   it('flags a record missing decided-by and leaves the file untouched', () => {
     const root = makeRepo();
     const content = withoutDecidedBy('1 First', ACCEPTED);
@@ -389,6 +399,19 @@ describe('decided-by', () => {
     const issues = validateDraft(root, listDrafts(root)[0]!);
     expect(formatIssues(issues)).toContain(
       '"decided-by" is declared at promotion and must not appear on a draft',
+    );
+  });
+
+  it('flags raised-by on a draft', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    const content = readFileSync(file, 'utf8').replace('created:', 'raised-by: human\ncreated:');
+    writeFileSync(file, content);
+
+    const issues = validateDraft(root, listDrafts(root)[0]!);
+    expect(formatIssues(issues)).toContain(
+      '"raised-by" is declared at promotion and must not appear on a draft',
     );
   });
 

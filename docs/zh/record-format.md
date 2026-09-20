@@ -6,6 +6,7 @@
 ---
 status: accepted | superseded
 date: YYYY-MM-DD
+raised-by: human | agent
 decided-by: human | agent
 created: YYYY-MM-DD
 commit: abc1234
@@ -15,8 +16,8 @@ tags: [frontend]
 # ADR: N <title>
 ```
 
-front matter 字段按 `status`、`date`、`decided-by`、`created`、`commit`、
-`superseded-by`、`reason`、`tags` 的顺序书写，只写适用的字段。`commit` 是该决策
+front matter 字段按 `status`、`date`、`raised-by`、`decided-by`、`created`、
+`commit`、`superseded-by`、`reason`、`tags` 的顺序书写，只写适用的字段。`commit` 是该决策
 对应的短 git hash，仓库处于 git 下时自动盖章。`superseded-by` 仅在
 superseded 决策上必填，其他状态禁止出现。未知字段会被 `validate` 报告。
 
@@ -26,29 +27,33 @@ superseded 决策上必填，其他状态禁止出现。未知字段会被 `vali
 `tags` 是可选的 kebab-case 关键词列表（如 `frontend`、`execution-layer`），
 `adrkit graph` 用它按主题分组和过滤决策；`validate` 只校验形状、从不要求必填。
 
-## 人还是 agent：`decided-by`
+## 谁发起、谁定夺：`raised-by` 与 `decided-by`
 
-`decided-by` 取值为 `human` 或 `agent`，accepted 与 superseded 决策必填；
-草稿不带这个字段，带了 `accept` 会拒绝提升。`decide` 与 `accept` 要求调用方用
-`--decided-by human|agent` 声明它；`propose` 从不写，`supersede` 保留记录原有
-的值。
+持久记录携带两个来源字段，取值都是 `human` 或 `agent`，accepted 与 superseded
+决策均必填；草稿两个都不带，带了 `accept` 会拒绝提升。`decide` 与 `accept`
+要求调用方用 `--raised-by human|agent` 与 `--decided-by human|agent` 声明它；
+`propose` 从不写，`supersede` 保留记录原有的值。
 
-`human` 表示方向由人决定：人给出的选择；或者 agent 提出、人改成了最终落地方案的
-选择；或者人此前已经定过、agent 现在只是补记。`agent` 表示方向由 AI 自主判断得出。
-人只是放行 agent 的提案、没有真正参与这个选择时，来源仍是 `agent`，记录就写
-`agent`，人批准这一点写进正文。这个字段只回答"选择从哪来"一个问题——"谁"指选择的
-来源，不是谁执行的命令——因此取值唯一、不做共同署名；谁提出、谁改写、谁批准属于正文
-`## Decision` 的叙述，不放进 front matter。分不清时，先问再记。
+`raised-by` 是"谁把这条决策提上台面"，`decided-by` 是"谁的判断定下了它"。两者
+相互独立：人可以提出、由 agent 定夺，也可以由 agent 提出、由人定夺，所以任意组合都
+合法。
 
-这个值是声明，不是观测。CLI 既不推断也不校验它：环境、终端、会话标记都无法
-暴露是谁做的选择，所以命令直接问调用方并记录答案。因此它的可信度低于客观观测的 `date` 与 `commit`，
-也不能证明是谁自主拍板或批准决定。它会被随意的或虚假的声明击败——这类声明不会留下
-任何可被检查发现的痕迹——也会被事后编辑文件击败，值可以任意改变。同样，
-`accepted` 表示正式记录的决定，不代表
-人已审阅批准。提交身份由 git 记录。
+`decided-by` 取 `human` 表示方向由人决定：人给出的选择；或者 agent 提出、人改成了
+最终落地方案的选择；或者人此前已经定过、agent 现在只是补记。`agent` 表示方向由 AI
+自主判断得出。人只是放行 agent 的提案、没有真正参与这个选择时，来源仍是 `agent`，
+记录就写 `agent`，人批准这一点写进正文。每个字段只回答一个问题——`raised-by` 问
+议题从谁那里来，`decided-by` 问最终判断反映谁的意志——因此每项取值唯一、不做共同
+署名。装不进单个值的叙述——谁改写、谁批准——属于正文 `## Decision`，不放进 front
+matter。分不清时，先问再记。
 
-`validate` 只读：缺 `decided-by` 或取值未知时报告问题，从不代写，因为只有
-调用方才能做出这个声明。
+这两个值都是声明，不是观测。CLI 既不推断也不校验：环境、终端、会话标记都无法暴露
+是谁做的选择，所以命令直接问调用方并记录答案。因此它的可信度低于客观观测的 `date`
+与 `commit`，也不能证明是谁自主拍板或批准决定。它会被随意的或虚假的声明击败——
+这类声明不会留下任何可被检查发现的痕迹——也会被事后编辑文件击败，值可以任意改变。
+同样，`accepted` 表示正式记录的决定，不代表人已审阅批准。提交身份由 git 记录。
+
+`validate` 只读：缺 `raised-by`、`decided-by` 或取值未知时报告问题，从不代写，
+因为只有调用方才能做出这些声明。
 
 ## 草稿（提案）
 
@@ -94,6 +99,14 @@ superseded-by: 6
 
 `validate` 会校验被引用的编号存在且自身未被取代。被取代的记录留在
 `adr/decisions/` 作为冻结历史。
+
+## Deliberation 附录
+
+决策可以携带可选的 `## Deliberation` 附录：记录选择背后的 design tree，用嵌套
+Markdown 列表存储。节点末尾可标注 `[settled]`、`[rejected]` 或 `[open]`。
+`adrkit tree <name>` 默认渲染为文本，加 `--mermaid` 输出 mermaid 图；树本身
+从不以 mermaid 源码存储。任务开始时的查阅规则把这个附录当作参考资料，只在相关决策
+被牵动时才读。
 
 ## 被否决
 

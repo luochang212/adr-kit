@@ -7,7 +7,7 @@ export function listCommand(cwd: string): string {
   const drafts = listDrafts(root);
 
   if (records.length === 0 && drafts.length === 0) {
-    return 'no ADRs yet: start one with "adrkit decide <title> --decided-by human" or "adrkit propose <title>"';
+    return 'no ADRs yet: start one with "adrkit decide <title> --raised-by human --decided-by human" or "adrkit propose <title>"';
   }
 
   const lines: string[] = [];

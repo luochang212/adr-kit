@@ -15,6 +15,7 @@ const COMMANDS = [
   'update',
   'config',
   'graph',
+  'tree',
   'completion',
   'version',
   'help',
@@ -29,8 +30,8 @@ const COMMANDS = [
 const COMMAND_OPTIONS: Record<string, string[]> = {
   init: ['--tools', '--workflows', '--help'],
   propose: ['--help'],
-  decide: ['--decided-by', '--help'],
-  accept: ['--decided-by', '--help'],
+  decide: ['--raised-by', '--decided-by', '--help'],
+  accept: ['--raised-by', '--decided-by', '--help'],
   reject: ['--reason', '--help'],
   supersede: ['--by', '--help'],
   list: ['--help'],
@@ -41,6 +42,7 @@ const COMMAND_OPTIONS: Record<string, string[]> = {
   update: ['--tools', '--workflows', '--help'],
   config: ['--help'],
   graph: ['--mermaid', '--dot', '--text', '--formal-only', '--tag', '--help'],
+  tree: ['--mermaid', '--text', '--help'],
   completion: ['--help'],
   version: ['--help'],
   help: ['--help'],
@@ -56,7 +58,8 @@ const VALUE_OPTIONS = ['--by', '--reason', '--tag', '--tools', '--workflows'];
 /** Short descriptions for the shells that show one next to an option. */
 const OPTION_DESCRIPTIONS: Record<string, string> = {
   '--by': 'the decision that replaces this one',
-  '--decided-by': 'who made the decision',
+  '--decided-by': 'whose judgment settled the decision',
+  '--raised-by': 'who raised the decision',
   '--reason': 'why the draft is discarded',
   '--tag': 'filter to one theme',
   '--tools': 'AI tools to install integrations for',
@@ -73,8 +76,8 @@ function takesValue(option: string): boolean {
  * caller is left typing a value with the option list still on screen.
  */
 function zshSpec(option: string): string {
-  if (option === '--decided-by') {
-    return `'--decided-by=[${OPTION_DESCRIPTIONS[option]}]:declared by:(${DECIDED_BY_VALUES.join(' ')})'`;
+  if (option === '--decided-by' || option === '--raised-by') {
+    return `'${option}=[${OPTION_DESCRIPTIONS[option]}]:declared by:(${DECIDED_BY_VALUES.join(' ')})'`;
   }
   if (takesValue(option)) {
     return `'${option}=[${OPTION_DESCRIPTIONS[option]}]:${option.slice(2)}:'`;
@@ -93,7 +96,7 @@ export function completionCommand(shell: string): string {
   command="\${COMP_WORDS[1]}"
 
   case "$prev" in
-    --decided-by)
+    --decided-by|--raised-by)
       if [[ "$command" == "decide" || "$command" == "accept" ]]; then
         COMPREPLY=( $(compgen -W "${DECIDED_BY_VALUES.join(' ')}" -- "$cur") )
       else
@@ -161,7 +164,7 @@ _adrkit "$@"
         Object.entries(COMMAND_OPTIONS)
           .flatMap(([command, options]) =>
             options
-              .filter((option) => option !== '--decided-by')
+              .filter((option) => option !== '--decided-by' && option !== '--raised-by')
               .map(
                 (option) =>
                   `complete -c adrkit -n "__fish_seen_subcommand_from ${command}" -l ${option.slice(2)}${takesValue(option) ? ' -x' : ''}`,
@@ -171,6 +174,8 @@ _adrkit "$@"
         '\n' +
         // `-x` requires the value and suppresses file candidates; both
         // declarations live on one line with the two values as `-a`.
+        `complete -c adrkit -n "__fish_seen_subcommand_from decide accept" -l raised-by -x -a "${DECIDED_BY_VALUES.join(' ')}"` +
+        '\n' +
         `complete -c adrkit -n "__fish_seen_subcommand_from decide accept" -l decided-by -x -a "${DECIDED_BY_VALUES.join(' ')}"` +
         '\n'
       );

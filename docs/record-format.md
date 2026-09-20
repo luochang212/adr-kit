@@ -6,6 +6,7 @@ Every ADR is YAML front matter followed by a Markdown body:
 ---
 status: accepted | superseded
 date: YYYY-MM-DD
+raised-by: human | agent
 decided-by: human | agent
 created: YYYY-MM-DD
 commit: abc1234
@@ -15,9 +16,9 @@ tags: [frontend]
 # ADR: N <title>
 ```
 
-Front matter fields are written in the order `status`, `date`, `decided-by`,
-`created`, `commit`, `superseded-by`, `reason`, `tags`; only the fields that
-apply are present. `commit` is the short git hash the decision was recorded
+Front matter fields are written in the order `status`, `date`, `raised-by`,
+`decided-by`, `created`, `commit`, `superseded-by`, `reason`, `tags`; only the
+fields that apply are present. `commit` is the short git hash the decision was recorded
 against, stamped automatically when the repository is under git.
 `superseded-by` is required on superseded decisions and forbidden otherwise.
 Unknown fields are reported by `validate`.
@@ -31,27 +32,34 @@ later lifecycle moves. `tags` is an optional list of kebab-case keywords
 group and filter decisions by theme; `validate` checks their shape but
 never requires them.
 
-## Human or agent: `decided-by`
+## Who raised it, who settled it: `raised-by` and `decided-by`
 
-`decided-by` is `human` or `agent` and is required on accepted and
-superseded decisions; a draft carries no value, and `accept` refuses to
-promote one that does. `decide` and `accept` require the caller to declare it with
-`--decided-by human|agent`; `propose` never writes it, and `supersede`
-preserves the original value.
+A durable record carries two provenance fields, each `human` or `agent` and
+each required on accepted and superseded decisions; a draft carries neither, and
+`accept` refuses to promote one that does. `decide` and `accept` require the
+caller to declare it with `--decided-by human|agent` for the settling judgment
+and `--raised-by human|agent` for the raising party; `propose` never writes
+either, and `supersede` preserves the original values.
 
-`human` means a person determined the direction: they stated the choice, or an
-agent proposed one and the person changed it into what actually shipped — or the
-person made the choice earlier and an agent is only now recording it. `agent`
-means the direction came from the agent's own judgment. A person simply letting
-an agent's proposal through without engaging with the choice does not move the
-source to `human`: the record stays `agent`, and the body is where you say they
-approved it. The field answers one question — where the choice came from, that
-is, who originated it rather than who ran the command — so it
-carries a single value and is never co-signed. Who proposed, who redirected, and
-who approved belong in `## Decision` as prose, not in the front matter. When the
-writer cannot tell which value applies, the workflow is to ask before recording.
+`raised-by` is who put the decision on the table. `decided-by` is whose
+judgment settled it. The two are independent: a person may raise what the agent
+settles, and the agent may raise what a person settles, so any combination is
+valid.
 
-The value is a declaration, not an observation. The CLI neither infers nor
+For `decided-by`, `human` means a person determined the direction: they stated
+the choice, or an agent proposed one and the person changed it into what actually
+shipped — or the person made the choice earlier and an agent is only now
+recording it. `agent` means the direction came from the agent's own judgment. A
+person simply letting an agent's proposal through without engaging with the
+choice does not move the source to `human`: the record stays `agent`, and the
+body is where you say they approved it. Each field answers one question —
+`raised-by` where the issue came from, `decided-by` whose judgment the outcome
+reflects — so each carries a single value and is never co-signed. Who redirected
+and who approved belong in `## Decision` as prose, not in the front matter. When
+the writer cannot tell which value applies, the workflow is to ask before
+recording.
+
+Each value is a declaration, not an observation. The CLI neither infers nor
 verifies it: no environment, terminal, or session marker can reveal who chose,
 so the command asks the caller and records the answer. The declaration is
 weaker evidence than the observed `date` and `commit` fields, and it
@@ -62,8 +70,9 @@ and by editing the file afterwards, which changes the value freely. Likewise,
 formally recorded, not that a human has reviewed it. Git records commit
 identity separately.
 
-`validate` is read-only: it reports a missing or unknown `decided-by` and
-never writes one, because the value is a declaration only the caller can make.
+`validate` is read-only: it reports a missing or unknown `raised-by` or
+`decided-by` and never writes one, because the values are declarations only
+the caller can make.
 
 ## Drafts (proposals)
 
@@ -112,6 +121,15 @@ superseded-by: 6
 
 `validate` checks that the referenced number exists and is not itself
 superseded. Superseded records stay in `adr/decisions/` as frozen history.
+
+## The deliberation appendix
+
+A decision may carry an optional `## Deliberation` appendix: the design tree
+behind the choice, stored as a nested Markdown list. A node may end with
+`[settled]`, `[rejected]`, or `[open]`. `adrkit tree <name>` renders it as
+text by default, or as a mermaid graph with `--mermaid`; the tree is never
+stored as mermaid source. The task-start reading rule treats the appendix as
+reference material, read only when that decision is in play.
 
 ## Rejection
 

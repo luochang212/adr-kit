@@ -6,20 +6,41 @@
 例如存储方案、模块边界、兼容策略或部署方式。只写实际作出的决定与真实取舍；
 相同选择沿用已有记录，重要前提改变时记录替代决定。普通实现细节、局部修复
 和可轻易调整的选择无需记录。没有重要架构决定的任务，不需要新建 ADR 或提交
-决策汇报。`accepted` 表示正式记录的决定，不代表人已审阅批准；`decided-by`
-记录这条选择从哪来（方向由人决定，还是由 agent 自主判断得出），不是授权记录。
+决策汇报。`accepted` 表示正式记录的决定，不代表人已审阅批准；`raised-by` 与
+`decided-by` 记录这条选择从哪来（谁把它提上台面，谁的判断定下了它），不是授权记录。
 
 ## 默认路径：直接记录决策
 
 ```text
 adrkit init
-adrkit decide "使用 SQLite 存储会话" --decided-by human
+adrkit decide "使用 SQLite 存储会话" --raised-by human --decided-by human
 # 填写决策
 adrkit validate
 ```
 
 决策是 `adr/decisions/N-slug.md` 里的持久记录。直接记录是默认动作；审议发生在
-命令之前，不在文件里。
+命令之前，但一次会话的设计树可以留在记录的可选 `## Deliberation` 附录里。
+
+## 记录之前先 grill
+
+当重要选择仍在讨论、方向尚未定下时，`adrkit-grill` 工作流技能会围绕它反复
+盘问你——以设计树的形式分轮推进——直到没有任何默认假设。grill 只会以
+`adrkit decide` 收尾，绝不会落到提案：会话的根问题成为 `## Problem`，你否决的
+选项成为 `## Alternatives considered`，定下的设计树留在下面的可选附录里。
+
+## `## Deliberation` 附录
+
+记录可以带一个可选的 `## Deliberation` 附录：决策背后的设计树，以嵌套
+Markdown 列表保存。节点可用 `[settled]`、`[rejected]` 或 `[open]` 结尾；
+条目之间的普通文字会被忽略，因此会话可以夹杂说明。用下面的命令渲染：
+
+```text
+adrkit tree <name>            # 嵌套文本大纲（默认）
+adrkit tree <name> --mermaid  # Mermaid 图
+```
+
+`<name>` 支持标题、文件名或决策编号。该附录只是那一条决策的参考资料，不是
+每个任务都要读的内容。
 
 ## 提案：临时草稿
 
@@ -28,7 +49,7 @@ adrkit validate
 ```text
 adrkit propose "使用 SQLite 存储会话"
 # 填写草稿
-adrkit accept "使用 SQLite 存储会话" --decided-by human
+adrkit accept "使用 SQLite 存储会话" --raised-by human --decided-by human
 ```
 
 `adrkit accept` 校验草稿并完成生命周期迁移所要求的改写：
@@ -51,15 +72,15 @@ considered` 里，不是独立记录。
 决策会被推翻。先记录替代决策，再退役过时记录：
 
 ```text
-adrkit decide "使用 Postgres 存储会话" --decided-by human
+adrkit decide "使用 Postgres 存储会话" --raised-by human --decided-by human
 # 填写新决策并校验
 adrkit supersede 1 --by 2
 ```
 
 旧记录留在 `adr/decisions/`，front matter 为 `status: superseded` 加
-`superseded-by: 2`。只改写 front matter；正文是冻结历史。记录的 `decided-by`
-值会被保留而不是替换：它记录当初是谁做出的决定——"谁"指选择的**来源**，不是
-谁执行的命令——而不是谁退役了它。
+`superseded-by: 2`。只改写 front matter；正文是冻结历史。记录的 `raised-by`
+与 `decided-by` 值都会被保留而不是替换：它们记录当初是谁把决策提上台面、
+谁的判断定下了它——"谁"指选择的**来源**，不是谁执行的命令——而不是谁退役了它。
 `validate` 会校验被引用的编号存在且自身未被取代，所以链条总是
 终止于当前仍被接受的决策。
 
@@ -71,7 +92,8 @@ ADR 通常只有十几条。开始或恢复编码、设计、审查任务时，�
 结合当前代码和本次需求判断哪些约束仍适用。若前提变化或存在冲突，在选择
 不同方案前说明原因，并在实现或审查总结中引用相关 ADR、验证受影响行为。
 没有相关决定时正常继续；查阅不意味着每次任务都要新建 ADR。范围或相关文件
-变化时重新读取，无需每编辑一行都重读。
+变化时重新读取，无需每编辑一行都重读。`## Deliberation` 附录记录决策背后的
+设计树，是参考资料：只有该决策与当前任务相关时才读，不需要每个任务都读。
 
 把下面的规则加入项目的 `AGENTS.md`；团队以 `CLAUDE.md` 为入口时也放在那里。
 保留已有指令，已有同类规则时合并，避免重复。初始化技能会引导 agent 完成此步骤；
@@ -93,6 +115,10 @@ verify the affected behavior. If no decisions apply, continue normally;
 reading does not require creating an ADR. Re-read on a new or resumed task,
 or when scope or relevant files change, rather than relying on conversation
 memory.
+
+A `## Deliberation` appendix records the design tree behind a decision. It is
+reference material: read it only when that decision is in play, not on every
+task.
 
 Record an ADR when an architectural choice will constrain future development
 and its rationale is not apparent from code alone. Record only decisions

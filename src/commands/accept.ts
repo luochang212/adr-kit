@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { DecidedBy } from '../core/adr.js';
+import type { DecidedBy, RaisedBy } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
 import { folderPath, nextDecisionNumber, removeRecord, resolveDraft, writeRecord } from '../core/repository.js';
@@ -12,7 +12,12 @@ import { formatIssues, validateDraft } from '../core/validate.js';
  * the CLI cannot observe who chose, so the value travels in rather than being
  * inferred. Promotion is also where the value enters the durable record.
  */
-export function acceptCommand(query: string, cwd: string, decidedBy: DecidedBy): string {
+export function acceptCommand(
+  query: string,
+  cwd: string,
+  decidedBy: DecidedBy,
+  raisedBy: RaisedBy,
+): string {
   const root = requireRoot(cwd);
   const draft = resolveDraft(root, query);
   if (/^\d+\s+/.test(draft.title)) {
@@ -32,7 +37,7 @@ export function acceptCommand(query: string, cwd: string, decidedBy: DecidedBy):
     throw new Error(`decision already exists: adr/decisions/${fileName}`);
   }
 
-  const content = proposalToDecision(draft, number, gitHead(root), decidedBy);
+  const content = proposalToDecision(draft, number, gitHead(root), decidedBy, raisedBy);
   writeRecord(root, 'decisions', fileName, content);
   removeRecord(draft);
   let output = `accepted adr/.drafts/${draft.fileName} as adr/decisions/${fileName}`;

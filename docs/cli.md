@@ -38,34 +38,37 @@ adr/
 Proposals are ephemeral drafts in `adr/.drafts/`; the directory is created
 on the first `adrkit propose`.
 
-### `adrkit decide <title>`
+### `adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>`
 
 Record an already-made decision in `adr/decisions/N-slug.md` with the
 next available number. This is the default path. Titles must not start with
 a number.
 
-`--decided-by` is required and records who made the choice: `human` when a
+Both declarations are required. `--raised-by` records who put the decision on
+the table. `--decided-by` records whose judgment settled it: `human` when a
 person determined the direction (they stated it, changed a proposal into what
 shipped, or you are recording one they made earlier), `agent` when it came from
-the agent's own judgment, including when a person only let it through. The CLI
-records the declaration without inferring or checking it. When the writer cannot
-tell which value applies, ask before recording; the body is where nuance about
-who proposed and who approved belongs.
+the agent's own judgment, including when a person only let it through. Either
+axis may be `human` or `agent`. The CLI records the declarations without
+inferring or checking them. When the writer cannot tell which value applies, ask
+before recording; the body is where nuance about who proposed and who approved
+belongs.
 
 ### `adrkit propose <title>`
 
 Create an ephemeral proposal draft in `adr/.drafts/YYYY-MM-DD-slug.md`. A
 draft is temporary: `accept` promotes it to a numbered decision, `reject`
 discards it without leaving a record. Titles must not start with a number.
-Drafts carry no `decided-by`; writing one into a draft is an error.
+Drafts carry neither `raised-by` nor `decided-by`; writing either into a
+draft is an error.
 
-### `adrkit accept <name>`
+### `adrkit accept <name> --raised-by <human|agent> --decided-by <human|agent>`
 
 Validate a draft, assign the next `N` number, rewrite the lifecycle
 sections, write `adr/decisions/N-slug.md`, and discard the draft.
-The draft's title must not start with a number. `--decided-by` is required
-here too, with the same meaning as for `decide`: promotion is where the value
-enters the durable record.
+The draft's title must not start with a number. Both declarations are required
+here too, with the same meaning as for `decide`: promotion is where the values
+enter the durable record.
 
 ### `adrkit reject <name> [--reason <text>]`
 
@@ -78,11 +81,11 @@ rejection lives in the winning decision's `Alternatives considered`. The
 Mark an accepted decision as superseded by a newer accepted decision. The
 old record's front matter becomes `status: superseded` with
 `superseded-by: N` and its `date` field is stamped with the supersede
-date; its `decided-by` value is preserved rather than replaced, since it
-records who made the original decision, not who retired it; the file stays in
-`adr/decisions/` as
-history. `--by` must resolve to an existing accepted
-decision that is not itself superseded.
+date; its `raised-by` and `decided-by` values are preserved rather than
+replaced: they record who raised the original decision and whose judgment
+settled it, not who retired it; the file stays in `adr/decisions/` as history.
+`--by` must resolve to an existing accepted decision that is not itself
+superseded.
 
 ### `adrkit list`
 
@@ -137,6 +140,42 @@ emits Graphviz; `--text` prints a terminal-friendly tree. `--tag <tag>`
 filters to decisions carrying that theme; `--formal-only` drops the mined
 edges. Note that `date` records the current status date, while `created` is
 the birth date.
+
+### `adrkit tree <name> [--mermaid|--text]`
+
+Render a record's optional `## Deliberation` appendix: the design tree behind
+the decision, stored in the record as a nested Markdown list whose nodes may be
+tagged `[settled]`, `[rejected]`, or `[open]`. `name` resolves by title,
+file name, or decision number, like the other commands. The default `--text`
+output reproduces the nested outline:
+
+```text
+- Which store? [settled]
+  - SQLite [settled]
+  - JSON files [rejected]
+    - Need a migration story? [open]
+```
+
+`--mermaid` emits a Mermaid graph: a `graph TD` header, one node per entry,
+parent-to-child edges, a `classDef` line for each status, and one `class` line
+for each status the tree actually uses.
+
+```mermaid
+graph TD
+  n1["Which store?"]
+  n2["SQLite"]
+  n1 --> n2
+  n3["JSON files"]
+  n1 --> n3
+  classDef settled fill:#dcfce7,stroke:#16a34a;
+  classDef rejected fill:#fee2e2,stroke:#dc2626;
+  class n1,n2 settled;
+  class n3 rejected;
+```
+
+A record without a `## Deliberation` bullet list fails with a message naming
+the record. The appendix is reference material for that decision, not part of
+every task's reading.
 
 ### `adrkit completion <bash|zsh|fish>`
 

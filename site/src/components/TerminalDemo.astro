@@ -5,9 +5,10 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 
 // The transcript mirrors real CLI output, verified line-by-line against
-// the shipped CLI. Two commands tell the whole story the CLI output itself
-// sets up: propose creates an ephemeral draft and its own output points to
-// the next step, accept promotes that draft to a durable decision.
+// the shipped CLI. It leads with the default path: decide records a durable
+// decision directly, and its own output names the validation step. The second
+// act shows the exception: propose creates an ephemeral draft whose output
+// points to accept, which promotes it.
 // The one editorial line is the localized `note` (the draft is scripted as
 // already filled, so accept succeeds); the CLI itself speaks English.
 const fillNote = lang === 'zh' ? '# 填满必填章节之后' : '# after filling the required sections';
@@ -17,17 +18,22 @@ const demoDate = '2026-09-03';
 
 type Line = { kind: 'cmd' | 'out' | 'ok' | 'note'; text: string };
 const lines: Line[] = [
-  { kind: 'cmd', text: 'adrkit propose "Use SQLite for session storage"' },
-  { kind: 'out', text: `created adr/.drafts/${demoDate}-use-sqlite-for-session-storage.md` },
+  { kind: 'cmd', text: 'adrkit decide "Use SQLite for session storage" --raised-by human --decided-by human' },
+  { kind: 'ok', text: 'created adr/decisions/1-use-sqlite-for-session-storage.md' },
+  { kind: 'out', text: '' },
+  { kind: 'out', text: 'fill in the decision and validate it with:' },
+  { kind: 'out', text: '  adrkit validate 1' },
+  { kind: 'cmd', text: 'adrkit propose "Use Redis for session storage"' },
+  { kind: 'out', text: `created adr/.drafts/${demoDate}-use-redis-for-session-storage.md` },
   { kind: 'out', text: '' },
   { kind: 'out', text: 'A draft is ephemeral: promote it with' },
-  { kind: 'out', text: '  adrkit accept "Use SQLite for session storage" --decided-by human' },
-  { kind: 'out', text: '  (use --decided-by agent when the choice came from the agent\'s own judgment)' },
+  { kind: 'out', text: '  adrkit accept "Use Redis for session storage" --raised-by human --decided-by human' },
+  { kind: 'out', text: '  (use --raised-by agent when the agent raised it; --decided-by agent when the choice was the agent\'s own judgment)' },
   { kind: 'out', text: 'or discard it with' },
-  { kind: 'out', text: '  adrkit reject "Use SQLite for session storage"' },
+  { kind: 'out', text: '  adrkit reject "Use Redis for session storage"' },
   { kind: 'note', text: fillNote },
-  { kind: 'cmd', text: 'adrkit accept "Use SQLite for session storage" --decided-by human' },
-  { kind: 'ok', text: `accepted adr/.drafts/${demoDate}-use-sqlite-for-session-storage.md as adr/decisions/1-use-sqlite-for-session-storage.md` },
+  { kind: 'cmd', text: 'adrkit accept "Use Redis for session storage" --raised-by human --decided-by human' },
+  { kind: 'ok', text: `accepted adr/.drafts/${demoDate}-use-redis-for-session-storage.md as adr/decisions/2-use-redis-for-session-storage.md` },
 ];
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

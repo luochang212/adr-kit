@@ -18,6 +18,10 @@ reading does not require creating an ADR. Re-read on a new or resumed task,
 or when scope or relevant files change, rather than relying on conversation
 memory.
 
+A `## Deliberation` appendix records the design tree behind a decision. It is
+reference material: read it only when that decision is in play, not on every
+task.
+
 Record an ADR when an architectural choice will constrain future development
 and its rationale is not apparent from code alone. Record only decisions
 actually made and genuine alternatives and trade-offs; do not invent reasons

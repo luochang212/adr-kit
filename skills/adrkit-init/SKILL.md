@@ -24,7 +24,7 @@ adrkit init [path]
 3. For a new repository, confirm the output lists `adr/config.yaml`, `adr/decisions`, and
    `adr/.gitignore`. Proposals are not a separate folder: they are ephemeral
    drafts in `adr/.drafts/`, created by `adrkit propose`. Durable records
-   carry a `decided-by` field you declare; drafts never do.
+   carry `raised-by` and `decided-by` fields you declare; drafts never do.
 
 4. Add the following section to the project's agent instruction file
    (`AGENTS.md`; also `CLAUDE.md` if that is the team's entry point). Preserve
@@ -49,6 +49,10 @@ reading does not require creating an ADR. Re-read on a new or resumed task,
 or when scope or relevant files change, rather than relying on conversation
 memory.
 
+A `## Deliberation` appendix records the design tree behind a decision. It is
+reference material: read it only when that decision is in play, not on every
+task.
+
 Record an ADR when an architectural choice will constrain future development
 and its rationale is not apparent from code alone. Record only decisions
 actually made and genuine alternatives and trade-offs; do not invent reasons
@@ -69,7 +73,7 @@ nor verifies it.
 - Never create `adr/` directories by hand; use the CLI so the config and
   README stay canonical.
 - After init, read existing decisions and continue the task. Use
-  `adrkit decide "<title>" --decided-by human` (`agent` when the choice came
-  from your own judgment) only for an important
-  architectural choice already made, or `adrkit propose "<title>"` when such a
-  choice still needs review.
+  `adrkit decide "<title>" --raised-by human --decided-by human` (`agent` on
+  either axis when that is the truth) only for an important architectural choice
+  already made, or `adrkit propose "<title>"` when such a choice still needs
+  review.

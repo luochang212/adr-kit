@@ -8,21 +8,46 @@ compatibility, or deployment decisions. Record real choices and trade-offs;
 reuse existing records, and supersede them when important assumptions change.
 Routine implementation details and local fixes need no ADR. A task without
 an important architectural decision needs no new record or decision report.
-`accepted` denotes a recorded decision, not proof of human review;
-`decided-by` records where the choice came from (a person determined the
-direction, or the agent's own judgment did) and is not an authorization record.
+`accepted` denotes a recorded decision, not proof of human review; the
+`raised-by` and `decided-by` fields record where the choice came from (who
+raised it, and whose judgment settled it) and are not an authorization record.
 
 ## The default path: record a decision
 
 ```text
 adrkit init
-adrkit decide "Use SQLite for session storage" --decided-by human
+adrkit decide "Use SQLite for session storage" --raised-by human --decided-by human
 # fill in the decision
 adrkit validate
 ```
 
 Decisions are durable records in `adr/decisions/N-slug.md`. Recording one is
-the default action; deliberation happens before the command, not in a file.
+the default action; deliberation happens before the command, though a session's
+design tree can be kept in the record's optional `## Deliberation` appendix.
+
+## Grilling before the record
+
+When an important choice is still under discussion and the direction is not yet
+settled, the `adrkit-grill` workflow skill interrogates you about it — a design
+tree worked in rounds — until nothing is left silently assumed. Grilling ends in
+`adrkit decide`, never in a proposal: the session's root questions become
+`## Problem`, the options you rejected become `## Alternatives considered`,
+and the settled tree is kept in the optional appendix below.
+
+## The `## Deliberation` appendix
+
+A record may carry an optional `## Deliberation` appendix: the design tree
+behind the decision, stored as a nested Markdown list. A node may end with
+`[settled]`, `[rejected]`, or `[open]`; prose between bullets is ignored, so
+a session can interleave commentary. Render the tree with:
+
+```text
+adrkit tree <name>            # nested text outline (default)
+adrkit tree <name> --mermaid  # Mermaid graph
+```
+
+`<name>` resolves by title, file name, or decision number. The appendix is
+reference material for that one decision, not part of every task's reading.
 
 ## Proposals: ephemeral drafts
 
@@ -31,7 +56,7 @@ When a decision still needs review, create a draft instead:
 ```text
 adrkit propose "Use SQLite for session storage"
 # fill in the draft
-adrkit accept "Use SQLite for session storage" --decided-by human
+adrkit accept "Use SQLite for session storage" --raised-by human --decided-by human
 ```
 
 `adrkit accept` validates the draft and performs the mechanical rewrite a
@@ -56,16 +81,16 @@ Decisions get overturned. Record the replacement first, then retire the
 outdated record:
 
 ```text
-adrkit decide "Use Postgres for session storage" --decided-by human
+adrkit decide "Use Postgres for session storage" --raised-by human --decided-by human
 # fill in the new decision, validate it
 adrkit supersede 1 --by 2
 ```
 
 The old record stays in `adr/decisions/` with `status: superseded` and
 `superseded-by: 2` in its front matter. Only the front matter is
-rewritten; the body is frozen history. The record's `decided-by` value is
-preserved rather than replaced: it records who made the original decision,
-not who retired it.
+rewritten; the body is frozen history. The record's `raised-by` and
+`decided-by` values are preserved rather than replaced: they record who raised
+the original decision and whose judgment settled it, not who retired it.
 `validate` checks that the referenced number exists and is not itself
 superseded, so a chain always ends at a currently-accepted decision.
 
@@ -95,6 +120,10 @@ verify the affected behavior. If no decisions apply, continue normally;
 reading does not require creating an ADR. Re-read on a new or resumed task,
 or when scope or relevant files change, rather than relying on conversation
 memory.
+
+A `## Deliberation` appendix records the design tree behind a decision. It is
+reference material: read it only when that decision is in play, not on every
+task.
 
 Record an ADR when an architectural choice will constrain future development
 and its rationale is not apparent from code alone. Record only decisions

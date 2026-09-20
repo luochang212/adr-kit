@@ -6,6 +6,7 @@ import {
   todayStamp,
   type AdrRecord,
   type DecidedBy,
+  type RaisedBy,
 } from './adr.js';
 
 /** Proposal sections that survive the mechanical accept rewrite. */
@@ -94,11 +95,13 @@ export function decisionTemplate(
   context: string | undefined,
   commit: string | undefined,
   decidedBy: DecidedBy,
+  raisedBy: RaisedBy,
 ): string {
   const fields: Record<string, string | number> = {
     status: 'accepted',
     date: todayStamp(),
     created: todayStamp(),
+    'raised-by': raisedBy,
     'decided-by': decidedBy,
   };
   if (commit !== undefined) fields.commit = commit;
@@ -141,6 +144,7 @@ export function proposalToDecision(
   number: number,
   commit: string | undefined,
   decidedBy: DecidedBy,
+  raisedBy: RaisedBy,
 ): string {
   const problem = sectionBody(proposal, 'Problem');
   const decision = sectionBody(proposal, 'Proposal');
@@ -175,6 +179,7 @@ export function proposalToDecision(
     // The decision inherits the proposal's birth date: created is stamped
     // once, at propose time, and survives the promotion.
     created: proposal.created ?? todayStamp(),
+    'raised-by': raisedBy,
     'decided-by': decidedBy,
   };
   if (commit !== undefined) fields.commit = commit;

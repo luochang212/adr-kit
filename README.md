@@ -38,7 +38,7 @@ Requires Node.js 20.19 or later.
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit decide "Use SQLite for session storage" --decided-by human
+adrkit decide "Use SQLite for session storage" --raised-by human --decided-by human
 ```
 
 `adrkit init` creates an `adr/` directory:
@@ -51,7 +51,9 @@ adr/
 └── decisions/       # decisions, numbered N, immutable history
 ```
 
-Proposals are ephemeral drafts in `adr/.drafts/`: `adrkit propose` creates
+`adrkit decide` is the default path: it records an already-made decision
+directly. Proposals are the exception, used only when a decision still needs
+review. They are ephemeral drafts in `adr/.drafts/`: `adrkit propose` creates
 one, `adrkit accept` promotes it to a numbered decision, and `adrkit reject`
 discards it without leaving a record. Rejection is recorded in a decision's
 `Alternatives considered`, never as a standalone record.
@@ -68,7 +70,7 @@ adrkit list
 Paste this into any AI coding agent to record key decisions automatically:
 
 ```text
-Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions. Every record declares `decided-by`: use `human` when a person determined the direction, `agent` when the choice came from your own judgment, even if a person let it through.
+Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions. Prefer `adrkit decide`; use `adrkit propose` only when a decision still needs review. Every record declares two flags: `--raised-by` (who put the decision on the table) and `--decided-by` (whose judgment settled it). Use `human` when a person determined it, `agent` when it came from your own judgment, even if a person let it through.
 ```
 
 To use decisions in later coding tasks, add the [reading rule](docs/workflow.md#read-decisions-before-coding)
@@ -86,10 +88,10 @@ rationale is not apparent from code alone; routine fixes need no ADR. See
 ```text
 adrkit init [path] [--tools <list>] [--workflows <list>]
                                         Initialize an ADR Kit repository
-adrkit decide <title> --decided-by <human|agent>
+adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>
                                         Record an already-made decision (default path)
-adrkit propose <title>                  Create an ephemeral proposal draft
-adrkit accept <name> --decided-by <human|agent>
+adrkit propose <title>                  Create an ephemeral proposal draft (only when review is needed)
+adrkit accept <name> --raised-by <human|agent> --decided-by <human|agent>
                                         Promote a draft to a decision (assigns N)
 adrkit reject <name> [--reason <text>]  Discard a draft (leaves no record)
 adrkit supersede <name> --by <name>     Mark an accepted decision as superseded
@@ -103,6 +105,7 @@ adrkit update [--tools <list>] [--workflows <list>]
 adrkit config                           Print the current configuration
 adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]
                                         Emit the decision relationship graph
+adrkit tree <name> [--mermaid|--text]   Render a record's deliberation tree
 adrkit completion <bash|zsh|fish>       Print a shell completion script
 adrkit version                          Print the version
 ```
@@ -142,6 +145,7 @@ Every record is YAML front matter followed by a Markdown body:
 ---
 status: accepted
 date: 2026-08-19
+raised-by: human
 decided-by: human
 created: 2026-08-17
 commit: abc1234
@@ -163,14 +167,16 @@ by theme. Decisions are immutable history; the current facts
 live in code, not in the record.
 
 `accepted` denotes a recorded decision, not proof of human review.
-`decided-by` is `human` or `agent`, declared when `decide` or `accept` runs:
-`human` when a person determined the direction (they stated it, changed a
-proposal into what shipped, or you are recording one they made earlier),
-`agent` when it came from the agent's own judgment, including when a person only
-let it through. The CLI records the declaration without inferring or verifying
-it, so the field does not establish who chose or authorized the decision; when
-who proposed and who approved matters, write it in the body. `supersede`
-preserves the original value. See the
+`raised-by` and `decided-by` are each `human` or `agent`, declared when
+`decide` or `accept` runs: `raised-by` is who put the decision on the table,
+and `decided-by` is whose judgment settled it. For `decided-by`, `human`
+means a person determined the direction (they stated it, changed a proposal into
+what shipped, or you are recording one they made earlier), `agent` when it came
+from the agent's own judgment, including when a person only let it through. The
+CLI records the declarations without inferring or verifying them, so the fields
+do not establish who chose or authorized the decision; when who proposed and who
+approved matters, write it in the body. `supersede` preserves both original
+values. See the
 [record format reference](docs/record-format.md) for limitations. Identity
 stays in git.
 
@@ -192,6 +198,11 @@ stays in git.
 `adrkit accept` performs the mechanical rewrite a lifecycle move always
 owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 `Risks` are folded into `## Consequences`.
+
+A decision may also carry an optional `## Deliberation` appendix: the design
+tree behind the choice, stored as a nested Markdown list whose nodes may be
+tagged `[settled]`, `[rejected]`, or `[open]`. Render it with
+`adrkit tree <name>` (text by default, `--mermaid` for a graph).
 
 ## Compatibility with other tools
 

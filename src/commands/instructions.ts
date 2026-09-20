@@ -10,8 +10,8 @@ export function instructionsCommand(cwd: string): string {
       '',
       'Next:',
       '  adrkit init',
-      '  adrkit decide "your first decision" --decided-by human',
-      '    (agent if the choice came from the agent\'s own judgment)',
+      '  adrkit decide "your first decision" --raised-by <human|agent> --decided-by <human|agent>',
+      '    (raised-by: who raised it; decided-by: whose judgment settled it)',
     ].join('\n');
     return output;
   }
@@ -62,7 +62,7 @@ export function instructionsCommand(cwd: string): string {
     for (const name of ready) {
       // The placeholder keeps an agent from copy-pasting a human declaration
       // for its own judgment: whoever runs this must pick the value.
-      lines.push(`  adrkit accept ${name} --decided-by <human|agent>   # promote to a decision`);
+      lines.push(`  adrkit accept ${name} --raised-by <human|agent> --decided-by <human|agent>   # promote to a decision`);
     }
     for (const name of Object.keys(needsWork)) {
       lines.push(`  adrkit reject ${name}   # or fix adr/.drafts/${name} and accept it`);
@@ -88,9 +88,9 @@ export function instructionsCommand(cwd: string): string {
     'No proposals waiting.',
     '',
     'Next:',
-    '  adrkit propose "a decision you are unsure about"   # ephemeral draft',
-    '  adrkit decide "an already-made decision" --decided-by human',
-    "    (agent if the choice came from the agent's own judgment)",
+    '  adrkit decide "an already-made decision" --raised-by <human|agent> --decided-by <human|agent>',
+    '    (raised-by: who raised it; decided-by: whose judgment settled it)',
+    '  adrkit propose "a decision that still needs review"   # ephemeral draft (the exception)',
   ].join('\n');
   return output;
 }

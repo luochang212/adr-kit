@@ -36,7 +36,7 @@ agent 原生代码库的决策记录纪律：每条记录都必须说明它解�
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit decide "使用 SQLite 存储会话" --decided-by human
+adrkit decide "使用 SQLite 存储会话" --raised-by human --decided-by human
 ```
 
 `adrkit init` 会创建 `adr/` 目录：
@@ -49,9 +49,10 @@ adr/
 └── decisions/       # 决策，按 N 编号，不可变历史
 ```
 
-提案是 `adr/.drafts/` 里的临时草稿：`adrkit propose` 创建一条，
-`adrkit accept` 把它提升为编号决策，`adrkit reject` 直接丢弃、不留下任何记录。
-拒绝记录在决策的 `Alternatives considered` 里，从不是独立记录。
+`adrkit decide` 是默认路径，直接记录已成定局的决策。需要评审时，提案是
+`adr/.drafts/` 里的临时草稿：`adrkit propose` 创建一条，`adrkit accept` 把它
+提升为编号决策，`adrkit reject` 直接丢弃、不留下任何记录。拒绝记录在决策的
+`Alternatives considered` 里，从不是独立记录。
 
 填写决策内容后：
 
@@ -65,7 +66,7 @@ adrkit list
 把下面这行贴给任意 AI 编码 Agent，它就会自动把关键决策记录成 ADR：
 
 ```text
-在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策。每条记录都要声明 `decided-by`：方向由人决定用 `human`，由你自己的判断得出用 `agent`，即使人只是放行。
+在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策。优先用 `adrkit decide`，仅当决策还需评审时才用 `adrkit propose`。每条记录都要声明两个值：`raised-by`（谁把决策提上台面）与 `decided-by`（谁的判断定下它）；方向由人决定用 `human`，由你自己的判断得出用 `agent`，即使人只是放行。
 ```
 
 让后续编码任务也用上决策：在项目 `AGENTS.md`（Claude Code 团队也包括
@@ -80,10 +81,10 @@ CLI 不会自动修改项目指令文件。只有持续约束后续开发、且�
 ```text
 adrkit init [path] [--tools <list>] [--workflows <list>]
                                        初始化 ADR Kit 仓库
-adrkit decide <title> --decided-by <human|agent>
+adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>
                                        直接记录已做的决策（默认路径）
-adrkit propose <title>                 创建临时提案草稿
-adrkit accept <name> --decided-by <human|agent>
+adrkit propose <title>                 仅当决策还需评审时，创建临时提案草稿
+adrkit accept <name> --raised-by <human|agent> --decided-by <human|agent>
                                        把草稿提升为决策（分配 N 编号）
 adrkit reject <name> [--reason <text>] 丢弃草稿（不留记录）
 adrkit supersede <name> --by <name>    标记已接受决策被新决策取代
@@ -97,6 +98,7 @@ adrkit update [--tools <list>] [--workflows <list>]
 adrkit config                           查看当前配置
 adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]
                                         输出决策关系图
+adrkit tree <name> [--mermaid|--text]   渲染记录的 deliberation 树
 adrkit completion <bash|zsh|fish>      打印 shell 补全脚本
 adrkit version                         查看版本
 ```
@@ -110,7 +112,7 @@ adrkit version                         查看版本
 > 副本；这个例外我们一直背到 Anthropic 采纳标准为止。
 
 > [!TIP]
-> 集成默认安装全部七个工作流技能。只记录决策的小仓库可传
+> 集成默认安装全部八个工作流技能。只记录决策的小仓库可传
 > `--workflows init,decide,validate` 装精简子集；选择会写入
 > `adr/config.yaml`，`adrkit update` 会保持，`--workflows all` 恢复全套。
 
@@ -133,6 +135,7 @@ adrkit version                         查看版本
 ---
 status: accepted
 date: 2026-08-19
+raised-by: human
 decided-by: human
 created: 2026-08-17
 commit: abc1234
@@ -151,14 +154,14 @@ tags: [frontend]
 关键词）让 `adrkit graph` 按主题分组和过滤决策。决策是不可变历史；当前
 事实以代码为准，不在记录里。
 
-`accepted` 表示正式记录的决定，不代表人已审阅批准。`decided-by` 取值为
-`human` 或 `agent`，在 `decide` 或 `accept` 时声明：方向由人决定时写 `human`
-（人说出的、人把 agent 的提案改成最终落地方案的、或人此前定过而现在只是补记的），
-由 AI 自主判断得出时写 `agent`，包括人只是放行的情况。CLI 既不推断也不校验，
-只记录声明，所以它不能证明是谁自主拍板或授权；这里的"谁"指选择的来源，不是谁执行了
-命令，谁提出、谁批准写进正文。`supersede`
-保留原值。局限见[记录格式参考](docs/zh/record-format.md)。
-身份留在 git 里。
+`accepted` 表示正式记录的决定，不代表人已审阅批准。`raised-by` 与 `decided-by`
+取值都是 `human` 或 `agent`，在 `decide` 或 `accept` 时声明：`raised-by` 是
+谁把决策提上台面，`decided-by` 是谁的判断定下了它。`decided-by` 取 `human`
+表示方向由人决定（人说出的、人把 agent 的提案改成最终落地方案的、或人此前定过
+而现在只是补记的），取 `agent` 表示由 AI 自主判断得出，包括人只是放行的情况。
+CLI 既不推断也不校验，只记录声明，所以它不能证明是谁自主拍板或授权；谁改写、
+谁批准写进正文。`supersede` 保留两个原值。局限见
+[记录格式参考](docs/zh/record-format.md)。身份留在 git 里。
 
 - **决策**（`adr/decisions/N-slug.md`）是 `accepted` 或 `superseded`，
   需要 `Problem`、`Decision`、`Alternatives considered`、`Consequences`；
@@ -176,6 +179,10 @@ tags: [frontend]
 
 `adrkit accept` 会自动完成生命周期迁移所要求的改写：`## Proposal` 改为
 `## Decision`，`Acceptance criteria` 与 `Risks` 合并进 `## Consequences`。
+
+决策还可以携带可选的 `## Deliberation` 附录：记录选择背后的 design tree，
+用嵌套 Markdown 列表存储，节点可标注 `[settled]`、`[rejected]`、`[open]`。
+用 `adrkit tree <name>` 渲染（默认文本，加 `--mermaid` 输出图形）。
 
 ## 工具兼容性
 

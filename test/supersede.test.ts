@@ -22,11 +22,12 @@ function makeRepo(): string {
   return dir;
 }
 
-/** propose → fill → accept，返回 slug。`decidedBy` 默认 human，agent 分支显式传入。 */
+/** propose → fill → accept，返回 slug。两个来源默认 human，agent 分支显式传入。 */
 function acceptDecision(
   root: string,
   title: string,
   decidedBy: 'human' | 'agent' = 'human',
+  raisedBy: 'human' | 'agent' = 'human',
 ): string {
   proposeCommand(title, root);
   const draft = listDrafts(root)[0];
@@ -60,7 +61,7 @@ It works.
 
 Some risk.
 `);
-  acceptCommand(title, root, decidedBy);
+  acceptCommand(title, root, decidedBy, raisedBy);
   return slug;
 }
 
@@ -85,9 +86,10 @@ describe('supersedeCommand', () => {
     expect(lines[2]).toBe(`date: ${todayStamp()}`);
     // decided-by survives the retirement untouched: the field says who made
     // the decision, not who last rewrote the file.
-    expect(lines[3]).toBe('decided-by: human');
-    expect(lines[4]).toBe('created: 2026-08-19');
-    expect(lines[5]).toBe('superseded-by: 2');
+    expect(lines[3]).toBe('raised-by: human');
+    expect(lines[4]).toBe('decided-by: human');
+    expect(lines[5]).toBe('created: 2026-08-19');
+    expect(lines[6]).toBe('superseded-by: 2');
 
     const result = validateCommand(root);
     expect(result.valid).toBe(true);
@@ -208,7 +210,7 @@ Some risk.
     // Promote with an agent declaration: the decision must carry what the
     // caller declared, proving the draft's value found no path into the record.
     writeFileSync(file, DRAFT);
-    acceptCommand('Use SQLite', root, 'agent');
+    acceptCommand('Use SQLite', root, 'agent', 'human');
     expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
       'decided-by: agent',
     );

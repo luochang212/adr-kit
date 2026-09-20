@@ -329,6 +329,9 @@ rules:
     expect(grill?.body).toContain('Never ask the user for a fact');
     expect(grill?.body).toContain('--decided-by');
     expect(grill?.body).toContain('adrkit validate <N>');
+    expect(grill?.body).toContain('--raised-by');
+    expect(grill?.body).toContain('## Deliberation');
+    expect(grill?.body).not.toContain('adrkit propose');
   });
 });
 
@@ -362,10 +365,15 @@ describe('completionCommand', () => {
     // completion would leave the caller to guess a required argument. Fish
     // spells a long option `-l name`; the others carry the literal flag.
     expect(completionCommand('bash')).toContain('--decided-by');
+    expect(completionCommand('bash')).toContain('--raised-by');
     expect(completionCommand('zsh')).toContain(
-      "'--decided-by=[who made the decision]:declared by:(human agent)'",
+      "'--decided-by=[whose judgment settled the decision]:declared by:(human agent)'",
+    );
+    expect(completionCommand('zsh')).toContain(
+      "'--raised-by=[who raised the decision]:declared by:(human agent)'",
     );
     expect(completionCommand('fish')).toContain('-l decided-by -x -a "human agent"');
+    expect(completionCommand('fish')).toContain('-l raised-by -x -a "human agent"');
   });
 
   it('declares the value-taking options as taking a value', () => {

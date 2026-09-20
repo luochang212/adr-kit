@@ -10,7 +10,8 @@ description: Use when an important architectural choice is under discussion and 
 Interrogate the user about an architectural decision until nothing is left
 silently assumed, then record the settled decision. The session feeds the
 record directly: the root questions become `## Problem`, the rejected options
-become `## Alternatives considered`, and who overrode whom feeds `decided-by`.
+become `## Alternatives considered`, and who raised and who overrode feeds
+`raised-by` and `decided-by`.
 
 The interrogation method is adapted from the `grilling` skill in
 [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
@@ -60,18 +61,22 @@ to manufacture content for a record.
 
 1. Record only the settled decisions that clear the bar above; one session
    often settles several, and usually one primary record suffices. Run
-   `adrkit decide "<title>" --decided-by human` (or `agent`, per the rule
-   below), or `adrkit propose "<title>"` when the outcome still needs
-   review. Then follow the matching workflow.
+   `adrkit decide "<title>" --raised-by human --decided-by human` (or
+   `agent` on either axis, per the rule below); grilling ends in a decision,
+   never a proposal. Then follow the decide workflow.
 2. Fill the record from the session: `## Problem` from the root questions,
    `## Decision` from the user's answers, `## Alternatives considered` from
    the frontier options they rejected, `## Consequences` from the branches
-   their answers unlocked. Add 2-4 kebab-case `tags` to the front matter.
-3. Declare `decided-by` from the session: `human` when the user's answers
-   determined the direction — especially where they overrode your
-   recommendations; `agent` when they adopted every recommendation without
-   engaging. Put the nuance in the body: which recommendations they changed
-   and which they let through.
+   their answers unlocked. Keep the design tree in an optional
+   `## Deliberation` appendix as a nested list, marking each node `[settled]`,
+   `[rejected]`, or `[open]`; `adrkit tree <N>` renders it. Add 2-4 kebab-case
+   `tags` to the front matter.
+3. Declare both provenance axes: `--raised-by` is who put the decision on the
+   table; `--decided-by` is whose judgment settled it. `decided-by` is `human`
+   when the user's answers determined the direction — especially where they
+   overrode your recommendations — and `agent` when they adopted every
+   recommendation without engaging. Put the nuance in the body: which
+   recommendations they changed and which they let through.
 4. Run `adrkit validate <N>` until it returns OK.
 
 ## Rules

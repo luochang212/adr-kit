@@ -22,19 +22,21 @@ Requires Node.js 20.19 or later.
 npm install -g adr-kit
 cd your-project
 adrkit init --tools claude
-adrkit decide "Use SQLite for session storage" --decided-by human
+adrkit decide "Use SQLite for session storage" --raised-by human --decided-by human
 adrkit validate
 ```
 
-`--decided-by` is required on `decide` and `accept`, one value per record: use
-`human` when a person determined the direction (they stated it, changed a
-proposal into what shipped, or you are recording one they made earlier), `agent`
-when it came from the agent's own judgment, including when a person only let it
-through. The CLI neither infers nor verifies it; who proposed and who approved
-belongs in the record body.
+`--raised-by` and `--decided-by` are both required on `decide` and `accept`,
+one value each per record: `raised-by` is who put the decision on the table,
+`decided-by` whose judgment settled it. For `decided-by`, use `human` when a
+person determined the direction (they stated it, changed a proposal into what
+shipped, or you are recording one they made earlier), `agent` when it came from
+the agent's own judgment, including when a person only let it through. The CLI
+neither infers nor verifies either; who redirected or approved belongs in the
+record body.
 
 To record a decision that still needs review, use `adrkit propose "<title>"`
-(a draft in `adr/.drafts/`), then `adrkit accept "<title>" --decided-by human`
+(a draft in `adr/.drafts/`), then `adrkit accept "<title>" --raised-by human --decided-by human`
 to promote it or `adrkit reject "<title>"` to discard it.
 
 ## Key facts
@@ -44,6 +46,9 @@ to promote it or `adrkit reject "<title>"` to discard it.
 - Validation failures are success signals: a draft that `accept` refuses to
   promote is missing a required section.
 - Drafts carry dates; decision numbers are assigned only at accept time.
+- A decision may carry an optional `## Deliberation` appendix, the design tree
+  behind it as a nested list; `adrkit tree <name>` renders it as text or
+  `--mermaid` as a graph.
 - Rejection is not a record: it lives in the winner's `Alternatives
   considered`.
 - AI tool integrations (`adrkit init --tools`): claude, codex, cursor,

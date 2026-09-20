@@ -27,8 +27,8 @@ export function proposeCommand(title: string, cwd: string): string {
     `created adr/.drafts/${fileName}`,
     '',
     'A draft is ephemeral: promote it with',
-    `  adrkit accept "${trimmed}" --decided-by human`,
-    '  (use --decided-by agent when the choice came from the agent\'s own judgment)',
+    `  adrkit accept "${trimmed}" --raised-by human --decided-by human`,
+    '  (use --raised-by agent when the agent raised it; --decided-by agent when the choice was the agent\'s own judgment)',
     'or discard it with',
     `  adrkit reject "${trimmed}"`,
   ].join('\n');

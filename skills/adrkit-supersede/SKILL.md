@@ -30,8 +30,8 @@ adrkit supersede "<old name or number>" --by "<new name or number>"
   still exists and is not itself superseded, even if you checked earlier in
   this conversation.
 - Never hand-edit a superseded record afterwards; it is history, including
-  its `decided-by` value, which the command preserves rather than replacing
-  with whoever retired it. Superseding changes the record's status, not who
-  made the decision.
+  its `raised-by` and `decided-by` values, which the command preserves rather
+  than replacing with whoever retired it. Superseding changes the record's
+  status, not who raised or decided it.
 - Mention what it supersedes in the new decision's `## Problem` section so
   the causal link survives in prose.

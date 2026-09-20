@@ -14,7 +14,7 @@ const prompts = [
 const steps = [
   { label: t('start.step1'), cmd: 'npm install -g adr-kit' },
   { label: t('start.step2'), cmd: 'adrkit init' },
-  { label: t('start.step3'), cmd: 'adrkit propose "Use SQLite for session storage"' },
+  { label: t('start.step3'), cmd: 'adrkit decide "Use SQLite for session storage" --raised-by human --decided-by human' },
 ];
 ---
 

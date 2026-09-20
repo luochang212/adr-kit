@@ -39,7 +39,7 @@ describe('git commit stamping', () => {
       cwd: root,
       encoding: 'utf8',
     }).trim();
-    decideCommand('Use SQLite', root, 'human');
+    decideCommand('Use SQLite', root, 'human', 'human');
     // Assert on the parsed record: an all-digit short hash is serialized
     // quoted (`commit: "2281972"`) to stay a string in YAML, so a raw-text
     // regex would flake on ~5% of hashes.
@@ -49,7 +49,7 @@ describe('git commit stamping', () => {
 
   it('omits the commit field outside a git repo', () => {
     const root = makeRepo();
-    decideCommand('Use SQLite', root, 'human');
+    decideCommand('Use SQLite', root, 'human', 'human');
     const content = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
     expect(content).not.toContain('commit:');
   });

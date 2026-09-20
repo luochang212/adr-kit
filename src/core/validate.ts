@@ -163,6 +163,9 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
    * repairs it: an agent inventing who made a past decision is the fabricated
    * provenance this field exists to prevent.
    */
+  if (record.raisedBy === undefined) {
+    issues.push({ path, message: 'front matter must include "raised-by"' });
+  }
   if (record.decidedBy === undefined) {
     issues.push({ path, message: 'front matter must include "decided-by"' });
   }
@@ -214,6 +217,9 @@ export function validateDraft(root: string, draft: AdrRecord): ValidationIssue[]
   // A draft has not taken effect, so it has no decision to attribute. The key
   // is rejected rather than ignored: promotion rebuilds the front matter from
   // the canonical fields, so a value written here would silently vanish.
+  if (draft.raisedBy !== undefined) {
+    issues.push({ path, message: '"raised-by" is declared at promotion and must not appear on a draft' });
+  }
   if (draft.decidedBy !== undefined) {
     issues.push({ path, message: '"decided-by" is declared at promotion and must not appear on a draft' });
   }

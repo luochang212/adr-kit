@@ -15,7 +15,9 @@ function readDoc(name: string): string {
 // rewrite of the prose already dropped it once and no test noticed.
 describe('the record-format reference states the decided-by trust boundary', () => {
   it('pins the declaration, its weakness, and what defeats it', () => {
-    const en = readDoc('record-format.md');
+    // Collapse whitespace so the assertion pins the rule, not where the prose
+    // happens to wrap.
+    const en = readDoc('record-format.md').replace(/\s+/g, ' ');
     expect(en).toContain('require the caller to declare it');
     expect(en).toContain('declaration, not an observation');
     expect(en).toContain('neither infers nor');
@@ -25,7 +27,7 @@ describe('the record-format reference states the decided-by trust boundary', () 
   });
 
   it('carries the same boundary in the Chinese reference', () => {
-    const zh = readDoc('zh/record-format.md');
+    const zh = readDoc('zh/record-format.md').replace(/\s+/g, ' ');
     expect(zh).toContain('要求调用方用');
     expect(zh).toContain('声明，不是观测');
     expect(zh).toContain('既不推断也不校验');

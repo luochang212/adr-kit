@@ -1,8 +1,8 @@
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { VERSION } from './version.js';
-import type { DecidedBy } from './core/adr.js';
-import { isDecidedBy } from './core/adr.js';
+import type { DecidedBy, RaisedBy } from './core/adr.js';
+import { isDecidedBy, isRaisedBy } from './core/adr.js';
 import { acceptCommand } from './commands/accept.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
@@ -16,6 +16,7 @@ import { rejectCommand } from './commands/reject.js';
 import { showCommand } from './commands/show.js';
 import { statusCommand } from './commands/status.js';
 import { supersedeCommand } from './commands/supersede.js';
+import { treeCommand } from './commands/tree.js';
 import { updateCommand } from './commands/update.js';
 import { validateCommand } from './commands/validate.js';
 
@@ -23,19 +24,20 @@ const HELP = `adrkit ${VERSION} - A lightweight ADR workflow for humans and agen
 
 Decisions are durable records in adr/decisions/. Proposals are ephemeral drafts
 in adr/.drafts/ that are promoted by accept or discarded by reject. decide and
-accept require --decided-by, which records who made the choice: human when a
-person determined the direction (they stated it, changed a proposal into what
-shipped, or you are recording one they made earlier), agent when it came from
-the agent's own judgment. It records where the choice came from, not who ran
-the command, and the CLI neither infers nor verifies it.
+accept require two declarations. --raised-by records who put the decision on
+the table; --decided-by records whose judgment settled it: human when a person
+determined the direction (they stated it, changed a proposal into what shipped,
+or you are recording one they made earlier), agent when it came from the
+agent's own judgment. Either axis may be human or agent, and the CLI neither
+infers nor verifies either.
 
 Usage:
   adrkit init [path] [--tools <list>] [--workflows <list>]
                                            Initialize an ADR Kit repository
-  adrkit decide <title> --decided-by <human|agent>
+  adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>
                                            Record a decision (default path)
   adrkit propose <title>                     Create an ephemeral proposal draft
-  adrkit accept <name> --decided-by <human|agent>
+  adrkit accept <name> --raised-by <human|agent> --decided-by <human|agent>
                                            Promote a draft to a decision (assigns the next number)
   adrkit reject <name> [--reason <reason>]   Discard a draft (leaves no record)
   adrkit supersede <name> --by <name>        Mark an accepted decision as superseded
@@ -49,6 +51,7 @@ Usage:
   adrkit config                              Print the current configuration
   adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]
                                            Emit the decision relationship graph
+  adrkit tree <name> [--mermaid|--text]      Render the record's deliberation tree
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
   adrkit -h, --help                          Print this help
@@ -72,6 +75,7 @@ export function main(argv: string[]): void {
       all: { type: 'boolean', default: false },
       by: { type: 'string' },
       'decided-by': { type: 'string' },
+      'raised-by': { type: 'string' },
       dot: { type: 'boolean', default: false },
       'formal-only': { type: 'boolean', default: false },
       mermaid: { type: 'boolean', default: false },
@@ -98,17 +102,15 @@ export function main(argv: string[]): void {
   const rest = positionals.slice(1);
 
   try {
-    // Only decide and accept record a decision. Anywhere else the flag is a
+    // Only decide and accept record a decision. Anywhere else the flags are a
     // mistake, not something to ignore, and this has to run before the switch
     // so a non-recording command never reaches the required-declaration check.
-    if (
-      values['decided-by'] !== undefined &&
-      command !== 'decide' &&
-      command !== 'accept'
-    ) {
-      throw new Error(
-        `adrkit ${command.length > 0 ? command : '(no command)'} does not take --decided-by`,
-      );
+    for (const flag of ['decided-by', 'raised-by'] as const) {
+      if (values[flag] !== undefined && command !== 'decide' && command !== 'accept') {
+        throw new Error(
+          `adrkit ${command.length > 0 ? command : '(no command)'} does not take --${flag}`,
+        );
+      }
     }
 
     switch (command) {
@@ -137,12 +139,26 @@ export function main(argv: string[]): void {
       }
       case 'decide': {
         requireTitle(rest, 'decide');
-        console.log(decideCommand(rest[0]!, process.cwd(), requireDecidedBy(values['decided-by'])));
+        console.log(
+          decideCommand(
+            rest[0]!,
+            process.cwd(),
+            requireDecidedBy(values['decided-by']),
+            requireRaisedBy(values['raised-by']),
+          ),
+        );
         return;
       }
       case 'accept': {
         requireTitle(rest, 'accept');
-        console.log(acceptCommand(rest[0]!, process.cwd(), requireDecidedBy(values['decided-by'])));
+        console.log(
+          acceptCommand(
+            rest[0]!,
+            process.cwd(),
+            requireDecidedBy(values['decided-by']),
+            requireRaisedBy(values['raised-by']),
+          ),
+        );
         return;
       }
       case 'reject': {
@@ -198,6 +214,11 @@ export function main(argv: string[]): void {
         );
         return;
       }
+      case 'tree': {
+        requireTitle(rest, 'tree');
+        console.log(treeCommand(rest[0]!, process.cwd(), values.mermaid ? 'mermaid' : 'text'));
+        return;
+      }
       case 'completion': {
         const shell = rest[0] ?? '';
         console.log(completionCommand(shell));
@@ -240,6 +261,20 @@ function requireDecidedBy(value: string | undefined): DecidedBy {
       '          into what shipped, or you are recording one they made earlier\n' +
       '  agent   the choice came from the agent\'s own judgment, not a person\'s;\n' +
       '          a person merely letting it through does not make it human',
+  );
+}
+
+/**
+ * `raised-by` is the other provenance axis: who put the decision on the table,
+ * which is not the same as whose judgment settled it. Declared, never inferred.
+ */
+function requireRaisedBy(value: string | undefined): RaisedBy {
+  if (isRaisedBy(value)) return value;
+  const problem = value === undefined ? 'is required' : `must be "human" or "agent", got "${value}"`;
+  throw new Error(
+    `--raised-by ${problem}:\n` +
+      '  human   a person put the decision on the table\n' +
+      '  agent   the agent raised it, even if a person later settled the direction',
   );
 }
 
