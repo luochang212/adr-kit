@@ -36,7 +36,7 @@ const ui = {
     'stats.2.value': '8',
     'stats.2.label': 'workflow skills',
     'stats.3.value': '0',
-    'stats.3.label': 'runtime dependencies',
+    'stats.3.label': 'dependencies added to your repo',
     'stats.4.value': '100%',
     'stats.4.label': 'plain Markdown records',
 
@@ -113,7 +113,7 @@ const ui = {
     'stats.2.value': '8',
     'stats.2.label': '个工作流技能',
     'stats.3.value': '0',
-    'stats.3.label': '运行时依赖',
+    'stats.3.label': '给你仓库新增的依赖',
     'stats.4.value': '100%',
     'stats.4.label': '纯 Markdown 记录',
 
