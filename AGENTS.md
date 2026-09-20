@@ -3,6 +3,35 @@
 ADR Kit is a command-line tool for Architecture Decision Records. This file
 contains standing orders for coding agents working in this repository.
 
+## Reading architecture decisions
+
+At the start of a coding, design, or review task, if `adr/` exists, run
+`adrkit list` and read every decision in full with `adrkit show <N>` (or read
+its file). ADR sets are small; do not filter by title alone. Treat accepted
+records as decision context, superseded records as history, and pending
+drafts as unaccepted proposals. Check relevant decisions against current
+code and the task's requirements. Apply the constraints that still hold;
+explain conflicts or changed assumptions before choosing a different approach.
+Mention relevant ADR numbers in the implementation or review summary and
+verify the affected behavior. If no decisions apply, continue normally;
+reading does not require creating an ADR. Re-read on a new or resumed task,
+or when scope or relevant files change, rather than relying on conversation
+memory.
+
+Record an ADR when an architectural choice will constrain future development
+and its rationale is not apparent from code alone. Record only decisions
+actually made and genuine alternatives and trade-offs; do not invent reasons
+to fill a template. Reuse an existing record for the same choice; record a
+replacement when important assumptions change. Routine implementation details,
+local fixes, and easily reversible choices need no ADR. If no important
+architectural decision was made, create none. `accepted` means a recorded
+decision, not proof of human review. `decided-by` is a declaration of where the
+choice came from, not an inference: `human` when a person determined the
+direction — they stated it, changed a proposal into what shipped, or you are
+recording one they made earlier — `agent` when it came from the agent's own
+judgment, including when a person only let it through. The CLI neither infers
+nor verifies it.
+
 ## Commands
 
 ```sh

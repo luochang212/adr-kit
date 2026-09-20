@@ -191,6 +191,7 @@ describe('workflow subsets for tool integrations', () => {
     expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(true);
     expect(readConfig(root).workflows).toEqual([
       'init',
+      'grill',
       'propose',
       'decide',
       'validate',
@@ -308,12 +309,26 @@ rules:
   });
 
   it('decision-point workflows require re-querying the repo state', () => {
+    const grill = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-grill');
     const propose = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-propose');
     const accept = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-accept');
     const supersede = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-supersede');
+    expect(grill?.body).toContain('even if you ran it earlier in this conversation');
     expect(propose?.body).toContain('even if you ran it earlier in this conversation');
     expect(accept?.body).toMatch(/even if you\s+reviewed it earlier in this conversation/);
     expect(supersede?.body).toMatch(/even if you\s+checked earlier in\s+this conversation/);
+  });
+
+  it('grill workflow interrogates before it records', () => {
+    // The skill must carry the method (tree, frontier), credit its source,
+    // and end in the CLI instead of free-form notes.
+    const grill = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-grill');
+    expect(grill?.body).toContain('design tree');
+    expect(grill?.body).toContain('frontier');
+    expect(grill?.body).toContain('mattpocock/skills');
+    expect(grill?.body).toContain('Never ask the user for a fact');
+    expect(grill?.body).toContain('--decided-by');
+    expect(grill?.body).toContain('adrkit validate <N>');
   });
 });
 

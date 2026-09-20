@@ -12,3 +12,8 @@ adr/
 *.log
 
 .idea/
+.workbuddy/
+
+# Generated agent integration target (adrkit init/update) plus local-only
+# skills; the committed sources live in skills/.
+.agents/

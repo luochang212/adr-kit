@@ -117,7 +117,7 @@ adrkit version                          Print the version
 > `.claude/` copies; an exception we carry until Anthropic adopts the standard.
 
 > [!TIP]
-> Every integration ships all seven workflow skills by default. A small
+> Every integration ships all eight workflow skills by default. A small
 > repository that only records decisions can pass
 > `--workflows init,decide,validate` to install a lean subset; the choice is
 > recorded in `adr/config.yaml`, `adrkit update` keeps it, and
