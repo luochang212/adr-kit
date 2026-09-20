@@ -83,22 +83,22 @@ a decision the session settled.
 ## Deliberation
 
 - Model provenance and grilling output as first-class [settled]
-  - Should a grilling session be a persisted entity? [settled]
-    - A1 do not persist it: keep only the distilled ADR [rejected]
-    - A2 embed the tree in the ADR, defaulting one session to one record [settled]
-    - A3 a separate session object with an id, allowing 1:N [rejected] - deferred until 1:N is the norm
-  - What provenance axes does a record carry? [settled]
-    - B1 keep the single-axis decided-by [rejected]
-    - B2 replace it with one method enum grill/direct/proposal [rejected] - conflates deliberation with lifecycle path
-    - B3 keep decided-by and add the orthogonal raised-by [settled]
-    - Delete decided-by and keep only raised-by [rejected] - loses the trust axis
-  - How is the design tree stored? [settled]
-    - Do not store it [rejected]
-    - Store mermaid source [rejected] - mermaid is a view, not a source
-    - Store a structured nested outline and render mermaid on demand [settled]
-  - Where does grilling terminate? [settled]
-    - Keep grill to propose to accept [rejected] - re-opens a settled decision
-    - End in adrkit decide only [settled]
-  - How many ADRs per session? [settled]
-    - Split every independent sub-decision into its own ADR [rejected]
-    - Default one session to one ADR, with an escape hatch [settled]
+  - Q: Should a grilling session be a persisted entity? [settled]
+    - A: Do not persist it; keep only the distilled ADR [rejected]
+    - A: Embed the tree in the ADR, defaulting one session to one record [settled] (recommended)
+    - A: A separate session object with an id, allowing 1:N [rejected] — deferred until 1:N is the norm
+  - Q: What provenance axes does a record carry? [settled]
+    - A: Keep the single-axis decided-by [rejected]
+    - A: Replace it with one method enum grill/direct/proposal [rejected] — conflates deliberation with lifecycle path
+    - A: Keep decided-by and add the orthogonal raised-by [settled] (recommended)
+    - A: Delete decided-by and keep only raised-by [rejected] — loses the trust axis
+  - Q: How is the design tree stored? [settled]
+    - A: Do not store it [rejected]
+    - A: Store mermaid source [rejected] — mermaid is a view, not a source
+    - A: Store a structured nested outline and render it on demand [settled] (recommended)
+  - Q: Where does grilling terminate? [settled]
+    - A: Keep grill to propose to accept [rejected] — re-opens a settled decision
+    - A: End in adrkit decide only [settled] (recommended)
+  - Q: How many ADRs per session? [settled]
+    - A: Split every independent sub-decision into its own ADR [rejected]
+    - A: Default one session to one ADR, with an escape hatch [settled] (recommended)

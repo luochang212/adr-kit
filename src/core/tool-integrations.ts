@@ -188,9 +188,11 @@ decisions are not filtered again at record time.
    \`## Decision\` from the user's answers, \`## Alternatives considered\` from
    the frontier options they rejected, \`## Consequences\` from the branches
    their answers unlocked. Keep the design tree in an optional
-   \`## Deliberation\` appendix as a nested list, marking each node \`[settled]\`,
-   \`[rejected]\`, or \`[open]\`; \`adrkit tree <N>\` renders it. Add 2-4 kebab-case
-   \`tags\` to the front matter.
+   \`## Deliberation\` appendix: prefix a question \`Q:\` and an option \`A:\`, tag
+   each node \`[settled]\`, \`[rejected]\`, or \`[open]\`, mark the option you
+   recommended \`(recommended)\`, and give a rejected option a \` — reason\`.
+   \`adrkit tree <N>\` renders it (\`--mermaid\`, or \`--html\` for a file). Add 2-4
+   kebab-case \`tags\` to the front matter.
 3. Declare both provenance axes: \`--raised-by\` is who put the decision on the
    table; \`--decided-by\` is whose judgment settled it. \`decided-by\` is \`human\`
    when the user's answers determined the direction — especially where they

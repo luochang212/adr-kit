@@ -132,11 +132,17 @@ a reference. Front-matter links (`superseded-by`) are checked the same way.
 ## The deliberation appendix
 
 A decision may carry an optional `## Deliberation` appendix: the design tree
-behind the choice, stored as a nested Markdown list. A node may end with
-`[settled]`, `[rejected]`, or `[open]`. `adrkit tree <name>` renders it as
-text by default, or as a mermaid graph with `--mermaid`; the tree is never
-stored as mermaid source. The task-start reading rule treats the appendix as
-reference material, read only when that decision is in play.
+behind the choice, stored as a nested Markdown list. A node is
+`- [Q: | A: ]<text>[ [status]][ (recommended)][ — <reason>]`: `Q:`/`A:`
+marks a question or an option (inferred otherwise), `[settled]` /
+`[rejected]` / `[open]` is its state, `(recommended)` marks the option the
+agent recommended, and ` — <reason>` explains it. A question's answer is its
+`[settled]` child; when that child is not the recommended one, the question is
+shown as an override. `adrkit tree <name>` renders the tree as text by
+default, as mermaid with `--mermaid`, or as a single HTML document with
+`--html`; the tree is never stored as mermaid source. The task-start reading
+rule treats the appendix as reference material, read only when that decision is
+in play.
 
 ## Rejection
 

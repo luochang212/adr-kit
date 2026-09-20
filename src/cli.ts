@@ -51,7 +51,7 @@ Usage:
   adrkit config                              Print the current configuration
   adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]
                                            Emit the decision relationship graph
-  adrkit tree <name> [--mermaid|--text]      Render the record's deliberation tree
+  adrkit tree <name> [--mermaid|--text|--html] Render the record's deliberation tree
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
   adrkit -h, --help                          Print this help
@@ -79,6 +79,7 @@ export function main(argv: string[]): void {
       dot: { type: 'boolean', default: false },
       'formal-only': { type: 'boolean', default: false },
       mermaid: { type: 'boolean', default: false },
+      html: { type: 'boolean', default: false },
       text: { type: 'boolean', default: false },
       tag: { type: 'string' },
       reason: { type: 'string' },
@@ -216,7 +217,8 @@ export function main(argv: string[]): void {
       }
       case 'tree': {
         requireTitle(rest, 'tree');
-        console.log(treeCommand(rest[0]!, process.cwd(), values.mermaid ? 'mermaid' : 'text'));
+        const format = values.html ? 'html' : values.mermaid ? 'mermaid' : 'text';
+        console.log(treeCommand(rest[0]!, process.cwd(), format));
         return;
       }
       case 'completion': {

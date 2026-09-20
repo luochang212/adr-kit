@@ -42,7 +42,7 @@ const COMMAND_OPTIONS: Record<string, string[]> = {
   update: ['--tools', '--workflows', '--help'],
   config: ['--help'],
   graph: ['--mermaid', '--dot', '--text', '--formal-only', '--tag', '--help'],
-  tree: ['--mermaid', '--text', '--help'],
+  tree: ['--mermaid', '--text', '--html', '--help'],
   completion: ['--help'],
   version: ['--help'],
   help: ['--help'],
