@@ -248,6 +248,28 @@ describe('update writes the selected tools back to config.yaml', () => {
     expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
   });
 
+  it('a bare update leaves a fresh init config byte-identical', () => {
+    // init writes the config from a hand template while update rewrites it
+    // through the yaml library: the two emitters must agree byte for byte,
+    // or every new repository sees a spurious config diff on its first
+    // bare `adrkit update` (`[agents]` -> `[ agents ]`).
+    const cases: Array<[string | undefined, string | undefined]> = [
+      [undefined, undefined],
+      ['claude', undefined],
+      ['none', undefined],
+      [undefined, 'init,decide,validate'],
+      ['claude', 'decide'],
+    ];
+    for (const [tools, workflows] of cases) {
+      const root = makeTarget();
+      initCommand(root, tools, workflows);
+      const before = readFileSync(join(root, 'adr', 'config.yaml'), 'utf8');
+      updateCommand(root);
+      const after = readFileSync(join(root, 'adr', 'config.yaml'), 'utf8');
+      expect(after, `tools=${tools} workflows=${workflows}`).toBe(before);
+    }
+  });
+
   it('preserves context, rules, and comments when rewriting tools', () => {
     const root = makeTarget();
     initCommand(root, 'claude');

@@ -26,12 +26,16 @@ export interface InitResult {
 }
 
 function initConfig(tools: string[], workflows?: string[]): string {
+  // 列表的空格必须与 writeListConfig 里 yaml 库的发射格式逐字节一致
+  // （`[ a, b ]`，空为 `[]`），否则裸 update 会把 init 写的 config 重排一遍。
+  const list = (values: string[]): string =>
+    values.length === 0 ? '[]' : `[ ${values.join(', ')} ]`;
   // tools 始终作为顶层键输出：全注释的 YAML 文档会被解析为空，
   // readConfig 的 isMap 检查会报 "top-level value must be a mapping"。
-  const toolsYaml = `tools: [${tools.join(', ')}]\n`;
+  const toolsYaml = `tools: ${list(tools)}\n`;
   // workflows 仅在选择子集时输出：缺省即全部，老配置无需迁移。
   const workflowsYaml =
-    workflows === undefined ? '' : `\n# Workflow subset written by adrkit init --workflows.\nworkflows: [${workflows.join(', ')}]\n`;
+    workflows === undefined ? '' : `\n# Workflow subset written by adrkit init --workflows.\nworkflows: ${list(workflows)}\n`;
   return `# ADR Kit configuration
 # Fill in \`context\` and it is injected as a comment into every new
 # proposal/decision draft (adrkit propose / adrkit decide).

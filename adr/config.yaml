@@ -6,7 +6,7 @@
 #   Conventions that decision records should respect.
 
 # AI tool integrations written by adrkit init --tools.
-tools: [agents]
+tools: [ agents ]
 
 # Optional per-status conventions. These are hints for writers and agents;
 # validate does not enforce them (it cannot check prose).
