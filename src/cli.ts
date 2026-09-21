@@ -219,8 +219,13 @@ export function main(argv: string[]): void {
       }
       case 'tree': {
         requireTitle(rest, 'tree');
-        const format = values.html ? 'html' : values.mermaid ? 'mermaid' : 'text';
-        console.log(treeCommand(rest[0]!, process.cwd(), format));
+        // Mirror `graph`: a second format flag is a mistake, not a hint to
+        // pick one for the caller.
+        const formats = (['mermaid', 'text', 'html'] as const).filter((format) => values[format]);
+        if (formats.length > 1) {
+          throw new Error(`--${formats.join(' and --')} are mutually exclusive; pick one output format`);
+        }
+        console.log(treeCommand(rest[0]!, process.cwd(), formats[0] ?? 'text'));
         return;
       }
       case 'completion': {

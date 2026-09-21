@@ -1,6 +1,7 @@
 import type { DeliberationNode } from './deliberation.js';
 import { CANVAS_HINT, CANVAS_SCRIPT, canvasControlsHTML } from './canvas-view.js';
 import { TREE_STYLE, TREE_SCRIPT } from './deliberation-view.js';
+import { escapeHtml } from './view-text.js';
 
 interface Card {
   id: string;
@@ -11,11 +12,6 @@ interface Card {
   depth: number;
   options: Array<{ id: string; node: DeliberationNode }>;
   children: string[];
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function kindOf(node: DeliberationNode): 'question' | 'option' {

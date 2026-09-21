@@ -2,12 +2,44 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { parseDeliberation, renderDeliberationMermaid, renderDeliberationText } from '../src/core/deliberation.js';
 
 const docsDir = fileURLToPath(new URL('../docs/', import.meta.url));
 
 function readDoc(name: string): string {
   return readFileSync(join(docsDir, name), 'utf8');
 }
+
+// docs/cli.md ships the `tree` command's output as a sample, and it drifted
+// once: the annotated grammar arrived and the sample kept the old shapes in
+// both languages. Pin the sample to real renderer output so the next grammar
+// change cannot leave the reference lying.
+describe('the tree samples in the CLI reference are real output', () => {
+  const OUTLINE = [
+    '- Storage decision [settled]',
+    '  - Q: Which store? [settled]',
+    '    - A: SQLite [settled] (recommended)',
+    '      - Q: Which directory? [open]',
+    '        - A: Workspace [open]',
+    '    - A: JSON files [rejected] — needs a migration story',
+  ].join('\n');
+
+  it('quotes the text and mermaid renderers verbatim in both languages', () => {
+    const nodes = parseDeliberation(OUTLINE);
+    for (const file of ['cli.md', 'zh/cli.md']) {
+      const doc = readDoc(file);
+      expect(doc, file).toContain('```text\n' + renderDeliberationText(nodes) + '\n```');
+      expect(doc, file).toContain('```mermaid\n' + renderDeliberationMermaid(nodes) + '\n```');
+    }
+  });
+
+  it('does not claim the old root and option shapes', () => {
+    for (const file of ['cli.md', 'zh/cli.md']) {
+      expect(readDoc(file), file).not.toContain('n1["Which store?"]');
+      expect(readDoc(file), file).not.toContain('- Which store? [settled]');
+    }
+  });
+});
 
 // openspec/specs/decision-provenance/spec.md requires the record-format
 // reference to state what the value is and what it cannot prove, and both

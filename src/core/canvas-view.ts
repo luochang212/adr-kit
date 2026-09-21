@@ -66,11 +66,13 @@ export const CANVAS_SCRIPT = String.raw`
   for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) {
     viewport.addEventListener(name, () => { drag = null; viewport.classList.remove('dragging'); });
   }
-  // A trackpad pinch arrives as a ctrlKey wheel event: zoom toward the pointer
-  // so the point under the cursor stays put. A plain wheel pans.
+  // A trackpad pinch arrives as a ctrlKey wheel event; macOS also reports
+  // Command as metaKey. Either one zooms toward the pointer so the point under
+  // the cursor stays put (ADR 11), matching the on-screen hint. A plain wheel
+  // pans.
   viewport.addEventListener('wheel', event => {
     event.preventDefault();
-    if (event.ctrlKey) {
+    if (event.ctrlKey || event.metaKey) {
       zoomAt(Math.exp(-event.deltaY / 100), event.clientX, event.clientY);
       return;
     }

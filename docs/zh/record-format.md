@@ -18,14 +18,16 @@ tags: [frontend]
 
 front matter 字段按 `status`、`date`、`raised-by`、`decided-by`、`created`、
 `commit`、`superseded-by`、`reason`、`tags` 的顺序书写，只写适用的字段。`commit` 是该决策
-对应的短 git hash，仓库处于 git 下时自动盖章。`superseded-by` 仅在
+所记录代码状态的短 git hash，仓库处于 git 下时自动盖章；后续每次生命周期迁移都会
+把它重盖为那一次迁移的状态。`superseded-by` 仅在
 superseded 决策上必填，其他状态禁止出现。未知字段会被 `validate` 报告。
 
 `date` 字段记录当前状态达成的日期。CLI 在每次生命周期迁移时自动盖章
 （`decide`、`accept`、`supersede`），由机器写入，不靠人工维护。`created`
 是创建日期，创建时盖一次、永不重盖，让时间轴在后续生命周期迁移后依然成立。
 `tags` 是可选的 kebab-case 关键词列表（如 `frontend`、`execution-layer`），
-`adrkit graph` 用它按主题分组和过滤决策；`validate` 只校验形状、从不要求必填。
+`adrkit graph` 用它按主题分组和过滤决策；`validate` 只校验形状、从不要求必填，
+每次生命周期迁移都会保留该列表。
 
 ## 谁发起、谁定夺：`raised-by` 与 `decided-by`
 
@@ -112,10 +114,11 @@ superseded-by: 6
 Markdown 列表存储。一个节点是
 `- [Q: | A: ]<text>[ [status]][ (recommended)][ — <reason>]`：`Q:`/`A:` 标注
 问题或选项（可省略，按有无子节点推断），`[settled]` / `[rejected]` / `[open]`
-是状态，`(recommended)` 标注 agent 推荐的选项，` — <reason>` 写理由。依赖靠
-嵌套表达：后续问题嵌在提出它的节点之下，因此相关问题更深、无关问题平铺。问题的
-答案就是它的 `[settled]` 子节点；若该子节点不是被推荐的那个，问题会标为
-override。`adrkit tree <name>` 默认渲染为文本，加 `--mermaid` 输出 mermaid 图，
+是状态，`(recommended)` 标注 agent 推荐的选项，` — <reason>` 写理由；带空格的
+em dash 是唯一的分隔符，正文里的连字符就是普通文本。依赖靠嵌套表达：后续问题嵌在
+提出它的节点之下，因此相关问题更深、无关问题平铺。问题的
+答案就是它的 `[settled]` 子节点；若树里同时标了推荐选项、而该子节点不是它，
+问题会标为 override。`adrkit tree <name>` 默认渲染为文本，加 `--mermaid` 输出 mermaid 图，
 加 `--html` 输出离线交互卡片树，并突出显示"提出下一个问题"的那条边。
 HTML 把问题和选中答案放在同一卡片中，其他选项可展开；这只是视图，不改变大纲语法。树本身从不以
 mermaid 源码存储。任务开始时的查阅规则把这个附录当作参考资料，只在相关决策被

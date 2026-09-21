@@ -1,39 +1,4 @@
-# deliberation-tree Specification
-
-## Purpose
-Renders the optional design tree behind a decision. A grilling session records
-its design tree as a nested outline in the decision's `## Deliberation`
-appendix; `adrkit tree` turns that outline into a readable text tree or a
-Mermaid graph or offline HTML card tree, without ever storing the renderer's format as the source.
-
-## Requirements
-
-### Requirement: Optional Deliberation appendix
-
-A durable decision MAY carry a `## Deliberation` appendix, and a decision
-without one SHALL remain valid. When present, the appendix SHALL store the
-design tree behind the decision as a nested Markdown list in the annotated
-deliberation grammar.
-
-#### Scenario: a decision without the appendix is valid
-
-- **WHEN** `adrkit validate` runs on an accepted decision that has no `## Deliberation` section
-- **THEN** validation passes, because the appendix is optional
-
-#### Scenario: status markers are read from the node
-
-- **WHEN** a `## Deliberation` item carries `[settled]`, `[rejected]`, or `[open]`
-- **THEN** the renderer reports that status with the node, even when a reason or the `(recommended)` marker follows the tag
-
-### Requirement: Design tree is stored as an outline, not Mermaid
-
-The design tree SHALL be stored as a nested Markdown outline. Mermaid SHALL be a
-rendering target produced on demand and SHALL NOT be the stored form.
-
-#### Scenario: the stored appendix is Markdown
-
-- **WHEN** a decision records its design tree
-- **THEN** the appendix is a nested Markdown list, not a Mermaid diagram
+## MODIFIED Requirements
 
 ### Requirement: Tree rendering modes
 
@@ -187,21 +152,3 @@ presented as settled.
 
 - **WHEN** a settled option on the root card raises a follow-up question
 - **THEN** the edge from that option to the question is styled as the frontier step, matching the Mermaid renderer
-
-### Requirement: On-demand visualization delivery
-
-The installed grilling skill SHALL route requests to visualize an existing
-record directly to the built-in renderer, without starting a new grilling
-session. HTML SHALL NOT be a default session deliverable. Markdown remains the
-source; agents SHALL NOT invent missing trees or replace the maintained view
-with ad hoc generated HTML.
-
-#### Scenario: user asks to visualize a record
-
-- **WHEN** the user asks for a visualization of an ADR with a deliberation tree
-- **THEN** the agent generates HTML and returns a clickable file link, opening a browser only on an explicit request
-
-#### Scenario: user completes grilling without asking for a visualization
-
-- **WHEN** the session completes and the user has not requested a visualization
-- **THEN** the agent records and validates the decision without generating HTML

@@ -452,7 +452,12 @@ export const TREE_SCRIPT = String.raw`
       const endX = item.x, endY = item.y + Math.min(65, item.height / 2);
       const midpoint = (startX + endX) / 2;
       const sourceState = item.anchor ? item.anchor.dataset.state : parent.card.dataset.state;
-      const unlocked = !parent.card.classList.contains('root')
+      // The unlock edge keys off the node that raised the follow-up, not the
+      // card it is drawn from: a follow-up nested under a settled option of
+      // the root card is still unlocked by that option. Mermaid asks whether
+      // the immediate parent node is the root; this is the same question.
+      const sourceIsRoot = !item.anchor && parent.card.classList.contains('root');
+      const unlocked = !sourceIsRoot
         && item.card.classList.contains('question') && sourceState === 'settled';
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', 'M' + startX + ',' + startY + ' C' + midpoint + ',' + startY

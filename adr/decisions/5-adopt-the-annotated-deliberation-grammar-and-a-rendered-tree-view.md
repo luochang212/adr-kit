@@ -6,6 +6,7 @@ decided-by: human
 created: 2026-09-21
 commit: e816e44
 superseded-by: 8
+tags: [grilling, deliberation, visualization, record-format]
 ---
 
 # ADR: 5 adopt the annotated deliberation grammar and a rendered tree view

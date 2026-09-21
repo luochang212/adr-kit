@@ -2,6 +2,7 @@ import type { DecisionGraph, GraphEdge, GraphNode } from './graph.js';
 import { TAG_COLORS } from './graph.js';
 import { MAP_STYLE } from './graph-view.js';
 import { CANVAS_HINT, CANVAS_SCRIPT, canvasControlsHTML } from './canvas-view.js';
+import { escapeHtml, wrapText } from './view-text.js';
 
 const CARD_W = 248;
 const PAD_X = 16;
@@ -16,35 +17,6 @@ const NODE_GAP = 22;
 const TOP = 72;
 const LEFT = 28;
 const BOTTOM = 30;
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-/** Wrap a title to a fixed column width on word boundaries. */
-function wrap(text: string, width = LINE_CHARS): string[] {
-  const words = text.split(/\s+/).filter((word) => word.length > 0);
-  if (words.length === 0) return [''];
-  const lines: string[] = [];
-  let current = '';
-  for (const word of words) {
-    if (current === '') {
-      current = word;
-    } else if ((current + ' ' + word).length > width) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = current + ' ' + word;
-    }
-  }
-  if (current !== '') lines.push(current);
-  return lines;
-}
 
 /** The graph title keeps its "N " prefix; the card shows the number separately. */
 function displayTitle(node: GraphNode): string {
@@ -85,7 +57,7 @@ function layout(graph: DecisionGraph): { placed: Placed[]; columns: Column[]; wi
     columns.push({ date, x, count: nodes.length });
     let y = TOP;
     for (const node of nodes) {
-      const lines = wrap(displayTitle(node));
+      const lines = wrapText(displayTitle(node), LINE_CHARS);
       const footer = node.tags.length > 0 || node.hasDeliberation ? GAP + FOOTER_H : 0;
       const height = PAD_Y * 2 + META_H + GAP + lines.length * TITLE_H + footer;
       placed.push({ node, x, y, height, lines });

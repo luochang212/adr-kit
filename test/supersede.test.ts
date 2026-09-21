@@ -153,6 +153,64 @@ describe('supersedeCommand', () => {
   });
 });
 
+describe('tags across the lifecycle', () => {
+  const TAGGED_DRAFT = `---
+status: proposed
+date: 2026-08-19
+created: 2026-08-19
+tags: [storage, execution-layer]
+---
+
+# ADR: Use SQLite
+
+## Problem
+
+We need durability.
+
+## Proposal
+
+Use SQLite.
+
+## Alternatives considered
+
+- **JSON files**: rejected.
+
+## Acceptance criteria
+
+It works.
+
+## Risks
+
+Some risk.
+`;
+
+  it('carries the tags a draft declares into the accepted decision', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const draft = listDrafts(root)[0];
+    if (draft === undefined) throw new Error('draft not found');
+    writeFileSync(join(root, 'adr', '.drafts', draft.fileName), TAGGED_DRAFT);
+    acceptCommand('Use SQLite', root, 'human', 'human');
+    const record = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
+    expect(record).toContain('tags:');
+    expect(record).toContain('- storage');
+    expect(record).toContain('- execution-layer');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('keeps tags when a decision is superseded', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    writeFileSync(path, readFileSync(path, 'utf8').replace(/^(created:.*)$/m, '$1\ntags: [storage]'));
+    supersedeCommand('1', '2', root);
+    const retired = readFileSync(path, 'utf8');
+    expect(retired).toContain('- storage');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+});
+
 describe('decided-by across the lifecycle', () => {
   const DRAFT = `---
 status: proposed

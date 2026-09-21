@@ -154,17 +154,21 @@ title, file name, or decision number, like the other commands. The default
 `--text` output reproduces the nested outline:
 
 ```text
-- Which store? [settled]
-  - SQLite [settled]
-  - JSON files [rejected]
-    - Need a migration story? [open]
+- Storage decision [settled]
+  - Q: Which store? [settled]
+    - A: SQLite [settled] (recommended)
+      - Q: Which directory? [open]
+        - A: Workspace [open]
+    - A: JSON files [rejected] — needs a migration story
 ```
 
-`--mermaid` emits a Mermaid graph: a `graph TD` header, one node per entry,
-parent-to-child edges, a `classDef` line for each status, and one `class` line
-for each status the tree actually uses. An edge from a settled node to a
-follow-up question it raised is drawn thicker and purple, so the tree's depth
-reads as the frontier moving outward.
+`--mermaid` emits a Mermaid graph: a `graph TD` header, one node per entry with
+a distinct shape for the root, questions, and options, parent-to-child edges, a
+`classDef` for every state plus the recommended and override styles, and a
+`class` line for each state, recommendation, or override the tree actually uses.
+An edge from a settled node to a follow-up question it raised is drawn thicker
+and purple (a `linkStyle` line), so the tree's depth reads as the frontier
+moving outward.
 
 `--html` emits an offline, left-to-right card tree with inline CSS and JavaScript.
 Questions contain their chosen answers; other options and reasons expand in
@@ -183,15 +187,27 @@ exports only when visualization is requested and returns a file link by default.
 
 ```mermaid
 graph TD
-  n1["Which store?"]
-  n2["SQLite"]
+  n1(["Storage decision"])
+  n2{{"Which store?"}}
+  n3["SQLite"]
+  n4{{"Which directory?"}}
+  n5["Workspace"]
+  n6["JSON files — needs a migration story"]
   n1 --> n2
-  n3["JSON files"]
-  n1 --> n3
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n2 --> n6
   classDef settled fill:#dcfce7,stroke:#16a34a;
   classDef rejected fill:#fee2e2,stroke:#dc2626;
-  class n1,n2 settled;
-  class n3 rejected;
+  classDef open fill:#fef9c3,stroke:#ca8a04;
+  classDef recommended stroke-width:3px;
+  classDef override stroke:#7c3aed,stroke-width:2px,stroke-dasharray:4 2;
+  class n1,n2,n3 settled;
+  class n6 rejected;
+  class n4,n5 open;
+  class n3 recommended;
+  linkStyle 2 stroke:#7c3aed,stroke-width:3px;
 ```
 
 A record without a `## Deliberation` bullet list fails with a message naming

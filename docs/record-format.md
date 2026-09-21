@@ -18,8 +18,9 @@ tags: [frontend]
 
 Front matter fields are written in the order `status`, `date`, `raised-by`,
 `decided-by`, `created`, `commit`, `superseded-by`, `reason`, `tags`; only the
-fields that apply are present. `commit` is the short git hash the decision was recorded
-against, stamped automatically when the repository is under git.
+fields that apply are present. `commit` is the short git hash of the state the
+decision was recorded against, stamped automatically when the repository is
+under git; a later lifecycle move re-stamps it to that move's state.
 `superseded-by` is required on superseded decisions and forbidden otherwise.
 Unknown fields are reported by `validate`.
 
@@ -30,7 +31,7 @@ stamped once at creation and never re-stamped, so the time axis survives
 later lifecycle moves. `tags` is an optional list of kebab-case keywords
 (for example `frontend`, `execution-layer`) that `adrkit graph` uses to
 group and filter decisions by theme; `validate` checks their shape but
-never requires them.
+never requires them, and every lifecycle move keeps the list.
 
 ## Who raised it, who settled it: `raised-by` and `decided-by`
 
@@ -136,11 +137,13 @@ behind the choice, stored as a nested Markdown list. A node is
 `- [Q: | A: ]<text>[ [status]][ (recommended)][ — <reason>]`: `Q:`/`A:` marks
 a question or an option (inferred otherwise), `[settled]` / `[rejected]` /
 `[open]` is its state, `(recommended)` marks the option the agent recommended,
-and ` — <reason>` explains it. Dependency is nesting: a follow-up question is a
+and ` — <reason>` explains it. The em dash with surrounding spaces is the only
+separator, so a hyphen in the text stays text. Dependency is nesting: a
+follow-up question is a
 child of the node whose settlement raised it, so related questions run deeper
 and unrelated ones stay flat. A question's answer is its `[settled]` child;
-when that child is not the recommended one, the question is shown as an
-override. `adrkit tree <name>` renders the tree as text by default, as mermaid
+when the tree also marks a recommended option and that child is not it, the
+question is shown as an override. `adrkit tree <name>` renders the tree as text by default, as mermaid
 with `--mermaid`, or as an offline interactive card tree with `--html`, styling the edge
 that raised each follow-up question. HTML groups a question and its selected
 answers in one card, with other options expandable; this is only a view and

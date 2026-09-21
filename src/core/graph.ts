@@ -10,7 +10,7 @@ export interface GraphNode {
   status: AdrRecord['status'];
   /** Current status date (front matter `date`). */
   date: string;
-  /** Birth date (front matter `created`); falls back to `date` on legacy records. */
+  /** Birth date (front matter `created`). */
   created: string;
   fileName: string;
   /** Repository-relative POSIX path; the `click` target in Mermaid output. */
@@ -48,13 +48,21 @@ export function buildDecisionGraph(
   const recordByNumber = new Map<number, AdrRecord>();
   for (const record of records) {
     if (record.number === undefined) continue;
+    // `created` is required by the record format and `validate` rejects a
+    // record without it, so the graph reports that record instead of inventing
+    // a birth date from `date`.
+    if (record.created === undefined) {
+      throw new Error(
+        `${record.fileName} has no "created" date in its front matter; run "adrkit validate" and fix it before graphing`,
+      );
+    }
     recordByNumber.set(record.number, record);
     const node: GraphNode = {
       number: record.number,
       title: record.title,
       status: record.status,
       date: record.date,
-      created: record.created ?? record.date,
+      created: record.created,
       fileName: record.fileName,
       path: relativePath(record),
       references: [],

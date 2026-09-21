@@ -43,13 +43,16 @@ ${text}
 `;
 }
 
+/** A front matter value: scalars plus the `tags` list. */
+type FrontMatterValue = string | number | string[];
+
 /**
  * Render a YAML front matter block. Fields are written in the canonical
  * order (status, date, commit, reason, superseded-by); only the fields
  * present in `fields` are emitted.
  */
-export function frontMatter(fields: Record<string, string | number>): string {
-  const ordered: Record<string, string | number> = {};
+export function frontMatter(fields: Record<string, FrontMatterValue>): string {
+  const ordered: Record<string, FrontMatterValue> = {};
   for (const key of FRONT_MATTER_ORDER) {
     const value = fields[key];
     if (value !== undefined) ordered[key] = value;
@@ -173,7 +176,7 @@ export function proposalToDecision(
       !DROPPED_SECTION_HEADINGS.includes(candidate.heading),
   );
 
-  const fields: Record<string, string | number> = {
+  const fields: Record<string, FrontMatterValue> = {
     status: 'accepted',
     date: todayStamp(),
     // The decision inherits the proposal's birth date: created is stamped
@@ -182,6 +185,9 @@ export function proposalToDecision(
     'raised-by': raisedBy,
     'decided-by': decidedBy,
   };
+  // Tags are a writer's keywords, not a lifecycle field: the promotion must
+  // not quietly drop the ones the draft carried.
+  if (proposal.tags !== undefined) fields.tags = proposal.tags;
   if (commit !== undefined) fields.commit = commit;
   let output = `${frontMatter(fields)}
 # ADR: ${number} ${proposal.title}
@@ -234,15 +240,17 @@ export function droppedSections(proposal: AdrRecord): string[] {
  * `FRONT_MATTER_ORDER` is dropped rather than copied through, because writing
  * back a field this version does not understand would hide a version mismatch
  * instead of surfacing it. `validate` reports those keys, so the record is
- * fixed before any lifecycle move rewrites it.
+ * fixed before any lifecycle move rewrites it. A canonical field the move does
+ * not patch is carried over in full, including the `tags` list — a lifecycle
+ * move must never lose a field the writer set.
  */
-export function stampLifecycleMove(content: string, patch: Record<string, string | number>): string {
+export function stampLifecycleMove(content: string, patch: Record<string, FrontMatterValue>): string {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (match === null) {
     throw new Error('record has no YAML front matter block');
   }
   const existing = parse(match[1] ?? '') as Record<string, unknown>;
-  const merged: Record<string, string | number> = {};
+  const merged: Record<string, FrontMatterValue> = {};
   for (const key of FRONT_MATTER_ORDER) {
     const patched = patch[key];
     if (patched !== undefined) {
@@ -250,8 +258,9 @@ export function stampLifecycleMove(content: string, patch: Record<string, string
       continue;
     }
     const kept = existing[key];
-    if (typeof kept === 'string' || typeof kept === 'number') {
-      merged[key] = kept;
+    if (typeof kept === 'string' || typeof kept === 'number') merged[key] = kept;
+    else if (Array.isArray(kept) && kept.every((entry) => typeof entry === 'string')) {
+      merged[key] = kept as string[];
     }
   }
   return `---\n${stringify(merged)}---${content.slice(match[0].length)}`;

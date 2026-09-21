@@ -29,15 +29,17 @@ interface DecisionOptions {
   decisionBody?: string;
   /** Appended as a ## Deliberation appendix. */
   deliberation?: string;
+  /** Writes a record with no `created` field, for the invalid-input path. */
+  omitCreated?: boolean;
 }
 
 function writeDecision(root: string, number: number, title: string, options: DecisionOptions): void {
   const superseded = options.supersededBy === undefined ? '' : `\nsuperseded-by: ${options.supersededBy}`;
   const tags = options.tags === undefined ? '' : `\ntags: [${options.tags.join(', ')}]`;
+  const created = options.omitCreated === true ? '' : `\ncreated: ${options.created ?? options.date}`;
   const content = `---
 status: ${options.status ?? 'accepted'}
-date: ${options.date}
-created: ${options.created ?? options.date}${superseded}${tags}
+date: ${options.date}${created}${superseded}${tags}
 ---
 
 # ADR: ${number} ${title}
@@ -337,6 +339,13 @@ describe('created grouping, tags, and tree output', () => {
     expect(graph.nodes[0]?.created).toBe('2026-08-17');
     expect(graph.nodes[0]?.tags).toEqual(['execution']);
   });
+
+  it('reports a record with no created date instead of substituting its status date', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'No created', { date: '2026-08-19', omitCreated: true });
+    expect(() => graphCommand(root, {})).toThrow(/has no "created" date/);
+    expect(() => graphCommand(root, { html: true })).toThrow(/has no "created" date/);
+  });
 });
 
 describe('graph HTML map', () => {
@@ -362,6 +371,7 @@ describe('graph HTML map', () => {
     expect(html).toContain('id="world"');
     expect(html).toContain('id="fit"');
     expect(html).toContain('event.ctrlKey');
+    expect(html).toContain('event.metaKey');
     expect(html).toContain('<script>');
     expect(html).not.toMatch(/<script[^>]+src=/);
     expect(html).not.toContain('cdn');
@@ -384,6 +394,18 @@ describe('graph HTML map', () => {
     const html = graphCommand(root, { html: true });
     expect(html).toContain('Bold &amp; &lt;markup&gt;');
     expect(html).not.toContain('<markup>');
+  });
+
+  it('wraps a title that has no spaces instead of overflowing the card', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, '一个非常长的中文标题用来测试决策图的自动换行是否能够正确处理', { date: '2026-08-17' });
+    const html = graphCommand(root, { html: true });
+    const titles = html.match(/<text class="title"[^>]*>[^<]*<\/text>/g) ?? [];
+    expect(titles.length).toBeGreaterThan(1);
+    for (const line of titles) {
+      // Wide characters count double, so a 248px card holds well under 20 of them.
+      expect(Array.from(line.replace(/<[^>]+>/g, '')).length).toBeLessThan(20);
+    }
   });
 
   it('marks only appendices that parse to a tree, matching the tree command', () => {
@@ -412,6 +434,31 @@ describe('graph HTML map', () => {
       main(['graph', '--html', '--mermaid']);
       expect(process.exitCode).toBe(1);
       expect(errorSpy.mock.calls[0]?.[0]).toContain('mutually exclusive');
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      logSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('rejects two format flags on tree instead of silently picking one', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', {
+      date: '2026-08-17',
+      deliberation: '- Q: Which store? [settled]\n  - A: SQLite [settled]',
+    });
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      process.chdir(root);
+      process.exitCode = undefined;
+      main(['tree', '1', '--html', '--mermaid']);
+      expect(process.exitCode).toBe(1);
+      expect(errorSpy.mock.calls[0]?.[0]).toContain('mutually exclusive');
+      expect(logSpy).not.toHaveBeenCalled();
     } finally {
       process.chdir(previousCwd);
       process.exitCode = previousExitCode;

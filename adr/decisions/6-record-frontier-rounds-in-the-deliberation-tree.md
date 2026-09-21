@@ -6,6 +6,7 @@ decided-by: human
 created: 2026-09-21
 commit: e816e44
 superseded-by: 7
+tags: [grilling, deliberation, record-format]
 ---
 
 # ADR: 6 record frontier rounds in the deliberation tree
@@ -67,10 +68,10 @@ evidence says which question unlocked which.
 ## Deliberation
 
 - Record the frontier rounds in the design tree [settled]
-  - Q: Which relation should the grammar record? [settled] (round 1)
+  - Q: Which relation should the grammar record? [settled]
     - A: Round numbers, with the dependency derived from the order [settled] (recommended)
     - A: Explicit after references [rejected] — precise but hand-authored and error-prone
     - A: Nesting only [rejected] — conflates a sub-decision with a dependency
-  - Q: What about existing trees with no recorded rounds? [settled] (round 1)
+  - Q: What about existing trees with no recorded rounds? [settled]
     - A: Leave them unannotated and apply rounds to new sessions only [settled] (recommended) — do not invent retroactive precision
     - A: Mark the historical tree as reconstructed [rejected] — a round remembered later is not evidence

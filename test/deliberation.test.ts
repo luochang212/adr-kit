@@ -58,20 +58,29 @@ describe('parseDeliberation', () => {
     expect(text).toContain('A: leaf');
   });
 
-  it('strips legacy rounds while preserving the other annotations', () => {
+  it('treats an unknown parenthetical as text, not syntax', () => {
+    // ADR 6's `(round N)` marker is gone from the grammar; nothing reads it.
     const nodes = parseDeliberation('- Q: Where? [settled] (round 2) (recommended) — Keep it local');
     expect(nodes).toEqual([{
-      text: 'Where?', type: 'question', status: 'settled',
+      text: 'Where?  (round 2)', type: 'question', status: 'settled',
       recommended: true, reason: 'Keep it local', children: [],
     }]);
-    expect(renderDeliberationText(nodes)).not.toContain('(round');
     expect(renderDeliberationMermaid(nodes)).not.toContain('subgraph');
-    expect(parseDeliberation('- Q: Where? [settled] (round x)')[0]!.text).toBe('Where?  (round x)');
   });
 
   it('is empty for an absent or non-list body', () => {
     expect(parseDeliberation(undefined)).toEqual([]);
     expect(parseDeliberation('just prose')).toEqual([]);
+  });
+
+  it('never splits the reason on a hyphen, so a hyphen cannot hide the state', () => {
+    // Only the em dash separates the reason. A ` - ` in the text is prose, so
+    // it cannot cut `[settled]` and `(recommended)` into the reason.
+    const nodes = parseDeliberation('- A: Postgres - it is proven [settled] (recommended)');
+    expect(nodes).toEqual([{
+      text: 'Postgres - it is proven', type: 'option', status: 'settled',
+      recommended: true, children: [],
+    }]);
   });
 });
 
@@ -196,6 +205,15 @@ describe('renderers', () => {
     expect(renderDeliberationText(nodes)).toContain(text);
     expect(renderDeliberationHtml(nodes, 'Test')).toContain(text);
   });
+
+  it('wraps a label that has no spaces instead of overflowing', () => {
+    const text = '一个非常长的中文问题用来检查标签是否会在没有空格的地方换行';
+    const nodes = parseDeliberation(`- Q: ${text} [settled]`);
+    const mermaid = renderDeliberationMermaid(nodes);
+    const label = mermaid.split('\n')[1]!.match(/\{\{"(.*)"\}\}/)![1]!;
+    expect(label).toContain('<br/>');
+    expect(label.replaceAll('<br/>', '')).toBe(text);
+  });
 });
 
 describe('offline card tree', () => {
@@ -241,6 +259,19 @@ describe('offline card tree', () => {
       '  - Q: Related question [settled]',
     ].join('\n')), 'Open');
     expect(html).not.toContain('Human override · recommendation not taken');
+  });
+
+  it('sources the unlock edge from the option, even when the option sits on the root card', () => {
+    const html = renderDeliberationHtml(parseDeliberation([
+      '- Root [settled]',
+      '  - A: Chosen [settled] (recommended)',
+      '    - Q: Raised by the root option? [open]',
+    ].join('\n')), 'Root option');
+    // The follow-up hangs off the option (anchor n2) inside the root card, so
+    // the unlock rule must ask about the source node, not about the card it is
+    // drawn from. Mermaid asks the same question of the immediate parent node.
+    expect(html).toContain('data-parent="n1" data-anchor="n2"');
+    expect(html).toContain("!item.anchor && parent.card.classList.contains('root')");
   });
 
   it('escapes record text and titles without putting user content into scripts', () => {

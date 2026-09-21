@@ -1,4 +1,5 @@
 import { renderCardTree } from './deliberation-html.js';
+import { wrapText } from './view-text.js';
 
 /**
  * The optional ## Deliberation appendix: a grilling session's design tree,
@@ -43,26 +44,31 @@ interface ParsedNode {
 const BULLET = /^(\s*)-\s+(.*?)\s*$/;
 const STATUS = /\[(settled|rejected|open)\]/i;
 const RECOMMENDED = /\(recommended\)\s*$/i;
-const LEGACY_ROUND = /\(round\s+\d+\)\s*$/i;
 const TYPE = /^([QA]):\s+/i;
+const EM_DASH = ' \u2014 ';
+
+/**
+ * Split a trailing ` — reason` off the node text. The em dash with spaces is
+ * the only separator the grammar reserves, which leaves a hyphen free for
+ * prose: a ` - ` inside the text can never cut the state or the recommendation
+ * into the reason.
+ */
+function splitReason(raw: string): { content: string; reason?: string } {
+  const emDash = raw.lastIndexOf(EM_DASH);
+  if (emDash === -1) return { content: raw };
+  return { content: raw.slice(0, emDash).trimEnd(), reason: raw.slice(emDash + EM_DASH.length).trim() };
+}
 
 /** Parse one bullet from the end inward, so a reason never hides the status. */
 function parseNodeText(raw: string): ParsedNode | undefined {
-  let content = raw;
-  let reason: string | undefined;
-  const cut = Math.max(content.lastIndexOf(' \u2014 '), content.lastIndexOf(' - '));
-  if (cut !== -1) {
-    reason = content.slice(cut + 3).trim();
-    content = content.slice(0, cut).trimEnd();
-  }
+  const split = splitReason(raw);
+  let content = split.content;
+  const reason = split.reason;
   let recommended: boolean | undefined;
   if (RECOMMENDED.test(content)) {
     recommended = true;
     content = content.replace(RECOMMENDED, '').trimEnd();
   }
-  // ADR 6 stored frontier rounds in this marker; ADR 7 replaced them with
-  // nesting. Strip the obsolete marker so historical records still render.
-  content = content.replace(LEGACY_ROUND, '').trimEnd();
   let status: DeliberationStatus | undefined;
   const statusMatch = content.match(STATUS);
   if (statusMatch !== null && statusMatch.index !== undefined) {
@@ -162,23 +168,9 @@ function escapeLabel(text: string): string {
   return text.replace(/"/g, "'");
 }
 
-/** Wrap a long label at word boundaries for mermaid's HTML labels. */
+/** Wrap a long label for mermaid's HTML labels. */
 function wrapLabel(text: string, width = 48): string {
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let current = '';
-  for (const word of words) {
-    if (current === '') {
-      current = word;
-    } else if ((current + ' ' + word).length > width) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = current + ' ' + word;
-    }
-  }
-  if (current !== '') lines.push(current);
-  return lines.join('<br/>');
+  return wrapText(text, width).join('<br/>');
 }
 
 interface MermaidEntry {

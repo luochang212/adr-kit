@@ -113,15 +113,19 @@ adr/
 输出嵌套大纲：
 
 ```text
-- Which store? [settled]
-  - SQLite [settled]
-  - JSON files [rejected]
-    - Need a migration story? [open]
+- Storage decision [settled]
+  - Q: Which store? [settled]
+    - A: SQLite [settled] (recommended)
+      - Q: Which directory? [open]
+        - A: Workspace [open]
+    - A: JSON files [rejected] — needs a migration story
 ```
 
-`--mermaid` 输出 Mermaid 图：`graph TD` 头、每个条目一个节点、父子边、每个
-状态一行 `classDef`，以及树实际用到的每个状态一行 `class`。从已定节点指向它
-提出的后续问题的那条边会画得更粗、紫色，因此树的深度就是 frontier 向外推进。
+`--mermaid` 输出 Mermaid 图：`graph TD` 头、每个条目一个节点（根、问题、选项
+形状各不相同）、父子边、每个状态一行 `classDef` 外加推荐与 override 两种样式，
+以及树实际用到的每个状态、推荐或 override 一行 `class`。从已定节点指向它提出
+的后续问题的那条边会画得更粗、紫色（一行 `linkStyle`），因此树的深度就是
+frontier 向外推进。
 `--html` 输出从左向右生长的离线卡片树，CSS 和 JavaScript 都内嵌在文件里。
 问题与选中答案放在同一卡片中，其他选项和理由可展开，后续问题从引出它的答案
 或问题连出。支持折叠分支、拖动或滚动平移、缩放、1:1 和适应画布；聚焦画布后
@@ -137,15 +141,27 @@ adrkit tree 7 --html > "adr-7.html"
 
 ```mermaid
 graph TD
-  n1["Which store?"]
-  n2["SQLite"]
+  n1(["Storage decision"])
+  n2{{"Which store?"}}
+  n3["SQLite"]
+  n4{{"Which directory?"}}
+  n5["Workspace"]
+  n6["JSON files — needs a migration story"]
   n1 --> n2
-  n3["JSON files"]
-  n1 --> n3
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n2 --> n6
   classDef settled fill:#dcfce7,stroke:#16a34a;
   classDef rejected fill:#fee2e2,stroke:#dc2626;
-  class n1,n2 settled;
-  class n3 rejected;
+  classDef open fill:#fef9c3,stroke:#ca8a04;
+  classDef recommended stroke-width:3px;
+  classDef override stroke:#7c3aed,stroke-width:2px,stroke-dasharray:4 2;
+  class n1,n2,n3 settled;
+  class n6 rejected;
+  class n4,n5 open;
+  class n3 recommended;
+  linkStyle 2 stroke:#7c3aed,stroke-width:3px;
 ```
 
 记录中没有 `## Deliberation` 列表时，命令会报出记录名并失败。该附录只是那
