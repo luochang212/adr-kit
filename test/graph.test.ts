@@ -8,6 +8,7 @@ import { treeCommand } from '../src/commands/tree.js';
 import { initCommand } from '../src/commands/init.js';
 import { buildDecisionGraph } from '../src/core/graph.js';
 import { listRecords } from '../src/core/repository.js';
+import { slugify } from '../src/core/slug.js';
 
 const tempDirs: string[] = [];
 
@@ -62,7 +63,10 @@ c${options.deliberation === undefined ? '' : '\n\n## Deliberation\n\n' + options
 `;
   const dir = join(root, 'adr', 'decisions');
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, `${number}-${title.toLowerCase().replaceAll(' ', '-')}.md`), content);
+  // Name the file through the real slug: a hand-rolled `replaceAll(' ', '-')`
+  // keeps characters Windows forbids in a file name (`<`, `>`, `:`), which is
+  // how a title like "Bold & <markup>" broke the Windows runner.
+  writeFileSync(join(dir, `${number}-${slugify(title)}.md`), content);
 }
 
 afterEach(() => {

@@ -17,4 +17,12 @@ describe('slugify', () => {
   it('falls back for empty input', () => {
     expect(slugify('!!!')).toBe('untitled');
   });
+
+  it('produces a name every supported file system accepts', () => {
+    // Windows rejects these in a path segment; a record titled "Bold & <markup>"
+    // must still be writable there.
+    expect(slugify('Bold & <markup>')).toBe('bold-markup');
+    expect(slugify('a<b>c:d"e/f\\g|h?i*j')).not.toMatch(/[<>:"/\\|?*]/);
+    expect(slugify('使用 SQLite 存储')).not.toMatch(/[<>:"/\\|?*]/);
+  });
 });
