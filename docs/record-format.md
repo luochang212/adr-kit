@@ -133,18 +133,20 @@ a reference. Front-matter links (`superseded-by`) are checked the same way.
 
 A decision may carry an optional `## Deliberation` appendix: the design tree
 behind the choice, stored as a nested Markdown list. A node is
-`- [Q: | A: ]<text>[ [status]][ (round N)][ (recommended)][ — <reason>]`:
-`Q:`/`A:` marks a question or an option (inferred otherwise), `[settled]` /
-`[rejected]` / `[open]` is its state, `(round N)` is the frontier round in
-which the session could first ask the question, `(recommended)` marks the
-option the agent recommended, and ` — <reason>` explains it. An option
-inherits its question's round. A question's answer is its `[settled]` child;
+`- [Q: | A: ]<text>[ [status]][ (recommended)][ — <reason>]`: `Q:`/`A:` marks
+a question or an option (inferred otherwise), `[settled]` / `[rejected]` /
+`[open]` is its state, `(recommended)` marks the option the agent recommended,
+and ` — <reason>` explains it. Dependency is nesting: a follow-up question is a
+child of the node whose settlement raised it, so related questions run deeper
+and unrelated ones stay flat. A question's answer is its `[settled]` child;
 when that child is not the recommended one, the question is shown as an
 override. `adrkit tree <name>` renders the tree as text by default, as mermaid
-with `--mermaid`, or as a single HTML document with `--html`; a tree with
-rounds groups each round into a labeled subgraph. The tree is never stored as
-mermaid source. The task-start reading rule treats the appendix as reference
-material, read only when that decision is in play.
+with `--mermaid`, or as an offline interactive card tree with `--html`, styling the edge
+that raised each follow-up question. HTML groups a question and its selected
+answers in one card, with other options expandable; this is only a view and
+does not change the outline grammar. The tree is never stored as mermaid source.
+The task-start reading rule treats the appendix as reference material, read only
+when that decision is in play.
 
 ## Rejection
 

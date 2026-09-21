@@ -354,6 +354,11 @@ rules:
     expect(grill?.body).toContain('--raised-by');
     expect(grill?.body).toContain('## Deliberation');
     expect(grill?.body).toContain('no record-time filter');
+    expect(grill?.description).toContain('visualize an existing ADR');
+    expect(grill?.body).toContain('Generate HTML only on an explicit visualization request');
+    expect(grill?.body).toContain('Deliver a clickable link');
+    expect(grill?.body).toContain('user explicitly asks to open it');
+    expect(grill?.body).toContain('do not invent one');
     expect(grill?.body).not.toContain('adrkit propose');
     expect(grill?.description).toContain('record every decision the session settles');
   });

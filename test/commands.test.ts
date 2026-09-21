@@ -559,3 +559,30 @@ describe('list output', () => {
     expect(listCommand(root)).toContain('--decided-by human');
   });
 });
+
+describe('CLI deliberation HTML export', () => {
+  it('prints an offline document for a real record without rewriting the source', () => {
+    const root = makeRepo();
+    decideCommand('Choose storage', root, 'human', 'human');
+    const record = listRecords(root)[0]!;
+    const source = readFileSync(record.path, 'utf8') + '\n## Deliberation\n\n'
+      + '- Q: Storage? [settled]\n  - A: SQLite [settled] (recommended)\n';
+    writeFileSync(record.path, source);
+    const cwd = vi.spyOn(process, 'cwd').mockReturnValue(root);
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      main(['tree', '1', '--html']);
+      expect(output).toHaveBeenCalledTimes(1);
+      const html = String(output.mock.calls[0]![0]);
+      expect(html).toContain('<!doctype html>');
+      expect(html).toContain('<h1>1 Choose storage</h1>');
+      expect(html).toContain('SQLite');
+      expect(html).toContain('id="viewport"');
+      expect(html).not.toMatch(/<script[^>]+src=/);
+      expect(readFileSync(record.path, 'utf8')).toBe(source);
+    } finally {
+      output.mockRestore();
+      cwd.mockRestore();
+    }
+  });
+});

@@ -46,7 +46,12 @@ a session can interleave commentary. Render the tree with:
 ```text
 adrkit tree <name>            # nested text outline (default)
 adrkit tree <name> --mermaid  # Mermaid graph
+adrkit tree <name> --html > "decision.html"  # offline interactive card tree
 ```
+
+Generate HTML only when the user requests a visualization. Return a file link
+by default; open a browser only on an explicit request. The skill invokes the
+built-in renderer so different agents deliver the same layout and interactions.
 
 `<name>` resolves by title, file name, or decision number. The appendix is
 reference material for that one decision, not part of every task's reading.

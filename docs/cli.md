@@ -145,10 +145,10 @@ the birth date.
 
 Render a record's optional `## Deliberation` appendix: the design tree behind
 the decision, stored in the record as a nested Markdown list whose nodes may be
-tagged `[settled]`, `[rejected]`, or `[open]` and whose questions may record
-their frontier round as `(round N)`. `name` resolves by title, file name, or
-decision number, like the other commands. The default `--text` output
-reproduces the nested outline:
+tagged `[settled]`, `[rejected]`, or `[open]`. A follow-up question is nested
+under the node that raised it, so depth is the dependency. `name` resolves by
+title, file name, or decision number, like the other commands. The default
+`--text` output reproduces the nested outline:
 
 ```text
 - Which store? [settled]
@@ -159,9 +159,23 @@ reproduces the nested outline:
 
 `--mermaid` emits a Mermaid graph: a `graph TD` header, one node per entry,
 parent-to-child edges, a `classDef` line for each status, and one `class` line
-for each status the tree actually uses. When questions carry `(round N)`, the
-nodes of each round are grouped into a labeled subgraph. `--html` wraps the
-same Mermaid source in one self-contained HTML document.
+for each status the tree actually uses. An edge from a settled node to a
+follow-up question it raised is drawn thicker and purple, so the tree's depth
+reads as the frontier moving outward.
+
+`--html` emits an offline, left-to-right card tree with inline CSS and JavaScript.
+Questions contain their chosen answers; other options and reasons expand in
+place. Follow-ups connect to the answer or question that raised them. The view
+supports folding branches, dragging or scrolling to pan, zoom buttons, 1:1 and
+fit-to-view, and keyboard navigation (focus the canvas, use arrows, +/−, or 0).
+State, recommendation, and override labels remain visible. No CDN is needed.
+
+```sh
+adrkit tree 7 --html > "adr-7.html"
+```
+
+The command prints HTML to stdout and never opens a browser. The agent workflow
+exports only when visualization is requested and returns a file link by default.
 
 ```mermaid
 graph TD

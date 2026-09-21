@@ -1,11 +1,11 @@
 ---
-status: accepted
-date: 2026-09-21
+status: superseded
+date: 2026-09-22
 raised-by: human
 decided-by: human
 created: 2026-09-21
-commit: 30481f5
-tags: [grilling, deliberation, visualization, record-format]
+commit: e816e44
+superseded-by: 8
 ---
 
 # ADR: 5 adopt the annotated deliberation grammar and a rendered tree view

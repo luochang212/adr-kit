@@ -1,11 +1,11 @@
 ---
-status: accepted
+status: superseded
 date: 2026-09-21
 raised-by: human
 decided-by: human
 created: 2026-09-21
-commit: 3af59c1
-tags: [grilling, deliberation, record-format]
+commit: e816e44
+superseded-by: 7
 ---
 
 # ADR: 6 record frontier rounds in the deliberation tree

@@ -201,12 +201,19 @@ owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
 
 A decision may also carry an optional `## Deliberation` appendix: the design
 tree behind the choice, stored as a nested Markdown list whose nodes may be
-tagged `[settled]`, `[rejected]`, or `[open]` and whose questions may
-record their frontier round as `(round N)`. Render it with
-`adrkit tree <name>` (text by default, `--mermaid` for a graph, `--html`
-for a single document). The `adrkit-grill` workflow produces that tree: it
-interrogates a decision in frontier rounds, records each round as it is
-answered, and records every decision the session settles.
+tagged `[settled]`, `[rejected]`, or `[open]`. A follow-up question is
+nested under the node that raised it, so related questions run deeper and
+unrelated ones stay flat. Render it with `adrkit tree <name>` (text by default,
+`--mermaid` for a graph, `--html` for an offline interactive card tree). The
+`adrkit-grill` workflow produces that tree and records every decision the
+session settles. Ask your agent to visualize a recorded decision when needed;
+it uses the built-in renderer and returns an HTML file link. HTML is not a
+default grilling deliverable, and a browser opens only on an explicit request.
+Run `adrkit update` to refresh installed skills.
+
+```sh
+adrkit tree 7 --html > "adr-7.html"
+```
 
 ## Compatibility with other tools
 

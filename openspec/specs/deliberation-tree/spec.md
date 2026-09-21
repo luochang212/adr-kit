@@ -4,7 +4,7 @@
 Renders the optional design tree behind a decision. A grilling session records
 its design tree as a nested outline in the decision's `## Deliberation`
 appendix; `adrkit tree` turns that outline into a readable text tree or a
-Mermaid graph, without ever storing the renderer's format as the source.
+Mermaid graph or offline HTML card tree, without ever storing the renderer's format as the source.
 
 ## Requirements
 
@@ -40,11 +40,11 @@ rendering target produced on demand and SHALL NOT be the stored form.
 `adrkit tree <name>` SHALL render a record's `## Deliberation` appendix as a
 text tree by default, as a Mermaid graph with `--mermaid`, and as a single
 self-contained HTML document with `--html`. It SHALL give the root, questions,
-and options distinct node shapes, color nodes by state, mark the recommended
-option, mark an overridden question, and group annotated questions by frontier
-round. `name` SHALL resolve like other commands (title, file name, or decision
-number). A record with no renderable tree SHALL fail with a clear error rather
-than print an empty document.
+and options distinct visual treatments, label nodes by state, mark the recommended
+option, mark an overridden question, and style the edge that raised a follow-up
+question. `name` SHALL resolve like other commands (title, file name, or
+decision number). A record with no renderable tree SHALL fail with a clear error
+rather than print an empty document.
 
 #### Scenario: default output is text
 
@@ -54,12 +54,12 @@ than print an empty document.
 #### Scenario: mermaid output
 
 - **WHEN** `adrkit tree <name> --mermaid` runs
-- **THEN** the output starts with `graph TD`, uses a distinct shape for the root, questions, and options, and colors each node by state
+- **THEN** the output starts with `graph TD`, uses a distinct shape for the root, questions, and options, colors each node by state, and styles the edge that raised a follow-up question
 
 #### Scenario: html output is a single document
 
 - **WHEN** `adrkit tree <name> --html` runs
-- **THEN** the output is one HTML document containing the Mermaid source for the tree
+- **THEN** the output is one offline HTML document containing a left-to-right card tree, inline styles and scripts, and a legend; no CDN or external request is needed
 
 #### Scenario: missing tree fails clearly
 
@@ -68,20 +68,18 @@ than print an empty document.
 
 #### Scenario: rounds render as layers
 
-- **WHEN** `adrkit tree <name> --mermaid` runs on a tree whose questions carry `(round N)`
-- **THEN** the nodes of each round are grouped into a labeled subgraph, and a tree with no round annotations renders as before
+- **WHEN** a tree nests a follow-up question under the node that raised it
+- **THEN** the deeper question renders downstream of that node, so the derived frontier layer is visible without storing a round
 
 ### Requirement: Annotated deliberation grammar
 
 A `## Deliberation` node SHALL be
-`- [Q: | A: ]<text>[ [status]][ (round N)][ (recommended)][ — <reason>]`. The
-optional `Q:`/`A:` prefix marks a question or an option; `[settled]`,
-`[rejected]`, or `[open]` is the node's state; `(round N)` records the
-frontier round in which the session settled the node; `(recommended)` marks the
-option the agent recommended; ` — <reason>` explains the node. A question's
-answer SHALL be its `[settled]` child, and a settled child that is not marked
-`(recommended)` SHALL be reported as an override of the agent's
-recommendation.
+`- [Q: | A: ]<text>[ [status]][ (recommended)][ — <reason>]`. The optional
+`Q:`/`A:` prefix marks a question or an option; `[settled]`, `[rejected]`, or
+`[open]` is the node's state; `(recommended)` marks the option the agent
+recommended; ` — <reason>` explains the node. A question's answer SHALL be its
+`[settled]` child, and a settled child that is not marked `(recommended)` SHALL
+be reported as an override of the agent's recommendation.
 
 #### Scenario: a reason after the status is parsed
 
@@ -105,25 +103,74 @@ recommendation.
 
 #### Scenario: a round after the status is parsed
 
-- **WHEN** a node reads `- Q: Where does the tree live? [settled] (round 2)`
-- **THEN** the node's status is `settled` and its round is `2`
+- **WHEN** a node reads the legacy `- Q: Where does the tree live? [settled] (round 2)`
+- **THEN** the obsolete round marker is read and stripped, and the node's text is `Where does the tree live?`
 
-### Requirement: Frontier rounds
+### Requirement: Nested dependency
 
-A grilling session SHALL proceed in frontier rounds: each round asks the
-questions that the preceding answers exposed, and SHALL NOT ask a question
-whose answer depends on a question still open. A recorded question MAY carry
-`(round N)`, numbered from 1 in the order the session asked its questions. A
-round annotation SHALL be recorded as the session runs, not reconstructed after
-it. Options SHALL inherit the round of their parent question. Records written
-before this convention SHALL remain valid without round annotations.
+Dependency between recorded questions SHALL be expressed by nesting: a follow-up
+question SHALL be a child of the node whose settlement raised it, so related
+questions run deeper and unrelated questions stay flat siblings. When the
+question, not a single option, raised the follow-up, the follow-up SHALL be a
+child of that question. The `Q:`/`A:` prefix SHALL keep a follow-up question
+distinct from an option at the same depth. A record SHALL NOT store a frontier
+round.
 
-#### Scenario: a round is recorded while the session runs
+#### Scenario: a follow-up nests under the option that raised it
 
-- **WHEN** a question is settled in the session's second frontier round
-- **THEN** the recorded question carries `(round 2)` and its options carry no separate round
+- **WHEN** a session settles an option and that answer raises a further question
+- **THEN** the recorded question is a child of that option
 
-#### Scenario: a record without round annotations stays valid
+#### Scenario: unrelated questions stay flat
 
-- **WHEN** `adrkit validate` runs on a decision whose deliberation tree has no round annotations
-- **THEN** validation passes, because round annotations are optional
+- **WHEN** two questions are both askable without the other being settled
+- **THEN** the record stores them as siblings
+
+#### Scenario: an option-independent follow-up nests under the question
+
+- **WHEN** settling a question raises a follow-up regardless of which option won
+- **THEN** the recorded follow-up is a child of the question
+
+### Requirement: Offline interactive card tree
+
+The HTML view SHALL group questions with their selected option children and
+SHALL expose other options and their reasons through expandable disclosures.
+Question-dependent edges SHALL originate at the question; option-dependent
+edges SHALL originate at that option. Unsettled or rejected parents SHALL NOT
+be marked as having unlocked their follow-ups. The view SHALL preserve all
+recorded text, recommendation markers, states, and nested dependencies,
+including unannotated nodes and multiple roots. Missing states SHALL NOT be
+presented as settled.
+
+#### Scenario: inspect an alternative branch
+
+- **WHEN** an option with follow-up questions is in a collapsed disclosure
+- **THEN** its descendants are hidden until that disclosure opens, and then connect to that option without overlapping neighboring cards
+
+#### Scenario: explore a large tree
+
+- **WHEN** the reader folds branches, expands options, pans, zooms, or fits the tree
+- **THEN** layout and edges update together; keyboard users can reach controls and move the canvas, and 1:1 restores readable text
+
+#### Scenario: record text is untrusted
+
+- **WHEN** titles, questions, options, or reasons contain HTML or script-like text
+- **THEN** the page displays that content as text without executing it or loading resources from it
+
+### Requirement: On-demand visualization delivery
+
+The installed grilling skill SHALL route requests to visualize an existing
+record directly to the built-in renderer, without starting a new grilling
+session. HTML SHALL NOT be a default session deliverable. Markdown remains the
+source; agents SHALL NOT invent missing trees or replace the maintained view
+with ad hoc generated HTML.
+
+#### Scenario: user asks to visualize a record
+
+- **WHEN** the user asks for a visualization of an ADR with a deliberation tree
+- **THEN** the agent generates HTML and returns a clickable file link, opening a browser only on an explicit request
+
+#### Scenario: user completes grilling without asking for a visualization
+
+- **WHEN** the session completes and the user has not requested a visualization
+- **THEN** the agent records and validates the decision without generating HTML

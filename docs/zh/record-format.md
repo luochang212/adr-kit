@@ -110,15 +110,16 @@ superseded-by: 6
 
 决策可以携带可选的 `## Deliberation` 附录：记录选择背后的 design tree，用嵌套
 Markdown 列表存储。一个节点是
-`- [Q: | A: ]<text>[ [status]][ (round N)][ (recommended)][ — <reason>]`：
-`Q:`/`A:` 标注问题或选项（可省略，按有无子节点推断），`[settled]` /
-`[rejected]` / `[open]` 是状态，`(round N)` 是会话首次能提出该问题的 frontier
-轮次，`(recommended)` 标注 agent 推荐的选项，` — <reason>` 写理由。选项继承
-所在问题的轮次。问题的答案就是它的 `[settled]` 子节点；若该子节点不是被推荐的
-那个，问题会标为 override。`adrkit tree <name>` 默认渲染为文本，加 `--mermaid`
-输出 mermaid 图，加 `--html` 输出单文件 HTML；带轮次的树会把每一轮分组到一个
-带标签的 subgraph。树本身从不以 mermaid 源码存储。任务开始时的查阅规则把这个
-附录当作参考资料，只在相关决策被牵动时才读。
+`- [Q: | A: ]<text>[ [status]][ (recommended)][ — <reason>]`：`Q:`/`A:` 标注
+问题或选项（可省略，按有无子节点推断），`[settled]` / `[rejected]` / `[open]`
+是状态，`(recommended)` 标注 agent 推荐的选项，` — <reason>` 写理由。依赖靠
+嵌套表达：后续问题嵌在提出它的节点之下，因此相关问题更深、无关问题平铺。问题的
+答案就是它的 `[settled]` 子节点；若该子节点不是被推荐的那个，问题会标为
+override。`adrkit tree <name>` 默认渲染为文本，加 `--mermaid` 输出 mermaid 图，
+加 `--html` 输出离线交互卡片树，并突出显示"提出下一个问题"的那条边。
+HTML 把问题和选中答案放在同一卡片中，其他选项可展开；这只是视图，不改变大纲语法。树本身从不以
+mermaid 源码存储。任务开始时的查阅规则把这个附录当作参考资料，只在相关决策被
+牵动时才读。
 
 ## 被否决
 

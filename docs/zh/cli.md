@@ -105,8 +105,8 @@ adr/
 ### `adrkit tree <name> [--mermaid|--text|--html]`
 
 渲染记录的可选 `## Deliberation` 附录：决策背后的设计树，以嵌套 Markdown
-列表保存在记录里，节点可标注 `[settled]`、`[rejected]` 或 `[open]`，问题还可
-用 `(round N)` 记录 frontier 轮次。
+列表保存在记录里，节点可标注 `[settled]`、`[rejected]` 或 `[open]`。后续问题
+嵌在提出它的节点之下，因此深度就是依赖。
 `name` 的解析方式与其他命令一致（标题、文件名或决策编号）。默认 `--text`
 输出嵌套大纲：
 
@@ -118,9 +118,19 @@ adr/
 ```
 
 `--mermaid` 输出 Mermaid 图：`graph TD` 头、每个条目一个节点、父子边、每个
-状态一行 `classDef`，以及树实际用到的每个状态一行 `class`。问题带 `(round N)`
-时，每一轮的节点会归入一个带标签的 subgraph。`--html` 把同一份 Mermaid 源码
-包进一个自包含的 HTML 文档。
+状态一行 `classDef`，以及树实际用到的每个状态一行 `class`。从已定节点指向它
+提出的后续问题的那条边会画得更粗、紫色，因此树的深度就是 frontier 向外推进。
+`--html` 输出从左向右生长的离线卡片树，CSS 和 JavaScript 都内嵌在文件里。
+问题与选中答案放在同一卡片中，其他选项和理由可展开，后续问题从引出它的答案
+或问题连出。支持折叠分支、拖动或滚动平移、缩放、1:1 和适应画布；聚焦画布后
+可用方向键移动、+/− 缩放、0 适应画布。保留状态、推荐和人工改选标记，无需 CDN。
+
+```sh
+adrkit tree 7 --html > "adr-7.html"
+```
+
+命令把 HTML 写到标准输出，不会打开浏览器。AI 工作流仅在用户要求可视化时
+生成文件，默认交付文件链接。
 
 ```mermaid
 graph TD

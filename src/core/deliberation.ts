@@ -1,19 +1,23 @@
+import { renderCardTree } from './deliberation-html.js';
+
 /**
  * The optional ## Deliberation appendix: a grilling session's design tree,
  * stored as a nested Markdown list so it stays diffable and readable, and
  * rendered to text, mermaid, or a single HTML document on demand. The stored
  * outline is the source of truth; every renderer is a view.
  *
- * Grammar (ADR 5, extended by ADR 6):
+ * Grammar (ADR 5):
  *
- *   - [Q: | A: ]<text>[ [status]][ (round N)][ (recommended)][ em-dash <reason>]
+ *   - [Q: | A: ]<text>[ [status]][ (recommended)][ em-dash <reason>]
  *
  * Q:/A: marks a question or an option (inferred when omitted: a node with
  * children is a question, a leaf is an option, the top level is the root).
- * [settled], [rejected], [open] is the state. (round N) is the frontier round
- * in which the session settled the node; options inherit their question's
- * round. (recommended) marks the option the agent recommended. The em-dash
- * reason explains the node.
+ * [settled], [rejected], [open] is the state. (recommended) marks the option
+ * the agent recommended. The em-dash reason explains the node.
+ *
+ * Dependency is nesting (ADR 7): a follow-up question is a child of the node
+ * whose settlement raised it, so related questions run deeper and unrelated
+ * ones stay flat. Nothing stores a round; depth is the frontier.
  */
 
 export type DeliberationStatus = 'settled' | 'rejected' | 'open';
@@ -23,7 +27,6 @@ export interface DeliberationNode {
   text: string;
   type?: DeliberationType;
   status?: DeliberationStatus;
-  round?: number;
   recommended?: boolean;
   reason?: string;
   children: DeliberationNode[];
@@ -33,7 +36,6 @@ interface ParsedNode {
   text: string;
   type?: DeliberationType;
   status?: DeliberationStatus;
-  round?: number;
   recommended?: boolean;
   reason?: string;
 }
@@ -41,7 +43,7 @@ interface ParsedNode {
 const BULLET = /^(\s*)-\s+(.*?)\s*$/;
 const STATUS = /\[(settled|rejected|open)\]/i;
 const RECOMMENDED = /\(recommended\)\s*$/i;
-const ROUND = /\(round\s+([1-9]\d*)\)\s*$/i;
+const LEGACY_ROUND = /\(round\s+\d+\)\s*$/i;
 const TYPE = /^([QA]):\s+/i;
 
 /** Parse one bullet from the end inward, so a reason never hides the status. */
@@ -58,12 +60,9 @@ function parseNodeText(raw: string): ParsedNode | undefined {
     recommended = true;
     content = content.replace(RECOMMENDED, '').trimEnd();
   }
-  let round: number | undefined;
-  const roundMatch = content.match(ROUND);
-  if (roundMatch !== null) {
-    round = Number(roundMatch[1]);
-    content = content.replace(ROUND, '').trimEnd();
-  }
+  // ADR 6 stored frontier rounds in this marker; ADR 7 replaced them with
+  // nesting. Strip the obsolete marker so historical records still render.
+  content = content.replace(LEGACY_ROUND, '').trimEnd();
   let status: DeliberationStatus | undefined;
   const statusMatch = content.match(STATUS);
   if (statusMatch !== null && statusMatch.index !== undefined) {
@@ -81,7 +80,6 @@ function parseNodeText(raw: string): ParsedNode | undefined {
   const node: ParsedNode = { text };
   if (type !== undefined) node.type = type;
   if (status !== undefined) node.status = status;
-  if (round !== undefined) node.round = round;
   if (recommended !== undefined) node.recommended = recommended;
   if (reason !== undefined && reason.length > 0) node.reason = reason;
   return node;
@@ -100,7 +98,6 @@ export function parseDeliberation(body: string | undefined): DeliberationNode[] 
     const node: DeliberationNode = { text: parsed.text, children: [] };
     if (parsed.type !== undefined) node.type = parsed.type;
     if (parsed.status !== undefined) node.status = parsed.status;
-    if (parsed.round !== undefined) node.round = parsed.round;
     if (parsed.recommended !== undefined) node.recommended = parsed.recommended;
     if (parsed.reason !== undefined) node.reason = parsed.reason;
     while (stack.length > 0 && stack[stack.length - 1]!.indent >= indent) stack.pop();
@@ -109,16 +106,7 @@ export function parseDeliberation(body: string | undefined): DeliberationNode[] 
     else parent.node.children.push(node);
     stack.push({ indent, node });
   }
-  propagateRounds(roots, undefined);
   return roots;
-}
-
-/** Options inherit the round of their parent question. */
-function propagateRounds(nodes: DeliberationNode[], inherited: number | undefined): void {
-  for (const node of nodes) {
-    if (node.round === undefined && inherited !== undefined) node.round = inherited;
-    propagateRounds(node.children, node.round ?? inherited);
-  }
 }
 
 /** Explicit Q:/A:, else children decide. */
@@ -142,7 +130,6 @@ function isOverride(node: DeliberationNode): boolean {
 function markers(node: DeliberationNode): string {
   const parts: string[] = [];
   if (node.status !== undefined) parts.push('[' + node.status + ']');
-  if (node.round !== undefined && typeOf(node) === 'question') parts.push('(round ' + node.round + ')');
   if (node.recommended === true) parts.push('(recommended)');
   if (isOverride(node)) parts.push('(override)');
   if (node.reason !== undefined) parts.push('\u2014 ' + node.reason);
@@ -165,6 +152,25 @@ export function renderDeliberationText(nodes: DeliberationNode[]): string {
 
 function escapeLabel(text: string): string {
   return text.replace(/"/g, "'");
+}
+
+/** Wrap a long label at word boundaries for mermaid's HTML labels. */
+function wrapLabel(text: string, width = 48): string {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    if (current === '') {
+      current = word;
+    } else if ((current + ' ' + word).length > width) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = current + ' ' + word;
+    }
+  }
+  if (current !== '') lines.push(current);
+  return lines.join('<br/>');
 }
 
 interface MermaidEntry {
@@ -190,29 +196,28 @@ export function renderDeliberationMermaid(nodes: DeliberationNode[]): string {
 
   const lines: string[] = ['graph TD'];
   const labelOf = (node: DeliberationNode): string =>
-    escapeLabel(node.reason === undefined ? node.text : node.text + ' \u2014 ' + node.reason);
-  const nodeLine = (entry: MermaidEntry, indent: string): void => {
+    wrapLabel(escapeLabel(node.reason === undefined ? node.text : node.text + ' \u2014 ' + node.reason));
+  for (const entry of entries) {
     const label = labelOf(entry.node);
     const shape = entry.isRoot
       ? '(["' + label + '"])'
       : (typeOf(entry.node) === 'question' ? '{{"' + label + '"}}' : '["' + label + '"]');
-    lines.push(indent + entry.id + shape);
-  };
-
-  const rounds = [...new Set(entries.map((entry) => entry.node.round).filter((round): round is number => round !== undefined))].sort((a, b) => a - b);
-  if (rounds.length === 0) {
-    for (const entry of entries) nodeLine(entry, '  ');
-  } else {
-    for (const entry of entries) if (entry.isRoot && entry.node.round === undefined) nodeLine(entry, '  ');
-    for (const round of rounds) {
-      lines.push('  subgraph r' + round + '["Round ' + round + '"]');
-      for (const entry of entries) if (entry.node.round === round) nodeLine(entry, '    ');
-      lines.push('  end');
-    }
-    for (const entry of entries) if (!entry.isRoot && entry.node.round === undefined) nodeLine(entry, '  ');
+    lines.push('  ' + entry.id + shape);
   }
+
+  // A settled non-root node unlocks its follow-up questions. Unsettled
+  // branches retain ordinary edges rather than claiming frontier progress.
+  const byId = new Map(entries.map((entry) => [entry.id, entry]));
+  const unlockEdges: number[] = [];
+  let edgeIndex = 0;
   for (const entry of entries) {
-    if (entry.parentId !== undefined) lines.push('  ' + entry.parentId + ' --> ' + entry.id);
+    if (entry.parentId === undefined) continue;
+    const parent = byId.get(entry.parentId)!;
+    lines.push('  ' + entry.parentId + ' --> ' + entry.id);
+    if (typeOf(entry.node) === 'question' && !parent.isRoot && parent.node.status === 'settled') {
+      unlockEdges.push(edgeIndex);
+    }
+    edgeIndex++;
   }
 
   const byStatus: Record<DeliberationStatus, string[]> = { settled: [], rejected: [], open: [] };
@@ -235,37 +240,11 @@ export function renderDeliberationMermaid(nodes: DeliberationNode[]): string {
   }
   if (recommended.length > 0) lines.push('  class ' + recommended.join(',') + ' recommended;');
   if (overridden.length > 0) lines.push('  class ' + overridden.join(',') + ' override;');
+  if (unlockEdges.length > 0) lines.push('  linkStyle ' + unlockEdges.join(',') + ' stroke:#7c3aed,stroke-width:3px;');
   return lines.join('\n');
 }
 
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
+/** An offline HTML view; the annotated outline remains the source. */
 export function renderDeliberationHtml(nodes: DeliberationNode[], title: string): string {
-  const diagram = escapeHtml(renderDeliberationMermaid(nodes));
-  const heading = escapeHtml(title) + ' \u2014 deliberation tree';
-  return '<!doctype html>\n' +
-    '<html lang="en">\n' +
-    '<head>\n' +
-    '<meta charset="utf-8">\n' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<title>' + heading + '</title>\n' +
-    '<style>\n' +
-    '  body { margin: 2rem; font-family: system-ui, -apple-system, sans-serif; color: #111; }\n' +
-    '  h1 { font-size: 1.1rem; font-weight: 600; }\n' +
-    '  .mermaid { max-width: 100%; }\n' +
-    '</style>\n' +
-    '</head>\n' +
-    '<body>\n' +
-    '<h1>' + heading + '</h1>\n' +
-    '<pre class="mermaid">\n' +
-    diagram + '\n' +
-    '</pre>\n' +
-    '<script type="module">\n' +
-    "import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';\n" +
-    'mermaid.initialize({ startOnLoad: true });\n' +
-    '</script>\n' +
-    '</body>\n' +
-    '</html>\n';
+  return renderCardTree(nodes, title);
 }

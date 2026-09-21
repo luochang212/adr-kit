@@ -17,8 +17,7 @@ export function treeCommand(query: string, cwd: string, format: 'html' | 'mermai
     throw new Error(`"${record.title}" has no "## Deliberation" tree to render`);
   }
   if (format === 'html') {
-    const label = record.number === undefined ? record.title : `${record.number} ${record.title}`;
-    return renderDeliberationHtml(nodes, label);
+    return renderDeliberationHtml(nodes, record.title);
   }
   return format === 'mermaid' ? renderDeliberationMermaid(nodes) : renderDeliberationText(nodes);
 }

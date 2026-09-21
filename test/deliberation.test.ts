@@ -58,6 +58,17 @@ describe('parseDeliberation', () => {
     expect(text).toContain('A: leaf');
   });
 
+  it('strips legacy rounds while preserving the other annotations', () => {
+    const nodes = parseDeliberation('- Q: Where? [settled] (round 2) (recommended) — Keep it local');
+    expect(nodes).toEqual([{
+      text: 'Where?', type: 'question', status: 'settled',
+      recommended: true, reason: 'Keep it local', children: [],
+    }]);
+    expect(renderDeliberationText(nodes)).not.toContain('(round');
+    expect(renderDeliberationMermaid(nodes)).not.toContain('subgraph');
+    expect(parseDeliberation('- Q: Where? [settled] (round x)')[0]!.text).toBe('Where?  (round x)');
+  });
+
   it('is empty for an absent or non-list body', () => {
     expect(parseDeliberation(undefined)).toEqual([]);
     expect(parseDeliberation('just prose')).toEqual([]);
@@ -84,50 +95,60 @@ describe('override detection', () => {
   });
 });
 
-describe('frontier rounds', () => {
-  it('reads a round annotation and ignores a malformed one', () => {
-    const [question] = parseDeliberation('- Q: Where does the tree live? [settled] (round 2)');
-    expect(question!.status).toBe('settled');
-    expect(question!.round).toBe(2);
+describe('nested dependency', () => {
+  const NESTED = [
+    '- Root decision [settled]',
+    '  - Q: Independent? [settled]',
+    '    - A: yes [settled]',
+    '  - Q: Which option? [settled]',
+    '    - A: Chosen [settled] (recommended)',
+    '      - Q: Raised by the choice? [settled]',
+    '        - A: yes [settled]',
+  ].join('\n');
 
-    const [malformed] = parseDeliberation('- Q: Where does the tree live? [settled] (round x)');
-    expect(malformed!.round).toBeUndefined();
-    expect(malformed!.text).toContain('(round x)');
+  it('keeps a follow-up question under the node that raised it', () => {
+    const [root] = parseDeliberation(NESTED);
+    const option = root!.children[1]!.children[0]!;
+    expect(option.type).toBe('option');
+    expect(option.children[0]!.type).toBe('question');
+    expect(option.children[0]!.text).toBe('Raised by the choice?');
   });
 
-  it('options inherit their question round', () => {
-    const [question] = parseDeliberation([
-      '- Q: Pick one [settled] (round 2)',
-      '  - A: First [rejected]',
-      '  - A: Second [settled]',
-    ].join('\n'));
-    expect(question!.round).toBe(2);
-    expect(question!.children.map((child) => child.round)).toEqual([2, 2]);
+  it('indents the dependency by depth', () => {
+    const lines = renderDeliberationText(parseDeliberation(NESTED)).split('\n');
+    const deep = lines.find((line) => line.includes('Raised by the choice?'))!;
+    expect(deep.startsWith('      - Q: ')).toBe(true);
   });
 
-  it('text marks the round on the question, not on its options', () => {
-    const lines = renderDeliberationText(parseDeliberation([
-      '- Q: Pick one [settled] (round 2)',
-      '  - A: Second [settled]',
-    ].join('\n'))).split('\n');
-    expect(lines[0]).toContain('(round 2)');
-    expect(lines[1]).not.toContain('(round 2)');
+  it('styles the unlock edge and leaves containment alone', () => {
+    const mermaid = renderDeliberationMermaid(parseDeliberation(NESTED));
+    const edges = mermaid.split('\n').filter((line) => line.includes(' --> '));
+    expect(edges[4]).toBe('  n5 --> n6');
+    expect(mermaid.split('\n').filter((line) => line.includes('linkStyle')))
+      .toEqual(['  linkStyle 4 stroke:#7c3aed,stroke-width:3px;']);
+    expect(mermaid).not.toContain('subgraph');
   });
 
-  it('mermaid groups annotated questions into labeled round subgraphs', () => {
-    const mermaid = renderDeliberationMermaid(parseDeliberation([
+  it.each(['Q', 'A'])('only highlights follow-ups of a settled %s node', (type) => {
+    const nodes = parseDeliberation([
       '- Root [settled]',
-      '  - Q: First? [settled] (round 1)',
-      '    - A: yes [settled]',
-      '  - Q: Second? [settled] (round 2)',
-      '    - A: no [settled]',
-    ].join('\n')));
-    expect(mermaid).toContain('subgraph r1["Round 1"]');
-    expect(mermaid).toContain('subgraph r2["Round 2"]');
+      ...['[open]', '[rejected]', '', '[settled]'].flatMap((status) => [
+        `  - ${type}: Parent ${status}`,
+        '    - Q: Follow-up? [open]',
+      ]),
+    ].join('\n'));
+    const mermaid = renderDeliberationMermaid(nodes);
+    const edges = mermaid.split('\n').filter((line) => line.includes(' --> '));
+    expect(edges).toHaveLength(8);
+    expect(edges[7]).toBe('  n8 --> n9');
+    expect(mermaid.split('\n').filter((line) => line.includes('linkStyle')))
+      .toEqual(['  linkStyle 7 stroke:#7c3aed,stroke-width:3px;']);
   });
 
-  it('mermaid leaves an unannotated tree ungrouped', () => {
-    expect(renderDeliberationMermaid(parseDeliberation(BODY))).not.toContain('subgraph');
+  it('leaves a flat tree with no unlock styling', () => {
+    const mermaid = renderDeliberationMermaid(parseDeliberation(BODY));
+    expect(mermaid).not.toContain('linkStyle');
+    expect(mermaid).not.toContain('subgraph');
   });
 });
 
@@ -150,12 +171,86 @@ describe('renderers', () => {
     expect(mermaid).toContain(' override;');
   });
 
-  it('html is one document with the mermaid source', () => {
+  it('html is an offline card tree with the record content', () => {
     const html = renderDeliberationHtml(parseDeliberation(BODY), '7 Test');
     expect(html.startsWith('<!doctype html>')).toBe(true);
-    expect(html).toContain('<pre class="mermaid">');
-    expect(html).toContain('graph TD');
+    expect(html).toContain('class="card question"');
+    expect(html).toContain('Should a grilling session be a persisted entity?');
+    expect(html).toContain('Human override');
+    expect(html).not.toContain('cdn.jsdelivr.net');
+    expect(html).not.toMatch(/<script[^>]+src=/);
+    expect(html).toContain('id="fit"');
     expect(html).toContain('7 Test');
+    expect(html).toContain('<div class="legend">');
+    expect(html).toContain('Unlocked question');
+  });
+
+  it('wraps long graph labels without losing words or reasons', () => {
+    const text = 'A sufficiently long question about where the deliberation tree should live';
+    const reason = 'Keep the complete decision readable';
+    const nodes = parseDeliberation(`- Q: ${text} [settled] — ${reason}`);
+    const mermaid = renderDeliberationMermaid(nodes);
+    const label = mermaid.split('\n')[1]!.match(/\{\{"(.*)"\}\}/)![1]!;
+    expect(label).toContain('<br/>');
+    expect(label.replaceAll('<br/>', ' ')).toBe(`${text} — ${reason}`);
+    expect(renderDeliberationText(nodes)).toContain(text);
+    expect(renderDeliberationHtml(nodes, 'Test')).toContain(text);
+  });
+});
+
+describe('offline card tree', () => {
+  it('preserves option-dependent and question-dependent anchors separately', () => {
+    const nodes = parseDeliberation([
+      '- Q: Storage? [settled]',
+      '  - A: Local [settled] (recommended)',
+      '    - Q: Which directory? [open]',
+      '      - A: Workspace [open]',
+      '  - Q: How to migrate? [open]',
+    ].join('\n'));
+    const html = renderDeliberationHtml(nodes, 'Storage');
+    expect(html).toContain('id="n2" class="answer" data-state="settled"');
+    expect(html).toContain('data-parent="n1" data-anchor="n2" data-state="open"');
+    expect(html).toContain('data-parent="n1" data-anchor="" data-state="open"');
+    expect(html).toContain('class="state open">open</span>');
+    expect(html).toContain('Workspace');
+  });
+
+  it('retains rejected branches and standalone or inferred nodes across multiple roots', () => {
+    const nodes = parseDeliberation([
+      '- Root one',
+      '  - Question with inferred type [open]',
+      '    - A: Rejected choice [rejected] (recommended) — Cost',
+      '      - Q: Follow-up of rejected choice [open]',
+      '- A: Standalone option [rejected] — Evidence',
+      '- Root two',
+    ].join('\n'));
+    const html = renderDeliberationHtml(nodes, 'Mixed tree');
+    expect(html.match(/class="card root"/g)).toHaveLength(2);
+    expect(html).toContain('class="card option"');
+    expect(html).toContain('class="state unrecorded">unrecorded</span>');
+    expect(html).toContain('Follow-up of rejected choice');
+    expect(html).toContain('Agent recommended');
+    expect(html).toContain('Cost');
+    expect(html).toContain('Evidence');
+  });
+
+  it('does not count a settled follow-up as an overridden answer', () => {
+    const html = renderDeliberationHtml(parseDeliberation([
+      '- Q: Undecided [open]',
+      '  - A: Recommended [open] (recommended)',
+      '  - Q: Related question [settled]',
+    ].join('\n')), 'Open');
+    expect(html).not.toContain('Human override · recommendation not taken');
+  });
+
+  it('escapes record text and titles without putting user content into scripts', () => {
+    const payload = '</script><script>globalThis.injected = true</script><img src=x onerror=alert(1)>';
+    const html = renderDeliberationHtml(parseDeliberation(`- Q: ${payload} [open] — <b>reason</b>`), payload);
+    expect(html).not.toContain(payload);
+    expect(html).toContain('&lt;/script&gt;');
+    expect(html).toContain('&lt;b&gt;reason&lt;/b&gt;');
+    expect(html.match(/<script>/g)).toHaveLength(1);
+    expect(html.match(/<script>([\s\S]*?)<\/script>/)![1]).not.toContain('globalThis.injected');
   });
 });
 
@@ -199,6 +294,7 @@ describe('treeCommand', () => {
     expect(treeCommand('1', root, 'text')).toContain('Q: Should a grilling session');
     expect(treeCommand('1', root, 'mermaid')).toContain('graph TD');
     expect(treeCommand('1', root, 'html')).toContain('<!doctype html>');
+    expect(treeCommand('1', root, 'html')).toContain('<h1>1 Use SQLite</h1>');
   });
 
   it('fails clearly when the record has no tree', () => {

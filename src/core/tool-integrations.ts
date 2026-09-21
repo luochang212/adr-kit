@@ -120,7 +120,7 @@ nor verifies it.
   {
     name: 'adrkit-grill',
     description:
-      "Use when a decision is still being shaped and its direction is not settled, in a repository with an adr/ directory, or on any 'grill' trigger phrase; grill the user to shared understanding and record every decision the session settles.",
+      "Use when a decision is still being shaped and its direction is not settled, in a repository with an adr/ directory, or on any 'grill' trigger phrase; grill the user to shared understanding and record every decision the session settles. Also use when the user asks to visualize an existing ADR or grilling decision.",
     body: `# ADR Kit Grill
 
 ## Overview
@@ -133,6 +133,26 @@ become \`## Alternatives considered\`, and who raised and who overrode feeds
 
 The interrogation method is adapted from the \`grilling\` skill in
 [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
+
+## Visualize an existing decision
+
+When the user asks to visualize a recorded ADR or grilling decision, use this
+path directly; do not start a new grilling session or create another ADR.
+
+1. Resolve the requested record with \`adrkit list\` and \`adrkit show <N>\`.
+   Read its \`## Deliberation\` appendix. If there is no tree, explain that the
+   record has no recorded deliberation to visualize; do not invent one.
+2. Use the built-in renderer, not an agent-designed replacement page:
+   \`adrkit tree <N> --html > "<output-path>.html"\`. Choose a new file in the
+   user's requested location or a temporary directory; quote paths and avoid
+   overwriting a record or an existing file. Check the command succeeded.
+3. Deliver a clickable link to the generated HTML file. It contains its own
+   styles and interaction code and works offline. Open a browser only when the
+   user explicitly asks to open it. No browser launch is part of generation.
+
+Generate HTML only on an explicit visualization request, never automatically
+at the end of a grilling session. \`--text\` and \`--mermaid\` remain available
+when the user requests those formats. Keep Markdown as the source of truth.
 
 ## When to grill
 
@@ -150,10 +170,10 @@ decisions are not filtered again at record time.
    settled decision is a supersede, not a question.
 2. Map the decision as a design tree: every decision branches into the
    decisions that hang off it.
-3. Work the tree in rounds, numbered from 1. The frontier is every question
-   whose prerequisites are already settled: the questions you can ask now
-   without guessing at answers you have not heard. Ask the whole frontier in
-   one round, then wait for the user's answers before the next round. Format
+3. Work the tree in rounds. The frontier is every question whose
+   prerequisites are already settled: the questions you can ask now without
+   guessing at answers you have not heard. Ask the whole frontier in one
+   round, then wait for the user's answers before the next round. Format
    each question like:
 
 \`\`\`
@@ -165,8 +185,8 @@ decisions are not filtered again at record time.
 4. Each round of answers reshapes the tree: settled decisions push the
    frontier outward and unblock the questions that depended on them. A
    question whose answer depends on another question still open in this
-   round belongs to a later round. Record each question's number as the
-   round is answered, so the round comes from the session, not from memory.
+   round belongs to a later round. As each answer settles, note which option
+   or question raised the next one; the record nests it under that node.
 5. Finding facts is your job, never the user's: when a question needs a fact
    from the repository or the environment, look it up yourself (or dispatch
    a sub-agent) instead of asking. Do not block on a running lookup; only
@@ -190,8 +210,8 @@ decisions are not filtered again at record time.
    the frontier options they rejected, \`## Consequences\` from the branches
    their answers unlocked. Keep the design tree in an optional
    \`## Deliberation\` appendix: prefix a question \`Q:\` and an option \`A:\`, tag
-   each node \`[settled]\`, \`[rejected]\`, or \`[open]\`, record each question's
-   frontier round \`(round N)\` as it was answered, mark the option you
+   each node \`[settled]\`, \`[rejected]\`, or \`[open]\`, nest each follow-up
+   question under the option or question that raised it, mark the option you
    recommended \`(recommended)\`, and give a rejected option a \` — reason\`.
    \`adrkit tree <N>\` renders it (\`--mermaid\`, or \`--html\` for a file). Add 2-4
    kebab-case \`tags\` to the front matter.
