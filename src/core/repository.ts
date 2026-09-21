@@ -125,7 +125,9 @@ tree behind the choice, stored as a nested Markdown list whose nodes may be
 tagged \`[settled]\`, \`[rejected]\`, or \`[open]\`. A follow-up question is
 nested under the node that raised it, so depth is the dependency. Render it
 with \`adrkit tree <name>\` (text by default, \`--mermaid\` for a graph,
-\`--html\` for an offline interactive card tree).
+\`--html\` for an offline interactive card tree). Render the whole set with
+\`adrkit graph --html\`, an offline decision map that marks records
+carrying a tree.
 
 Run \`adrkit validate\` to check every record.
 `;

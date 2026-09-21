@@ -142,7 +142,8 @@ error, consistent with `adrkit list`.
 
 ### Requirement: graph output formats
 
-`adrkit graph` SHALL support `--mermaid` (default), `--dot`, and `--text`.
+`adrkit graph` SHALL support `--mermaid` (default), `--dot`, `--text`, and
+`--html`.
 DOT output SHALL be a valid Graphviz directed graph of the same nodes and
 edges. `--text` output SHALL print a terminal-readable tree of the same
 graph. Requesting two different formats in one invocation MUST fail with an
@@ -164,3 +165,30 @@ error naming the conflicting flags.
 - **WHEN** `adrkit graph --text` runs
 - **THEN** the output is a tree naming the same decisions as the Mermaid
   output
+
+### Requirement: offline HTML map
+
+`adrkit graph --html` SHALL emit one self-contained HTML document of the same
+nodes and edges, in chronological columns grouped by `created`, with supersede
+and reference edges drawn distinctly, tag tinting, and retired styling. The
+document SHALL need no network and no CDN, SHALL link each node to its record
+file, and SHALL mark the nodes whose record carries a meaningful
+`## Deliberation` appendix without excluding them. Requesting `--html` with
+another format MUST fail naming the conflicting flags.
+
+#### Scenario: offline map
+
+- **WHEN** `adrkit graph --html` runs
+- **THEN** the output is one HTML document with an inline `svg` and no external
+  script or stylesheet reference
+
+#### Scenario: deliberation marker
+
+- **WHEN** a decision carries a `## Deliberation` appendix
+- **THEN** its map node is marked `has-deliberation` and still included in the
+  graph
+
+#### Scenario: conflicting flags
+
+- **WHEN** `adrkit graph --html --mermaid` runs
+- **THEN** the command exits non-zero with an error naming both flags

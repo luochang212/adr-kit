@@ -39,10 +39,14 @@ Markdown 列表保存。节点可用 `[settled]`、`[rejected]` 或 `[open]` 结
 adrkit tree <name>            # 嵌套文本大纲（默认）
 adrkit tree <name> --mermaid  # Mermaid 图
 adrkit tree <name> --html > "decision.html"  # 离线交互卡片树
+adrkit graph --html > "map.html"      # 整套决策的离线地图
 ```
 
 仅在用户要求可视化时生成 HTML，默认提供文件链接；明确要求时才打开浏览器。
 技能调用内置渲染器，保证不同 AI 交付相同的布局与交互。
+
+整套决策用 `adrkit graph --html` 渲染为离线决策地图，标出带树的决策，每个节点
+链接到记录文件。
 
 `<name>` 支持标题、文件名或决策编号。该附录只是那一条决策的参考资料，不是
 每个任务都要读的内容。

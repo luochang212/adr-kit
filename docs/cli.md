@@ -129,16 +129,18 @@ Print the current `adr/config.yaml` configuration: `context`, `tools`, the
 effective `workflows` selection (the recorded subset, or the full default set
 when the key is absent), and `rules`.
 
-### `adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]`
+### `adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>]`
 
 Emit a relationship graph of the decisions: solid edges for formal
 `superseded-by` references, dashed edges for `ADR-N` mentions mined from
 record bodies, grouped by the `created` date so decision bursts are visible
 without implying a continuous timeline. `--mermaid` (the default) renders
 natively on GitHub and tints active nodes by their first `tag`; `--dot`
-emits Graphviz; `--text` prints a terminal-friendly tree. `--tag <tag>`
-filters to decisions carrying that theme; `--formal-only` drops the mined
-edges. Note that `date` records the current status date, while `created` is
+emits Graphviz; `--text` prints a terminal-friendly tree; `--html` emits one
+offline self-contained decision map, drawn with a bespoke static layout and no
+CDN or renderer bundle, that links each node to its record and marks the
+decisions carrying a `## Deliberation` tree. `--tag <tag>` filters to decisions
+carrying that theme; `--formal-only` drops the mined edges. Note that `date` records the current status date, while `created` is
 the birth date.
 
 ### `adrkit tree <name> [--mermaid|--text|--html]`

@@ -50,6 +50,10 @@ to promote it or `adrkit reject "<title>"` to discard it.
   behind it as a nested list where a follow-up question is nested under the
   node that raised it; `adrkit tree <name>` renders it as text, `--mermaid` as
   a graph, or `--html` as an offline interactive card tree.
+- The whole decision set renders as an offline decision map with
+  `adrkit graph --html`: one self-contained file with supersede and reference
+  edges grouped by creation date, marking the decisions that carry a
+  deliberation tree and linking each node to its record.
 - Rejection is not a record: it lives in the winner's `Alternatives
   considered`.
 - AI tool integrations (`adrkit init --tools`): claude, codex, cursor,

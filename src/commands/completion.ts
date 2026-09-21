@@ -41,7 +41,7 @@ const COMMAND_OPTIONS: Record<string, string[]> = {
   validate: ['--all', '--help'],
   update: ['--tools', '--workflows', '--help'],
   config: ['--help'],
-  graph: ['--mermaid', '--dot', '--text', '--formal-only', '--tag', '--help'],
+  graph: ['--mermaid', '--dot', '--text', '--html', '--formal-only', '--tag', '--help'],
   tree: ['--mermaid', '--text', '--html', '--help'],
   completion: ['--help'],
   version: ['--help'],

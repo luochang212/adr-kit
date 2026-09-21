@@ -1,4 +1,5 @@
 import type { AdrRecord } from './adr.js';
+import { hasMeaningfulBody, section } from './adr.js';
 import { relativePath } from './repository.js';
 
 /** One decision in the graph; `title` keeps its "N " prefix. */
@@ -18,6 +19,8 @@ export interface GraphNode {
   references: number[];
   /** Theme keywords from front matter `tags`. */
   tags: string[];
+  /** True when the record carries a meaningful `## Deliberation` appendix. */
+  hasDeliberation: boolean;
 }
 
 export interface GraphEdge {
@@ -55,6 +58,7 @@ export function buildDecisionGraph(
       path: relativePath(record),
       references: [],
       tags: record.tags ?? [],
+      hasDeliberation: hasMeaningfulBody(section(record, 'Deliberation')),
     };
     if (record.supersededBy !== undefined) node.supersededBy = record.supersededBy;
     nodes.push(node);
@@ -177,7 +181,7 @@ export function mermaidGraph(graph: DecisionGraph): string {
   return blocks.map((block) => block.join('\n')).join('\n\n');
 }
 
-const TAG_COLORS = [
+export const TAG_COLORS = [
   '#0e7490',
   '#b45309',
   '#6d28d9',

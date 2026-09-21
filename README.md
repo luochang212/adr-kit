@@ -103,9 +103,9 @@ adrkit validate [name] [--all]          Validate one record or the repository
 adrkit update [--tools <list>] [--workflows <list>]
                                         Rewrite AI tool integrations
 adrkit config                           Print the current configuration
-adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]
+adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>]
                                         Emit the decision relationship graph
-adrkit tree <name> [--mermaid|--text]   Render a record's deliberation tree
+adrkit tree <name> [--mermaid|--text|--html] Render a record's deliberation tree
 adrkit completion <bash|zsh|fish>       Print a shell completion script
 adrkit version                          Print the version
 ```
@@ -206,7 +206,9 @@ nested under the node that raised it, so related questions run deeper and
 unrelated ones stay flat. Render it with `adrkit tree <name>` (text by default,
 `--mermaid` for a graph, `--html` for an offline interactive card tree). The
 `adrkit-grill` workflow produces that tree and records every decision the
-session settles. Ask your agent to visualize a recorded decision when needed;
+session settles. The whole set renders as an offline decision map with
+`adrkit graph --html`, which marks the decisions that carry a tree. Ask your
+agent to visualize a recorded decision when needed;
 it uses the built-in renderer and returns an HTML file link. HTML is not a
 default grilling deliverable, and a browser opens only on an explicit request.
 Run `adrkit update` to refresh installed skills.

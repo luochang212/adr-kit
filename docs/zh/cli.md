@@ -92,13 +92,14 @@ adr/
 
 打印当前配置。
 
-### `adrkit graph [--mermaid|--dot|--text] [--formal-only] [--tag <tag>]`
+### `adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>]`
 
 输出决策关系图：实线边为 `superseded-by` 正式取代关系，虚线边为从正文
 挖掘的 `ADR-N` 引用，按 `created` 创建日期分组，让决策脉冲可见而不伪造
 连续时间线。`--mermaid`（默认）在 GitHub 上原生渲染，并按决策的第一个
 `tag` 给活跃节点描边着色；`--dot` 输出 Graphviz；`--text` 输出终端友好的
-树形视图。
+树形视图；`--html` 输出单文件离线决策地图，采用自研静态布局，无 CDN、无第三方
+渲染器，每个节点链接到记录文件，并标出带 `## Deliberation` 树的决策。
 `--tag <tag>` 只保留带该主题标签的决策；`--formal-only` 丢弃挖掘边。
 注意 `date` 记录的是当前状态日期，`created` 才是创建日期。
 

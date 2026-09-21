@@ -26,6 +26,8 @@ interface DecisionOptions {
   tags?: string[];
   /** Extra prose dropped into ## Decision; where ADR-N references live. */
   decisionBody?: string;
+  /** Appended as a ## Deliberation appendix. */
+  deliberation?: string;
 }
 
 function writeDecision(root: string, number: number, title: string, options: DecisionOptions): void {
@@ -53,7 +55,7 @@ a
 
 ## Consequences
 
-c
+c${options.deliberation === undefined ? '' : '\n\n## Deliberation\n\n' + options.deliberation}
 `;
   const dir = join(root, 'adr', 'decisions');
   mkdirSync(dir, { recursive: true });
@@ -333,5 +335,71 @@ describe('created grouping, tags, and tree output', () => {
     const graph = buildDecisionGraph(listRecords(root), {});
     expect(graph.nodes[0]?.created).toBe('2026-08-17');
     expect(graph.nodes[0]?.tags).toEqual(['execution']);
+  });
+});
+
+describe('graph HTML map', () => {
+  it('emits one offline document with nodes, edges, and deliberation markers', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'Grilled', { date: '2026-08-17', tags: ['core'], deliberation: '- Q: Which store? [settled]\n  - A: SQLite [settled]' });
+    writeDecision(root, 2, 'Plain', { date: '2026-08-17', tags: ['api'], decisionBody: 'Builds on ADR-1.' });
+    writeDecision(root, 3, 'Retired', { date: '2026-08-18', status: 'superseded', supersededBy: 2, tags: ['core'] });
+    const html = graphCommand(root, { html: true });
+    expect(html.startsWith('<!doctype html>')).toBe(true);
+    expect(html).toContain('<svg');
+    expect(html).toContain('data-adr="1"');
+    expect(html).toContain('data-adr="2"');
+    expect(html).toContain('data-has-deliberation="true"');
+    expect(html).toContain('data-has-deliberation="false"');
+    expect(html).toContain('class="node has-deliberation"');
+    expect(html).toContain('class="node superseded"');
+    expect(html).toContain('class="edge reference"');
+    expect(html).toContain('class="edge supersede"');
+    expect(html).toContain('href="adr/decisions/1-grilled.md"');
+    expect(html).toContain('has deliberation tree');
+    expect(html).not.toContain('<script');
+    expect(html).not.toContain('cdn');
+  });
+
+  it('groups columns by created date and reports the counts', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'First', { date: '2026-08-19', created: '2026-08-17' });
+    writeDecision(root, 2, 'Later', { date: '2026-08-19' });
+    const html = graphCommand(root, { html: true });
+    expect(html).toContain('2026-08-17 (1)');
+    expect(html).toContain('2026-08-19 (1)');
+    expect(html).toContain('<strong>2</strong>decisions');
+  });
+
+  it('escapes record text and shows an empty state', () => {
+    const root = makeRepo();
+    expect(graphCommand(root, { html: true })).toContain('No decisions yet.');
+    writeDecision(root, 1, 'Bold & <markup>', { date: '2026-08-17' });
+    const html = graphCommand(root, { html: true });
+    expect(html).toContain('Bold &amp; &lt;markup&gt;');
+    expect(html).not.toContain('<markup>');
+  });
+
+  it('exposes --html through main and rejects it beside another format', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', { date: '2026-08-17' });
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      process.chdir(root);
+      process.exitCode = undefined;
+      main(['graph', '--html']);
+      expect(String(logSpy.mock.calls[0]?.[0]).startsWith('<!doctype html>')).toBe(true);
+      main(['graph', '--html', '--mermaid']);
+      expect(process.exitCode).toBe(1);
+      expect(errorSpy.mock.calls[0]?.[0]).toContain('mutually exclusive');
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      logSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
   });
 });

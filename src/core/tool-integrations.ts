@@ -120,7 +120,7 @@ nor verifies it.
   {
     name: 'adrkit-grill',
     description:
-      "Use when a decision is still being shaped and its direction is not settled, in a repository with an adr/ directory, or on any 'grill' trigger phrase; grill the user to shared understanding and record every decision the session settles. Also use when the user asks to visualize an existing ADR or grilling decision.",
+      "Use when a decision is still being shaped and its direction is not settled, in a repository with an adr/ directory, or on any 'grill' trigger phrase; grill the user to shared understanding and record every decision the session settles. Also use when the user asks to visualize an existing ADR or grilling decision, or the whole decision set.",
     body: `# ADR Kit Grill
 
 ## Overview
@@ -134,25 +134,33 @@ become \`## Alternatives considered\`, and who raised and who overrode feeds
 The interrogation method is adapted from the \`grilling\` skill in
 [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
 
-## Visualize an existing decision
+## Visualize a decision
 
-When the user asks to visualize a recorded ADR or grilling decision, use this
-path directly; do not start a new grilling session or create another ADR.
+When the user asks to visualize a recorded ADR, a grilling result, or the whole
+decision set, use these paths directly; do not start a new grilling session or
+create another ADR. There are two levels, and the request picks one:
 
-1. Resolve the requested record with \`adrkit list\` and \`adrkit show <N>\`.
-   Read its \`## Deliberation\` appendix. If there is no tree, explain that the
-   record has no recorded deliberation to visualize; do not invent one.
-2. Use the built-in renderer, not an agent-designed replacement page:
-   \`adrkit tree <N> --html > "<output-path>.html"\`. Choose a new file in the
-   user's requested location or a temporary directory; quote paths and avoid
-   overwriting a record or an existing file. Check the command succeeded.
-3. Deliver a clickable link to the generated HTML file. It contains its own
-   styles and interaction code and works offline. Open a browser only when the
-   user explicitly asks to open it. No browser launch is part of generation.
+- **One decision — the decision tree.** Resolve the record with \`adrkit list\`
+  and \`adrkit show <N>\`, and read its \`## Deliberation\` appendix. If there is
+  no tree, explain that the record has no recorded deliberation to visualize;
+  do not invent one. Render it with \`adrkit tree <N> --html > "<path>.html"\`.
+- **All decisions — the decision map.** Render the whole set with
+  \`adrkit graph --html > "<path>.html"\`. It groups every decision by creation
+  date, draws supersede and reference edges, and marks the decisions that carry
+  a deliberation tree. A node links to its record file; it does not expand the
+  tree yet.
 
-Generate HTML only on an explicit visualization request, never automatically
-at the end of a grilling session. \`--text\` and \`--mermaid\` remain available
-when the user requests those formats. Keep Markdown as the source of truth.
+Both renderers are built in, not agent-designed replacement pages. Choose a new
+file in the user's requested location or a temporary directory; quote paths and
+avoid overwriting a record or an existing file. Check the command succeeded.
+Deliver a clickable link; the file is self-contained and works offline. Open a
+browser only when the user explicitly asks to open it. No browser launch is part
+of generation.
+
+Generate HTML only on an explicit visualization request, never automatically at
+the end of a grilling session. \`--text\`, \`--mermaid\`, and \`--dot\` remain
+available when the user requests those formats. Keep Markdown as the source of
+truth.
 
 ## When to grill
 
