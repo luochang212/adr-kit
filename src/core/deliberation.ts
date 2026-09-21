@@ -109,6 +109,14 @@ export function parseDeliberation(body: string | undefined): DeliberationNode[] 
   return roots;
 }
 
+/**
+ * True when the body parses to at least one node: the same predicate `tree`
+ * renders by, so a marker can never promise a tree the command refuses.
+ */
+export function hasDeliberationTree(body: string | undefined): boolean {
+  return parseDeliberation(body).length > 0;
+}
+
 /** Explicit Q:/A:, else children decide. */
 function typeOf(node: DeliberationNode): DeliberationType {
   if (node.type !== undefined) return node.type;

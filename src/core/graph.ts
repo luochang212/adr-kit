@@ -1,5 +1,6 @@
 import type { AdrRecord } from './adr.js';
-import { hasMeaningfulBody, section } from './adr.js';
+import { section } from './adr.js';
+import { hasDeliberationTree } from './deliberation.js';
 import { relativePath } from './repository.js';
 
 /** One decision in the graph; `title` keeps its "N " prefix. */
@@ -58,7 +59,7 @@ export function buildDecisionGraph(
       path: relativePath(record),
       references: [],
       tags: record.tags ?? [],
-      hasDeliberation: hasMeaningfulBody(section(record, 'Deliberation')),
+      hasDeliberation: hasDeliberationTree(section(record, 'Deliberation')),
     };
     if (record.supersededBy !== undefined) node.supersededBy = record.supersededBy;
     nodes.push(node);

@@ -172,9 +172,9 @@ error naming the conflicting flags.
 nodes and edges, in chronological columns grouped by `created`, with supersede
 and reference edges drawn distinctly, tag tinting, and retired styling. The
 document SHALL need no network and no CDN, SHALL link each node to its record
-file, and SHALL mark the nodes whose record carries a meaningful
-`## Deliberation` appendix without excluding them. Requesting `--html` with
-another format MUST fail naming the conflicting flags.
+file, and SHALL mark the nodes whose `## Deliberation` appendix parses to at
+least one node, without excluding them. Requesting `--html` with another
+format MUST fail naming the conflicting flags.
 
 #### Scenario: offline map
 
@@ -187,6 +187,12 @@ another format MUST fail naming the conflicting flags.
 - **WHEN** a decision carries a `## Deliberation` appendix
 - **THEN** its map node is marked `has-deliberation` and still included in the
   graph
+
+#### Scenario: a non-tree appendix is not marked
+
+- **WHEN** a record has a `## Deliberation` section that parses to no nodes
+- **THEN** its map node is not marked `has-deliberation`, matching `adrkit tree`
+  refusing to render it
 
 #### Scenario: conflicting flags
 

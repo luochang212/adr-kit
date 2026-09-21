@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
 import { graphCommand } from '../src/commands/graph.js';
+import { treeCommand } from '../src/commands/tree.js';
 import { initCommand } from '../src/commands/init.js';
 import { buildDecisionGraph } from '../src/core/graph.js';
 import { listRecords } from '../src/core/repository.js';
@@ -378,6 +379,17 @@ describe('graph HTML map', () => {
     const html = graphCommand(root, { html: true });
     expect(html).toContain('Bold &amp; &lt;markup&gt;');
     expect(html).not.toContain('<markup>');
+  });
+
+  it('marks only appendices that parse to a tree, matching the tree command', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'Prose', { date: '2026-08-17', deliberation: 'Prose only, no bullet tree.' });
+    writeDecision(root, 2, 'Tree', { date: '2026-08-17', deliberation: '- Q: Which store? [settled]\n  - A: SQLite [settled]' });
+    const html = graphCommand(root, { html: true });
+    expect(html).toContain('data-adr="1" data-has-deliberation="false"');
+    expect(html).toContain('data-adr="2" data-has-deliberation="true"');
+    expect(() => treeCommand('1', root, 'html')).toThrow(/no "## Deliberation" tree/);
+    expect(treeCommand('2', root, 'html')).toContain('<!doctype html>');
   });
 
   it('exposes --html through main and rejects it beside another format', () => {
