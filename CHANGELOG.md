@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.10.0
+
+### Minor Changes
+
+- 6595b21: Give both offline HTML views one shared interactive canvas: pan, zoom,
+  fit-to-view, 1:1, and keyboard navigation, with a trackpad pinch zoom anchored
+  at the pointer. `adrkit graph --html` becomes an interactive decision map
+  rather than a static picture, and `adrkit tree --html` gains the
+  pointer-anchored pinch. Inside the canvas, Ctrl/⌘ + scroll now zooms the canvas
+  instead of the browser; browser zoom still works outside it. See ADR 11.
+- b79fff0: Render `adrkit graph --html` as an offline, self-contained decision map: a
+  bespoke static layout with supersede and reference edges, creation-date
+  columns, and tag tinting. Nodes link to their record and mark the records that
+  carry a `## Deliberation` tree. The grilling skill routes a single-decision
+  request to `tree --html` and a whole-set request to `graph --html`. See ADR 9.
+- 3af59c1: Add an annotated `## Deliberation` grammar and a richer tree view. A node can
+  carry a `Q:`/`A:` type, a `[settled]`/`[rejected]`/`[open]` state, a
+  `(recommended)` marker on the option the agent recommended, and a ` — reason`.
+  `adrkit tree` renders distinct root, question, and option shapes with state
+  colors, marks the recommended option, and marks a question whose settled option
+  is not the recommendation as an override. `adrkit tree <name> --html` emits a
+  single self-contained HTML document.
+- 6daff41: Record dependency in the `## Deliberation` appendix by nesting: a follow-up
+  question is a child of the node whose settlement raised it, so related questions
+  run deeper and unrelated ones stay flat. `adrkit tree` styles the edge that
+  raised each follow-up question so the tree's depth reads as the frontier, wraps
+  long labels, and shows a legend in the `--html` view.
+- 6daff41: Render `adrkit tree --html` as an offline interactive card tree with expandable
+  options, dependency edges, branch folding, pan and zoom, and keyboard controls.
+  The grilling skill generates this view only when requested and delivers a file
+  link by default. Markdown remains the source; text and Mermaid exports remain
+  available. See ADR 8.
+
+### Patch Changes
+
+- 42f4a63: `adrkit validate` now reports a record body that references a decision number
+  which does not exist (`ADR-N` / `ADR N`). Previously such a reference was
+  silently dropped by `adrkit graph` and never failed validation, leaving a dead
+  cross-reference in an immutable record.
+- 8bcf046: `adrkit graph` no longer substitutes a decision's status date for a missing
+  `created` field. The record format requires `created` and `validate` already
+  rejects a record without it, so the view now names the invalid record instead of
+  grouping it under a fabricated birth date.
+
 ## 0.9.0
 
 ### Minor Changes
