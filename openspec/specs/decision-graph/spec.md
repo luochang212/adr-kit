@@ -171,16 +171,23 @@ error naming the conflicting flags.
 `adrkit graph --html` SHALL emit one self-contained HTML document of the same
 nodes and edges, in chronological columns grouped by `created`, with supersede
 and reference edges drawn distinctly, tag tinting, and retired styling. The
-document SHALL need no network and no CDN, SHALL link each node to its record
-file, and SHALL mark the nodes whose `## Deliberation` appendix parses to at
-least one node, without excluding them. Requesting `--html` with another
-format MUST fail naming the conflicting flags.
+document SHALL need no network and no CDN, SHALL be an interactive canvas
+(pan, zoom, fit-to-view, 1:1, and keyboard navigation, with a trackpad pinch
+zoom anchored at the pointer), SHALL link each node to its record file, and
+SHALL mark the nodes whose `## Deliberation` appendix parses to at least one
+node, without excluding them. Requesting `--html` with another format MUST fail
+naming the conflicting flags.
 
 #### Scenario: offline map
 
 - **WHEN** `adrkit graph --html` runs
 - **THEN** the output is one HTML document with an inline `svg` and no external
   script or stylesheet reference
+
+#### Scenario: pointer-anchored zoom
+
+- **WHEN** a trackpad pinch (a `ctrlKey` wheel event) arrives over a node
+- **THEN** the canvas zooms with that point staying under the pointer
 
 #### Scenario: deliberation marker
 

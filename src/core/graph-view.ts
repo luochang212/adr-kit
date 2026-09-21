@@ -180,4 +180,78 @@ footer {
   border-radius: 3px;
   background: #edf6ef
 }
+#world {
+  position: relative;
+  transform-origin: 0 0
+}
+.controls {
+  position: absolute;
+  bottom: 22px;
+  right: 24px;
+  display: none;
+  align-items: center;
+  padding: 5px;
+  gap: 3px;
+  background: #fff;
+  border: 1px solid #dce4dc;
+  border-radius: 11px;
+  box-shadow: 0 4px 20px #294d3e0a
+}
+.controls button {
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 6px 9px;
+  border-radius: 7px
+}
+.controls button:hover {
+  background: #edf3ef
+}
+.controls output {
+  font: 11px monospace;
+  width: 44px;
+  text-align: center
+}
+.hint {
+  position: absolute;
+  bottom: 25px;
+  left: 28px;
+  display: none;
+  color: #7a8a7f;
+  font-size: 11px;
+  background: #f6f8f5df;
+  padding: 7px;
+  border-radius: 5px
+}
+.interactive main {
+  height: calc(100dvh - 250px);
+  min-height: 420px;
+  padding: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  position: relative
+}
+.interactive #world {
+  position: absolute
+}
+.interactive .controls {
+  display: flex
+}
+.interactive .hint {
+  display: block
+}
+main.dragging {
+  cursor: grabbing
+}
+@media (max-width: 700px) {
+  .interactive main {
+    height: calc(100dvh - 240px)
+  }
+  .interactive .hint {
+    display: none
+  }
+}
 `;

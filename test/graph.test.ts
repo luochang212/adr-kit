@@ -358,7 +358,12 @@ describe('graph HTML map', () => {
     expect(html).toContain('class="edge supersede"');
     expect(html).toContain('href="adr/decisions/1-grilled.md"');
     expect(html).toContain('has deliberation tree');
-    expect(html).not.toContain('<script');
+    expect(html).toContain('id="viewport"');
+    expect(html).toContain('id="world"');
+    expect(html).toContain('id="fit"');
+    expect(html).toContain('event.ctrlKey');
+    expect(html).toContain('<script>');
+    expect(html).not.toMatch(/<script[^>]+src=/);
     expect(html).not.toContain('cdn');
   });
 

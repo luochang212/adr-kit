@@ -137,9 +137,10 @@ record bodies, grouped by the `created` date so decision bursts are visible
 without implying a continuous timeline. `--mermaid` (the default) renders
 natively on GitHub and tints active nodes by their first `tag`; `--dot`
 emits Graphviz; `--text` prints a terminal-friendly tree; `--html` emits one
-offline self-contained decision map, drawn with a bespoke static layout and no
-CDN or renderer bundle, that links each node to its record and marks the
-decisions carrying a `## Deliberation` tree. `--tag <tag>` filters to decisions
+offline self-contained decision map on a shared interactive canvas (drag or
+scroll to pan, zoom, fit-to-view, 1:1, keyboard, and a pointer-anchored
+trackpad pinch) with no CDN or renderer bundle, that links each node to its
+record and marks the decisions carrying a `## Deliberation` tree. `--tag <tag>` filters to decisions
 carrying that theme; `--formal-only` drops the mined edges. Note that `date` records the current status date, while `created` is
 the birth date.
 
@@ -169,8 +170,9 @@ reads as the frontier moving outward.
 Questions contain their chosen answers; other options and reasons expand in
 place. Follow-ups connect to the answer or question that raised them. The view
 supports folding branches, dragging or scrolling to pan, zoom buttons, 1:1 and
-fit-to-view, and keyboard navigation (focus the canvas, use arrows, +/−, or 0).
-State, recommendation, and override labels remain visible. No CDN is needed.
+fit-to-view, and keyboard navigation (focus the canvas, use arrows, +/−, or 0);
+a trackpad pinch (Ctrl/⌘ + scroll) zooms at the pointer. State, recommendation,
+and override labels remain visible. No CDN is needed.
 
 ```sh
 adrkit tree 7 --html > "adr-7.html"

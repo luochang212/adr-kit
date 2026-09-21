@@ -1,4 +1,5 @@
 import type { DeliberationNode } from './deliberation.js';
+import { CANVAS_HINT, CANVAS_SCRIPT, canvasControlsHTML } from './canvas-view.js';
 import { TREE_STYLE, TREE_SCRIPT } from './deliberation-view.js';
 
 interface Card {
@@ -89,10 +90,10 @@ export function renderCardTree(nodes: DeliberationNode[], title: string): string
 <section class="intro"><div><div class="eyebrow">DELIBERATION / DESIGN TREE</div><h1>${escapeHtml(title)}</h1><p>Follow the choices. See what each answer unlocked.</p></div>
 <div class="stats"><div><strong>${questionNumber}</strong><span>questions</span></div><div><strong>${cards.reduce((sum, card) => sum + card.options.length, 0)}</strong><span>options</span></div><div><strong>${cards.filter(overridden).length}</strong><span>overrides</span></div></div></section>
 <main id="viewport" tabindex="0" aria-label="Decision tree" aria-describedby="instructions"><div id="world"><svg id="edges" aria-hidden="true"></svg><div id="cards">${markup}</div></div>
-<div id="instructions" class="hint">Drag background or scroll to pan · Arrow keys to move · + / − to zoom · 0 to fit</div>
-<div class="controls js-control"><button id="minus" aria-label="Zoom out">−</button><output id="zoom" aria-label="Zoom level">100%</output><button id="plus" aria-label="Zoom in">+</button><button id="fit">Fit tree</button><button id="reset">1:1</button></div></main>
+<div id="instructions" class="hint">${CANVAS_HINT}</div>
+${canvasControlsHTML('Fit tree')}</main>
 <footer><span>ADR Kit / Deliberation</span><div class="legend"><span>✓ Selected answer</span><span>— Unlocked question</span><span class="override-key">● Human override</span></div></footer>
 <noscript><p class="no-script">JavaScript is disabled. All cards are shown in outline order; expand other options to read their reasons.</p></noscript>
-<script>${TREE_SCRIPT}</script>
+<script>${CANVAS_SCRIPT}${TREE_SCRIPT}</script>
 </body></html>\n`;
 }

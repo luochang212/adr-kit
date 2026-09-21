@@ -152,6 +152,11 @@ presented as settled.
 - **WHEN** the reader folds branches, expands options, pans, zooms, or fits the tree
 - **THEN** layout and edges update together; keyboard users can reach controls and move the canvas, and 1:1 restores readable text
 
+#### Scenario: pinch zoom follows the pointer
+
+- **WHEN** a trackpad pinch (a `ctrlKey` wheel event) arrives over a card
+- **THEN** the canvas zooms with the point under the pointer staying put
+
 #### Scenario: record text is untrusted
 
 - **WHEN** titles, questions, options, or reasons contain HTML or script-like text

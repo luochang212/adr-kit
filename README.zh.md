@@ -187,7 +187,7 @@ CLI 既不推断也不校验，只记录声明，所以它不能证明是谁自�
 棵树通常来自 `adrkit-grill` 工作流，它记录会话定下的每个决策。
 需要时让 AI 可视化指定决策，它会调用内置渲染器并提供 HTML 文件链接。
 HTML 不是 grilling 的默认交付，只有明确要求时才打开浏览器。
-整套决策可用 `adrkit graph --html` 渲染为离线决策地图，并标出带 deliberation 树的决策。
+整套决策可用 `adrkit graph --html` 渲染为可交互的离线决策地图，并标出带 deliberation 树的决策。
 用 `adrkit update` 更新已安装的技能。
 
 ```sh

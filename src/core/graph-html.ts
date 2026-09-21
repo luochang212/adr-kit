@@ -1,6 +1,7 @@
 import type { DecisionGraph, GraphEdge, GraphNode } from './graph.js';
 import { TAG_COLORS } from './graph.js';
 import { MAP_STYLE } from './graph-view.js';
+import { CANVAS_HINT, CANVAS_SCRIPT, canvasControlsHTML } from './canvas-view.js';
 
 const CARD_W = 248;
 const PAD_X = 16;
@@ -208,8 +209,12 @@ export function renderDecisionMapHtml(graph: DecisionGraph, title = 'Decision ma
     '<section class="intro"><div class="eyebrow">DECISIONS / RELATIONSHIP MAP</div><h1>' + escapeHtml(title) + '</h1>',
     '<p>Solid edges supersede; dashed edges are record references. Grouped by the date each decision was created.</p>',
     '<div class="stats">' + stats.map(([label, value]) => '<div class="stat"><strong>' + value + '</strong>' + label + '</div>').join('') + '</div></section>',
-    '<main>' + body + '</main>',
+    '<main id="viewport" tabindex="0" aria-label="Decision map" aria-describedby="instructions"><div id="world">' + body + '</div>',
+    '<div id="instructions" class="hint">' + CANVAS_HINT + '</div>',
+    canvasControlsHTML('Fit map'),
+    '</main>',
     '<footer><div class="legend"><span><i class="swatch"></i> superseded by</span><span><i class="swatch ref"></i> references</span><span><i class="swatch delib"></i> has deliberation tree</span></div></footer>',
+    '<script>' + CANVAS_SCRIPT + '</script>',
     '</body></html>',
     '',
   ];

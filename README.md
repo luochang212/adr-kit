@@ -206,7 +206,7 @@ nested under the node that raised it, so related questions run deeper and
 unrelated ones stay flat. Render it with `adrkit tree <name>` (text by default,
 `--mermaid` for a graph, `--html` for an offline interactive card tree). The
 `adrkit-grill` workflow produces that tree and records every decision the
-session settles. The whole set renders as an offline decision map with
+session settles. The whole set renders as an interactive offline decision map with
 `adrkit graph --html`, which marks the decisions that carry a tree. Ask your
 agent to visualize a recorded decision when needed;
 it uses the built-in renderer and returns an HTML file link. HTML is not a

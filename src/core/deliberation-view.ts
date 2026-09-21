@@ -376,8 +376,9 @@ main { height: auto; min-height: 0; overflow: auto; touch-action: auto; cursor: 
 // All record text is server-escaped HTML, never interpolated into this program.
 export const TREE_SCRIPT = String.raw`
 (() => {
-  const viewport = document.getElementById('viewport');
-  const world = document.getElementById('world');
+  const canvas = window.__adrCanvas;
+  if (!canvas) return;
+  const { viewport, world } = canvas;
   const svg = document.getElementById('edges');
   const allButton = document.getElementById('all');
   const cards = Array.from(document.querySelectorAll('.card'));
@@ -393,14 +394,6 @@ export const TREE_SCRIPT = String.raw`
     if (item.parentId) byId.get(item.parentId).children.push(item);
   }
   const collapsed = new Set();
-  let scale = 1, tx = 0, ty = 0;
-  let width = 0, height = 0, frame = 0;
-  document.body.classList.add('interactive');
-
-  function paint() {
-    world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
-    document.getElementById('zoom').value = Math.round(scale * 100) + '%';
-  }
 
   function updateVisibility(item, hidden) {
     item.card.hidden = hidden;
@@ -441,8 +434,8 @@ export const TREE_SCRIPT = String.raw`
       nextY += root.span + 36;
     }
     const visible = items.filter(item => !item.card.hidden);
-    width = visible.reduce((max, item) => Math.max(max, item.x + item.width), 0) + 28;
-    height = visible.reduce((max, item) => Math.max(max, item.y + item.height), 0) + 28;
+    const width = visible.reduce((max, item) => Math.max(max, item.x + item.width), 0) + 28;
+    const height = visible.reduce((max, item) => Math.max(max, item.y + item.height), 0) + 28;
     world.style.width = width + 'px';
     world.style.height = height + 'px';
     svg.setAttribute('width', width);
@@ -454,7 +447,7 @@ export const TREE_SCRIPT = String.raw`
       const source = item.anchor || parent.card.querySelector('.cardhead');
       const sourceRect = source.getBoundingClientRect();
       const parentRect = parent.card.getBoundingClientRect();
-      const startY = parent.y + (sourceRect.top - parentRect.top + sourceRect.height / 2) / scale;
+      const startY = parent.y + (sourceRect.top - parentRect.top + sourceRect.height / 2) / canvas.scale;
       const startX = parent.x + parent.width;
       const endX = item.x, endY = item.y + Math.min(65, item.height / 2);
       const midpoint = (startX + endX) / 2;
@@ -477,29 +470,9 @@ export const TREE_SCRIPT = String.raw`
     allButton.textContent = details.length && details.every(detail => detail.open)
       ? 'Collapse all options' : 'Expand all options';
     allButton.disabled = details.length === 0;
-    paint();
+    canvas.paint();
   }
-
-  function scheduleLayout() {
-    if (frame) return;
-    frame = requestAnimationFrame(() => { frame = 0; layout(); });
-  }
-
-  function fit() {
-    scale = Math.min(1, (viewport.clientWidth - 48) / width, (viewport.clientHeight - 88) / height);
-    tx = (viewport.clientWidth - width * scale) / 2;
-    ty = Math.max(16, (viewport.clientHeight - height * scale - 45) / 2);
-    paint();
-  }
-
-  function zoom(factor) {
-    const next = Math.max(Math.min(scale, .05), Math.min(2, scale * factor));
-    const x = viewport.clientWidth / 2, y = viewport.clientHeight / 2;
-    tx = x - (x - tx) * next / scale;
-    ty = y - (y - ty) * next / scale;
-    scale = next;
-    paint();
-  }
+  window.__adrCanvasLayout = layout;
 
   for (const item of items) {
     const button = item.card.querySelector('.branch');
@@ -512,70 +485,19 @@ export const TREE_SCRIPT = String.raw`
       const before = item.card.getBoundingClientRect();
       layout();
       const after = item.card.getBoundingClientRect();
-      tx += before.left - after.left;
-      ty += before.top - after.top;
-      paint();
+      canvas.addPan(before.left - after.left, before.top - after.top);
     });
   }
-  for (const detail of document.querySelectorAll('.alts')) detail.addEventListener('toggle', scheduleLayout);
+  for (const detail of document.querySelectorAll('.alts')) detail.addEventListener('toggle', () => canvas.schedule());
   allButton.addEventListener('click', () => {
     const details = Array.from(document.querySelectorAll('.alts'));
     const open = !details.every(detail => detail.open);
     details.forEach(detail => { detail.open = open; });
     layout();
   });
-  document.getElementById('plus').onclick = () => zoom(1.2);
-  document.getElementById('minus').onclick = () => zoom(1 / 1.2);
-  document.getElementById('fit').onclick = fit;
-  document.getElementById('reset').onclick = () => zoom(1 / scale);
 
-  let drag = null;
-  viewport.addEventListener('pointerdown', event => {
-    if (event.button !== 0 || event.target.closest('.card, .controls')) return;
-    drag = { x: event.clientX, y: event.clientY, id: event.pointerId };
-    viewport.setPointerCapture(event.pointerId);
-    viewport.classList.add('dragging');
-  });
-  viewport.addEventListener('pointermove', event => {
-    if (!drag || drag.id !== event.pointerId) return;
-    tx += event.clientX - drag.x;
-    ty += event.clientY - drag.y;
-    drag.x = event.clientX;
-    drag.y = event.clientY;
-    paint();
-  });
-  for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-    viewport.addEventListener(name, () => { drag = null; viewport.classList.remove('dragging'); });
-  }
-  viewport.addEventListener('wheel', event => {
-    // Leave browser zoom and accessibility magnification available.
-    if (event.ctrlKey || event.metaKey) return;
-    event.preventDefault();
-    tx -= event.deltaX;
-    ty -= event.deltaY;
-    paint();
-  }, { passive: false });
-  viewport.addEventListener('keydown', event => {
-    if (event.target !== viewport) return;
-    const actions = {
-      ArrowLeft: () => { tx += 50; }, ArrowRight: () => { tx -= 50; },
-      ArrowUp: () => { ty += 50; }, ArrowDown: () => { ty -= 50; },
-      '+': () => zoom(1.2), '=': () => zoom(1.2), '-': () => zoom(1 / 1.2), '0': fit
-    };
-    if (actions[event.key]) { event.preventDefault(); actions[event.key](); paint(); }
-  });
-  viewport.addEventListener('focusin', event => {
-    if (!event.target.closest('.card')) return;
-    const target = event.target.getBoundingClientRect();
-    const view = viewport.getBoundingClientRect();
-    if (target.left < view.left || target.right > view.right || target.top < view.top || target.bottom > view.bottom - 70) {
-      tx += view.left + view.width / 2 - (target.left + target.width / 2);
-      ty += view.top + view.height / 2 - (target.top + target.height / 2);
-      paint();
-    }
-  });
-  window.addEventListener('resize', () => { layout(); fit(); });
   layout();
-  fit();
+  canvas.fit();
 })();
+
 `;
