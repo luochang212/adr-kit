@@ -47,8 +47,9 @@ to promote it or `adrkit reject "<title>"` to discard it.
   promote is missing a required section.
 - Drafts carry dates; decision numbers are assigned only at accept time.
 - A decision may carry an optional `## Deliberation` appendix, the design tree
-  behind it as a nested list; `adrkit tree <name>` renders it as text or
-  `--mermaid` as a graph.
+  behind it as a nested list where a follow-up question is nested under the
+  node that raised it; `adrkit tree <name>` renders it as text, `--mermaid` as
+  a graph, or `--html` as an offline interactive card tree.
 - Rejection is not a record: it lives in the winner's `Alternatives
   considered`.
 - AI tool integrations (`adrkit init --tools`): claude, codex, cursor,
