@@ -27,17 +27,17 @@ Tracks which adr-kit wrote a repository's installed agent integrations, so a CLI
 
 ### Requirement: Drift notice
 
-`adrkit list` and `adrkit instructions` SHALL compare the stamp against the running CLI and append a one-line note when the installed integrations were written by a different version: a newer CLI SHALL suggest `adrkit update` to refresh the skills, and an older running CLI SHALL say that it is older. `adrkit config` SHALL report the stamp. `adrkit validate` SHALL NOT print the notice.
+`adrkit list` and `adrkit instructions` SHALL compare the stamp against the running CLI and append a one-line note when the installed integrations were written by a different version: a newer CLI SHALL suggest `adrkit update` to refresh the skills, and an older running CLI SHALL say to upgrade adr-kit to at least the version that wrote the integrations. `adrkit config` SHALL report the stamp. `adrkit validate` SHALL NOT print the notice.
 
 #### Scenario: a newer CLI suggests update
 
 - **WHEN** the stamp names an older version than the running CLI
 - **THEN** `list` and `instructions` append a note that names `adrkit update`
 
-#### Scenario: an older running CLI names the mismatch
+#### Scenario: an older running CLI names the mismatch and the upgrade
 
 - **WHEN** the stamp names a newer version than the running CLI
-- **THEN** the note says the repository was configured by the newer version and that this CLI is older
+- **THEN** the note says the repository was configured by the newer version, that this CLI is older, and to upgrade adr-kit to at least that version
 
 #### Scenario: equal versions stay quiet
 

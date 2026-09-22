@@ -172,7 +172,10 @@ function semver(value: string): [number, number, number] | undefined {
 
 /**
  * The one-line drift notice for a repository whose integrations were written
- * by a different adr-kit than the one now running. Quiet — `undefined` — when
+ * by a different adr-kit than the one now running. The newer side suggests
+ * `adrkit update`; the older side directs to upgrading the package instead,
+ * because running `adrkit update` there would rewrite the newer installed
+ * skills with this CLI's older templates. Quiet — `undefined` — when
  * there is nothing honest to say: no stamp (repositories configured before it
  * existed), an explicit integrations opt-out, equal versions, or a version
  * either side cannot parse.
@@ -193,7 +196,7 @@ export function installedWithNotice(
     ? `note: the installed integrations were written by adr-kit ${installed}; this is ` +
         `${currentVersion} - run "adrkit update" to refresh them`
     : `note: this repository was configured by adr-kit ${installed}; you are running ` +
-        `${currentVersion}, which is older`;
+        `${currentVersion}, which is older - upgrade adr-kit to at least ${installed}`;
 }
 
 /** Append the drift notice to a command's output as its own paragraph. */

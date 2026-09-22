@@ -657,10 +657,12 @@ describe('integration drift: installed-with stamp and notice', () => {
     expect(instructionsCommand(root)).toContain('run "adrkit update"');
   });
 
-  it('an older CLI than the stamp says so', () => {
+  it('an older CLI than the stamp is told to upgrade adr-kit, never to update', () => {
     const root = makeRepo();
     editConfig(root, SET_STAMP('99.0.0'));
     expect(listCommand(root)).toContain('which is older');
+    expect(listCommand(root)).toContain('upgrade adr-kit to at least 99.0.0');
+    expect(instructionsCommand(root)).toMatch(/older - upgrade adr-kit to at least 99\.0\.0/);
   });
 
   it('no note when the stamp matches the running version', () => {

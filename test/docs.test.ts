@@ -161,12 +161,18 @@ describe('the CLI reference signatures agree with each other and with the CLI', 
     }
   });
 
-  it('does not promise the stale-install note names an upgrade', () => {
-    // The older-CLI note only reports that it is older: the running CLI has
-    // no way to know an upgrade target. The reference once promised it
-    // "names the upgrade" / "则提示升级".
-    expect(readDoc('cli.md')).not.toContain('names the upgrade');
-    expect(readDoc('zh/cli.md')).not.toContain('则提示升级');
+  it('sends an older CLI to upgrade adr-kit, never to adrkit update', () => {
+    // An older CLI running `adrkit update` would rewrite the newer installed
+    // skills with older templates, so its remedy is upgrading the package
+    // itself. The reference once promised "names the upgrade" while the note
+    // only said it was older; the note now names the upgrade and the pins
+    // follow both languages.
+    expect(readDoc('cli.md').replace(/\s+/g, ' ')).toContain(
+      'an older one says to upgrade adr-kit to at least the version that wrote them',
+    );
+    expect(readDoc('zh/cli.md').replace(/\s+/g, '')).toContain(
+      '则提示升级adr-kit，至少升到写入集成的版本',
+    );
   });
 });
 

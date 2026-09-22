@@ -106,7 +106,7 @@ accepted 决策；中间记录可以是 superseded。
 即为全集）与 `rules`。`init` 和 `update` 还会盖 `installed-with` 章，记录最后
 写入集成文件的 adr-kit 版本；`list` 和 `instructions` 拿它与当前 CLI 比较，
 不一致时附一行提示——CLI 更新时建议 `adrkit update` 刷新已装技能，CLI 更旧
-则只提示版本落后。早于该章存在的仓库保持沉默。
+则提示升级 adr-kit，至少升到写入集成的版本。早于该章存在的仓库保持沉默。
 
 ### `adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]`
 

@@ -131,8 +131,9 @@ when the key is absent), and `rules`. `init` and `update` also stamp
 `installed-with`, the adr-kit version that last wrote the integrations.
 `list` and `instructions` compare that stamp against the running CLI and
 append a one-line note when they differ: a newer CLI suggests
-`adrkit update` to refresh the installed skills, an older one only says it is
-older. Repositories configured before the stamp existed stay quiet.
+`adrkit update` to refresh the installed skills, an older one says to upgrade
+adr-kit to at least the version that wrote them. Repositories configured
+before the stamp existed stay quiet.
 
 ### `adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]`
 
