@@ -188,9 +188,66 @@ presented as settled.
 - **WHEN** a settled option on the root card raises a follow-up question
 - **THEN** the edge from that option to the question is styled as the frontier step, matching the Mermaid renderer
 
+### Requirement: Exception-only state labels
+
+A card SHALL draw a state label only when its state is an exception to
+`settled`: `open`, `rejected`, or no recorded state. A settled card SHALL draw
+no state label, because its chosen answer already states the outcome, and the
+option blocks carry their own state badges. Every card SHALL keep its state as a
+data attribute whether or not a label is drawn, so edge styling and layout read
+the same value. A folded option SHALL write its state as plain text rather than
+as a chip. Each card SHALL carry whether its incoming edge is an unlocked one,
+so the drawn edge and the legend read one answer instead of each deciding for
+itself.
+
+The view SHALL draw exactly two edge styles: the gray dependency stroke for
+every recorded link, and the green frontier stroke for a follow-up that a
+settled choice unlocked.
+
+The legend SHALL quote only what the picture draws: an entry appears when the
+view contains the symbol that entry points at, and the panel itself SHALL NOT be
+drawn when the legend has no entries. The override key waits for a question that
+took other than the recommended option, the selected-answer key for a settled
+option, and each exception state waits for a card that draws its chip. An edge
+key SHALL carry a line sample drawn in the stroke it names, and SHALL wait for
+that stroke: the dependency key for any recorded link, the frontier key for an
+edge the view styles as a frontier step.
+
+#### Scenario: a settled question draws no state label
+
+- **WHEN** every question in the tree is settled
+- **THEN** no card draws a state label, and each card still carries its state for the layout and edge styling
+
+#### Scenario: an unsettled or untagged question draws its state
+
+- **WHEN** a question is `[open]`, `[rejected]`, or carries no state marker
+- **THEN** that card draws the `open`, `rejected`, or `unrecorded` label and the legend explains what it means
+
+#### Scenario: the legend keys only what the page draws
+
+- **WHEN** the tree contains no answer that overrode a recommendation, no edge styled as a frontier step, or no card that draws an exception chip
+- **THEN** the legend omits that key rather than sending the reader to look for a symbol that is not there
+- **AND** a tree whose picture supports no entry at all draws no legend panel
+
+#### Scenario: an edge key samples the line it names
+
+- **WHEN** the tree draws dependency links and no unlocked one
+- **THEN** the legend carries a gray line sample naming the dependency link and no frontier key
+- **AND** once a settled choice raises a follow-up, the green frontier sample joins it
+
+#### Scenario: a folded option is plain text
+
+- **WHEN** an option is rejected, open, or untagged and sits inside a collapsed disclosure
+- **THEN** its state reads as text beside the option, with no chip, and adds no key to the legend
+
+#### Scenario: one unlock rule for the picture and the legend
+
+- **WHEN** a follow-up question hangs under a settled option of the root card
+- **THEN** its card carries the unlocked flag, the drawn edge is styled as a frontier step, and the legend keys it
+
 ### Requirement: On-demand visualization delivery
 
-The installed grilling skill SHALL route requests to visualize an existing
+The installed `adrkit-visualize` skill SHALL route requests to visualize an existing
 record directly to the built-in renderer, without starting a new grilling
 session. HTML SHALL NOT be a default session deliverable. Markdown remains the
 source; agents SHALL NOT invent missing trees or replace the maintained view
@@ -199,9 +256,33 @@ with ad hoc generated HTML.
 #### Scenario: user asks to visualize a record
 
 - **WHEN** the user asks for a visualization of an ADR with a deliberation tree
-- **THEN** the agent generates HTML and returns a clickable file link, opening a browser only on an explicit request
+- **THEN** the agent generates HTML and returns a clickable file link, opening the generated file in the default browser unless the user asks for a file only or says not to open it; if opening is unavailable or fails, the agent explains and retains the link
 
 #### Scenario: user completes grilling without asking for a visualization
 
 - **WHEN** the session completes and the user has not requested a visualization
 - **THEN** the agent records and validates the decision without generating HTML
+
+### Requirement: Compact canvas toolbar
+
+The offline HTML view SHALL keep its title and the Info disclosure in one
+compact header, with the canvas filling the remaining viewport height. A legend
+panel SHALL float over the canvas's bottom-left corner carrying the view's
+legend, and the zoom controls SHALL float over the bottom-right corner; neither
+panel SHALL resize the canvas. Long titles SHALL truncate in the header and
+remain fully readable in the Info disclosure, which SHALL list the labeled
+statistics and the gesture instructions, and SHALL list a statistic only when
+its count is non-zero.
+
+#### Scenario: viewing a large diagram
+
+- **WHEN** the view loads on a desktop viewport
+- **THEN** one compact toolbar precedes the canvas, with no separate title, statistics, or footer rows
+- **AND** the legend panel and the zoom controls float over the canvas without resizing it
+- **AND** opening Info overlays the canvas without resizing it
+
+#### Scenario: narrow viewport and keyboard access
+
+- **WHEN** the viewport narrows
+- **THEN** the toolbar may wrap, all controls remain reachable, and the canvas fills the remaining space
+- **AND** Info can be opened with the keyboard and closed with Escape

@@ -42,7 +42,9 @@ adrkit tree <name> --html > "decision.html"  # 离线交互卡片树
 adrkit graph --html > "map.html"      # 整套决策的离线地图
 ```
 
-仅在用户要求可视化时生成 HTML，默认提供文件链接；明确要求时才打开浏览器。
+`adrkit-visualize` 负责查看已有记录，`adrkit-grill` 负责追问与记录。
+仅在用户要求可视化时生成 HTML，主动用默认浏览器打开并提供文件链接；
+用户要求只生成文件或不要打开时不打开。无法打开时说明原因并保留链接。
 技能调用内置渲染器，保证不同 AI 交付相同的布局与交互。
 
 整套决策用 `adrkit graph --html` 渲染为离线决策地图，标出带树的决策，每个节点
@@ -90,8 +92,8 @@ adrkit supersede 1 --by 2
 `superseded-by: 2`。只改写 front matter；正文是冻结历史。记录的 `raised-by`
 与 `decided-by` 值都会被保留而不是替换：它们记录当初是谁把决策提上台面、
 谁的判断定下了它——"谁"指选择的**来源**，不是谁执行的命令——而不是谁退役了它。
-`validate` 会校验被引用的编号存在且自身未被取代，所以链条总是
-终止于当前仍被接受的决策。
+`validate` 沿替代链检查，拒绝缺失引用和循环，并要求终点为 accepted 决策。
+执行 `adrkit supersede 2 --by 3` 可将 `1 → 2` 延续为 `1 → 2 → 3`，记录 1 保持不变。
 
 ## 编码前查阅决策
 

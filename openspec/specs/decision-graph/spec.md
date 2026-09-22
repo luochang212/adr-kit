@@ -205,3 +205,73 @@ naming the conflicting flags.
 
 - **WHEN** `adrkit graph --html --mermaid` runs
 - **THEN** the command exits non-zero with an error naming both flags
+
+### Requirement: Dedicated visualization workflow
+
+The installed `adrkit-visualize` skill SHALL route whole-set visualization
+requests to `adrkit graph --html`, independently of the grilling workflow.
+It SHALL open successfully generated HTML in the default browser and return a
+file link, unless the user requests a file only or no browser opening. If opening
+is unavailable or fails, it SHALL explain and retain the file link.
+
+#### Scenario: user asks to visualize all ADRs
+
+- **WHEN** the user requests a visualization of the whole decision set
+- **THEN** the visualization workflow renders the map without starting a grilling session or creating records
+
+### Requirement: Compact canvas toolbar
+
+The offline HTML view SHALL keep its title and the Info disclosure in one
+compact header, with the canvas filling the remaining viewport height. A legend
+panel SHALL float over the canvas's bottom-left corner carrying the view's
+legend, and the zoom controls SHALL float over the bottom-right corner; neither
+panel SHALL resize the canvas. Long titles SHALL truncate in the header and
+remain fully readable in the Info disclosure, which SHALL list the labeled
+statistics and the gesture instructions, and SHALL list a statistic only when
+its count is non-zero.
+
+The legend SHALL quote only what the map draws: the supersede key waits for a
+supersede edge, the reference key for a reference edge, and the deliberation key
+for a marked node. A map whose picture supports no entry SHALL draw no legend
+panel.
+
+#### Scenario: viewing a large diagram
+
+- **WHEN** the view loads on a desktop viewport
+- **THEN** one compact toolbar precedes the canvas, with no separate title, statistics, or footer rows
+- **AND** the legend panel and the zoom controls float over the canvas without resizing it
+- **AND** opening Info overlays the canvas without resizing it
+
+#### Scenario: a map with nothing to key
+
+- **WHEN** no decision supersedes another, none references another, and none carries a deliberation tree
+- **THEN** the map draws no legend panel rather than keys for marks it does not draw
+- **AND** the Info panel lists only the counts the map supports
+
+#### Scenario: narrow viewport and keyboard access
+
+- **WHEN** the viewport narrows
+- **THEN** the toolbar may wrap, all controls remain reachable, and the canvas fills the remaining space
+- **AND** Info can be opened with the keyboard and closed with Escape
+
+### Requirement: Map links resolve from the file's own location
+
+`adrkit graph --out <path>` SHALL write the output to `<path>` and resolve each
+map node's record link against that file: a repository-relative path while the
+map is written inside the repository, and an absolute `file://` URL when it is
+written outside it. Redirecting stdout SHALL keep record-relative links.
+
+#### Scenario: map written to a temporary directory
+
+- **WHEN** `adrkit graph --html --out /tmp/decisions.html` runs
+- **THEN** the file is written and every node link is an absolute `file://` URL to its record
+
+#### Scenario: map written inside the repository
+
+- **WHEN** the map is written into a subdirectory of the repository
+- **THEN** every node link is relative to that subdirectory and resolves to the record
+
+#### Scenario: a destination whose directory is missing
+
+- **WHEN** `--out` names a path whose directory does not exist
+- **THEN** the command exits non-zero and writes nothing

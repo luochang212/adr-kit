@@ -112,7 +112,7 @@ adrkit version                         查看版本
 > 副本；这个例外我们一直背到 Anthropic 采纳标准为止。
 
 > [!TIP]
-> 集成默认安装全部八个工作流技能。只记录决策的小仓库可传
+> 集成默认安装全部九个工作流技能。只记录决策的小仓库可传
 > `--workflows init,decide,validate` 装精简子集；选择会写入
 > `adr/config.yaml`，`adrkit update` 会保持，`--workflows all` 恢复全套。
 
@@ -175,7 +175,8 @@ CLI 既不推断也不校验，只记录声明，所以它不能证明是谁自�
 - **Superseded** 决策保留在 `adr/decisions/` 作为历史，front matter 指向
   取代它的决策：`status: superseded` 加 `superseded-by: N`。
   `adrkit supersede <旧> --by <新>` 完成改写；
-  `validate` 校验 `N` 存在且自身未被取代。
+  `validate` 沿完整替代链检查引用均存在、没有循环，且最终到达 accepted 决策；
+  保留各次替代的历史链接。
 
 `adrkit accept` 会自动完成生命周期迁移所要求的改写：`## Proposal` 改为
 `## Decision`，`Acceptance criteria` 与 `Risks` 合并进 `## Consequences`。
@@ -185,8 +186,9 @@ CLI 既不推断也不校验，只记录声明，所以它不能证明是谁自�
 后续问题嵌在提出它的节点之下，因此相关问题更深、无关问题平铺。用 `adrkit tree
 <name>` 渲染（默认文本，加 `--mermaid` 输出图形，加 `--html` 输出离线交互卡片树）。这
 棵树通常来自 `adrkit-grill` 工作流，它记录会话定下的每个决策。
-需要时让 AI 可视化指定决策，它会调用内置渲染器并提供 HTML 文件链接。
-HTML 不是 grilling 的默认交付，只有明确要求时才打开浏览器。
+需要时让 AI 用 `adrkit-visualize` 可视化指定决策或整套决策。它会调用内置渲染器，主动用默认浏览器打开，
+并提供 HTML 文件链接。明确要求“只生成文件”或“不要打开”时不打开浏览器；
+无法打开时会说明原因并保留链接。HTML 不是 grilling 的默认交付。
 整套决策可用 `adrkit graph --html` 渲染为可交互的离线决策地图，并标出带 deliberation 树的决策。
 用 `adrkit update` 更新已安装的技能。
 

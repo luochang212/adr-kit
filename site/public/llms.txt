@@ -54,6 +54,9 @@ to promote it or `adrkit reject "<title>"` to discard it.
   `adrkit graph --html`: one self-contained file with supersede and reference
   edges grouped by creation date, marking the decisions that carry a
   deliberation tree and linking each node to its record.
+- `adrkit-grill` questions and records decisions; `adrkit-visualize` renders
+  existing trees or the whole decision map and opens HTML in the default browser
+  on request, with a file link and a file-only opt-out.
 - Rejection is not a record: it lives in the winner's `Alternatives
   considered`.
 - AI tool integrations (`adrkit init --tools`): claude, codex, cursor,

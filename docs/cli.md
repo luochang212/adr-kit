@@ -20,8 +20,8 @@ the vendor-neutral convention every mainstream agent reads. `--tools claude`
 additionally installs `.claude/` copies for Claude Code (the one agent that
 does not read `.agents/`); `--tools none` installs nothing.
 
-`--workflows <list>` installs a subset of the eight workflow skills
-(`init, grill, propose, decide, validate, accept, reject, supersede`) instead
+`--workflows <list>` installs a subset of the nine workflow skills
+(`init, grill, visualize, propose, decide, validate, accept, reject, supersede`) instead
 of all of them, useful for small repositories that only exercise the
 decide/validate path. Entries may carry the `adrkit-` prefix;
 `--workflows all` is the explicit full set (also the default). The subset
@@ -112,8 +112,8 @@ needs work, so the next action is executable rather than a direction.
 
 Validate one record, or the whole repository when `name` is omitted or
 `--all` is given. Single-record validation also checks that a
-`superseded-by: N` reference points at an existing decision that is not
-itself superseded.
+`superseded-by: N` chain contains no missing targets or cycles and ends at an
+accepted decision. Intermediate superseded records are valid historical links.
 
 ### `adrkit update [--tools <list>] [--workflows <list>]`
 
@@ -129,7 +129,7 @@ Print the current `adr/config.yaml` configuration: `context`, `tools`, the
 effective `workflows` selection (the recorded subset, or the full default set
 when the key is absent), and `rules`.
 
-### `adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>]`
+### `adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]`
 
 Emit a relationship graph of the decisions: solid edges for formal
 `superseded-by` references, dashed edges for `ADR-N` mentions mined from
@@ -140,7 +140,18 @@ emits Graphviz; `--text` prints a terminal-friendly tree; `--html` emits one
 offline self-contained decision map on a shared interactive canvas (drag or
 scroll to pan, zoom, fit-to-view, 1:1, keyboard, and a pointer-anchored
 trackpad pinch) with no CDN or renderer bundle, that links each node to its
-record and marks the decisions carrying a `## Deliberation` tree. `--tag <tag>` filters to decisions
+record and marks the decisions carrying a `## Deliberation` tree with a pale
+green card fill. A Share button in either HTML view renders the whole diagram
+into a PNG on the client — the map's SVG serialized, the tree's cards
+rasterized — framed to the diagram's own shape: a heading written on the canvas
+above the diagram naming the view, its title, and its statistics, and a
+one-line footer fused into the bottom edge, crediting the GitHub mark and
+`luochang212/adr-kit` beside the date. It downloads the image and copies it
+when the browser allows, reporting both in a status line; nothing is uploaded,
+and where the file lands is the browser's choice, not the page's. `--out <path>` writes the output to a file instead of stdout;
+for the map it also resolves those node links against that location, so a map
+written outside the repository — a temporary directory, say — still opens its
+records, while one written inside it keeps relative, portable links. `--tag <tag>` filters to decisions
 carrying that theme; `--formal-only` drops the mined edges. Note that `date` records the current status date, while `created` is
 the birth date.
 
@@ -175,15 +186,30 @@ Questions contain their chosen answers; other options and reasons expand in
 place. Follow-ups connect to the answer or question that raised them. The view
 supports folding branches, dragging or scrolling to pan, zoom buttons, 1:1 and
 fit-to-view, and keyboard navigation (focus the canvas, use arrows, +/−, or 0);
-a trackpad pinch (Ctrl/⌘ + scroll) zooms at the pointer. State, recommendation,
-and override labels remain visible. No CDN is needed.
+a trackpad pinch (Ctrl/⌘ + scroll) zooms at the pointer. A view opens fitted to
+the width — readable first, panning a tall diagram rather than shrinking it to
+a thumbnail — and Fit shows the whole diagram at once. State, recommendation,
+and override labels remain visible. No CDN is needed. Both HTML views use a
+compact toolbar and give the remaining window height to the canvas: a legend
+panel floats over the canvas's bottom-left corner with the view's legend, and
+the zoom, 1:1, and fit-to-view buttons float over the bottom-right. The ADR
+Kit brand at the top left opens the repository in a new tab, so the viewer
+keeps its place. The toolbar ends with the icon-only Info disclosure, holding the full title, the
+labeled statistics, and the gesture hints, and the Share action that renders
+the view into a branded, watermarked PNG that names what the image is above
+the diagram and credits the repository below it. The button is a camera, since
+it makes a picture rather than sending one; a status line reports the saved
+file name and whether a copy reached the clipboard, and the download folder
+stays the browser's to choose.
 
 ```sh
 adrkit tree 7 --html > "adr-7.html"
 ```
 
-The command prints HTML to stdout and never opens a browser. The agent workflow
-exports only when visualization is requested and returns a file link by default.
+The command prints HTML to stdout and never opens a browser. The `adrkit-visualize` workflow
+exports only when visualization is requested, opens the result in the default
+browser, and returns a file link. An explicit file-only or no-open request skips
+opening; when opening is unavailable or fails, the agent explains and keeps the link.
 
 ```mermaid
 graph TD

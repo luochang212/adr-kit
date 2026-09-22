@@ -50,8 +50,12 @@ adrkit tree <name> --html > "decision.html"  # offline interactive card tree
 adrkit graph --html > "map.html"      # offline decision map for the whole set
 ```
 
-Generate HTML only when the user requests a visualization. Return a file link
-by default; open a browser only on an explicit request. The skill invokes the
+The `adrkit-visualize` skill handles viewing existing records independently of
+`adrkit-grill`, which handles questioning and recording. Generate HTML only
+when the user requests a visualization. Open the generated
+file in the default browser and return a file link, unless the user asks for a
+file only or says not to open it. If opening is unavailable or fails, explain
+and keep the link. The skill invokes the
 built-in renderer so different agents deliver the same layout and interactions.
 
 Render the whole decision set with `adrkit graph --html`, an offline decision
@@ -102,8 +106,9 @@ The old record stays in `adr/decisions/` with `status: superseded` and
 rewritten; the body is frozen history. The record's `raised-by` and
 `decided-by` values are preserved rather than replaced: they record who raised
 the original decision and whose judgment settled it, not who retired it.
-`validate` checks that the referenced number exists and is not itself
-superseded, so a chain always ends at a currently-accepted decision.
+`validate` follows the replacement chain, rejects missing targets and cycles,
+and requires an accepted terminal decision. To extend `1 → 2` to `1 → 2 → 3`,
+run `adrkit supersede 2 --by 3`; record 1 remains unchanged.
 
 ## Read decisions before coding
 

@@ -120,7 +120,7 @@ adrkit version                          Print the version
 > `.claude/` copies; an exception we carry until Anthropic adopts the standard.
 
 > [!TIP]
-> Every integration ships all eight workflow skills by default. A small
+> Every integration ships all nine workflow skills by default. A small
 > repository that only records decisions can pass
 > `--workflows init,decide,validate` to install a lean subset; the choice is
 > recorded in `adr/config.yaml`, `adrkit update` keeps it, and
@@ -193,7 +193,8 @@ stays in git.
   replacing decision in the front matter: `status: superseded` plus
   `superseded-by: N`.
   `adrkit supersede <old> --by <new>` performs the rewrite; `validate`
-  checks that `N` exists and is not itself superseded.
+  checks that the complete replacement chain exists, has no cycles, and
+  ends at an accepted decision. Historical links are preserved.
 
 `adrkit accept` performs the mechanical rewrite a lifecycle move always
 owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
@@ -208,9 +209,11 @@ unrelated ones stay flat. Render it with `adrkit tree <name>` (text by default,
 `adrkit-grill` workflow produces that tree and records every decision the
 session settles. The whole set renders as an interactive offline decision map with
 `adrkit graph --html`, which marks the decisions that carry a tree. Ask your
-agent to visualize a recorded decision when needed;
-it uses the built-in renderer and returns an HTML file link. HTML is not a
-default grilling deliverable, and a browser opens only on an explicit request.
+agent to visualize a recorded decision or the whole set with `adrkit-visualize`;
+it uses the built-in renderer, opens the result in your default browser, and
+returns an HTML file link. Ask for a file only to skip opening the browser. If
+opening is unavailable or fails, the agent explains and keeps the link. HTML is
+not a default grilling deliverable.
 Run `adrkit update` to refresh installed skills.
 
 ```sh

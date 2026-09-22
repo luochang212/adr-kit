@@ -120,8 +120,9 @@ superseded-by: 6
 ---
 ```
 
-`validate` checks that the referenced number exists and is not itself
-superseded. Superseded records stay in `adr/decisions/` as frozen history.
+`validate` follows the complete replacement chain: every target must exist,
+no number may repeat, and the chain must end at an accepted decision.
+Chains such as `1 → 2 → 3` are valid; historical links are never flattened. Superseded records stay in `adr/decisions/` as frozen history.
 
 ## Cross-references
 
@@ -146,8 +147,15 @@ when the tree also marks a recommended option and that child is not it, the
 question is shown as an override. `adrkit tree <name>` renders the tree as text by default, as mermaid
 with `--mermaid`, or as an offline interactive card tree with `--html`, styling the edge
 that raised each follow-up question. HTML groups a question and its selected
-answers in one card, with other options expandable; this is only a view and
-does not change the outline grammar. The tree is never stored as mermaid source.
+answers in one card, with other options expandable; a card chips its state only
+when that state is an exception (`open`, `rejected`, or untagged), since the
+chosen answer already reads as `settled`, while a folded option writes its state
+as plain text. It draws two edge styles: the gray link every dependency uses,
+and the green one a settled choice gives its follow-up. The legend keys only the
+symbols the picture draws, each edge key with a line sample in the stroke it
+names, and a view with nothing to key draws no legend at all. This is only a
+view and does not change the outline grammar. The tree is never stored as
+mermaid source.
 The task-start reading rule treats the appendix as reference material, read only
 when that decision is in play.
 
