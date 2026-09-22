@@ -33,7 +33,7 @@ const ui = {
 
     'stats.1.value': '1',
     'stats.1.label': 'directory in your repo',
-    'stats.2.value': '8',
+    'stats.2.value': '9',
     'stats.2.label': 'workflow skills',
     'stats.3.value': '0',
     'stats.3.label': 'dependencies added to your repo',
@@ -52,7 +52,7 @@ const ui = {
     'graph.eyebrow': 'Decision graph',
     'graph.title': 'A history you can look at',
     'graph.lead':
-      'One command turns the adr/ directory into a live map of your decisions: grouped by date, tinted by tag, linked by the references between them.',
+      'One command turns the adr/ directory into a live map of your decisions: grouped by date, tinted by tag, linked by the references between them. The map is one self-contained HTML file with a pan-and-zoom canvas, and any view — the map, or one decision\u2019s deliberation card tree — saves as a shareable image.',
     'graph.caption': 'Real graph topology from a production repository; titles generalized',
 
     'start.eyebrow': 'Get started',
@@ -83,7 +83,7 @@ const ui = {
       'It adds one adr/ directory: a config file, a README with the conventions, and a decisions/ folder. Ephemeral proposal drafts live in a gitignored adr/.drafts/ that the CLI creates on demand. Optionally, adrkit init --tools also writes skill files for your AI assistant (for example .claude/skills/). That is all: records are plain Markdown, there is no runtime dependency, no service, and no lock-in; delete the directory and everything is gone.',
     'faq.2.q': 'How do I use ADR Kit day to day?',
     'faq.2.a':
-      'Run adrkit decide "<title>" --raised-by human --decided-by human to record a decision that is already made; use adrkit propose "<title>" only when one still needs review. Fill in the required sections (Problem, Decision, Alternatives considered, Consequences) and run adrkit validate until it passes. If you proposed, adrkit accept "<title>" --raised-by human --decided-by human numbers the decision and promotes the draft into decisions/. Declare agent instead when the direction came from the agent\'s own judgment, including when a person only let it through. AI coding assistants can drive the same workflow through the installed skills: you review, they type.',
+      'Run adrkit decide "<title>" --raised-by human --decided-by human to record a decision that is already made; use adrkit propose "<title>" only when one still needs review. Fill in the required sections (Problem, Decision, Alternatives considered, Consequences) and run adrkit validate until it passes. If you proposed, adrkit accept "<title>" --raised-by human --decided-by human numbers the decision and promotes the draft into decisions/. Declare agent instead when the direction came from the agent\'s own judgment, including when a person only let it through. AI coding assistants can drive the same workflow through the installed skills: you review, they type. When you want to look at the records, ask for a visualization: one decision\u2019s deliberation renders as a card tree (adrkit tree), the whole set renders as a decision map (adrkit graph --html), and any view saves as a shareable PNG.',
     'faq.3.q': 'Can I use ADR Kit alongside tools like OpenSpec?',
     'faq.3.a':
       'Yes: they answer different questions. Spec-driven tools like OpenSpec track what you are building and how it changes; ADR Kit records why a technical direction was chosen and what was given up. Many teams run both: OpenSpec manages the change, and the pivotal choices inside it become ADRs. They live in separate directories and never conflict.',
@@ -110,7 +110,7 @@ const ui = {
 
     'stats.1.value': '1',
     'stats.1.label': '只占用一个目录',
-    'stats.2.value': '8',
+    'stats.2.value': '9',
     'stats.2.label': '个工作流技能',
     'stats.3.value': '0',
     'stats.3.label': '给你仓库新增的依赖',
@@ -127,7 +127,7 @@ const ui = {
 
     'graph.eyebrow': '决策图谱',
     'graph.title': '看得见的历史',
-    'graph.lead': '一条命令，把 adr/ 目录变成全部决策的地图：按日期分组、按标签着色、引用连成线。',
+    'graph.lead': '一条命令，把 adr/ 目录变成全部决策的地图：按日期分组、按标签着色、引用连成线。地图是单个自包含的 HTML 文件，画布可拖拽缩放；无论决策地图还是单条决策的卡片树，任意视图都能一键存成图片。',
     'graph.caption': '结构取自真实仓库，标题已做泛化',
 
     'start.eyebrow': '开始使用',
@@ -158,7 +158,7 @@ const ui = {
       '只添加一个 adr/ 目录：一个配置文件、一份写明约定的 README、一个 decisions/ 文件夹。临时提案草稿放在 gitignored 的 adr/.drafts/ 里，由 CLI 按需创建。如果执行 adrkit init --tools，还会为你的 AI 助手写入技能文件（例如 .claude/skills/）。仅此而已：记录是纯 Markdown，没有运行时依赖、没有服务、没有锁定；删掉目录就什么都不剩。',
     'faq.2.q': '日常如何在项目中使用 ADR Kit？',
     'faq.2.a':
-      '已做的决策直接运行 adrkit decide "<标题>" --raised-by human --decided-by human；只有仍需审议时才用 adrkit propose "<标题>"。填满必填章节（问题、决策、备选、后果），反复运行 adrkit validate 直到通过。如果走了提案，adrkit accept "<标题>" --raised-by human --decided-by human 为决策编号并把草稿提升进 decisions/；方向由 AI 自主判断得出时写 agent，人只是放行也写 agent。AI 编码助手可以通过安装的技能驱动同一流程：它动手，你审阅。',
+      '已做的决策直接运行 adrkit decide "<标题>" --raised-by human --decided-by human；只有仍需审议时才用 adrkit propose "<标题>"。填满必填章节（问题、决策、备选、后果），反复运行 adrkit validate 直到通过。如果走了提案，adrkit accept "<标题>" --raised-by human --decided-by human 为决策编号并把草稿提升进 decisions/；方向由 AI 自主判断得出时写 agent，人只是放行也写 agent。AI 编码助手可以通过安装的技能驱动同一流程：它动手，你审阅。想直观查看记录时，让 AI 渲染一张可视化图：单条决策的思辨过程渲染成卡片树（adrkit tree），全部决策渲染成决策地图（adrkit graph --html），任意视图都能一键存成图片。',
     'faq.3.q': 'ADR Kit 能与 OpenSpec 这类工具同时使用吗？',
     'faq.3.a':
       '可以，它们回答的是不同的问题。OpenSpec 这类规约驱动工具跟踪"在构建什么、如何变更"；ADR Kit 记录"为什么选这个技术方向、放弃了什么"。很多团队两者并用：OpenSpec 管理变更过程，其中的关键抉择落成 ADR。两者分处不同目录，互不冲突。',
