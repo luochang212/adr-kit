@@ -1,6 +1,6 @@
 import { RELATION_STYLE, RELATION_SCRIPT } from './relation-focus.js';
 import type { DeliberationNode } from './deliberation.js';
-import { isUnlockedQuestion } from './deliberation.js';
+import { isOverride, isUnlockedQuestion } from './deliberation.js';
 import { CANVAS_STYLE, CANVAS_SCRIPT, canvasHeaderHTML, canvasDockHTML } from './canvas-view.js';
 import { TREE_STYLE, TREE_SCRIPT } from './deliberation-view.js';
 import { SHARE_SCRIPT, SHARE_STYLE } from './share.js';
@@ -20,14 +20,6 @@ interface Card {
 
 function kindOf(node: DeliberationNode): 'question' | 'option' {
   return node.type ?? (node.children.length > 0 ? 'question' : 'option');
-}
-
-/** Only option children can be answers; a settled follow-up is not an answer. */
-function overridden(card: Card): boolean {
-  const chosen = card.options.filter(({ node }) => node.status === 'settled');
-  return card.kind === 'question' && chosen.length > 0
-    && card.options.some(({ node }) => node.recommended)
-    && !chosen.some(({ node }) => node.recommended);
 }
 
 function reason(node: DeliberationNode): string {
@@ -103,7 +95,7 @@ export function renderCardTree(nodes: DeliberationNode[], title: string): string
   const chipped = new Set<string>();
   const markup = cards.map((card) => {
     const { node, id, kind } = card;
-    const override = overridden(card);
+    const override = isOverride(card.node);
     const chosen = card.options.filter((option) => option.node.status === 'settled');
     const other = card.options.filter((option) => option.node.status !== 'settled');
     const status = node.status ?? 'unrecorded';
@@ -136,7 +128,7 @@ export function renderCardTree(nodes: DeliberationNode[], title: string): string
       ${card.children.length === 0 ? '' : `<button class="branch" aria-expanded="true" aria-controls="${card.children.join(' ')}" aria-label="${toggleLabel}">−</button>`}
     </article>`;
   }).join('\n');
-  const overrides = cards.filter(overridden).length;
+  const overrides = cards.filter((card) => isOverride(card.node)).length;
   const stats: Array<[string, number]> = [
     ['questions', questionNumber],
     ['options', cards.reduce((sum, card) => sum + card.options.length, 0)],
@@ -149,7 +141,7 @@ export function renderCardTree(nodes: DeliberationNode[], title: string): string
   const legend = [
     cards.some((card) => card.options.some(({ node }) => node.status === 'settled'))
       ? '<span data-share-selector=".card:not([hidden]) .answer">✓ Selected answer</span>' : '',
-    cards.some((card) => card.parent !== '') ? '<span data-share-selector="#edges path[data-unlocked=false]"><i class="edge-key"></i>Raised by</span>' : '',
+    cards.some((card) => card.parent !== '' && !card.unlocked) ? '<span data-share-selector="#edges path[data-unlocked=false]"><i class="edge-key"></i>Raised by</span>' : '',
     cards.some((card) => card.unlocked) ? '<span data-share-selector="#edges path[data-unlocked=true]"><i class="edge-key unlocked"></i>Unlocked question</span>' : '',
     overrides === 0 ? '' : '<span class="override-key" data-share-selector=".card:not([hidden]) .override">● Human override</span>',
     ...STATE_LEGEND

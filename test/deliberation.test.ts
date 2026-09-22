@@ -282,13 +282,43 @@ describe('offline card tree', () => {
     expect(html).toContain('Evidence');
   });
 
-  it('does not count a settled follow-up as an overridden answer', () => {
-    const html = renderDeliberationHtml(parseDeliberation([
+  it('does not count a settled follow-up as an overridden answer in any renderer', () => {
+    const nodes = parseDeliberation([
       '- Q: Undecided [open]',
       '  - A: Recommended [open] (recommended)',
       '  - Q: Related question [settled]',
-    ].join('\n')), 'Open');
+    ].join('\n'));
+    expect(renderDeliberationText(nodes)).not.toContain('(override)');
+    expect(renderDeliberationMermaid(nodes)).not.toContain('class n1 override');
+    const html = renderDeliberationHtml(nodes, 'Open');
     expect(html).not.toContain('Human override · recommendation not taken');
+  });
+
+  it('splits a reason on the first em dash separator', () => {
+    expect(parseDeliberation('- A: Use Postgres [rejected] — proven at scale — and cheap')).toEqual([{
+      text: 'Use Postgres',
+      type: 'option',
+      status: 'rejected',
+      reason: 'proven at scale — and cheap',
+      children: [],
+    }]);
+  });
+
+  it('leaves a bracketed state word inside prose as text', () => {
+    expect(parseDeliberation('- Note: the [open] state is documented')).toEqual([{
+      text: 'Note: the [open] state is documented',
+      children: [],
+    }]);
+  });
+
+  it('omits the dependency legend key when only frontier edges are drawn', () => {
+    const html = renderDeliberationHtml(parseDeliberation([
+      '- Root [settled]',
+      '  - A: Chosen [settled] (recommended)',
+      '    - Q: Raised by the root option? [open]',
+    ].join('\n')), 'Frontier only');
+    expect(html).toContain('data-share-selector="#edges path[data-unlocked=true]"');
+    expect(html).not.toContain('data-share-selector="#edges path[data-unlocked=false]"');
   });
 
   it('groups multiple roots under one label-only virtual card', () => {

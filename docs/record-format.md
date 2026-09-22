@@ -139,12 +139,14 @@ behind the choice, stored as a nested Markdown list. A node is
 a question or an option (inferred otherwise), `[settled]` / `[rejected]` /
 `[open]` is its state, `(recommended)` marks the option the agent recommended,
 and ` — <reason>` explains it. The em dash with surrounding spaces is the only
-separator, so a hyphen in the text stays text. Dependency is nesting: a
+separator, so a hyphen in the text stays text, and when it appears more than
+once the first one starts the reason. Dependency is nesting: a
 follow-up question is a
 child of the node whose settlement raised it, so related questions run deeper
-and unrelated ones stay flat. A question's answer is its `[settled]` child;
-when the tree also marks a recommended option and that child is not it, the
-question is shown as an override. `adrkit tree <name>` renders the tree as text by default, as mermaid
+and unrelated ones stay flat. A question's answer is its `[settled]` option
+child; a settled follow-up question is not an answer. When the tree also marks
+a recommended option and that option child is not it, the question is shown as
+an override. `adrkit tree <name>` renders the tree as text by default, as mermaid
 with `--mermaid`, or as an offline interactive card tree with `--html`, styling the edge
 that raised each follow-up question. HTML groups a question and its selected
 answers in one card, with other options expandable; a card chips its state only

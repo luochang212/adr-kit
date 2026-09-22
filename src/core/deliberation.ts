@@ -42,24 +42,28 @@ interface ParsedNode {
 }
 
 const BULLET = /^(\s*)-\s+(.*?)\s*$/;
-const STATUS = /\[(settled|rejected|open)\]/i;
+const STATUS = /\[(settled|rejected|open)\]\s*(?:\([^)]*\)\s*)*$/i;
 const RECOMMENDED = /\(recommended\)\s*$/i;
 const TYPE = /^([QA]):\s+/i;
 const EM_DASH = ' \u2014 ';
 
 /**
- * Split a trailing ` — reason` off the node text. The em dash with spaces is
- * the only separator the grammar reserves, which leaves a hyphen free for
- * prose: a ` - ` inside the text can never cut the state or the recommendation
- * into the reason.
+ * Split the node text from its ` — reason`. The em dash with surrounding spaces
+ * is the only separator the grammar reserves, which leaves a hyphen free for
+ * prose. The first separator starts the reason, so a reason that itself contains
+ * ` — ` stays whole instead of swallowing text into the split.
  */
 function splitReason(raw: string): { content: string; reason?: string } {
-  const emDash = raw.lastIndexOf(EM_DASH);
+  const emDash = raw.indexOf(EM_DASH);
   if (emDash === -1) return { content: raw };
   return { content: raw.slice(0, emDash).trimEnd(), reason: raw.slice(emDash + EM_DASH.length).trim() };
 }
 
-/** Parse one bullet from the end inward, so a reason never hides the status. */
+/**
+ * Parse one bullet in grammar order: the reason on the first separator, then a
+ * trailing `(recommended)`, then a trailing `[status]`. Only the trailing
+ * position is a marker, so a bracketed state word inside prose stays text.
+ */
 function parseNodeText(raw: string): ParsedNode | undefined {
   const split = splitReason(raw);
   let content = split.content;
@@ -73,7 +77,11 @@ function parseNodeText(raw: string): ParsedNode | undefined {
   const statusMatch = content.match(STATUS);
   if (statusMatch !== null && statusMatch.index !== undefined) {
     status = statusMatch[1]!.toLowerCase() as DeliberationStatus;
-    content = (content.slice(0, statusMatch.index) + content.slice(statusMatch.index + statusMatch[0].length)).trim();
+    // Remove only the token: a trailing unknown parenthetical such as a legacy
+    // (round N) stays in the text, and the spacing around the removed marker is
+    // not otherwise disturbed.
+    const token = statusMatch[0].slice(0, statusMatch[0].indexOf(']') + 1);
+    content = content.slice(0, statusMatch.index) + content.slice(statusMatch.index + token.length);
   }
   let type: DeliberationType | undefined;
   const typeMatch = content.match(TYPE);
@@ -130,11 +138,6 @@ function typeOf(node: DeliberationNode): DeliberationType {
 }
 
 /**
- * A question whose answer (its settled child) is not the option the agent
- * recommended. Unknown unless both a settled child and a recommended child
- * exist.
- */
-/**
  * Whether the node that raised a follow-up question unlocked it. In the outline
  * a question nests under the node it depends on, so that parent is the node
  * that raised it: a settled parent that is not the tree root turns the edge
@@ -149,9 +152,16 @@ export function isUnlockedQuestion(
   return typeOf(child) === 'question' && !parentIsRoot && parent.status === 'settled';
 }
 
-function isOverride(node: DeliberationNode): boolean {
-  const settled = node.children.filter((child) => child.status === 'settled');
-  const recommended = node.children.filter((child) => child.recommended === true);
+/**
+ * Whether a question took other than the option the agent recommended. Only
+ * option children can be an answer: a settled follow-up question is not one, so
+ * it never makes a question overridden. The text, Mermaid, and card renderers
+ * all read this one predicate so they cannot disagree.
+ */
+export function isOverride(node: DeliberationNode): boolean {
+  const options = node.children.filter((child) => typeOf(child) === 'option');
+  const settled = options.filter((child) => child.status === 'settled');
+  const recommended = options.filter((child) => child.recommended === true);
   if (settled.length === 0 || recommended.length === 0) return false;
   return !settled.some((child) => child.recommended === true);
 }
