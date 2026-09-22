@@ -13,6 +13,23 @@ const manifest = JSON.parse(readFileSync(join(root, 'assets/upstream/grilling/MA
 const tracked = Object.keys(manifest.files).sort();
 const showDiff = process.argv.includes('--diff');
 
+// Verify the vendored copies themselves before touching the network: editing an
+// adaptation without refreshing MANIFEST.json is drift too, and the gate must
+// catch it even when upstream is unreachable.
+const vendoredProblems = [];
+for (const file of tracked) {
+  const vendoredPath = join(root, 'assets/upstream/grilling', file);
+  const hash = createHash('sha256').update(readFileSync(vendoredPath, 'utf8'), 'utf8').digest('hex');
+  if (hash !== manifest.files[file]) vendoredProblems.push('  ' + file + ': ' + manifest.files[file] + ' -> ' + hash);
+}
+if (vendoredProblems.length > 0) {
+  console.error('vendored assets/upstream/grilling does not match MANIFEST.json:');
+  for (const problem of vendoredProblems) console.error(problem);
+  console.error('');
+  console.error('Update the vendored copy and MANIFEST.json together after review.');
+  process.exit(1);
+}
+
 const headers = { 'User-Agent': 'adr-kit-upstream-check', Accept: 'application/vnd.github+json' };
 if (process.env.GITHUB_TOKEN) headers.Authorization = 'Bearer ' + process.env.GITHUB_TOKEN;
 
