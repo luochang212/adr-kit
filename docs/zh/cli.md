@@ -60,6 +60,15 @@ adr/
 从 `adr/.drafts/` 丢弃提案草稿。不产生任何记录：拒绝记录在胜出决策的
 `Alternatives considered` 里。`--reason` 可选，仅回显。
 
+### `adrkit supersede <name> --by <name>`
+
+把一条 accepted 决策标记为被一条更新的 accepted 决策取代。旧记录的 front
+matter 变为 `status: superseded` 并写入 `superseded-by: N`，`date` 字段盖上
+执行取代当天的日期；`raised-by` 与 `decided-by` 原样保留而非替换：它们记录
+的是谁提出原始决策、谁的判断敲定了它，而不是谁废弃了它；文件留在
+`adr/decisions/` 里作为历史。`--by` 必须解析到一条存在且自身尚未被取代的
+accepted 决策。
+
 ### `adrkit list`
 
 列出决策（accepted/superseded）与待决草稿。
@@ -97,7 +106,7 @@ accepted 决策；中间记录可以是 superseded。
 即为全集）与 `rules`。`init` 和 `update` 还会盖 `installed-with` 章，记录最后
 写入集成文件的 adr-kit 版本；`list` 和 `instructions` 拿它与当前 CLI 比较，
 不一致时附一行提示——CLI 更新时建议 `adrkit update` 刷新已装技能，CLI 更旧
-则提示升级。早于该章存在的仓库保持沉默。
+则只提示版本落后。早于该章存在的仓库保持沉默。
 
 ### `adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]`
 

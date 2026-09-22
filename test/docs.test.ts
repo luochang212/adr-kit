@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { COMMAND_OPTIONS, COMMANDS } from '../src/core/cli-options.js';
 import { parseDeliberation, renderDeliberationMermaid, renderDeliberationText } from '../src/core/deliberation.js';
 
 const docsDir = fileURLToPath(new URL('../docs/', import.meta.url));
@@ -128,5 +129,91 @@ describe('the record-format reference states the decided-by trust boundary', () 
     expect(spec).not.toContain('migration');
     expect(spec).not.toContain('pre-existing');
     expect(spec).toContain('### Requirement: Validation never writes the field');
+  });
+});
+
+// The CLI reference ships two language versions, and they have drifted more
+// than once: the Chinese signatures lost `[--workflows <list>]` when the flag
+// arrived, and the Chinese `supersede` section went missing entirely. Pin the
+// synopses to each other and to the CLI surface table in
+// src/core/cli-options.ts, so a surface change cannot update one language
+// (or neither) and still pass.
+describe('the CLI reference signatures agree with each other and with the CLI', () => {
+  const SYNOPSIS = /^### `adrkit (.+)`$/gm;
+
+  function synopses(doc: string): string[] {
+    return [...doc.matchAll(SYNOPSIS)].map((match) => match[1]!.trim());
+  }
+
+  it('carries the same signatures in both languages', () => {
+    expect(synopses(readDoc('zh/cli.md'))).toEqual(synopses(readDoc('cli.md')));
+  });
+
+  it('only documents commands and flags the surface table knows', () => {
+    for (const file of ['cli.md', 'zh/cli.md']) {
+      for (const synopsis of synopses(readDoc(file))) {
+        const command = synopsis.split(' ')[0]!;
+        expect(COMMANDS as readonly string[], `${file}: adrkit ${synopsis}`).toContain(command);
+        for (const flag of synopsis.matchAll(/--[a-z-]+/g)) {
+          expect(COMMAND_OPTIONS[command] ?? [], `${file}: adrkit ${synopsis}`).toContain(flag[0]);
+        }
+      }
+    }
+  });
+
+  it('does not promise the stale-install note names an upgrade', () => {
+    // The older-CLI note only reports that it is older: the running CLI has
+    // no way to know an upgrade target. The reference once promised it
+    // "names the upgrade" / "则提示升级".
+    expect(readDoc('cli.md')).not.toContain('names the upgrade');
+    expect(readDoc('zh/cli.md')).not.toContain('则提示升级');
+  });
+});
+
+// llms.txt is the machine-readable front door — agents read it instead of the
+// README — and the site's integration story is hand-maintained next to
+// src/core/tool-integrations.ts, which AGENTS.md requires them to mirror.
+// llms.txt once listed codex, cursor, and github-copilot as integration
+// tools; the CLI has never supported them. Pin both surfaces to the real
+// targets: the default vendor-neutral `.agents/`, the `claude` exception,
+// and the `--tools none` opt-out.
+describe('llms.txt and the site integration story describe the real CLI', () => {
+  const llms = readFileSync(
+    fileURLToPath(new URL('../site/public/llms.txt', import.meta.url)),
+    'utf8',
+  );
+  const ui = readFileSync(
+    fileURLToPath(new URL('../site/src/i18n/ui.ts', import.meta.url)),
+    'utf8',
+  );
+
+  it('only mentions commands and flags the CLI table knows', () => {
+    for (const match of llms.matchAll(/`?adrkit ([a-z][a-z-]*)/g)) {
+      expect(COMMANDS as readonly string[], `adrkit ${match[1]}`).toContain(match[1]!);
+    }
+    for (const match of llms.matchAll(/--[a-z-]+/g)) {
+      const known = Object.values(COMMAND_OPTIONS).some((options) => options.includes(match[0]));
+      expect(known, match[0]).toBe(true);
+    }
+  });
+
+  it('describes the real integration targets, not the retired tool list', () => {
+    expect(llms).toContain("vendor-neutral `.agents/`");
+    expect(llms).toContain('claude (adds `.claude/` copies)');
+    expect(llms).toContain('`--tools none`');
+    for (const retired of ['codex', 'cursor', 'github-copilot']) {
+      expect(llms, retired).not.toContain(retired);
+    }
+  });
+
+  it('the site integration story mirrors the default target and the claude exception', () => {
+    // One story per language; each must name the default `.agents/` target,
+    // the `--tools claude` exception, and the `--tools none` opt-out.
+    for (const phrase of ['.agents/', 'adrkit init --tools claude', '--tools none']) {
+      expect(ui.split(phrase).length - 1, phrase).toBeGreaterThanOrEqual(2);
+    }
+    for (const retired of ['codex', 'cursor', 'github-copilot']) {
+      expect(ui, retired).not.toContain(retired);
+    }
   });
 });
