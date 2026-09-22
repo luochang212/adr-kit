@@ -286,3 +286,19 @@ its count is non-zero.
 - **WHEN** the viewport narrows
 - **THEN** the toolbar may wrap, all controls remain reachable, and the canvas fills the remaining space
 - **AND** Info can be opened with the keyboard and closed with Escape
+
+### Requirement: Trace a decision path
+
+The offline tree SHALL support hover and keyboard focus on cards, emphasizing
+the card's ancestors and visible descendants without highlighting sibling
+branches. Emphasis SHALL follow the recorded nesting and currently drawn edges,
+including edges anchored to answers. Folding SHALL refresh emphasis. Escape or
+leaving the diagram SHALL clear it. Image export SHALL omit transient emphasis
+while preserving the current folded view.
+
+#### Scenario: inspect a follow-up question
+
+- **WHEN** a follow-up card is hovered or keyboard-focused
+- **THEN** its upstream path and visible downstream branches remain prominent
+- **AND** sibling branches fade without being collapsed
+- **AND** exporting the tree omits this temporary dimming

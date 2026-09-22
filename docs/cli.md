@@ -155,6 +155,11 @@ records, while one written inside it keeps relative, portable links. `--tag <tag
 carrying that theme; `--formal-only` drops the mined edges. Note that `date` records the current status date, while `created` is
 the birth date.
 
+Hover or keyboard-focus a map decision to emphasize its direct references,
+incoming references, and supersession relationships. Escape clears the emphasis.
+Links use the facing card sides, spread attachment points, and route same-date
+relationships beside the column. Saved PNGs omit transient hover/focus dimming.
+
 ### `adrkit tree <name> [--mermaid|--text|--html]`
 
 Render a record's optional `## Deliberation` appendix: the design tree behind
@@ -182,6 +187,9 @@ and purple (a `linkStyle` line), so the tree's depth reads as the frontier
 moving outward.
 
 `--html` emits an offline, left-to-right card tree with inline CSS and JavaScript.
+Hover or keyboard-focus a card to trace its ancestors and visible descendants;
+sibling branches fade. Folding updates the highlighted path. Escape clears it,
+and saved PNGs retain the current folded view without temporary dimming.
 Questions contain their chosen answers; other options and reasons expand in
 place. Follow-ups connect to the answer or question that raised them. The view
 supports folding branches, dragging or scrolling to pan, zoom buttons, 1:1 and

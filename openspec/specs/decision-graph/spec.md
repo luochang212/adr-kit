@@ -275,3 +275,31 @@ written outside it. Redirecting stdout SHALL keep record-relative links.
 
 - **WHEN** `--out` names a path whose directory does not exist
 - **THEN** the command exits non-zero and writes nothing
+
+### Requirement: Trace direct relationships
+
+The offline map SHALL emphasize a hovered or keyboard-focused decision and its
+direct neighbours through reference and supersession edges, dimming unrelated
+nodes and edges. Leaving the diagram or pressing Escape SHALL clear emphasis.
+The interaction SHALL preserve link activation and canvas dragging.
+Image export SHALL omit transient emphasis.
+
+#### Scenario: inspect a decision and share the map
+
+- **WHEN** a decision is hovered or keyboard-focused
+- **THEN** its incoming and outgoing relationships remain prominent
+- **AND** unrelated relationships fade, without hiding their nodes
+- **AND** exporting a PNG produces the same brightness as an unfocused view
+
+### Requirement: Directional connection routing
+
+Cross-date connections SHALL use facing card sides. Same-date connections SHALL
+loop beside their column. Connections on a shared card side SHALL use distinct
+attachment points within the card height. The drawing box SHALL contain all
+curves and arrowheads.
+
+#### Scenario: several references to an older decision
+
+- **WHEN** multiple decisions reference an older decision
+- **THEN** backward links leave the newer cards on the left and arrive on the older card on the right
+- **AND** their attachment points are spread rather than stacked at the card midpoint
