@@ -1,5 +1,103 @@
 # Changelog
 
+## 0.11.0
+
+### Minor Changes
+
+- 059da29: Add `adrkit graph --out <path>`: the command writes the artifact itself and
+  resolves the decision map's record links against that location, so a map written
+  outside the repository still opens its records.
+- 67b1488: Split viewing existing ADRs into the `adrkit-visualize` workflow, leaving
+  `adrkit-grill` focused on questioning and recording decisions. Install it with
+  `adrkit init` or `adrkit update`, or select `--workflows visualize`.
+  Visualization requests now open the generated HTML in the default browser and
+  also return a file link; file-only requests and unavailable browsers retain the
+  link without requiring a separate opening request.
+  The visualize workflow writes the map with `--out`, so its record links
+  resolve against wherever the file lands — a temporary directory included.
+- 059da29: Share the offline views as a branded PNG. Both HTML views now carry a camera
+  button in the toolbar — the action makes a picture of the view rather than
+  sending one, so it is labelled Save as image rather than Share. It renders the
+  whole diagram on the client, the map serializing its SVG and the tree
+  rasterizing its laid-out cards, and frames it to the diagram's own shape: a
+  heading on the canvas above the diagram saying what the image is (the view, its
+  title, its statistics), and a one-line footer fused into the bottom edge
+  crediting the GitHub mark and `luochang212/adr-kit` beside the date.
+  
+  Because the button carries an icon instead of a label, feedback is a status
+  line: it reports the saved file name and whether the copy reached the
+  clipboard, and never claims a folder — where a download lands is the browser's
+  decision, which a page cannot override. The image is downloaded and, where the
+  clipboard allows it, copied as well; nothing is uploaded and the page stays
+  self-contained.
+- e44c73f: Highlight direct relationships in decision maps and ancestor/descendant paths in deliberation trees on hover or keyboard focus. Route map edges through facing card sides with separate attachment points and same-date loops. Image exports preserve normal brightness regardless of temporary emphasis.
+- 059da29: Group multi-decision deliberation trees in the `--html` card view under one
+  dashed virtual deliberation card, so the decisions a grilling session settled
+  together read as a single tree instead of unrelated islands. Single-root
+  records render exactly as before, and the text and Mermaid views are
+  unchanged; the stored outline remains the source of truth.
+
+### Patch Changes
+
+- 059da29: Make the offline canvases pan from anywhere: a press that moves pans the view
+  wherever it started — card, node, or link — and suppresses the click it began
+  on, while a press that stays put keeps its native click, so map nodes still
+  open their records. Canvas text is no longer selectable; buttons and
+  disclosures keep their native clicks, and the record file remains the place to
+  copy text from.
+- 059da29: Give offline decision maps and deliberation trees more canvas space with a
+  shared compact toolbar, and keep the orientation aids on the canvas itself: a
+  bottom-left legend panel and a bottom-right zoom cluster. The Info disclosure
+  is an icon whose panel keeps the full title, the labeled statistics, and the
+  gesture hints, set apart from the headline count by a hairline divider; the
+  Share action closes the toolbar. The toolbar's icon buttons are square and set
+  close together as one cluster, and narrow screens collapse back to a single
+  row. The ADR Kit brand carries the GitHub mark and opens the repository in a
+  new tab, so a reader who wants the source does not lose the view.
+- 059da29: Remove the Expand all options button from the deliberation tree toolbar. The
+  toolbar keeps the title, headline count, and Info; individual cards keep their
+  own collapse toggles and options disclosures.
+- 059da29: Show a label only where the picture has its object. A deliberation card chips
+  its state only when it is an exception — `settled` is what a node is when
+  nothing else is said, and the chosen answer already reads as settled — while a
+  folded option keeps its state as plain text. In both offline views the legend
+  now keys only the marks the view draws: the selected-answer key waits for a
+  settled option, the override key for a question that took other than the
+  recommendation, and the map's supersede, reference, and deliberation keys for
+  their edge or marker. A view with nothing to key draws no legend panel, and the
+  Info panel lists a statistic only when its count is non-zero.
+  
+  The tree's edge keys now carry a line sample in the stroke they name, and the
+  tree draws exactly two edge styles to name: the gray dependency link and the
+  green frontier link a settled choice gives its follow-up. The third, lighter
+  stroke that marked nested links is gone, because its rule also fired for the
+  session card's edges and so no honest label covered it.
+  
+  Whether a follow-up question was unlocked is now decided once in the outline
+  layer and recorded on the card, so the drawn edge, the legend, and Mermaid read
+  one answer instead of each deriving its own.
+- 059da29: Give a decision-map card's tags the whole footer row, cut where they reach the
+  card edge, and let the map's drawing box grow to hold the connecting curves, so
+  a long backward edge is drawn in full rather than clipped at the map's edge.
+  The box is sized to the curves themselves rather than to their control points,
+  which used to leave the map floating in a frame nearly twice the width of its
+  card grid.
+- 059da29: Keep the folded answers of a deliberation root card readable. The selected
+  answer box now carries an explicit dark color instead of inheriting the root
+  card's white text onto its light background, and the alternatives disclosure
+  inside a root card gets light-on-dark colors instead of the light-card grays.
+- 059da29: Improve image exports with a prominent, width-scaled title, separate view and ADR labels, and measured wrapping that preserves long titles and statistics. Keep the heading free of background dots and enlarge the footer credit.
+  
+  Let decision maps lead directly with their title; keep the ADR number and view label above individual deliberation titles.
+- 059da29: Include the visible diagram’s legend in saved images, preserving its symbols and wrapping it to fit. Hide tree disclosure glyphs in the exported copy while retaining alternative counts and expanded content.
+- 58543de: Allow successive supersession chains to pass repository and single-record
+  validation without rewriting historical links. Detect missing downstream targets,
+  cycles, and chains that do not terminate at an accepted decision.
+- 059da29: Open the offline views in a readable fit: the diagram is fitted to the width
+  and never past 1:1, so a tall deliberation tree pans instead of shrinking to a
+  thumbnail whose text cannot be read. Fit in the dock still shows the whole
+  diagram at once, and the shared controller owns the initial view for both.
+
 ## 0.10.0
 
 ### Minor Changes
