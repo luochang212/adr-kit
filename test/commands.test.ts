@@ -15,7 +15,7 @@ import { showCommand } from '../src/commands/show.js';
 import { updateCommand } from '../src/commands/update.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { todayStamp } from '../src/core/adr.js';
-import { readConfig } from '../src/core/config.js';
+import { installedWithNotice, readConfig } from '../src/core/config.js';
 import { listDrafts, listRecords } from '../src/core/repository.js';
 import { VERSION } from '../src/version.js';
 
@@ -551,7 +551,7 @@ describe('list output', () => {
     decideCommand('Use SQLite', root, 'human', 'human');
     proposeCommand('Use Postgres', root);
     const output = listCommand(root);
-    expect(output).toContain('Accepted');
+    expect(output).toContain('Decisions');
     expect(output).toContain('adr/decisions/1-use-sqlite.md');
     expect(output).toContain('Drafts (pending)');
     expect(output).toContain('adr/.drafts/');
@@ -695,5 +695,27 @@ describe('integration drift: installed-with stamp and notice', () => {
     expect(text).toContain('# my own note');
     expect(text).toContain('legacy-key: keep me');
     expect(readConfig(root).installedWith).toBe(VERSION);
+  });
+
+  it('stays quiet for a stamp that starts like a version but is not one', () => {
+    expect(installedWithNotice({ installedWith: '1.2.3.4', tools: ['agents'] }, '1.2.4')).toBeUndefined();
+  });
+
+  it('stays quiet for a prerelease stamp of the same version', () => {
+    expect(installedWithNotice({ installedWith: '1.2.3-beta', tools: ['agents'] }, '1.2.3')).toBeUndefined();
+  });
+
+  it('still notices a genuine mismatch after strict parsing', () => {
+    expect(installedWithNotice({ installedWith: '1.2.3', tools: ['agents'] }, '1.2.4')).toContain('adrkit update');
+  });
+
+  it('a malformed config does not break list or instructions', () => {
+    const root = makeRepo();
+    writeFileSync(join(root, 'adr', 'config.yaml'), ['- one', '- two', ''].join('\n'));
+    // The notice lookup tolerates the broken file, so the first two commands
+    // still work; validate is the one that reports the config error.
+    expect(listCommand(root)).not.toContain('note:');
+    expect(instructionsCommand(root)).not.toContain('note:');
+    expect(validateCommand(root).output).toContain('adr/config.yaml');
   });
 });

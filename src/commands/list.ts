@@ -1,10 +1,11 @@
-import { installedWithNotice, readConfig, requireRoot, withNotice } from '../core/config.js';
+import { installedWithNotice, readConfigSafe, requireRoot, withNotice } from '../core/config.js';
 import { displayName, listDrafts, listRecords, relativePath } from '../core/repository.js';
 import { VERSION } from '../version.js';
 
 export function listCommand(cwd: string): string {
   const root = requireRoot(cwd);
-  const notice = installedWithNotice(readConfig(root), VERSION);
+  const config = readConfigSafe(root);
+  const notice = config === undefined ? undefined : installedWithNotice(config, VERSION);
   const records = listRecords(root);
   const drafts = listDrafts(root);
 
@@ -17,7 +18,7 @@ export function listCommand(cwd: string): string {
 
   const lines: string[] = [];
   if (records.length > 0) {
-    lines.push('Accepted', '');
+    lines.push('Decisions', '');
     for (const record of records) {
       const supersededNote = record.status === 'superseded' && record.supersededBy !== undefined
         ? `  [superseded by ${record.supersededBy}]`

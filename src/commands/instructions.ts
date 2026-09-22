@@ -1,11 +1,12 @@
-import { findRoot, installedWithNotice, readConfig, withNotice } from '../core/config.js';
+import { findRoot, installedWithNotice, readConfigSafe, withNotice } from '../core/config.js';
 import { listDrafts, listRecords } from '../core/repository.js';
 import { formatIssues, validateDraft, validateRepository } from '../core/validate.js';
 import { VERSION } from '../version.js';
 
 export function instructionsCommand(cwd: string): string {
   const root = findRoot(cwd);
-  const notice = root === undefined ? undefined : installedWithNotice(readConfig(root), VERSION);
+  const config = root === undefined ? undefined : readConfigSafe(root);
+  const notice = config === undefined ? undefined : installedWithNotice(config, VERSION);
   return withNotice(instructionsOutput(cwd), notice);
 }
 

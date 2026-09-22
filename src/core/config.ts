@@ -101,10 +101,25 @@ export function readConfig(root: string): AdrKitConfig {
 }
 
 /**
+ * Read the configuration without throwing. The drift notice must never turn a
+ * command into a failure: a repository with a malformed `adr/config.yaml`
+ * simply has nothing honest to say about its stamp, and `validate` remains the
+ * command that reports the broken file.
+ */
+export function readConfigSafe(root: string): AdrKitConfig | undefined {
+  try {
+    return readConfig(root);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Rewrite a list-valued key of `adr/config.yaml` in place. Preserves other
  * keys (`context`, `rules`, unknown keys) and comments attached to the
  * surrounding YAML nodes. When the existing value is a sequence, reuse that
- * node so its style and inline comments survive the rewrite.
+ * node to keep its flow/block style; the items are re-created, so a comment
+ * attached to an individual item does not survive.
  */
 function writeListConfig(root: string, key: string, values: string[]): void {
   const file = configPath(root);
@@ -148,7 +163,7 @@ export function writeInstalledWithConfig(root: string, version: string): void {
   writeFileSync(file, parsed.document.toString());
 }
 
-const SEMVER = /^(\d+)\.(\d+)\.(\d+)/;
+const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
 
 function semver(value: string): [number, number, number] | undefined {
   const match = SEMVER.exec(value.trim());
