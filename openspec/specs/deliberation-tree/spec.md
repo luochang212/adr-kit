@@ -86,11 +86,18 @@ A `## Deliberation` node SHALL be
 `[open]` is the node's state; `(recommended)` marks the option the agent
 recommended; ` — <reason>` explains the node. The em dash with surrounding
 spaces SHALL be the only separator, so a hyphen inside the node text is text
-and can never hide the state or the recommendation. A question's answer SHALL
-be its `[settled]` child. When the tree marks a recommended option and that
-child is not it, the question SHALL be reported as an override of the agent's
+and can never hide the state or the recommendation; when the separator appears
+more than once, the first SHALL begin the reason. A state marker SHALL be
+recognized only when everything after it to the end of the content is whitespace
+or a parenthetical group (so a legacy `(round N)` stays text), never when prose
+follows it, so a bracketed state word embedded in a sentence SHALL remain part
+of the node text. A question's answer SHALL be its `[settled]` option
+child; a settled follow-up question SHALL NOT be treated as an answer. When the
+tree marks a recommended option and the question's settled option child is not
+it, the question SHALL be reported as an override of the agent's
 recommendation; when no option is marked `(recommended)` there is nothing to
-override and no override SHALL be reported.
+override and no override SHALL be reported. The text, Mermaid, and HTML
+renderers SHALL report the same override for the same tree.
 
 #### Scenario: a reason after the status is parsed
 
@@ -109,19 +116,38 @@ override and no override SHALL be reported.
 
 #### Scenario: an override is detected
 
-- **WHEN** a question marks a recommended option and its `[settled]` child is not that option
+- **WHEN** a question marks a recommended option and its `[settled]` option child is not that option
 - **THEN** the renderer marks the question as overridden
 
 #### Scenario: a taken recommendation is not an override
 
-- **WHEN** a question's `[settled]` child is marked `(recommended)`
+- **WHEN** a question's `[settled]` option child is marked `(recommended)`
 - **THEN** the renderer marks the node as following the recommendation, not overridden
 
 #### Scenario: no recommendation means no override
 
-- **WHEN** a question's `[settled]` child has no `(recommended)` sibling
+- **WHEN** a question's `[settled]` option child has no `(recommended)` sibling
 - **THEN** the renderer reports the node's state and does not mark an override
 
+#### Scenario: a settled follow-up is not an answer
+
+- **WHEN** a question has a recommended option that is not settled and a settled follow-up question child
+- **THEN** no override is reported, because a follow-up question is not an answer
+
+#### Scenario: renderers agree on the override
+
+- **WHEN** one tree is rendered as text, Mermaid, and HTML
+- **THEN** all three report the same overridden questions
+
+#### Scenario: a bracketed state word in prose stays text
+
+- **WHEN** a node reads `- Note: the [open] state is documented`
+- **THEN** its text is `Note: the [open] state is documented` and it has no recorded state
+
+#### Scenario: only the first em dash separates the reason
+
+- **WHEN** a node reads `- A: Use Postgres [rejected] — proven at scale — and cheap`
+- **THEN** its text is `Use Postgres`, its state is `rejected`, and its reason is `proven at scale — and cheap`
 ### Requirement: Nested dependency
 
 Dependency between recorded questions SHALL be expressed by nesting: a follow-up
@@ -209,9 +235,10 @@ view contains the symbol that entry points at, and the panel itself SHALL NOT be
 drawn when the legend has no entries. The override key waits for a question that
 took other than the recommended option, the selected-answer key for a settled
 option, and each exception state waits for a card that draws its chip. An edge
-key SHALL carry a line sample drawn in the stroke it names, and SHALL wait for
-that stroke: the dependency key for any recorded link, the frontier key for an
-edge the view styles as a frontier step.
+key SHALL carry a line sample drawn in the stroke it names, and SHALL wait for a
+link the view actually styles with that stroke: the dependency key for a
+dependency link (a parented card that is not an unlocked follow-up), and the
+frontier key for an edge the view styles as a frontier step.
 
 #### Scenario: a settled question draws no state label
 
@@ -229,6 +256,11 @@ edge the view styles as a frontier step.
 - **THEN** the legend omits that key rather than sending the reader to look for a symbol that is not there
 - **AND** a tree whose picture supports no entry at all draws no legend panel
 
+#### Scenario: a dependency key waits for a dependency link
+
+- **WHEN** every parented card in the tree is an unlocked follow-up, so the view draws only frontier edges
+- **THEN** the legend draws the frontier key and no dependency key
+
 #### Scenario: an edge key samples the line it names
 
 - **WHEN** the tree draws dependency links and no unlocked one
@@ -244,7 +276,6 @@ edge the view styles as a frontier step.
 
 - **WHEN** a follow-up question hangs under a settled option of the root card
 - **THEN** its card carries the unlocked flag, the drawn edge is styled as a frontier step, and the legend keys it
-
 ### Requirement: On-demand visualization delivery
 
 The installed `adrkit-visualize` skill SHALL route requests to visualize an existing
