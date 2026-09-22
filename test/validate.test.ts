@@ -69,6 +69,40 @@ describe('validateCommand', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 
+  it('fails a decision whose Alternatives considered has no written alternative', () => {
+    const root = makeRepo();
+    const content = `---
+status: accepted
+date: 2026-08-19
+raised-by: human
+decided-by: human
+created: 2026-08-19
+---
+
+# ADR: 1 Use SQLite
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+<!-- none written yet -->
+
+## Consequences
+
+Body.
+`;
+    writeFileSync(join(folderPath(root, 'decisions'), '1-use-sqlite.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('must contain at least one written alternative');
+  });
+
   it('detects duplicate decision numbers', () => {
     const root = makeRepo();
     const content = `---
