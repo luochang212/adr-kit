@@ -299,26 +299,35 @@ function supersedeReferenceIssues(
 ): ValidationIssue[] {
   if (record.supersededBy === undefined) return [];
   const path = relative(root, record.path);
-  const target = decisions.get(record.supersededBy);
-  if (target === undefined) {
-    return [
-      { path, message: `"superseded-by: ${record.supersededBy}" references a missing decision` },
-    ];
-  }
-  if (target.status === 'superseded') {
-    return [
-      {
-        path,
-        message: `"superseded-by: ${record.supersededBy}" references a superseded decision; supersede that decision instead`,
-      },
-    ];
+  const visited = new Set<number>();
+  if (record.number !== undefined) visited.add(record.number);
+  let next: number | undefined = record.supersededBy;
+  while (next !== undefined) {
+    if (visited.has(next)) {
+      return [{ path, message: `supersession chain contains a cycle at decision ${next}` }];
+    }
+    visited.add(next);
+    const target = decisions.get(next);
+    if (target === undefined) {
+      return [{ path, message: `"superseded-by: ${next}" references a missing decision` }];
+    }
+    if (target.status === 'accepted') return [];
+    if (target.status !== 'superseded') {
+      return [{ path, message: `supersession chain must end at an accepted decision; decision ${next} has status "${target.status}"` }];
+    }
+    // Parsed superseded records always have a successor; retain the guard for
+    // callers supplying AdrRecord values directly.
+    if (target.supersededBy === undefined) {
+      return [{ path, message: `superseded decision ${next} has no superseded-by reference` }];
+    }
+    next = target.supersededBy;
   }
   return [];
 }
 
 /**
  * Repository-level checks for a single record: a `superseded-by: N` reference
- * must point at an existing decision that is not itself superseded.
+ * must follow existing records without cycles to an accepted decision.
  * validateRecord only sees one file; this adds the cross-record half so
  * `adrkit validate <name>` keeps the same promise as a full validate.
  */

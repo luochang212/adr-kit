@@ -164,7 +164,7 @@ Body.
     expect(result.output).toContain('references a missing decision');
   });
 
-  it('flags a supersede reference to a superseded decision when validating a single record', () => {
+  it('accepts a supersession chain when validating a single record', () => {
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'decisions'), '1-first.md'),
@@ -176,8 +176,7 @@ Body.
     );
     writeFileSync(join(folderPath(root, 'decisions'), '3-third.md'), decision('3 Third', ACCEPTED));
     const result = validateCommand(root, '1');
-    expect(result.valid).toBe(false);
-    expect(result.output).toContain('references a superseded decision');
+    expect(result.valid).toBe(true);
   });
 
   it('passes a single record whose supersede reference is valid', () => {
@@ -487,5 +486,57 @@ Some risk.
 `,
     );
     expect(validateDraft(root, listDrafts(root)[0]!)).toEqual([]);
+  });
+});
+
+
+describe('supersession chain integrity', () => {
+  it.each([
+    { name: 'missing downstream target', targets: [2, 99], error: 'references a missing decision' },
+    { name: 'self-link', targets: [1], error: 'cycle' },
+    { name: 'two-record cycle', targets: [2, 1], error: 'cycle' },
+    { name: 'cycle beyond the starting record', targets: [2, 3, 2], error: 'cycle' },
+    { name: 'superseded terminal without a successor', targets: [2, undefined], error: 'superseded status requires a positive integer' },
+  ])('rejects $name in both validation modes', ({ targets, error }) => {
+    const root = makeRepo();
+    targets.forEach((target, index) => {
+      const fields: Record<string, string | number> = { ...ACCEPTED, status: 'superseded' };
+      if (target !== undefined) fields['superseded-by'] = target;
+      writeFileSync(join(folderPath(root, 'decisions'), `${index + 1}-record.md`),
+        decision(`${index + 1} Record`, fields));
+    });
+    for (const query of [undefined, '1']) {
+      const result = validateCommand(root, query);
+      expect(result.valid).toBe(false);
+      expect(result.output).toContain(error);
+    }
+  });
+
+  it('rejects a chain ending in a non-decision status', () => {
+    const root = makeRepo();
+    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'),
+      decision('1 First', { ...ACCEPTED, status: 'superseded', 'superseded-by': 2 }));
+    writeFileSync(join(folderPath(root, 'decisions'), '2-second.md'),
+      decision('2 Second', { ...ACCEPTED, status: 'proposed' }));
+    for (const query of [undefined, '1']) {
+      const result = validateCommand(root, query);
+      expect(result.valid).toBe(false);
+      expect(result.output).toContain('must end at an accepted decision');
+    }
+  });
+
+  it('allows longer chains and converging histories without flattening links', () => {
+    const root = makeRepo();
+    for (let n = 1; n <= 12; n++) {
+      const fields: Record<string, string | number> = { ...ACCEPTED };
+      if (n < 12) {
+        fields.status = 'superseded';
+        fields['superseded-by'] = n < 3 ? 3 : n + 1;
+      }
+      writeFileSync(join(folderPath(root, 'decisions'), `${n}-record.md`), decision(`${n} Record`, fields));
+    }
+    expect(validateCommand(root).valid).toBe(true);
+    expect(validateCommand(root, '1').valid).toBe(true);
+    expect(validateCommand(root, '2').valid).toBe(true);
   });
 });

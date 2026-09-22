@@ -586,3 +586,38 @@ describe('CLI deliberation HTML export', () => {
     }
   });
 });
+
+
+describe('CLI successive supersession', () => {
+  it('validates the chain through the CLI in both modes', () => {
+    const root = makeRepo();
+    for (const title of ['Use SQLite', 'Use Postgres', 'Use Spanner']) {
+      proposeCommand(title, root);
+      const draft = fillDraft(root);
+      writeFileSync(draft, readFileSync(draft, 'utf8').replace('# ADR: Use SQLite', `# ADR: ${title}`));
+      acceptCommand(title, root, 'human', 'human');
+    }
+    const logs: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
+      logs.push(args.map(String).join(' '));
+    });
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    process.chdir(root);
+    try {
+      main(['supersede', '1', '--by', '2']);
+      main(['supersede', '2', '--by', '3']);
+      for (const args of [['validate'], ['validate', '1']]) {
+        process.exitCode = 0;
+        logs.length = 0;
+        main(args);
+        expect(process.exitCode).toBe(0);
+        expect(logs.join('\n')).toMatch(/OK$/);
+      }
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      spy.mockRestore();
+    }
+  });
+});

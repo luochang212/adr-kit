@@ -234,6 +234,8 @@ export function droppedSections(proposal: AdrRecord): string[] {
 /**
  * Rewrite a record's front matter for a lifecycle move: parse the existing
  * block, merge `patch` over it, and re-emit the fields in canonical order.
+ * Supersede stamps only the retiring record and its immediate successor link;
+ * earlier records keep their historical links when the chain grows.
  * Every non-creating move (accept, reject, supersede) must stamp the date so
  * the front matter always reflects the current status; the Markdown body is
  * left untouched. Only canonical fields survive: a key outside

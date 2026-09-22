@@ -105,6 +105,7 @@ export interface AdrRecord {
   commit?: string;
   rejectionReason?: string;
   /** For superseded decisions: the number of the decision that replaced this one. */
+  /** Immediate historical successor; validation follows the chain to an accepted record. */
   supersededBy?: number;
   /** Optional kebab-case theme keywords; validate checks the shape. */
   tags?: string[];

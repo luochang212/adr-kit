@@ -306,40 +306,19 @@ describe('validate superseded references', () => {
     expect(result.output).toContain('references a missing decision');
   });
 
-  it('flags a chain that points at another superseded decision', () => {
+  it('allows successive replacements without rewriting ancestors', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
+    acceptDecision(root, 'Use Spanner');
     supersedeCommand('1', '2', root);
+    const ancestor = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    const before = readFileSync(ancestor, 'utf8');
+    supersedeCommand('2', '3', root);
 
-    // 手工制造 3 并让它指向已被取代的 1，验证 validate 拒绝悬空链
-    writeFileSync(join(root, 'adr', 'decisions', '3-use-spanner.md'), `---
-status: superseded
-date: 2026-08-19
-created: 2026-08-19
-superseded-by: 1
----
-
-# ADR: 3 Use Spanner
-
-## Problem
-
-We need durability.
-
-## Decision
-
-Use Spanner.
-
-## Alternatives considered
-
-- **Use SQLite**: rejected because it is embedded.
-
-## Consequences
-
-Operational overhead.
-`);
-    const result = validateCommand(root);
-    expect(result.valid).toBe(false);
-    expect(result.output).toContain('references a superseded decision');
+    expect(validateCommand(root).output).toBe('OK');
+    expect(validateCommand(root, '1').valid).toBe(true);
+    expect(readFileSync(ancestor, 'utf8')).toBe(before);
+    expect(before).toContain('superseded-by: 2');
   });
 });

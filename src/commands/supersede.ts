@@ -25,7 +25,7 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     throw new Error('a decision cannot supersede itself');
   }
   if (replacement.status === 'superseded') {
-    throw new Error(`"--by ${byQuery}" is itself superseded; superseding with it would create a dangling chain`);
+    throw new Error(`"--by ${byQuery}" is itself superseded; choose its currently accepted successor`);
   }
   if (replacement.number === undefined) {
     throw new Error(`"--by ${byQuery}" has no decision number`);
