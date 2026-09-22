@@ -70,6 +70,26 @@ describe('initCommand tool integrations', () => {
     expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
   });
 
+  it('installs visualization independently and adds it on a default update', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude', 'adrkit-visualize');
+    for (const target of ['.agents', '.claude']) {
+      expect(readdirSync(join(root, target, 'skills'))).toEqual(['adrkit-visualize']);
+      expect(readFileSync(join(root, target, 'commands/adrkit-visualize.md'), 'utf8'))
+        .toContain('adrkit graph --html');
+    }
+    updateCommand(root);
+    expect(readConfig(root).workflows).toEqual(['visualize']);
+
+    const defaultRoot = makeTarget();
+    initCommand(defaultRoot);
+    rmSync(join(defaultRoot, '.agents/skills/adrkit-visualize'), { recursive: true });
+    rmSync(join(defaultRoot, '.agents/commands/adrkit-visualize.md'));
+    updateCommand(defaultRoot);
+    expect(existsSync(join(defaultRoot, '.agents/skills/adrkit-visualize/SKILL.md'))).toBe(true);
+    expect(existsSync(join(defaultRoot, '.agents/commands/adrkit-visualize.md'))).toBe(true);
+  });
+
   it('adds the Claude Code exception with --tools claude', () => {
     const root = makeTarget();
     initCommand(root, 'claude');
@@ -192,6 +212,7 @@ describe('workflow subsets for tool integrations', () => {
     expect(readConfig(root).workflows).toEqual([
       'init',
       'grill',
+      'visualize',
       'propose',
       'decide',
       'validate',
@@ -354,13 +375,23 @@ rules:
     expect(grill?.body).toContain('--raised-by');
     expect(grill?.body).toContain('## Deliberation');
     expect(grill?.body).toContain('no record-time filter');
-    expect(grill?.description).toContain('visualize an existing ADR');
-    expect(grill?.body).toContain('Generate HTML only on an explicit visualization request');
-    expect(grill?.body).toContain('Deliver a clickable link');
-    expect(grill?.body).toContain('user explicitly asks to open it');
-    expect(grill?.body).toContain('do not invent one');
+    expect(grill?.body).not.toContain('adrkit graph --html');
     expect(grill?.body).not.toContain('adrkit propose');
     expect(grill?.description).toContain('record every decision the session settles');
+  });
+
+  it('visualize owns rendering and browser delivery', () => {
+    const visualize = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-visualize');
+    expect(visualize?.description).toContain('visualize an existing ADR');
+    expect(visualize?.body).toContain('Generate HTML only on an explicit visualization request');
+    expect(visualize?.body).toContain('Deliver a clickable link');
+    expect(visualize?.body).toContain("open the file in the user's default browser");
+    expect(visualize?.body).toContain('user asks for a file only or says not to open it');
+    expect(visualize?.body).toContain('or opening fails, keep the file link');
+    expect(visualize?.body).toContain('CLI continues to emit HTML to stdout only');
+    expect(visualize?.body).toContain('do not invent one');
+    expect(visualize?.body).toContain('adrkit tree <N> --html');
+    expect(visualize?.body).toContain('adrkit graph --html');
   });
 });
 
