@@ -96,7 +96,7 @@ adrkit validate [name] [--all]          校验单条记录或整个仓库
 adrkit update [--tools <list>] [--workflows <list>]
                                         重写 AI 工具集成文件
 adrkit config                           查看当前配置
-adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>]
+adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
                                         输出决策关系图
 adrkit tree <name> [--mermaid|--text|--html] 渲染记录的 deliberation 树
 adrkit completion <bash|zsh|fish>      打印 shell 补全脚本

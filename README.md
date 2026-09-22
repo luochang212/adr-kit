@@ -103,7 +103,7 @@ adrkit validate [name] [--all]          Validate one record or the repository
 adrkit update [--tools <list>] [--workflows <list>]
                                         Rewrite AI tool integrations
 adrkit config                           Print the current configuration
-adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>]
+adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
                                         Emit the decision relationship graph
 adrkit tree <name> [--mermaid|--text|--html] Render a record's deliberation tree
 adrkit completion <bash|zsh|fish>       Print a shell completion script
