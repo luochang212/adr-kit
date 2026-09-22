@@ -16,5 +16,8 @@ export function configCommand(cwd: string): string {
   }
   lines.push(`workflows: ${workflows.join(', ')}`, '');
   lines.push(`rules: ${JSON.stringify(config.rules ?? {})}`);
+  if (config.installedWith !== undefined) {
+    lines.push(`installed-with: ${config.installedWith}`);
+  }
   return lines.join('\n');
 }

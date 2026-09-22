@@ -1,13 +1,18 @@
-import { requireRoot } from '../core/config.js';
+import { installedWithNotice, readConfig, requireRoot, withNotice } from '../core/config.js';
 import { displayName, listDrafts, listRecords, relativePath } from '../core/repository.js';
+import { VERSION } from '../version.js';
 
 export function listCommand(cwd: string): string {
   const root = requireRoot(cwd);
+  const notice = installedWithNotice(readConfig(root), VERSION);
   const records = listRecords(root);
   const drafts = listDrafts(root);
 
   if (records.length === 0 && drafts.length === 0) {
-    return 'no ADRs yet: start one with "adrkit decide <title> --raised-by human --decided-by human" or "adrkit propose <title>"';
+    return withNotice(
+      'no ADRs yet: start one with "adrkit decide <title> --raised-by human --decided-by human" or "adrkit propose <title>"',
+      notice,
+    );
   }
 
   const lines: string[] = [];
@@ -28,5 +33,5 @@ export function listCommand(cwd: string): string {
     }
     lines.push('');
   }
-  return lines.join('\n').trimEnd();
+  return withNotice(lines.join('\n').trimEnd(), notice);
 }

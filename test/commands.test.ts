@@ -4,15 +4,20 @@ import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
 import { acceptCommand } from '../src/commands/accept.js';
+import { configCommand } from '../src/commands/config.js';
 import { decideCommand } from '../src/commands/decide.js';
 import { initCommand } from '../src/commands/init.js';
+import { instructionsCommand } from '../src/commands/instructions.js';
 import { listCommand } from '../src/commands/list.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { rejectCommand } from '../src/commands/reject.js';
 import { showCommand } from '../src/commands/show.js';
+import { updateCommand } from '../src/commands/update.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { todayStamp } from '../src/core/adr.js';
+import { readConfig } from '../src/core/config.js';
 import { listDrafts, listRecords } from '../src/core/repository.js';
+import { VERSION } from '../src/version.js';
 
 const tempDirs: string[] = [];
 
@@ -619,5 +624,76 @@ describe('CLI successive supersession', () => {
       process.exitCode = previousExitCode;
       spy.mockRestore();
     }
+  });
+});
+
+/** Rewrite adr/config.yaml text in place, to simulate repositories configured by other versions. */
+function editConfig(root: string, transform: (text: string) => string): void {
+  const file = join(root, 'adr', 'config.yaml');
+  writeFileSync(file, transform(readFileSync(file, 'utf8')));
+}
+const SET_STAMP = (version: string) => (text: string) =>
+  `${text.replace(/^installed-with:.*\n/m, '')}installed-with: ${version}\n`;
+const ADD_OLD_STAMP = SET_STAMP('0.9.0');
+const DROP_STAMP = (text: string) => text.replace(/^installed-with:.*\n/m, '');
+
+describe('integration drift: installed-with stamp and notice', () => {
+  it('init stamps the config with the running version', () => {
+    const root = makeRepo();
+    expect(readConfig(root).installedWith).toBe(VERSION);
+  });
+
+  it('update re-stamps the config', () => {
+    const root = makeRepo();
+    editConfig(root, ADD_OLD_STAMP);
+    updateCommand(root);
+    expect(readConfig(root).installedWith).toBe(VERSION);
+  });
+
+  it('list and instructions suggest adrkit update when the CLI is newer than the stamp', () => {
+    const root = makeRepo();
+    editConfig(root, ADD_OLD_STAMP);
+    expect(listCommand(root)).toContain('run "adrkit update"');
+    expect(instructionsCommand(root)).toContain('run "adrkit update"');
+  });
+
+  it('an older CLI than the stamp says so', () => {
+    const root = makeRepo();
+    editConfig(root, SET_STAMP('99.0.0'));
+    expect(listCommand(root)).toContain('which is older');
+  });
+
+  it('no note when the stamp matches the running version', () => {
+    const root = makeRepo();
+    expect(listCommand(root)).not.toContain('note:');
+    expect(instructionsCommand(root)).not.toContain('note:');
+  });
+
+  it('no note for a repository configured before the stamp existed', () => {
+    const root = makeRepo();
+    editConfig(root, DROP_STAMP);
+    expect(readConfig(root).installedWith).toBeUndefined();
+    expect(listCommand(root)).not.toContain('note:');
+  });
+
+  it('no note when integrations are opted out', () => {
+    const root = makeRepo();
+    editConfig(root, (text) => `${ADD_OLD_STAMP(text).replace('tools: [ agents ]', 'tools: []')}`);
+    expect(listCommand(root)).not.toContain('note:');
+  });
+
+  it('config reports installed-with', () => {
+    const root = makeRepo();
+    expect(configCommand(root)).toContain(`installed-with: ${VERSION}`);
+  });
+
+  it('stamping preserves comments and unknown keys', () => {
+    const root = makeRepo();
+    editConfig(root, (text) => `${ADD_OLD_STAMP(text)}# my own note\nlegacy-key: keep me\n`);
+    updateCommand(root);
+    const text = readFileSync(join(root, 'adr', 'config.yaml'), 'utf8');
+    expect(text).toContain('# my own note');
+    expect(text).toContain('legacy-key: keep me');
+    expect(readConfig(root).installedWith).toBe(VERSION);
   });
 });

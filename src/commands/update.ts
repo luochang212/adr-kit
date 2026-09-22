@@ -1,6 +1,7 @@
 import {
   readConfig,
   requireRoot,
+  writeInstalledWithConfig,
   writeToolsConfig,
   writeWorkflowsConfig,
 } from '../core/config.js';
@@ -13,6 +14,7 @@ import {
   staleIntegrationKeys,
   writeToolIntegrations,
 } from '../core/tool-integrations.js';
+import { VERSION } from '../version.js';
 
 export function updateCommand(cwd: string, toolsValue?: string, workflowsValue?: string): string {
   const root = requireRoot(cwd);
@@ -31,6 +33,7 @@ export function updateCommand(cwd: string, toolsValue?: string, workflowsValue?:
   writeToolsConfig(root, tools);
   if (workflowsArg !== undefined) writeWorkflowsConfig(root, workflows);
   const integrations = writeToolIntegrations(root, tools, workflows);
+  writeInstalledWithConfig(root, VERSION);
   const lines = [`updated AI tool integrations at ${root}`];
   if (removed.length > 0) {
     lines.push(`  removed integrations for: ${removed.join(', ')}`);

@@ -14,6 +14,8 @@ export interface AdrKitConfig {
   tools?: string[];
   /** Workflow subset for integrations, e.g. `["init", "decide", "validate"]`. */
   workflows?: string[];
+  /** Version of the CLI that last wrote the integrations; absent before this stamp existed. */
+  installedWith?: string;
 }
 
 /**
@@ -82,6 +84,9 @@ export function readConfig(root: string): AdrKitConfig {
   ) {
     config.workflows = raw.workflows as string[];
   }
+  if (typeof raw['installed-with'] === 'string') {
+    config.installedWith = raw['installed-with'];
+  }
 
   if (raw.rules !== null && typeof raw.rules === 'object' && !Array.isArray(raw.rules)) {
     const rules: Record<string, string[]> = {};
@@ -128,4 +133,55 @@ export function writeToolsConfig(root: string, tools: string[]): void {
 /** Update the `workflows:` key; see {@link writeListConfig} for the semantics. */
 export function writeWorkflowsConfig(root: string, workflows: string[]): void {
   writeListConfig(root, 'workflows', workflows);
+}
+
+/**
+ * Stamp the `installed-with:` scalar with the version that is writing the
+ * integrations. The stamp is what lets later commands notice that the
+ * installed skills predate (or postdate) the running CLI; see
+ * {@link installedWithNotice}.
+ */
+export function writeInstalledWithConfig(root: string, version: string): void {
+  const file = configPath(root);
+  const parsed = parseConfigDocument(readFileSync(file, 'utf8'));
+  parsed.map.set('installed-with', version);
+  writeFileSync(file, parsed.document.toString());
+}
+
+const SEMVER = /^(\d+)\.(\d+)\.(\d+)/;
+
+function semver(value: string): [number, number, number] | undefined {
+  const match = SEMVER.exec(value.trim());
+  return match === null ? undefined : [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+
+/**
+ * The one-line drift notice for a repository whose integrations were written
+ * by a different adr-kit than the one now running. Quiet — `undefined` — when
+ * there is nothing honest to say: no stamp (repositories configured before it
+ * existed), an explicit integrations opt-out, equal versions, or a version
+ * either side cannot parse.
+ */
+export function installedWithNotice(
+  config: AdrKitConfig,
+  currentVersion: string,
+): string | undefined {
+  const installed = config.installedWith;
+  if (installed === undefined) return undefined;
+  if (config.tools !== undefined && config.tools.length === 0) return undefined;
+  const written = semver(installed);
+  const running = semver(currentVersion);
+  if (written === undefined || running === undefined) return undefined;
+  const order = written[0] - running[0] || written[1] - running[1] || written[2] - running[2];
+  if (order === 0) return undefined;
+  return order < 0
+    ? `note: the installed integrations were written by adr-kit ${installed}; this is ` +
+        `${currentVersion} - run "adrkit update" to refresh them`
+    : `note: this repository was configured by adr-kit ${installed}; you are running ` +
+        `${currentVersion}, which is older`;
+}
+
+/** Append the drift notice to a command's output as its own paragraph. */
+export function withNotice(output: string, notice: string | undefined): string {
+  return notice === undefined ? output : `${output}\n\n${notice}`;
 }

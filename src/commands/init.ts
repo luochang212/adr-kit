@@ -1,10 +1,12 @@
 import { initRepository } from '../core/repository.js';
+import { writeInstalledWithConfig } from '../core/config.js';
 import {
   integrationSummary,
   parseTools,
   parseWorkflows,
   writeToolIntegrations,
 } from '../core/tool-integrations.js';
+import { VERSION } from '../version.js';
 
 export function initCommand(targetDir: string, toolsValue?: string, workflowsValue?: string): string {
   const tools = parseTools(toolsValue);
@@ -18,6 +20,7 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
   );
   const lines = created.map((path) => `  created ${path}`);
   const integrations = writeToolIntegrations(root, tools, workflows);
+  writeInstalledWithConfig(root, VERSION);
   return [
     `ADR Kit initialized at ${root}`,
     ...lines,
