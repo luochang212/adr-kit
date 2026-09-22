@@ -11,8 +11,6 @@ const t = useTranslations(lang);
 // generalized one-liners, not the private repo's actual wording. Geometry is
 // computed at build time below — regenerate the edge list with
 // `adrkit graph --mermaid` in that repo when the example ages.
-const mermaid = 'adrkit graph --mermaid';
-
 const titles: Record<number, string> = lang === 'zh' ? {
   1: '1 记录架构决策（ADR）',
   2: '2 选定 agent 底座',

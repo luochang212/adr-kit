@@ -80,7 +80,7 @@ const ui = {
     'faq.title': 'Questions',
     'faq.1.q': 'What does ADR Kit do to my project when I adopt it?',
     'faq.1.a':
-      'It adds one adr/ directory: a config file, a README with the conventions, and a decisions/ folder. Ephemeral proposal drafts live in a gitignored adr/.drafts/ that the CLI creates on demand. Optionally, adrkit init --tools also writes skill files for your AI assistant (for example .claude/skills/). That is all: records are plain Markdown, there is no runtime dependency, no service, and no lock-in; delete the directory and everything is gone.',
+      'It adds one adr/ directory: a config file, a README with the conventions, and a decisions/ folder. Ephemeral proposal drafts live in a gitignored adr/.drafts/ that the CLI creates on demand. By default it also writes agent skills and commands to .agents/; adrkit init --tools claude adds .claude/ copies for Claude Code, and --tools none installs nothing. That is all: records are plain Markdown, there is no runtime dependency, no service, and no lock-in; delete the directory and everything is gone.',
     'faq.2.q': 'How do I use ADR Kit day to day?',
     'faq.2.a':
       'Run adrkit decide "<title>" --raised-by human --decided-by human to record a decision that is already made; use adrkit propose "<title>" only when one still needs review. Fill in the required sections (Problem, Decision, Alternatives considered, Consequences) and run adrkit validate until it passes. If you proposed, adrkit accept "<title>" --raised-by human --decided-by human numbers the decision and promotes the draft into decisions/. Declare agent instead when the direction came from the agent\'s own judgment, including when a person only let it through. AI coding assistants can drive the same workflow through the installed skills: you review, they type. When you want to look at the records, ask for a visualization: one decision\u2019s deliberation renders as a card tree (adrkit tree), the whole set renders as a decision map (adrkit graph --html), and any view saves as a shareable PNG.',
@@ -155,7 +155,7 @@ const ui = {
     'faq.title': 'Q&A',
     'faq.1.q': '引入 ADR Kit 后，它会在我的项目里做什么？',
     'faq.1.a':
-      '只添加一个 adr/ 目录：一个配置文件、一份写明约定的 README、一个 decisions/ 文件夹。临时提案草稿放在 gitignored 的 adr/.drafts/ 里，由 CLI 按需创建。如果执行 adrkit init --tools，还会为你的 AI 助手写入技能文件（例如 .claude/skills/）。仅此而已：记录是纯 Markdown，没有运行时依赖、没有服务、没有锁定；删掉目录就什么都不剩。',
+      '只添加一个 adr/ 目录：一个配置文件、一份写明约定的 README、一个 decisions/ 文件夹。临时提案草稿放在 gitignored 的 adr/.drafts/ 里，由 CLI 按需创建。默认还会把 agent skills 和命令写入 .agents/；adrkit init --tools claude 额外写一份 .claude/ 给 Claude Code，--tools none 则不安装。仅此而已：记录是纯 Markdown，没有运行时依赖、没有服务、没有锁定；删掉目录就什么都不剩。',
     'faq.2.q': '日常如何在项目中使用 ADR Kit？',
     'faq.2.a':
       '已做的决策直接运行 adrkit decide "<标题>" --raised-by human --decided-by human；只有仍需审议时才用 adrkit propose "<标题>"。填满必填章节（问题、决策、备选、后果），反复运行 adrkit validate 直到通过。如果走了提案，adrkit accept "<标题>" --raised-by human --decided-by human 为决策编号并把草稿提升进 decisions/；方向由 AI 自主判断得出时写 agent，人只是放行也写 agent。AI 编码助手可以通过安装的技能驱动同一流程：它动手，你审阅。想直观查看记录时，让 AI 渲染一张可视化图：单条决策的思辨过程渲染成卡片树（adrkit tree），全部决策渲染成决策地图（adrkit graph --html），任意视图都能一键存成图片。',

@@ -21,7 +21,7 @@ Requires Node.js 20.19 or later.
 ```bash
 npm install -g adr-kit
 cd your-project
-adrkit init --tools claude
+adrkit init
 adrkit decide "Use SQLite for session storage" --raised-by human --decided-by human
 adrkit validate
 ```
@@ -59,9 +59,9 @@ to promote it or `adrkit reject "<title>"` to discard it.
   on request, with a file link and a file-only opt-out.
 - Rejection is not a record: it lives in the winner's `Alternatives
   considered`.
-- AI tool integrations (`adrkit init --tools`): claude, codex, cursor,
-  github-copilot, agents (generic .agents/). Installs agent skills and
-  slash-command files.
+- AI tool integrations (`adrkit init --tools`): agents (the default,
+  vendor-neutral `.agents/`) and claude (adds `.claude/` copies). `--tools none`
+  installs nothing.
 - Works alongside spec-driven tools like OpenSpec: OpenSpec tracks what is
   being built; ADR Kit records why a direction was chosen.
 - License: MIT. Single runtime dependency: yaml.

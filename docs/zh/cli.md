@@ -11,7 +11,7 @@
 
 ## 命令
 
-### `adrkit init [path] [--tools <list>]`
+### `adrkit init [path] [--tools <list>] [--workflows <list>]`
 
 在 `path`（默认当前目录）创建 `adr/` 仓库，并把 agent 集成写入 `.agents/`
 （`commands/` + `skills/`），即所有主流 Agent 都识别的供应商中立约定。
@@ -85,7 +85,7 @@ adr/
 同样会沿 `superseded-by: N` 替代链检查引用均存在、没有循环，且最终到达
 accepted 决策；中间记录可以是 superseded。
 
-### `adrkit update [--tools <list>]`
+### `adrkit update [--tools <list>] [--workflows <list>]`
 
 重写 agent 集成：标准 `.agents/` 目标，加上 `--tools claude` 时的
 `.claude/` 例外；不再选中的目标会被移除。未指定 `--tools` 时使用

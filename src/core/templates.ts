@@ -48,7 +48,8 @@ type FrontMatterValue = string | number | string[];
 
 /**
  * Render a YAML front matter block. Fields are written in the canonical
- * order (status, date, commit, reason, superseded-by); only the fields
+ * order (status, date, raised-by, decided-by, created, commit, superseded-by,
+ * reason, tags); only the fields
  * present in `fields` are emitted.
  */
 export function frontMatter(fields: Record<string, FrontMatterValue>): string {
