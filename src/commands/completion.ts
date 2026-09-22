@@ -41,7 +41,7 @@ const COMMAND_OPTIONS: Record<string, string[]> = {
   validate: ['--all', '--help'],
   update: ['--tools', '--workflows', '--help'],
   config: ['--help'],
-  graph: ['--mermaid', '--dot', '--text', '--html', '--formal-only', '--tag', '--help'],
+  graph: ['--mermaid', '--dot', '--text', '--html', '--formal-only', '--tag', '--out', '--help'],
   tree: ['--mermaid', '--text', '--html', '--help'],
   completion: ['--help'],
   version: ['--help'],
@@ -53,7 +53,7 @@ const COMMAND_OPTIONS: Record<string, string[]> = {
  * valueless would make every shell treat them as flags, so completion would
  * repeat the option list in a position where the CLI expects free text.
  */
-const VALUE_OPTIONS = ['--by', '--reason', '--tag', '--tools', '--workflows'];
+const VALUE_OPTIONS = ['--by', '--reason', '--tag', '--tools', '--workflows', '--out'];
 
 /** Short descriptions for the shells that show one next to an option. */
 const OPTION_DESCRIPTIONS: Record<string, string> = {
@@ -62,6 +62,7 @@ const OPTION_DESCRIPTIONS: Record<string, string> = {
   '--raised-by': 'who raised the decision',
   '--reason': 'why the draft is discarded',
   '--tag': 'filter to one theme',
+  '--out': 'write the output to this file',
   '--tools': 'AI tools to install integrations for',
   '--workflows': 'workflows to install',
 };

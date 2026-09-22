@@ -34,92 +34,10 @@ button {
 button:hover {
   background: #edf3ef
 }
-header {
-  height: 72px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 30px;
-  border-bottom: 1px solid #e1e7e1;
-  gap: 15px
-}
-.brand {
-  font-size: 17px;
-  font-weight: 750;
-  letter-spacing: -.6px;
-  display: flex;
-  align-items: center;
-  gap: 11px
-}
-.logo {
-  background: #284f40;
-  color: white;
-  border-radius: 8px;
-  padding: 7px 9px;
-  font-family: monospace
-}
-.brand small {
-  font-size: 11px;
-  color: #728079;
-  font-weight: 500;
-  letter-spacing: 1px;
-  margin-left: 16px
-}
-.intro {
-  min-height: 145px;
-  padding: 28px 36px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px
-}
-.eyebrow {
-  color: #788b7b;
-  letter-spacing: 2px;
-  font: 11px monospace;
-  margin-bottom: 9px
-}
-h1 {
-  font-size: 25px;
-  letter-spacing: -.7px;
-  margin: 0;
-  font-weight: 650
-}
-.intro p {
-  font-size: 12px;
-  color: #718078;
-  margin: 10px 0 0
-}
-.stats {
-  display: flex;
-  gap: 24px;
-  text-align: center
-}
-.stats strong {
-  font-size: 24px;
-  font-weight: 500;
-  display: block
-}
-.stats span {
-  font-size: 11px;
-  color: #7c8880;
-  display: block;
-  margin-top: 4px
-}
 main {
   position: relative;
-  height: calc(100dvh - 251px);
-  min-height: 420px;
-  overflow: hidden;
-  touch-action: none;
   background-image: radial-gradient(#cdd8cc .8px,transparent .8px);
   background-size: 20px 20px;
-  border-block: 1px solid #e0e7df;
-  cursor: grab
-}
-main.dragging {
-  cursor: grabbing
 }
 #world {
   position: absolute;
@@ -137,7 +55,6 @@ main.dragging {
   border: 1px solid #dce4dc;
   border-radius: 13px;
   box-shadow: 0 3px 8px #25403506;
-  cursor: auto;
   overflow: visible
 }
 .card:hover {
@@ -174,6 +91,7 @@ main.dragging {
   margin: 0 13px 13px;
   padding: 13px;
   background: #f1f7f1;
+  color: #264c38;
   border: 1px solid #e2ece1;
   border-radius: 8px;
   position: relative
@@ -249,6 +167,15 @@ main.dragging {
   font-weight: 500;
   line-height: 1.4
 }
+.virtual {
+  width: 168px;
+  background: #fbfdfb;
+  border-style: dashed;
+  border-color: #b6c7ba;
+}
+.virtual .cardhead {
+  padding: 14px 16px 12px;
+}
 .branch {
   position: absolute;
   right: -13px;
@@ -263,86 +190,6 @@ main.dragging {
   box-shadow: 0 2px 5px #274b3910;
   z-index: 2
 }
-.controls {
-  position: absolute;
-  bottom: 22px;
-  right: 24px;
-  display: flex;
-  align-items: center;
-  padding: 5px;
-  gap: 3px;
-  background: white;
-  border: 1px solid #dce4dc;
-  border-radius: 11px;
-  box-shadow: 0 4px 20px #294d3e0a
-}
-.controls button {
-  border: 0
-}
-.controls output {
-  font: 11px monospace;
-  width: 44px;
-  text-align: center
-}
-.hint {
-  position: absolute;
-  bottom: 25px;
-  left: 28px;
-  color: #7a8a7f;
-  font-size: 11px;
-  background: #f6f8f5df;
-  padding: 7px;
-  border-radius: 5px
-}
-footer {
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 30px;
-  font-size: 10px;
-  color: #87928a
-}
-.legend {
-  display: flex;
-  gap: 18px
-}
-.legend span {
-  display: flex;
-  align-items: center;
-  gap: 6px
-}
-@media(max-width:700px) {
-  header {
-  padding: 0 14px
-}
-.brand small,.stats {
-  display: none
-}
-.intro {
-  padding: 20px;
-  min-height: 135px
-}
-h1 {
-  font-size: 20px
-}
-main {
-  height: calc(100dvh - 241px)
-}
-footer {
-  padding: 0 12px
-}
-.hint {
-  display: none
-}
-.controls {
-  right: 12px;
-  bottom: 14px
-}
-
-}
- 
-
 .card { overflow-wrap: anywhere; }
 .cardhead .reason { font-size: 12px; color: #67786c; line-height: 1.6; }
 .root .reason { color: #bed0c2; }
@@ -350,26 +197,28 @@ footer {
 .state.rejected { color: #96554c; background: #faeeeb; }
 .state.unrecorded { color: #647369; background: #eff2ee; }
 .root .state { color: #264c38; }
+.root .alts { color: #bacdbc; border-top-color: #3f6455; }
+.root .alt { color: #cfdcd1; border-top-color: #3f6455; }
+.root .alt .badge { color: #a3bba9; }
+.root .alt p { color: #b4c4b6; }
 .override-key { color: #7750a5; }
+/* The legend's state keys quote the card chips, so they match their size. */
+.canvas-legend .legend .state { font-size: 10px; }
+/* The edge keys are line samples, drawn in the stroke the view actually uses:
+   a key that looks like a line but not like the line it names teaches nothing. */
+.edge-key { width: 22px; height: 0; border-top: 1.5px solid #b6c7ba; }
+.edge-key.unlocked { border-top: 2px solid #7ca38a; }
 .option { border-style: dashed; }
 .card[hidden] { display: none; }
 .card { position: relative; margin: 18px 24px 18px calc(24px + var(--depth) * 24px); }
 #world { position: relative; }
 main { height: auto; min-height: 0; overflow: auto; touch-action: auto; cursor: auto; }
-#edges, .hint, .branch, .js-control { display: none; }
-.interactive main { height: calc(100dvh - 251px); min-height: 360px; overflow: hidden; touch-action: none; cursor: grab; }
+#edges, .branch, .js-control { display: none; }
+
 .interactive #world { position: absolute; }
 .interactive .card { position: absolute; margin: 0; }
-.interactive #edges, .interactive .branch, .interactive .hint, .interactive .js-control { display: block; }
-.interactive .controls { display: flex; }
-.interactive .dragging { cursor: grabbing; }
+.interactive #edges, .interactive .branch, .interactive .js-control { display: block; }
 .no-script { padding: 20px; }
-@media (max-width: 700px) {
-  .interactive main { height: calc(100dvh - 241px); }
-  .interactive .hint { display: none; }
-  .intro { align-items: start; }
-  footer { height: auto; min-height: 34px; gap: 12px; flex-wrap: wrap; }
-}
 `;
 
 // Kept as readable JavaScript: tsc ships this string unchanged in the CLI bundle.
@@ -380,7 +229,6 @@ export const TREE_SCRIPT = String.raw`
   if (!canvas) return;
   const { viewport, world } = canvas;
   const svg = document.getElementById('edges');
-  const allButton = document.getElementById('all');
   const cards = Array.from(document.querySelectorAll('.card'));
   if (!cards.length) return;
   const items = cards.map(card => ({
@@ -451,30 +299,20 @@ export const TREE_SCRIPT = String.raw`
       const startX = parent.x + parent.width;
       const endX = item.x, endY = item.y + Math.min(65, item.height / 2);
       const midpoint = (startX + endX) / 2;
-      const sourceState = item.anchor ? item.anchor.dataset.state : parent.card.dataset.state;
-      // The unlock edge keys off the node that raised the follow-up, not the
-      // card it is drawn from: a follow-up nested under a settled option of
-      // the root card is still unlocked by that option. Mermaid asks whether
-      // the immediate parent node is the root; this is the same question.
-      const sourceIsRoot = !item.anchor && parent.card.classList.contains('root');
-      const unlocked = !sourceIsRoot
-        && item.card.classList.contains('question') && sourceState === 'settled';
+      // The server settled whether this edge is an unlocked one, so the styler
+      // and the legend cannot disagree about which edges are frontier steps.
+      const unlocked = item.card.dataset.unlocked === 'true';
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', 'M' + startX + ',' + startY + ' C' + midpoint + ',' + startY
         + ' ' + midpoint + ',' + endY + ' ' + endX + ',' + endY);
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke', unlocked ? '#7ca38a' : '#b6c7ba');
       path.setAttribute('stroke-width', unlocked ? '2' : '1.5');
-      if (!unlocked && !parent.card.classList.contains('root')) path.setAttribute('stroke-dasharray', '4 4');
       path.dataset.from = item.anchor ? item.anchor.id : parent.id;
       path.dataset.to = item.id;
       path.dataset.unlocked = String(unlocked);
       svg.append(path);
     }
-    const details = Array.from(document.querySelectorAll('.alts'));
-    allButton.textContent = details.length && details.every(detail => detail.open)
-      ? 'Collapse all options' : 'Expand all options';
-    allButton.disabled = details.length === 0;
     canvas.paint();
   }
   window.__adrCanvasLayout = layout;
@@ -494,15 +332,9 @@ export const TREE_SCRIPT = String.raw`
     });
   }
   for (const detail of document.querySelectorAll('.alts')) detail.addEventListener('toggle', () => canvas.schedule());
-  allButton.addEventListener('click', () => {
-    const details = Array.from(document.querySelectorAll('.alts'));
-    const open = !details.every(detail => detail.open);
-    details.forEach(detail => { detail.open = open; });
-    layout();
-  });
 
   layout();
-  canvas.fit();
+  canvas.fitWidth();
 })();
 
 `;

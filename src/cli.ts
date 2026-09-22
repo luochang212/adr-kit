@@ -49,7 +49,7 @@ Usage:
   adrkit update [--tools <list>] [--workflows <list>]
                                            Rewrite AI tool integrations
   adrkit config                              Print the current configuration
-  adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>]
+  adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
                                            Emit the decision relationship graph
   adrkit tree <name> [--mermaid|--text|--html] Render the record's deliberation tree
   adrkit completion <bash|zsh|fish>          Print a shell completion script
@@ -63,7 +63,9 @@ bodies, and nodes group by their created date. --mermaid pastes into any
 Markdown and renders natively on GitHub (nodes are tinted by their tags),
 --dot feeds Graphviz (dot -Tpng), --text prints a terminal-friendly tree,
 --html emits an offline self-contained decision map; --tag <tag> filters to
-one theme, --formal-only drops the mined edges.
+one theme, --formal-only drops the mined edges. --out <path> writes the output
+to a file instead of stdout: the map resolves its record links from that
+location, so a map written outside the repository still opens its records.
 
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
@@ -83,6 +85,7 @@ export function main(argv: string[]): void {
       html: { type: 'boolean', default: false },
       text: { type: 'boolean', default: false },
       tag: { type: 'string' },
+      out: { type: 'string' },
       reason: { type: 'string' },
       tools: { type: 'string' },
       workflows: { type: 'string' },
@@ -213,6 +216,7 @@ export function main(argv: string[]): void {
             html: values.html,
             formalOnly: values['formal-only'],
             tag: values.tag,
+            out: values.out,
           }),
         );
         return;

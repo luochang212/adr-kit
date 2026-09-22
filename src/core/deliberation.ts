@@ -134,6 +134,21 @@ function typeOf(node: DeliberationNode): DeliberationType {
  * recommended. Unknown unless both a settled child and a recommended child
  * exist.
  */
+/**
+ * Whether the node that raised a follow-up question unlocked it. In the outline
+ * a question nests under the node it depends on, so that parent is the node
+ * that raised it: a settled parent that is not the tree root turns the edge
+ * into frontier progress. The card tree, the drawn edges, and Mermaid all ask
+ * this one question rather than each deciding for itself.
+ */
+export function isUnlockedQuestion(
+  child: DeliberationNode,
+  parent: DeliberationNode,
+  parentIsRoot: boolean,
+): boolean {
+  return typeOf(child) === 'question' && !parentIsRoot && parent.status === 'settled';
+}
+
 function isOverride(node: DeliberationNode): boolean {
   const settled = node.children.filter((child) => child.status === 'settled');
   const recommended = node.children.filter((child) => child.recommended === true);
@@ -214,7 +229,7 @@ export function renderDeliberationMermaid(nodes: DeliberationNode[]): string {
     if (entry.parentId === undefined) continue;
     const parent = byId.get(entry.parentId)!;
     lines.push('  ' + entry.parentId + ' --> ' + entry.id);
-    if (typeOf(entry.node) === 'question' && !parent.isRoot && parent.node.status === 'settled') {
+    if (isUnlockedQuestion(entry.node, parent.node, parent.isRoot)) {
       unlockEdges.push(edgeIndex);
     }
     edgeIndex++;

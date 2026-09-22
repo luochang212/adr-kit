@@ -27,6 +27,22 @@ function displayWidth(text: string): number {
   return width;
 }
 
+/** Advance width per character, in em, as the views budget their fixed-width text. */
+const LATIN_EM = 0.48;
+const WIDE_EM = 1.03;
+
+/**
+ * Advance width of `text` at `fontSize`, for the SVG views, which get no
+ * wrapping or clipping from the browser and must size a run before writing it.
+ * The faces these views resolve to measure a little narrower, so a caller that
+ * clips to the same budget cannot be caught out by its own rounding.
+ */
+export function estimateTextWidth(text: string, fontSize: number): number {
+  let em = 0;
+  for (const char of text) em += WIDE.test(char) ? WIDE_EM : LATIN_EM;
+  return em * fontSize;
+}
+
 function splitByWidth(word: string, maxWidth: number): string[] {
   const pieces: string[] = [];
   let piece = '';

@@ -1,96 +1,5 @@
-/** Inline assets for the offline decision map. No network or runtime dependency. */
+/** Map-specific inline styles; the viewer shell is shared with the tree. */
 export const MAP_STYLE = String.raw`
-
-:root {
-  font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color: #233c36;
-  background: #f6f8f5
-}
-* {
-  box-sizing: border-box
-}
-body {
-  margin: 0
-}
-a {
-  color: inherit
-}
-header {
-  height: 64px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 28px;
-  border-bottom: 1px solid #e1e7e1;
-  gap: 14px
-}
-.brand {
-  font-size: 16px;
-  font-weight: 750;
-  letter-spacing: -.5px;
-  display: flex;
-  align-items: center;
-  gap: 10px
-}
-.logo {
-  background: #284f40;
-  color: #fff;
-  border-radius: 8px;
-  padding: 6px 9px;
-  font-family: monospace
-}
-.brand small {
-  font-size: 11px;
-  color: #728079;
-  font-weight: 500;
-  letter-spacing: 1px;
-  margin-left: 14px
-}
-.intro {
-  padding: 24px 32px 6px
-}
-.eyebrow {
-  color: #788b7b;
-  letter-spacing: 2px;
-  font: 11px monospace;
-  margin-bottom: 8px
-}
-h1 {
-  font-size: 23px;
-  letter-spacing: -.6px;
-  margin: 0;
-  font-weight: 650
-}
-.intro p {
-  font-size: 12px;
-  color: #718078;
-  margin: 8px 0 0
-}
-.stats {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 16px
-}
-.stat {
-  background: #fff;
-  border: 1px solid #e1e7e1;
-  border-radius: 10px;
-  padding: 8px 13px;
-  font-size: 11px;
-  color: #728079
-}
-.stat strong {
-  color: #233c36;
-  font-size: 15px;
-  font-weight: 600;
-  margin-right: 5px
-}
-main {
-  padding: 8px 20px 26px;
-  overflow-x: auto
-}
 svg {
   display: block
 }
@@ -116,9 +25,8 @@ svg {
   fill: #7c8a80;
   font-size: 10px
 }
-.node .badge {
-  fill: #387456;
-  font-size: 10px
+.node.has-deliberation rect {
+  fill: #edf6ef
 }
 .node.superseded rect {
   stroke-dasharray: 5 4
@@ -150,21 +58,6 @@ svg {
   stroke-width: 1.4;
   stroke-dasharray: 5 4
 }
-footer {
-  padding: 16px 32px 30px;
-  color: #87928a;
-  font-size: 10px
-}
-.legend {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap
-}
-.legend span {
-  display: flex;
-  align-items: center;
-  gap: 7px
-}
 .swatch {
   width: 24px;
   height: 0;
@@ -174,84 +67,13 @@ footer {
   border-top: 1.5px dashed #b6c7ba
 }
 .swatch.delib {
-  width: 10px;
-  height: 10px;
-  border: 0;
+  width: 18px;
+  height: 12px;
+  border: 1px solid #dce4dc;
   border-radius: 3px;
   background: #edf6ef
 }
-#world {
-  position: relative;
-  transform-origin: 0 0
-}
-.controls {
-  position: absolute;
-  bottom: 22px;
-  right: 24px;
-  display: none;
-  align-items: center;
-  padding: 5px;
-  gap: 3px;
-  background: #fff;
-  border: 1px solid #dce4dc;
-  border-radius: 11px;
-  box-shadow: 0 4px 20px #294d3e0a
-}
-.controls button {
-  border: 0;
-  background: none;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  padding: 6px 9px;
-  border-radius: 7px
-}
-.controls button:hover {
-  background: #edf3ef
-}
-.controls output {
-  font: 11px monospace;
-  width: 44px;
-  text-align: center
-}
-.hint {
-  position: absolute;
-  bottom: 25px;
-  left: 28px;
-  display: none;
-  color: #7a8a7f;
-  font-size: 11px;
-  background: #f6f8f5df;
-  padding: 7px;
-  border-radius: 5px
-}
-.interactive main {
-  height: calc(100dvh - 250px);
-  min-height: 420px;
-  padding: 0;
-  overflow: hidden;
-  touch-action: none;
-  cursor: grab;
-  position: relative
-}
-.interactive #world {
-  position: absolute
-}
-.interactive .controls {
-  display: flex
-}
-.interactive .hint {
-  display: block
-}
-main.dragging {
-  cursor: grabbing
-}
-@media (max-width: 700px) {
-  .interactive main {
-    height: calc(100dvh - 240px)
-  }
-  .interactive .hint {
-    display: none
-  }
-}
+#world { position: relative; transform-origin: 0 0; }
+main { overflow: auto; }
+.empty { padding: 24px; }
 `;
