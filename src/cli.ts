@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { VERSION } from './version.js';
 import type { DecidedBy, RaisedBy } from './core/adr.js';
 import { isDecidedBy, isRaisedBy } from './core/adr.js';
+import { unsupportedOptions } from './core/cli-options.js';
 import { acceptCommand } from './commands/accept.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
@@ -71,9 +72,10 @@ Run from anywhere inside the project; commands discover the nearest adr/ directo
 `;
 
 export function main(argv: string[]): void {
-  const { values, positionals } = parseArgs({
+  const { values, positionals, tokens } = parseArgs({
     args: argv,
     allowPositionals: true,
+    tokens: true,
     options: {
       all: { type: 'boolean', default: false },
       by: { type: 'string' },
@@ -116,6 +118,17 @@ export function main(argv: string[]): void {
           `adrkit ${command.length > 0 ? command : '(no command)'} does not take --${flag}`,
         );
       }
+    }
+
+    // Every other option is command-specific too: reject one a command does not
+    // list instead of silently ignoring it. `--out` on `tree` was the sharp
+    // case, where the caller got stdout and no file.
+    const supplied = tokens
+      .filter((token) => token.kind === 'option' && token.name !== undefined)
+      .map((token) => `--${String(token.name)}`);
+    const unsupported = unsupportedOptions(command, supplied);
+    if (unsupported.length > 0) {
+      throw new Error(`adrkit ${command} does not take ${unsupported.join(', ')}`);
     }
 
     switch (command) {

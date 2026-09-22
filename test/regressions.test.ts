@@ -1,7 +1,8 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { main } from '../src/cli.js';
 import type { AdrRecord } from '../src/core/adr.js';
 import { acceptCommand } from '../src/commands/accept.js';
 import { initCommand } from '../src/commands/init.js';
@@ -350,5 +351,53 @@ Body.
     };
     expect(relativePath(record)).toBe('adr/.drafts/2026-08-21-use-sqlite.md');
     expect(relativePath(record)).not.toContain('\\');
+  });
+});
+
+describe('cli option surface', () => {
+  function runCli(argv: string[], cwd: string): { errors: string[]; exitCode: number | undefined } {
+    const previousExit = process.exitCode;
+    const previousCwd = process.cwd();
+    const errors: string[] = [];
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+      errors.push(args.map(String).join(' '));
+    });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    process.exitCode = undefined;
+    try {
+      process.chdir(cwd);
+      main(argv);
+      return { errors, exitCode: process.exitCode };
+    } finally {
+      process.chdir(previousCwd);
+      errorSpy.mockRestore();
+      logSpy.mockRestore();
+      process.exitCode = previousExit;
+    }
+  }
+
+  it('rejects an option a command does not take', () => {
+    const root = makeRepo();
+    const list = runCli(['list', '--tag', 'frontend'], root);
+    expect(list.exitCode).toBe(1);
+    expect(list.errors.join('\n')).toContain('does not take --tag');
+
+    const tree = runCli(['tree', '1', '--out', 'out.html'], root);
+    expect(tree.exitCode).toBe(1);
+    expect(tree.errors.join('\n')).toContain('does not take --out');
+
+    const decide = runCli(
+      ['decide', 'x', '--raised-by', 'human', '--decided-by', 'human', '--tools', 'claude'],
+      root,
+    );
+    expect(decide.exitCode).toBe(1);
+    expect(decide.errors.join('\n')).toContain('does not take --tools');
+  });
+
+  it('still accepts --out on graph', () => {
+    const root = makeRepo();
+    const result = runCli(['graph', '--html', '--out', join(root, 'map.html')], root);
+    expect(result.errors.join('\n')).not.toContain('does not take');
+    expect(existsSync(join(root, 'map.html'))).toBe(true);
   });
 });

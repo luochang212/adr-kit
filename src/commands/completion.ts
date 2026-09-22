@@ -1,59 +1,5 @@
 import { DECIDED_BY_VALUES } from '../core/adr.js';
-
-const COMMANDS = [
-  'init',
-  'propose',
-  'decide',
-  'accept',
-  'reject',
-  'supersede',
-  'list',
-  'show',
-  'status',
-  'instructions',
-  'validate',
-  'update',
-  'config',
-  'graph',
-  'tree',
-  'completion',
-  'version',
-  'help',
-];
-
-/**
- * Options each command takes, used for completion. `--decided-by` is listed
- * because it is required on the two commands that record a decision and its
- * two values are the whole point of the flag: completing the command name and
- * stopping there leaves the caller to guess a required argument.
- */
-const COMMAND_OPTIONS: Record<string, string[]> = {
-  init: ['--tools', '--workflows', '--help'],
-  propose: ['--help'],
-  decide: ['--raised-by', '--decided-by', '--help'],
-  accept: ['--raised-by', '--decided-by', '--help'],
-  reject: ['--reason', '--help'],
-  supersede: ['--by', '--help'],
-  list: ['--help'],
-  show: ['--help'],
-  status: ['--help'],
-  instructions: ['--help'],
-  validate: ['--all', '--help'],
-  update: ['--tools', '--workflows', '--help'],
-  config: ['--help'],
-  graph: ['--mermaid', '--dot', '--text', '--html', '--formal-only', '--tag', '--out', '--help'],
-  tree: ['--mermaid', '--text', '--html', '--help'],
-  completion: ['--help'],
-  version: ['--help'],
-  help: ['--help'],
-};
-
-/**
- * Options that consume the following word as their value. Declaring them as
- * valueless would make every shell treat them as flags, so completion would
- * repeat the option list in a position where the CLI expects free text.
- */
-const VALUE_OPTIONS = ['--by', '--reason', '--tag', '--tools', '--workflows', '--out'];
+import { COMMANDS, COMMAND_OPTIONS, takesValue, VALUE_OPTIONS } from '../core/cli-options.js';
 
 /** Short descriptions for the shells that show one next to an option. */
 const OPTION_DESCRIPTIONS: Record<string, string> = {
@@ -66,10 +12,6 @@ const OPTION_DESCRIPTIONS: Record<string, string> = {
   '--tools': 'AI tools to install integrations for',
   '--workflows': 'workflows to install',
 };
-
-function takesValue(option: string): boolean {
-  return VALUE_OPTIONS.includes(option);
-}
 
 /**
  * A `_arguments` spec: a boolean stands alone, while a value option has to
