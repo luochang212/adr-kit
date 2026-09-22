@@ -1,3 +1,4 @@
+import { RELATION_STYLE, RELATION_SCRIPT } from './relation-focus.js';
 import type { DeliberationNode } from './deliberation.js';
 import { isUnlockedQuestion } from './deliberation.js';
 import { CANVAS_STYLE, CANVAS_SCRIPT, canvasHeaderHTML, canvasDockHTML } from './canvas-view.js';
@@ -125,7 +126,7 @@ export function renderCardTree(nodes: DeliberationNode[], title: string): string
     const heading = kind === 'virtual' ? '' : `<h2 id="${id}-title">${escapeHtml(node.text)}</h2>`;
     const labelledBy = kind === 'virtual' ? '' : ` aria-labelledby="${id}-title"`;
     const toggleLabel = kind === 'virtual' ? 'Toggle all decisions' : `Toggle follow-ups: ${escapeHtml(node.text)}`;
-    return `<article id="${id}" class="card ${kind}" data-parent="${card.parent}" data-anchor="${card.anchor}" data-state="${status}" data-unlocked="${card.unlocked}" style="--depth:${card.depth}"${labelledBy}>
+    return `<article id="${id}" class="card ${kind}" data-parent="${card.parent}" data-anchor="${card.anchor}" data-state="${status}" data-unlocked="${card.unlocked}" style="--depth:${card.depth}"${labelledBy}${kind === 'virtual' ? '' : ' tabindex="0"'}>
       <div class="cardhead"><div class="label"><span>${label}</span>${stateChip}</div>
       ${heading}${reason(node)}
       ${node.recommended ? '<p class="badge">Agent recommended</p>' : ''}
@@ -158,12 +159,12 @@ export function renderCardTree(nodes: DeliberationNode[], title: string): string
   return `<!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)} — deliberation tree</title><style>${TREE_STYLE}${CANVAS_STYLE}${SHARE_STYLE}</style></head>
+<title>${escapeHtml(title)} — deliberation tree</title><style>${TREE_STYLE}${CANVAS_STYLE}${SHARE_STYLE}${RELATION_STYLE}</style></head>
 <body>
-${canvasHeaderHTML(title, stats, 'Follow the choices. See what each answer unlocked.')}
+${canvasHeaderHTML(title, stats, 'Hover or focus a card to trace its ancestors and follow-ups. Escape clears the highlight.')}
 <main id="viewport" tabindex="0" aria-label="Decision tree" aria-describedby="instructions"><div id="world"><svg id="edges" aria-hidden="true"></svg><div id="cards">${markup}</div></div>
 ${canvasDockHTML(legend, 'Fit tree')}</main>
 <noscript><p class="no-script">JavaScript is disabled. All cards are shown in outline order; expand other options to read their reasons.</p></noscript>
-<script>${CANVAS_SCRIPT}${SHARE_SCRIPT}${TREE_SCRIPT}</script>
+<script>${CANVAS_SCRIPT}${SHARE_SCRIPT}${TREE_SCRIPT}${RELATION_SCRIPT}</script>
 </body></html>\n`;
 }

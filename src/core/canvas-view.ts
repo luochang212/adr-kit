@@ -285,7 +285,7 @@ export const CANVAS_SCRIPT = String.raw`
     if (actions[event.key]) { event.preventDefault(); actions[event.key](); paint(); }
   });
   viewport.addEventListener('focusin', event => {
-    if (!event.target.closest('.card')) return;
+    if (!event.target.closest('.card, #world a')) return;
     const target = event.target.getBoundingClientRect();
     const view = viewport.getBoundingClientRect();
     if (target.left < view.left || target.right > view.right || target.top < view.top || target.bottom > view.bottom) {

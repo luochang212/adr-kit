@@ -1,4 +1,5 @@
-import type { DecisionGraph, GraphEdge, GraphNode } from './graph.js';
+import { RELATION_STYLE, RELATION_SCRIPT } from './relation-focus.js';
+import type { DecisionGraph, GraphNode } from './graph.js';
 import { TAG_COLORS } from './graph.js';
 import { MAP_STYLE } from './graph-view.js';
 import { CANVAS_STYLE, CANVAS_SCRIPT, canvasHeaderHTML, canvasDockHTML } from './canvas-view.js';
@@ -141,28 +142,26 @@ function cubicSpan(p0: number, p1: number, p2: number, p3: number): { min: numbe
   return { min, max };
 }
 
-/**
- * A left-to-right cubic between a source card's right edge and a target's left
- * edge. The bend grows with the horizontal distance, so a long backward edge
- * swings outside the card grid; the caller sizes the drawing box to hold that
- * swing rather than letting the SVG clip it at the map's edge.
- */
-function edgeCurve(from: Placed, to: Placed): EdgeCurve {
-  const sx = from.x + CARD_W;
-  const sy = from.y + from.height / 2;
-  const tx = to.x;
-  const ty = to.y + to.height / 2;
-  const bend = Math.max(40, Math.abs(tx - sx) * 0.4);
-  const c1x = sx + bend;
-  const c2x = tx - bend;
+/** Facing sides for cross-date links; same-date links loop beside the column. */
+function edgeSides(from: Placed, to: Placed): [number, number] {
+  return from.x === to.x ? [1, 1] : from.x < to.x ? [1, -1] : [-1, 1];
+}
+
+function edgeCurve(from: Placed, to: Placed, sourceY: number, targetY: number, lane: number): EdgeCurve {
+  const [sourceSide, targetSide] = edgeSides(from, to);
+  const sx = from.x + (sourceSide === 1 ? CARD_W : 0);
+  const tx = to.x + (targetSide === 1 ? CARD_W : 0);
+  const sy = sourceY, ty = targetY;
+  // Bounded lanes keep same-date loops in the column gutter. Endpoints are
+  // distributed separately, so dense columns do not stack all arrowheads.
+  const bend = from.x === to.x ? 32 + (lane % 5) * 12 : Math.max(32, Math.abs(tx - sx) * 0.4);
+  const c1x = sx + sourceSide * bend;
+  const c2x = tx + targetSide * bend;
   const x = cubicSpan(sx, c1x, c2x, tx);
   const y = cubicSpan(sy, sy, ty, ty);
   return {
     d: 'M' + sx + ',' + sy + ' C' + c1x + ',' + sy + ' ' + c2x + ',' + ty + ' ' + tx + ',' + ty,
-    minX: x.min,
-    maxX: x.max,
-    minY: y.min,
-    maxY: y.max,
+    minX: x.min, maxX: x.max, minY: y.min, maxY: y.max,
   };
 }
 
@@ -236,22 +235,48 @@ export function renderDecisionMapHtml(
   const colors = tagColors(placed.map((entry) => entry.node));
   const byNumber = new Map(placed.map((entry) => [entry.node.number, entry]));
   const edges: string[] = [];
-  // A long edge can swing outside the card grid, and the SVG paints only what
-  // its viewBox covers: the box has to grow to the curves, not the other way.
+  const routes = [
+    ...graph.referenceEdges.map(edge => ({ edge, kind: 'reference' as const })),
+    ...graph.supersedeEdges.map(edge => ({ edge, kind: 'supersede' as const })),
+  ].flatMap(({ edge, kind }) => {
+    const from = byNumber.get(edge.from), to = byNumber.get(edge.to);
+    return from && to ? [{ edge, kind, from, to, sourceY: 0, targetY: 0 }] : [];
+  });
+  type Port = { route: typeof routes[number]; end: 'sourceY' | 'targetY'; node: Placed; other: Placed };
+  const ports = new Map<string, Port[]>();
+  for (const route of routes) {
+    const sides = edgeSides(route.from, route.to);
+    for (const [node, other, side, end] of [
+      [route.from, route.to, sides[0], 'sourceY'],
+      [route.to, route.from, sides[1], 'targetY'],
+    ] as const) {
+      const key = node.node.number + ':' + side;
+      const group = ports.get(key) ?? [];
+      group.push({ route, end, node, other });
+      ports.set(key, group);
+    }
+  }
+  for (const group of ports.values()) {
+    group.sort((a, b) => (a.other.y + a.other.height / 2) - (b.other.y + b.other.height / 2));
+    const node = group[0]!.node;
+    const step = Math.min(10, (node.height - PAD_Y * 2) / Math.max(1, group.length - 1));
+    group.forEach((port, i) => {
+      port.route[port.end] = node.y + node.height / 2 + (i - (group.length - 1) / 2) * step;
+    });
+  }
+  const lanes = new Map<number, number>();
   const box = { minX: 0, minY: 0, maxX: width, maxY: height };
-  const drawEdge = (edge: GraphEdge, kind: 'supersede' | 'reference'): void => {
-    const from = byNumber.get(edge.from);
-    const to = byNumber.get(edge.to);
-    if (from === undefined || to === undefined) return;
-    const curve = edgeCurve(from, to);
+  for (const { edge, kind, from, to, sourceY, targetY } of routes) {
+    const lane = lanes.get(from.x) ?? 0;
+    if (from.x === to.x) lanes.set(from.x, lane + 1);
+    const curve = edgeCurve(from, to, sourceY, targetY, lane);
     box.minX = Math.min(box.minX, curve.minX);
     box.maxX = Math.max(box.maxX, curve.maxX);
     box.minY = Math.min(box.minY, curve.minY);
     box.maxY = Math.max(box.maxY, curve.maxY);
-    edges.push('<path class="edge ' + kind + '" d="' + curve.d + '" marker-end="url(#arrow-' + kind + ')"/>');
-  };
-  for (const edge of graph.referenceEdges) drawEdge(edge, 'reference');
-  for (const edge of graph.supersedeEdges) drawEdge(edge, 'supersede');
+    edges.push('<path class="edge ' + kind + '" d="' + curve.d + '" data-from="' + edge.from
+      + '" data-to="' + edge.to + '" marker-end="url(#arrow-' + kind + ')"/>');
+  }
 
   const deliberated = graph.nodes.filter((node) => node.hasDeliberation).length;
   const stats: Array<[string, number]> = [
@@ -283,10 +308,10 @@ export function renderDecisionMapHtml(
     '<!doctype html>',
     '<html lang="en">',
     '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<title>' + escapeHtml(title) + ' — decision map</title><style>' + MAP_STYLE + CANVAS_STYLE + SHARE_STYLE + '</style></head>',
+    '<title>' + escapeHtml(title) + ' — decision map</title><style>' + MAP_STYLE + CANVAS_STYLE + SHARE_STYLE + RELATION_STYLE + '</style></head>',
     '<body>',
     canvasHeaderHTML(title, stats,
-      'Solid edges supersede; dashed edges are record references. Grouped by the date each decision was created.'),
+      'Solid edges supersede; dashed edges are record references. Grouped by creation date. Hover or focus a decision to trace its direct relationships; Escape clears the highlight.'),
     '<main id="viewport" tabindex="0" aria-label="Decision map" aria-describedby="instructions"><div id="world">' + body + '</div>',
     canvasDockHTML(
       // The legend quotes the marks the map draws, so each entry waits for the
@@ -298,7 +323,7 @@ export function renderDecisionMapHtml(
       ].filter(Boolean).join(''),
       'Fit map'),
     '</main>',
-    '<script>' + CANVAS_SCRIPT + SHARE_SCRIPT + '</script>',
+    '<script>' + CANVAS_SCRIPT + SHARE_SCRIPT + RELATION_SCRIPT + '</script>',
     '</body></html>',
     '',
   ];

@@ -571,14 +571,14 @@ describe('graph HTML map', () => {
     };
   }
 
-  it('grows the drawing box to hold every connecting line', () => {
+  it('keeps backward references inside the card grid without outward detours', () => {
     const root = makeRepo();
     writeDecision(root, 1, 'First', { date: '2026-08-17' });
     writeDecision(root, 2, 'Bridge', { date: '2026-08-19', decisionBody: 'Builds on ADR-1.' });
     writeDecision(root, 3, 'Latest', { date: '2026-08-21', decisionBody: 'Also builds on ADR-1.' });
     const html = graphCommand(root, { html: true });
-    // Two backward edges: each one swings out of its own column, and the box has
-    // to cover the swing or the SVG clips the line at the map's edge.
+    // Backward references leave the left side and enter the right side, so
+    // they no longer swing beyond the outer columns.
     expect(html.match(/<path class="edge[^"]*" d="[^"]+"/g) ?? []).toHaveLength(2);
     const box = mapBox(html);
     const samples = edgeSamples(html);
@@ -588,21 +588,50 @@ describe('graph HTML map', () => {
       expect(y).toBeGreaterThanOrEqual(box.minY);
       expect(y).toBeLessThanOrEqual(box.maxY);
     }
-    // Sampled curve, not control points: the hull is far wider than the drawn
-    // line, and sizing to it left the map in an empty frame. Both edges swing
-    // far enough that the hull's bounds are strictly wider than the box's.
-    const hullX = samples.length === 0 ? [] : (html.match(/<path class="edge[^"]*" d="[^"]+"/g) ?? [])
-      .flatMap((path) => (path.match(/-?[\d.]+/g) ?? []).map(Number))
-      .filter((_, index) => index % 2 === 0);
-    expect(box.minX).toBeGreaterThan(Math.min(...hullX));
-    expect(box.maxX).toBeLessThan(Math.max(...hullX));
+    const grid = cardSpan(html);
+    for (const [x] of samples) {
+      expect(x).toBeGreaterThanOrEqual(grid.left);
+      expect(x).toBeLessThanOrEqual(grid.right);
+    }
+  });
+
+  it('routes by direction and gives incident edges distinct card ports', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'First', { date: '2026-08-17', decisionBody: 'See ADR-3.' });
+    writeDecision(root, 2, 'Same date', { date: '2026-08-17', decisionBody: 'See ADR-1.' });
+    writeDecision(root, 3, 'Later', { date: '2026-08-18', decisionBody: 'See ADR-1 and ADR-2.' });
+    const html = graphCommand(root, { html: true });
+    const paths = [...html.matchAll(/<path class="edge [^"]+" d="([^"]+)" data-from="(\d+)" data-to="(\d+)"/g)];
+    expect(paths).toHaveLength(4);
+    const ports = new Map<string, number[]>();
+    for (const [, d, from, to] of paths) {
+      const [sx, sy, c1x, , c2x, , tx, ty] = d!.match(/-?[\d.]+/g)!.map(Number) as [number, number, number, number, number, number, number, number];
+      if (from === '2' && to === '1') {
+        expect(sx).toBe(tx); // same-date loop stays to the right
+        expect(c1x).toBeGreaterThan(sx);
+        expect(c2x).toBeGreaterThan(tx);
+      } else if (from === '1') {
+        expect(sx).toBeLessThan(tx);
+        expect(c1x).toBeGreaterThan(sx);
+        expect(c2x).toBeLessThan(tx);
+      } else {
+        expect(sx).toBeGreaterThan(tx);
+        expect(c1x).toBeLessThan(sx);
+        expect(c2x).toBeGreaterThan(tx);
+      }
+      for (const [id, x, y] of [[from!, sx, sy], [to!, tx, ty]] as const) {
+        const key = id + ':' + x;
+        ports.set(key, [...(ports.get(key) ?? []), y]);
+      }
+    }
+    for (const ys of ports.values()) expect(new Set(ys).size).toBe(ys.length);
   });
 
   it('sizes the drawing box to the drawn curves for every map shape', () => {
     // The shapes a decision map can take: no edges at all, a forward run, a
     // reference that reaches back one date and one that reaches back three, a
     // crowded single date, and a same-date pair whose edge swings inside its
-    // own column.
+    // own column gutter.
     const shapes: Record<string, Array<{ created: string; refs?: number[] }>> = {
       'a single date': [{ created: '2026-08-01' }, { created: '2026-08-01' }, { created: '2026-08-01' }],
       'a same-date reference': [{ created: '2026-08-01' }, { created: '2026-08-01', refs: [1] }],

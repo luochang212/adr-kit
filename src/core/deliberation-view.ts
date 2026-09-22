@@ -314,6 +314,7 @@ export const TREE_SCRIPT = String.raw`
       svg.append(path);
     }
     canvas.paint();
+    world.dispatchEvent(new Event('adr-layout'));
   }
   window.__adrCanvasLayout = layout;
 

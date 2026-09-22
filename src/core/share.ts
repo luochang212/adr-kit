@@ -136,6 +136,7 @@ export const SHARE_SCRIPT = String.raw`
   // viewBox, which keeps the geometry and the aspect ratio intact.
   function mapImage(w, h) {
     const svg = document.querySelector('#world svg').cloneNode(true);
+    svg.querySelectorAll('.relation-dim').forEach(node => node.classList.remove('relation-dim'));
     svg.setAttribute('width', w);
     svg.setAttribute('height', h);
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
@@ -151,6 +152,7 @@ export const SHARE_SCRIPT = String.raw`
   // come off the copy.
   function treeImage(w, h, factor) {
     const clone = document.getElementById('world').cloneNode(true);
+    clone.querySelectorAll('.relation-dim').forEach(node => node.classList.remove('relation-dim'));
     clone.removeAttribute('id');
     clone.style.position = 'absolute';
     clone.style.left = '0px';
