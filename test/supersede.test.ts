@@ -9,7 +9,7 @@ import { proposeCommand } from '../src/commands/propose.js';
 import { statusCommand } from '../src/commands/status.js';
 import { supersedeCommand } from '../src/commands/supersede.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { todayStamp } from '../src/core/adr.js';
+import { parseAdrFile, todayStamp } from '../src/core/adr.js';
 import { listDrafts } from '../src/core/repository.js';
 import { formatIssues, validateDraft } from '../src/core/validate.js';
 
@@ -320,5 +320,48 @@ describe('validate superseded references', () => {
     expect(validateCommand(root, '1').valid).toBe(true);
     expect(readFileSync(ancestor, 'utf8')).toBe(before);
     expect(before).toContain('superseded-by: 2');
+  });
+});
+
+describe('supersede target and record integrity', () => {
+  it('refuses when the retiring record has an unknown front matter key', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    const tampered = readFileSync(path, 'utf8').replace('---\n', '---\nunknown-key: keep-me\n');
+    writeFileSync(path, tampered);
+
+    expect(() => supersedeCommand('1', '2', root)).toThrow(/unknown front matter field.*unknown-key/);
+    // Refused before the rewrite: the file is byte-identical.
+    expect(readFileSync(path, 'utf8')).toBe(tampered);
+  });
+
+  it('refuses a replacement whose status is not accepted', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    const path = join(root, 'adr', 'decisions', '2-use-postgres.md');
+    writeFileSync(path, readFileSync(path, 'utf8').replace('status: accepted', 'status: proposed'));
+
+    expect(() => supersedeCommand('1', '2', root)).toThrow(/is not an accepted decision/);
+  });
+
+  it('preserves tags and provenance across the retirement', () => {
+    const root = makeRepo();
+    acceptDecision(root, 'Use SQLite');
+    acceptDecision(root, 'Use Postgres');
+    const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    writeFileSync(
+      path,
+      readFileSync(path, 'utf8').replace('decided-by: human', 'decided-by: human\ntags: [storage, data]'),
+    );
+
+    supersedeCommand('1', '2', root);
+    const after = readFileSync(path, 'utf8');
+    expect(after).toContain('raised-by: human');
+    expect(after).toContain('decided-by: human');
+    expect(after).toContain('superseded-by: 2');
+    expect(parseAdrFile(path).tags).toEqual(['storage', 'data']);
   });
 });
