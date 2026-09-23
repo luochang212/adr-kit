@@ -169,7 +169,8 @@ CLI 既不推断也不校验，只记录声明，所以它不能证明是谁自�
 - **草稿**（`adr/.drafts/YYYY-MM-DD-slug.md`）是 `status: proposed` 的临时
   提案，需要 `Problem`、`Proposal`、`Alternatives considered`、
   `Acceptance criteria`、`Risks`，`validate` 不检查它们：`adrkit accept`
-  在提升前才校验草稿。
+  在提升前才校验草稿。必需 section 只有在 HTML 注释之外有文字时才算写了
+  内容，未填写的 `<!--` 占位不算通过。
 - **被否决**的想法不是独立记录：决策的 `Alternatives considered` 记录了
   考虑过什么、为什么落选。
 - **Superseded** 决策保留在 `adr/decisions/` 作为历史，front matter 指向

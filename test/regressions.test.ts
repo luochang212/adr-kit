@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -351,6 +352,68 @@ Body.
     };
     expect(relativePath(record)).toBe('adr/.drafts/2026-08-21-use-sqlite.md');
     expect(relativePath(record)).not.toContain('\\');
+  });
+});
+
+describe('non-regular record paths', () => {
+  const windows = process.platform === 'win32';
+
+  it('reports a directory instead of reading it', () => {
+    const root = makeRepo();
+    mkdirSync(join(folderPath(root, 'decisions'), '1-dir.md'));
+    expect(() => listCommand(root)).toThrow(/not a regular file \(directory\)/);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('not a regular file (directory)');
+  });
+
+  it.skipIf(windows)('reports a FIFO without blocking on it', () => {
+    const root = makeRepo();
+    execSync(`mkfifo ${JSON.stringify(join(folderPath(root, 'decisions'), '1-fifo.md'))}`);
+    expect(() => listCommand(root)).toThrow(/not a regular file \(fifo\)/);
+  });
+
+  it.skipIf(windows)('refuses a path that resolves to a character device', () => {
+    const root = makeRepo();
+    symlinkSync('/dev/zero', join(folderPath(root, 'decisions'), '1-zero.md'));
+    expect(() => listCommand(root)).toThrow(/not a regular file \(character device\)/);
+  });
+
+  it.skipIf(windows)('reads a symbolic link to a regular file as a record', () => {
+    const root = makeRepo();
+    const target = join(root, 'record-stored-elsewhere.md');
+    writeFileSync(
+      target,
+      `---
+status: accepted
+date: 2026-08-19
+raised-by: human
+decided-by: human
+created: 2026-08-19
+---
+
+# ADR: 1 Linked
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- **Other**: rejected.
+
+## Consequences
+
+Body.
+`,
+    );
+    symlinkSync(target, join(folderPath(root, 'decisions'), '1-linked.md'));
+    expect(listCommand(root)).toContain('[1] Linked');
+    expect(validateCommand(root).valid).toBe(true);
   });
 });
 

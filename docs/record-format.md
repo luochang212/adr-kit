@@ -89,7 +89,11 @@ File name: `YYYY-MM-DD-slug.md`, location `adr/.drafts/`. Front matter:
 ```
 
 `## Alternatives considered` must contain at least one written alternative
-after HTML comments are stripped.
+after HTML comments are stripped. Text inside a comment is not content, and an
+unterminated `<!--` swallows the rest of the section (CommonMark's reading of a
+comment block that reaches its end of context), so a marker with nothing
+outside it never satisfies the check. Every "must contain written content" rule
+reads content the same way.
 
 Drafts are ephemeral and outside the `validate` surface: `adrkit accept`
 validates a draft right before promoting it into a decision, and `adrkit

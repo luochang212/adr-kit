@@ -92,7 +92,9 @@ accepted 决策。
 
 校验单条记录；省略 `name` 或使用 `--all` 时校验整个仓库。单条记录校验
 同样会沿 `superseded-by: N` 替代链检查引用均存在、没有循环，且最终到达
-accepted 决策；中间记录可以是 superseded。
+accepted 决策；中间记录可以是 superseded。被读取的记录路径必须指向普通
+文件：目录、FIFO、socket 或设备会按类型报告而不读取；指向普通文件的
+符号链接与普通记录一样读取。
 
 ### `adrkit update [--tools <list>] [--workflows <list>]`
 

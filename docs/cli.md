@@ -114,6 +114,9 @@ Validate one record, or the whole repository when `name` is omitted or
 `--all` is given. Single-record validation also checks that a
 `superseded-by: N` chain contains no missing targets or cycles and ends at an
 accepted decision. Intermediate superseded records are valid historical links.
+A path read as a record must resolve to a regular file: a directory, FIFO,
+socket, or device is reported by its kind instead of being read, and a
+symbolic link to a regular file is read like any other record.
 
 ### `adrkit update [--tools <list>] [--workflows <list>]`
 

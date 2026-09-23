@@ -474,6 +474,57 @@ created: 2026-08-19
     }
     expect(logs.join('\n')).toContain('must contain written content');
   });
+
+  it('reports a section whose only content is an unterminated comment', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(root, 'adr', 'decisions', '1-use-sqlite.md'),
+      `---
+status: accepted
+date: 2026-08-19
+raised-by: human
+decided-by: human
+created: 2026-08-19
+---
+
+# ADR: 1 Use SQLite
+
+## Problem
+
+<!--
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- JSON files: rejected.
+
+## Consequences
+
+Body.
+`,
+    );
+    const logs: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
+      logs.push(args.map(String).join(' '));
+    });
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    let exitCode: number | undefined;
+    process.chdir(root);
+    try {
+      main(['validate', '--all']);
+      exitCode = process.exitCode;
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      spy.mockRestore();
+    }
+    expect(exitCode).toBe(1);
+    expect(logs.join('\n')).toContain('section "## Problem" must contain written content');
+  });
 });
 
 describe('decide and show', () => {

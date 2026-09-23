@@ -187,6 +187,8 @@ stays in git.
   `status: proposed`, require `Problem`, `Proposal`, `Alternatives
   considered`, `Acceptance criteria`, and `Risks`, and are never checked by
   `validate`: `adrkit accept` validates a draft right before promoting it.
+  A required section counts as written only when it has text outside HTML
+  comments, so an unfilled `<!--` placeholder never passes.
 - **Rejected** ideas are not standalone records: a decision's
   `Alternatives considered` documents what was considered and why it lost.
 - **Superseded** decisions stay in `adr/decisions/` as history, with the

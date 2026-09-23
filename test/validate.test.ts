@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
 import { initCommand } from '../src/commands/init.js';
 import { proposeCommand } from '../src/commands/propose.js';
+import { acceptCommand } from '../src/commands/accept.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { folderPath, listDrafts } from '../src/core/repository.js';
 import { formatIssues, validateDraft } from '../src/core/validate.js';
@@ -365,6 +366,141 @@ Body.
     expect(result.output).toContain('tag "Execution Layer" must be lowercase kebab-case');
     expect(result.output).toContain('duplicate tag "sandbox"');
     expect(result.output).toContain('tags must not be empty');
+  });
+});
+
+describe('written content and comment handling', () => {
+  /** Replace the fixture's `## Problem` body, keeping the rest of the record valid. */
+  function withProblemBody(root: string, body: string): void {
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Problem\n\nBody.',
+      `## Problem\n\n${body}`,
+    );
+    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'), content);
+  }
+
+  it('does not count an unterminated comment as written content', () => {
+    const root = makeRepo();
+    withProblemBody(root, '<!--');
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Problem" must contain written content');
+  });
+
+  it('swallows the prose that follows an unterminated comment', () => {
+    const root = makeRepo();
+    withProblemBody(root, '<!--\nThis prose sits inside the comment.');
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Problem" must contain written content');
+  });
+
+  it('counts text outside a comment as written content', () => {
+    const root = makeRepo();
+    withProblemBody(root, 'Chose Postgres over SQLite.\n<!--');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('keeps stripping a closed comment', () => {
+    const root = makeRepo();
+    withProblemBody(root, '<!-- none written yet -->');
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Problem" must contain written content');
+  });
+
+  it('refuses a draft whose only alternative is an unterminated comment', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    writeFileSync(
+      file,
+      `---
+status: proposed
+date: 2026-08-19
+created: 2026-08-19
+---
+
+# ADR: Use SQLite
+
+## Problem
+
+We need durable storage.
+
+## Proposal
+
+Use SQLite.
+
+## Alternatives considered
+
+<!--
+
+## Acceptance criteria
+
+It works.
+
+## Risks
+
+Some risk.
+`,
+    );
+    const issues = validateDraft(root, listDrafts(root)[0]!);
+    expect(formatIssues(issues)).toContain('must contain at least one written alternative');
+  });
+
+  it('refuses to promote a draft whose sections hold only comment markers', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    // The audited defect: every required section held one unterminated marker
+    // and `accept` promoted the result into an immutable, empty record.
+    writeFileSync(
+      file,
+      `---
+status: proposed
+date: 2026-08-19
+created: 2026-08-19
+---
+
+# ADR: Use SQLite
+
+## Problem
+
+<!--
+
+## Proposal
+
+<!--
+
+## Alternatives considered
+
+<!--
+
+## Acceptance criteria
+
+<!--
+
+## Risks
+
+<!--
+`,
+    );
+    expect(() => acceptCommand('Use SQLite', root, 'human', 'human')).toThrow(
+      /must contain written content/,
+    );
+  });
+
+  it('validates a crafted comment payload promptly', () => {    const root = makeRepo();
+    // 500 KB of unterminated markers: the strip stays linear, so this is
+    // milliseconds rather than the tens of seconds a rescanning expression
+    // takes on the same input.
+    withProblemBody(root, '<!--'.repeat(125_000));
+    const started = Date.now();
+    const result = validateCommand(root);
+    const elapsed = Date.now() - started;
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Problem" must contain written content');
+    expect(elapsed).toBeLessThan(2000);
   });
 });
 

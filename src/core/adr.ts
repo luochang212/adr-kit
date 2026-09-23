@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync, type Stats } from 'node:fs';
 import { basename } from 'node:path';
 import { parse } from 'yaml';
 
@@ -129,10 +129,70 @@ export function section(record: AdrRecord, heading: string): string | undefined 
   return record.sections.find((candidate) => candidate.heading === heading)?.body;
 }
 
+/**
+ * Text outside HTML comments. The scan walks `indexOf` from each `<!--` to the
+ * next `-->` rather than matching a `[\s\S]*?` expression: a marker with no
+ * closing tag makes the expression rescan to the end of the body from every
+ * position, so a crafted body costs the square of its size (~500 KB took over
+ * ten seconds, and multi-megabyte payloads never returned). An unterminated
+ * comment swallows the rest of the section, which is CommonMark's reading of a
+ * comment block that runs to its end of context.
+ */
+function stripComments(body: string): string {
+  const open = '<!--';
+  const close = '-->';
+  let text = '';
+  let index = 0;
+  for (;;) {
+    const start = body.indexOf(open, index);
+    if (start === -1) return text + body.slice(index);
+    text += body.slice(index, start);
+    const end = body.indexOf(close, start + open.length);
+    if (end === -1) return text;
+    index = end + close.length;
+  }
+}
+
 export function hasMeaningfulBody(body: string | undefined): boolean {
   if (body === undefined) return false;
-  const withoutComments = body.replace(/<!--[\s\S]*?-->/g, '');
-  return withoutComments.trim().length > 0;
+  return stripComments(body).trim().length > 0;
+}
+
+/**
+ * The kind of a path that is not a regular file, named in the error so the
+ * reader learns what is there (`directory`, `fifo`, `character device`).
+ */
+function pathKind(info: Stats): string {
+  if (info.isDirectory()) return 'directory';
+  if (info.isFIFO()) return 'fifo';
+  if (info.isSocket()) return 'socket';
+  if (info.isCharacterDevice()) return 'character device';
+  if (info.isBlockDevice()) return 'block device';
+  return 'special file';
+}
+
+/**
+ * Read a record's text, refusing a path that does not resolve to a regular
+ * file. A FIFO blocks the read until a writer appears and a device (a symlink
+ * to `/dev/zero`, which git can carry as mode 120000) reads without end, so the
+ * kind is reported instead of read. The check follows symbolic links: a link
+ * whose target is a regular file is a record like any other.
+ */
+function readRecordFile(filePath: string): string {
+  let info: Stats;
+  try {
+    info = statSync(filePath);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new AdrFormatError(`record path cannot be read: ${detail}`, filePath);
+  }
+  if (!info.isFile()) {
+    throw new AdrFormatError(
+      `record path is not a regular file (${pathKind(info)})`,
+      filePath,
+    );
+  }
+  return readFileSync(filePath, 'utf8');
 }
 
 /**
@@ -159,7 +219,7 @@ export function hasMeaningfulBody(body: string | undefined): boolean {
  * reject, supersede).
  */
 export function parseAdrFile(filePath: string): AdrRecord {
-  const text = readFileSync(filePath, 'utf8');
+  const text = readRecordFile(filePath);
   const lines = text.split(/\r?\n/);
 
   if (lines[0] !== '---') {
