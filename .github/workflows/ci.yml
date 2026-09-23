@@ -30,6 +30,11 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # The repository dogfoods its own records (AGENTS.md calls validation
+      # failures success signals), so the gate AGENTS.md promises has to hold
+      # in CI too, not only on contributor machines. Runs after build: the bin
+      # entry loads dist/.
+      - run: node bin/adrkit.js validate --all
 
   upstream:
     name: upstream grilling
