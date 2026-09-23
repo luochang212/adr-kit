@@ -30,3 +30,11 @@ schema: spec-driven
 #     archive:
 #       guidance:
 #         - Summarize the archive outcome before finishing
+
+# The decision inventory: archiving a change is the moment its settled
+# decisions are still fresh. Reach for adrkit's importance bar, not every
+# choice, so the guidance does not manufacture inflation.
+operations:
+  archive:
+    guidance:
+      - Before archiving, inventory the architectural decisions this change settled and check adr/ with "adrkit list". Record any that constrain future development and whose rationale is not apparent from code alone with "adrkit decide" or the "adrkit-grill" workflow, and mention the recorded ADR numbers in the archive summary.
