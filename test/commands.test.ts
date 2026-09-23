@@ -688,6 +688,62 @@ const SET_STAMP = (version: string) => (text: string) =>
 const ADD_OLD_STAMP = SET_STAMP('0.9.0');
 const DROP_STAMP = (text: string) => text.replace(/^installed-with:.*\n/m, '');
 
+describe('standing-orders note', () => {
+  const SECTION =
+    '## Reading architecture decisions\n\nAt the start of a coding task, run adrkit list.\n';
+
+  function freshDir(prefix: string): string {
+    const dir = mkdtempSync(join(tmpdir(), prefix));
+    tempDirs.push(dir);
+    return dir;
+  }
+
+  it('init notes the missing standing-orders section', () => {
+    // The manual-paste step is the one integration state the CLI does not
+    // write; without the note, a repo whose agent never ran the init skill
+    // loses the task-start reading rules silently.
+    const out = initCommand(freshDir('adrkit-note-'));
+    expect(out).toContain('note: neither AGENTS.md nor CLAUDE.md carries the standing orders');
+    expect(out).toContain('Reading architecture decisions');
+    expect(out).toContain(join('.agents', 'skills', 'adrkit-init', 'SKILL.md'));
+  });
+
+  it('init stays quiet once AGENTS.md carries the section', () => {
+    const dir = freshDir('adrkit-note-');
+    writeFileSync(join(dir, 'AGENTS.md'), `# mine\n\n${SECTION}`);
+    expect(initCommand(dir)).not.toContain('note: neither');
+  });
+
+  it('CLAUDE.md alone satisfies the check', () => {
+    const dir = freshDir('adrkit-note-');
+    writeFileSync(join(dir, 'CLAUDE.md'), SECTION);
+    expect(initCommand(dir)).not.toContain('note: neither');
+  });
+
+  it('a reworked section still counts through its rule sentence', () => {
+    // The init workflow allows updating "an equivalent section"; a reorganized
+    // paste must not turn the note into a nudge to add a duplicate.
+    const dir = freshDir('adrkit-note-');
+    writeFileSync(
+      join(dir, 'AGENTS.md'),
+      '# mine\n\n## Our architecture decisions\n\nRecord an ADR when an architectural choice constrains future work.\n',
+    );
+    expect(initCommand(dir)).not.toContain('note: neither');
+  });
+
+  it('update reports the missing section and goes quiet once it lands', () => {
+    const root = makeRepo();
+    expect(updateCommand(root)).toContain('note: neither AGENTS.md nor CLAUDE.md');
+    writeFileSync(join(root, 'AGENTS.md'), SECTION);
+    expect(updateCommand(root)).not.toContain('note: neither');
+  });
+
+  it('no note for an explicit integrations opt-out', () => {
+    const out = initCommand(freshDir('adrkit-note-'), 'none');
+    expect(out).not.toContain('note: neither');
+  });
+});
+
 describe('integration drift: installed-with stamp and notice', () => {
   it('init stamps the config with the running version', () => {
     const root = makeRepo();

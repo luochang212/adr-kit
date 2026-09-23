@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 
 export interface ToolIntegration {
@@ -699,4 +699,61 @@ export function removeWorkflowIntegrations(
 
 export function integrationSummary(root: string, created: ToolIntegration[]): string[] {
   return created.map((item) => `  created ${relative(root, item.path)} (${item.tool})`);
+}
+
+/** Heading of the standing-orders section the init workflow asks agents to paste. */
+export const STANDING_ORDERS_HEADING = '## Reading architecture decisions';
+
+/**
+ * A distinctive sentence from the section body. The init workflow allows an
+ * agent to "update an equivalent section", so a section with a reworked
+ * heading still counts; this phrase is what makes that honest instead of a
+ * heading-only match.
+ */
+export const STANDING_ORDERS_RULE = 'Record an ADR when an architectural choice';
+
+/**
+ * The agent instruction file (AGENTS.md, then CLAUDE.md) that carries the
+ * standing-orders section, or undefined when neither does. Reading only —
+ * the files belong to the user, and the CLI never rewrites them.
+ */
+export function standingOrdersFile(root: string): string | undefined {
+  for (const file of ['AGENTS.md', 'CLAUDE.md']) {
+    try {
+      const text = readFileSync(join(root, file), 'utf8');
+      if (text.includes(STANDING_ORDERS_HEADING) || text.includes(STANDING_ORDERS_RULE)) {
+        return file;
+      }
+    } catch {
+      // Absent or unreadable: the file carries no section, keep looking.
+    }
+  }
+  return undefined;
+}
+
+/**
+ * The note for init/update output when no instruction file carries the
+ * standing orders. Integration files being installed is what makes the
+ * paste step meaningful, so an empty selection (an explicit `--tools none`
+ * opt-out) stays quiet. The pointer is derived from what was actually
+ * installed: a `--workflows` subset without the init workflow cannot name a
+ * file that does not exist.
+ */
+export function standingOrdersNote(
+  root: string,
+  integrations: ToolIntegration[],
+): string | undefined {
+  if (integrations.length === 0) return undefined;
+  if (standingOrdersFile(root) !== undefined) return undefined;
+  const initSkill = integrations.find((item) =>
+    item.path.endsWith(join('adrkit-init', 'SKILL.md')),
+  );
+  const source = initSkill
+    ? `step 4 of ${relative(root, initSkill.path)}`
+    : 'step 4 of the adrkit-init workflow (see the adr-kit README)';
+  return [
+    'note: neither AGENTS.md nor CLAUDE.md carries the standing orders, so agents',
+    '  will not read adr/ at task start. Paste the "Reading architecture decisions"',
+    `  section from ${source} into AGENTS.md.`,
+  ].join('\n');
 }

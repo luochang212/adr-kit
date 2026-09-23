@@ -12,6 +12,7 @@ import {
   removeToolIntegrations,
   removeWorkflowIntegrations,
   staleIntegrationKeys,
+  standingOrdersNote,
   writeToolIntegrations,
 } from '../core/tool-integrations.js';
 import { VERSION } from '../version.js';
@@ -39,5 +40,7 @@ export function updateCommand(cwd: string, toolsValue?: string, workflowsValue?:
     lines.push(`  removed integrations for: ${removed.join(', ')}`);
   }
   lines.push(...integrationSummary(root, integrations));
+  const note = standingOrdersNote(root, integrations);
+  if (note !== undefined) lines.push('', note);
   return lines.join('\n');
 }

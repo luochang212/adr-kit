@@ -38,6 +38,12 @@ adr/
 Proposals are ephemeral drafts in `adr/.drafts/`; the directory is created
 on the first `adrkit propose`.
 
+The CLI never rewrites the project's instruction file: pasting the
+"Reading architecture decisions" section into `AGENTS.md` (or `CLAUDE.md`)
+is step 4 of the adrkit-init workflow. `init` and `update` print a note
+when neither file carries that section, so a repository whose agent never
+ran the workflow does not lose the task-start rules silently.
+
 ### `adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>`
 
 Record an already-made decision in `adr/decisions/N-slug.md` with the

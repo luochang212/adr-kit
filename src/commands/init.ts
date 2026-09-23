@@ -4,6 +4,7 @@ import {
   integrationSummary,
   parseTools,
   parseWorkflows,
+  standingOrdersNote,
   writeToolIntegrations,
 } from '../core/tool-integrations.js';
 import { VERSION } from '../version.js';
@@ -21,10 +22,12 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
   const lines = created.map((path) => `  created ${path}`);
   const integrations = writeToolIntegrations(root, tools, workflows);
   writeInstalledWithConfig(root, VERSION);
+  const note = standingOrdersNote(root, integrations);
   return [
     `ADR Kit initialized at ${root}`,
     ...lines,
     ...integrationSummary(root, integrations),
+    ...(note === undefined ? [] : ['', note]),
     '',
     'Next:',
     '  adrkit decide "use sqlite for sessions" --raised-by human --decided-by human # record a decision',

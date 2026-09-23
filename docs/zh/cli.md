@@ -31,6 +31,11 @@ adr/
 
 提案是 `adr/.drafts/` 里的临时草稿；目录在第一次 `adrkit propose` 时创建。
 
+CLI 从不改写项目的指令文件：把「Reading architecture decisions」一段粘进
+`AGENTS.md`（或 `CLAUDE.md`）是 adrkit-init 工作流的第 4 步。当两个文件都
+没有该段时，`init` 和 `update` 会打印一条 note，避免从未跑过该工作流的
+仓库静默失去任务开始时的规则。
+
 ### `adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>`
 
 直接记录一条已做的决策到 `adr/decisions/N-slug.md`（默认路径）。标题不得

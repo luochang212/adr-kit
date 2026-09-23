@@ -9,7 +9,12 @@ import { configCommand } from '../src/commands/config.js';
 import { initCommand } from '../src/commands/init.js';
 import { updateCommand } from '../src/commands/update.js';
 import { readConfig } from '../src/core/config.js';
-import { WORKFLOWS, WORKFLOW_NAMES } from '../src/core/tool-integrations.js';
+import {
+  STANDING_ORDERS_HEADING,
+  STANDING_ORDERS_RULE,
+  WORKFLOWS,
+  WORKFLOW_NAMES,
+} from '../src/core/tool-integrations.js';
 
 const tempDirs: string[] = [];
 
@@ -26,6 +31,15 @@ afterEach(() => {
 });
 
 describe('initCommand tool integrations', () => {
+  it('the standing-orders detector matches the init workflow template', () => {
+    // standingOrdersFile recognizes a pasted section by these strings; if the
+    // template's wording moves, the detector must move with it or every
+    // existing installation starts failing the check.
+    const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
+    expect(initBody).toContain(STANDING_ORDERS_HEADING);
+    expect(initBody).toContain(STANDING_ORDERS_RULE);
+  });
+
   it('installs and refreshes reading guidance without replacing project instructions', () => {
     const root = makeTarget();
     initCommand(root, 'claude');
