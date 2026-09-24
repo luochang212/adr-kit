@@ -54,21 +54,16 @@ describe('initCommand tool integrations', () => {
     updateCommand(root);
     for (const target of ['.agents', '.claude']) {
       const init = readFileSync(join(root, target, 'skills/adrkit-init/SKILL.md'), 'utf8');
-      expect(init).toContain('read every decision in full');
-      expect(init).toContain('update an equivalent section');
-      expect(init).toContain('reading does not require creating an ADR');
-      expect(init).toContain('Record an ADR when an architectural choice will constrain future development');
-      expect(init).toContain('do not invent reasons');
-      expect(init).toContain('not proof of human review');
-      expect(init).toContain('is a declaration of where the');
-      expect(init).toContain('including when a person only let it through');
-      for (const workflow of ['propose', 'decide']) {
+      expect(init).toContain('read relevant implemented records in full');
+      expect(init).toContain('Check relevant proposed and rejected records');
+      expect(init).toContain('consult archived records only for history');
+      expect(init).toContain('Record an ADR when an architectural choice constrains future work');
+      expect(init).toContain('not invented template filler');
+      expect(init).toContain('CLI neither infers nor verifies shipping or provenance');
+      for (const workflow of ['propose', 'record']) {
         const command = readFileSync(join(root, target, `commands/adrkit-${workflow}.md`), 'utf8');
-        expect(command).toContain('adrkit show <N>');
-        expect(command).toContain('current code and requirements');
-        expect(command).toContain('Reuse an existing decision');
-        expect(command).toContain('whose rationale is not apparent from code alone');
-        expect(command).toContain('local fixes, and easily reversible choices need no ADR');
+        expect(command).toContain('adrkit list');
+        expect(command).toContain('relevant');
       }
     }
     for (const file of ['AGENTS.md', 'CLAUDE.md']) {
@@ -167,25 +162,25 @@ describe('initCommand tool integrations', () => {
 describe('workflow subsets for tool integrations', () => {
   it('installs only the selected workflows', () => {
     const root = makeTarget();
-    initCommand(root, undefined, 'init,decide,validate');
-    expect(existsSync(join(root, '.agents/commands/adrkit-decide.md'))).toBe(true);
+    initCommand(root, undefined, 'init,record,validate');
+    expect(existsSync(join(root, '.agents/commands/adrkit-record.md'))).toBe(true);
     expect(existsSync(join(root, '.agents/skills/adrkit-validate/SKILL.md'))).toBe(true);
     expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
     expect(readdirSync(join(root, '.agents/skills')).sort()).toEqual([
-      'adrkit-decide',
       'adrkit-init',
+      'adrkit-record',
       'adrkit-validate',
     ]);
   });
 
   it('records the subset in config and a bare update keeps it', () => {
     const root = makeTarget();
-    initCommand(root, undefined, 'decide,validate');
-    expect(readConfig(root).workflows).toEqual(['decide', 'validate']);
+    initCommand(root, undefined, 'record,validate');
+    expect(readConfig(root).workflows).toEqual(['record', 'validate']);
     updateCommand(root);
-    expect(existsSync(join(root, '.agents/commands/adrkit-decide.md'))).toBe(true);
+    expect(existsSync(join(root, '.agents/commands/adrkit-record.md'))).toBe(true);
     expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
-    expect(readConfig(root).workflows).toEqual(['decide', 'validate']);
+    expect(readConfig(root).workflows).toEqual(['record', 'validate']);
   });
 
   it('leaves the config key absent when every workflow installs', () => {
@@ -196,8 +191,8 @@ describe('workflow subsets for tool integrations', () => {
 
   it('config reports the effective workflow selection', () => {
     const root = makeTarget();
-    initCommand(root, undefined, 'init,decide,validate');
-    expect(configCommand(root)).toContain('workflows: init, decide, validate');
+    initCommand(root, undefined, 'init,record,validate');
+    expect(configCommand(root)).toContain('workflows: init, record, validate');
   });
 
   it('config reports the full default set when the key is absent', () => {
@@ -211,16 +206,16 @@ describe('workflow subsets for tool integrations', () => {
   it('prunes workflows that are no longer selected', () => {
     const root = makeTarget();
     initCommand(root);
-    updateCommand(root, undefined, 'decide');
-    expect(existsSync(join(root, '.agents/commands/adrkit-decide.md'))).toBe(true);
+    updateCommand(root, undefined, 'record');
+    expect(existsSync(join(root, '.agents/commands/adrkit-record.md'))).toBe(true);
     expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
     expect(existsSync(join(root, '.agents/skills/adrkit-propose'))).toBe(false);
-    expect(readConfig(root).workflows).toEqual(['decide']);
+    expect(readConfig(root).workflows).toEqual(['record']);
   });
 
   it('expands back to the full set with --workflows all', () => {
     const root = makeTarget();
-    initCommand(root, undefined, 'decide');
+    initCommand(root, undefined, 'record');
     updateCommand(root, undefined, 'all');
     expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(true);
     expect(readConfig(root).workflows).toEqual([
@@ -228,26 +223,27 @@ describe('workflow subsets for tool integrations', () => {
       'grill',
       'visualize',
       'propose',
-      'decide',
+      'record',
       'validate',
-      'accept',
+      'implement',
       'reject',
+      'archive',
       'supersede',
     ]);
   });
 
   it('accepts the adrkit- prefix and returns canonical order', () => {
     const root = makeTarget();
-    initCommand(root, undefined, 'validate,adrkit-decide');
+    initCommand(root, undefined, 'validate,adrkit-record');
     expect(readdirSync(join(root, '.agents/commands')).sort()).toEqual([
-      'adrkit-decide.md',
+      'adrkit-record.md',
       'adrkit-validate.md',
     ]);
   });
 
   it('rejects unknown workflow names', () => {
     const root = makeTarget();
-    expect(() => initCommand(root, undefined, 'decide,publish')).toThrow(/unknown workflow "publish"/);
+    expect(() => initCommand(root, undefined, 'record,publish')).toThrow(/unknown workflow "publish"/);
   });
 
   it('rejects an empty workflow selection', () => {
@@ -257,9 +253,9 @@ describe('workflow subsets for tool integrations', () => {
 
   it('prunes the subset inside the Claude exception too', () => {
     const root = makeTarget();
-    initCommand(root, 'claude', 'decide');
+    initCommand(root, 'claude', 'record');
     updateCommand(root, 'claude', 'validate');
-    expect(existsSync(join(root, '.claude/commands/adrkit-decide.md'))).toBe(false);
+    expect(existsSync(join(root, '.claude/commands/adrkit-record.md'))).toBe(false);
     expect(existsSync(join(root, '.claude/commands/adrkit-validate.md'))).toBe(true);
   });
 });
@@ -292,8 +288,8 @@ describe('update writes the selected tools back to config.yaml', () => {
       [undefined, undefined],
       ['claude', undefined],
       ['none', undefined],
-      [undefined, 'init,decide,validate'],
-      ['claude', 'decide'],
+      [undefined, 'init,record,validate'],
+      ['claude', 'record'],
     ];
     for (const [tools, workflows] of cases) {
       const root = makeTarget();
@@ -362,18 +358,18 @@ rules:
   it('propose workflow guides a supersession check', () => {
     const propose = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-propose');
     expect(propose?.body).toContain('adrkit list');
-    expect(propose?.body).toContain('supersedes or overlaps');
+    expect(propose?.body).toContain('read relevant records');
   });
 
   it('decision-point workflows require re-querying the repo state', () => {
     const grill = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-grill');
     const propose = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-propose');
-    const accept = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-accept');
+    const implement = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-implement');
     const supersede = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-supersede');
-    expect(grill?.body).toContain('even if you ran it earlier in this conversation');
-    expect(propose?.body).toContain('even if you ran it earlier in this conversation');
-    expect(accept?.body).toMatch(/even if you\s+reviewed it earlier in this conversation/);
-    expect(supersede?.body).toMatch(/even if you\s+checked earlier in\s+this conversation/);
+    expect(grill?.body).toContain('adrkit list');
+    expect(propose?.body).toContain('adrkit list');
+    expect(implement?.body).toContain('adrkit show <name>');
+    expect(supersede?.body).toContain('validate it');
   });
 
   it('grill workflow interrogates before it records', () => {
@@ -383,29 +379,23 @@ rules:
     expect(grill?.body).toContain('design tree');
     expect(grill?.body).toContain('frontier');
     expect(grill?.body).toContain('mattpocock/skills');
-    expect(grill?.body).toContain('Never ask the user for a fact');
+    expect(grill?.body).toContain('Do not ask the user for facts');
     expect(grill?.body).toContain('--decided-by');
-    expect(grill?.body).toContain('adrkit validate <N>');
+    expect(grill?.body).toContain('adrkit validate <name>');
     expect(grill?.body).toContain('--raised-by');
     expect(grill?.body).toContain('## Deliberation');
-    expect(grill?.body).toContain('no record-time filter');
+    expect(grill?.body).toContain('Record every choice the session settles');
     expect(grill?.body).not.toContain('adrkit graph --html');
-    expect(grill?.body).not.toContain('adrkit propose');
-    expect(grill?.description).toContain('record every decision the session settles');
+    expect(grill?.body).toContain('adrkit propose');
+    expect(grill?.description).toContain('record every settled choice');
   });
 
   it('visualize owns rendering and browser delivery', () => {
     const visualize = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-visualize');
     expect(visualize?.description).toContain('visualize an existing ADR');
-    expect(visualize?.body).toContain('Generate HTML only on an explicit visualization request');
-    expect(visualize?.body).toContain('Deliver a clickable link');
-    expect(visualize?.body).toContain("open the file in the user's default browser");
-    expect(visualize?.body).toContain('user asks for a file only or says not to open it');
-    expect(visualize?.body).toContain('or opening fails, keep the file link');
-    expect(visualize?.body).toContain('CLI continues to emit HTML to stdout only');
-    expect(visualize?.body).toContain('do not invent one');
-    expect(visualize?.body).toContain('adrkit tree <N> --html');
+    expect(visualize?.body).toContain('adrkit tree <name> --html');
     expect(visualize?.body).toContain('adrkit graph --html');
+    expect(visualize?.body).toContain('open the generated file in the default browser');
   });
 });
 
@@ -458,7 +448,7 @@ describe('completionCommand', () => {
     expect(zsh).toContain("'--tools=[AI tools to install integrations for]:tools:'");
     expect(zsh).toContain("'--workflows=[workflows to install]:workflows:'");
     expect(zsh).toContain("'--by=[the decision that replaces this one]:by:'");
-    expect(zsh).toContain("'--reason=[why the draft is discarded]:reason:'");
+    expect(zsh).toContain("'--reason=[why this record changes lifecycle]:reason:'");
     expect(zsh).toContain("'--tag=[filter to one theme]:tag:'");
     const fish = completionCommand('fish');
     for (const option of ['tools', 'workflows', 'by', 'reason', 'tag']) {
@@ -500,12 +490,12 @@ describe('completionCommand', () => {
 
       // The two branches that matter: offering the values after the flag, and
       // still offering the command names themselves.
-      expect(answer(`(adrkit decide SQLite --decided-by '')`, 4)).toBe('human agent');
-      expect(answer(`(adrkit accept draft --decided-by '')`, 4)).toBe('human agent');
-      // The flag is offered only where it is accepted, and its values only
+      expect(answer(`(adrkit record SQLite --decided-by '')`, 4)).toBe('human agent');
+      expect(answer(`(adrkit implement draft --decided-by '')`, 4)).toBe('human agent');
+      // The flag is offered only where it is implemented, and its values only
       // after it: no command list leaks into an argument position.
-      expect(answer(`(adrkit decide --dec)`, 2)).toBe('--decided-by');
-      expect(answer(`(adrkit decide '')`, 2)).toContain('--decided-by');
+      expect(answer(`(adrkit record --dec)`, 2)).toBe('--decided-by');
+      expect(answer(`(adrkit record '')`, 2)).toContain('--decided-by');
       expect(answer(`(adrkit list --dec)`, 2)).toBe('');
       expect(answer(`(adrkit propose SQLite --decided-by '')`, 4)).not.toContain('human');
       expect(answer(`(adrkit val)`, 1)).toBe('validate');
@@ -525,11 +515,11 @@ describe('completionCommand', () => {
       writeFileSync(join(dir, '_adrkit'), completionCommand('zsh'));
       const cases = [
         ['adrkit val', 'adrkit validate'],
-        ['adrkit decide SQLite --dec', 'adrkit decide SQLite --decided-by='],
-        ['adrkit decide "Use SQLite" --decided-by h', 'adrkit decide "Use SQLite" --decided-by human'],
-        ['adrkit accept draft --decided-by a', 'adrkit accept draft --decided-by agent'],
-        ['adrkit decide --decided-by h', 'adrkit decide --decided-by human'],
-        ['adrkit decide SQLite --decided-by=a', 'adrkit decide SQLite --decided-by=agent'],
+        ['adrkit record SQLite --dec', 'adrkit record SQLite --decided-by='],
+        ['adrkit record "Use SQLite" --decided-by h', 'adrkit record "Use SQLite" --decided-by human'],
+        ['adrkit implement draft --decided-by a', 'adrkit implement draft --decided-by agent'],
+        ['adrkit record --decided-by h', 'adrkit record --decided-by human'],
+        ['adrkit record SQLite --decided-by=a', 'adrkit record SQLite --decided-by=agent'],
         ['adrkit propose SQLite --dec', 'adrkit propose SQLite --dec'],
         // A value option declares an argument slot, so zsh offers no candidate
         // and leaves the buffer alone instead of repeating the option list.
@@ -571,9 +561,9 @@ describe('completionCommand', () => {
         encoding: 'utf8',
         input: `${completionCommand('fish')}\ncomplete -C '${command}'\n`,
       }).trim().split('\n').map((line) => line.split('\t')[0]!);
-      expect(answer('adrkit decide SQLite --decided-by ')).toEqual(['agent', 'human']);
-      expect(answer('adrkit accept draft --decided-by h')).toEqual(['human']);
-      expect(answer('adrkit decide SQLite --decided-by=a')).toContain('--decided-by=agent');
+      expect(answer('adrkit record SQLite --decided-by ')).toEqual(['agent', 'human']);
+      expect(answer('adrkit implement draft --decided-by h')).toEqual(['human']);
+      expect(answer('adrkit record SQLite --decided-by=a')).toContain('--decided-by=agent');
       expect(answer('adrkit propose SQLite --decided-by ')).not.toContain('human');
       // `-x` on a value option suppresses both the option list and file
       // candidates, since the CLI expects a value the shell cannot enumerate.

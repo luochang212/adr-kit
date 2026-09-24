@@ -17,228 +17,107 @@
   <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
-ADR Kit 把架构决策变成纯 Markdown 文件，并带有机检的生命周期。决策是持久记录
-（**accepted / superseded**）；提案是临时草稿，要么变成决策、要么消失。它借鉴了
-[OpenSpec](https://github.com/Fission-AI/OpenSpec) 的 spec-driven 思路，以及
-agent 原生代码库的决策记录纪律：每条记录都必须说明它解决什么问题、选择了什么、
-放弃了什么。
-
-- 灵活而不僵化
-- 纯 Markdown
-- 一个决策一个文件
-- 同时服务人类和 agent
+ADR Kit 用纯 Markdown 记录架构决策，并以四个目录表示完整生命周期：`proposed/` 是未交付提案，`implemented/` 是已交付且仍有指导意义的决策，`rejected/` 保存正式否决及理由，`archived/` 保存冻结历史。它是独立的、面向人与 agent 的决策记录工具。
 
 ## 快速开始
 
-需要 Node.js 20.19 或更高版本。
+需要 Node.js 20.19 或更新版本。
 
 ```bash
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit decide "使用 SQLite 存储会话" --raised-by human --decided-by human
+adrkit propose "使用 SQLite 存储会话"
+# 填写提案，实际交付后：
+adrkit implement "使用 SQLite 存储会话" --raised-by human --decided-by human
+adrkit validate
 ```
 
-`adrkit init` 会创建 `adr/` 目录：
+已交付但尚未记录的选择可直接用 `adrkit record "<标题>" --raised-by human --decided-by human`。
 
 ```text
 adr/
-├── config.yaml      # 项目上下文与分状态规则
-├── README.md        # 仓库约定
-├── .gitignore       # 让 adr/.drafts/ 不进 git
-└── decisions/       # 决策，按 N 编号，不可变历史
+├── config.yaml
+├── README.md
+├── proposed/       # 按日期命名，未编号，尚未交付
+├── implemented/    # 已编号、已交付，当前指导
+├── rejected/       # 按日期命名，保留否决理由
+└── archived/       # 保留编号，冻结历史
 ```
 
-`adrkit decide` 是默认路径，直接记录已成定局的决策。需要评审时，提案是
-`adr/.drafts/` 里的临时草稿：`adrkit propose` 创建一条，`adrkit accept` 把它
-提升为编号决策，`adrkit reject` 直接丢弃、不留下任何记录。拒绝记录在决策的
-`Alternatives considered` 里，从不是独立记录。
+未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决必须用 `adrkit reject --reason` 留痕。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。
 
-填写决策内容后：
+## 告诉 Agent
 
-```bash
-adrkit validate
-adrkit list
-```
-
-## 接入你的 Agent
-
-把下面这行贴给任意 AI 编码 Agent，它就会自动把关键决策记录成 ADR：
-
-```text
-在本仓库用 github.com/luochang212/adr-kit 自动记录关键决策。优先用 `adrkit decide`，仅当决策还需评审时才用 `adrkit propose`。每条记录都要声明两个值：`raised-by`（谁把决策提上台面）与 `decided-by`（谁的判断定下它）；方向由人决定用 `human`，由你自己的判断得出用 `agent`，即使人只是放行。
-```
-
-让后续编码任务也用上决策：在项目 `AGENTS.md`（Claude Code 团队也包括
-`CLAUDE.md`）加入[查阅规则](docs/zh/workflow.md#编码前查阅决策)。任务开始时用
-`adrkit list`、`adrkit show <N>` 读完现有决策，结合代码和新需求判断是否仍适用。
-初始化技能会引导补入规则；已有项目运行 `adrkit update` 后也需补入。
-CLI 不会自动修改项目指令文件。只有持续约束后续开发、且理由难以从代码直接
-看出的架构选择才值得记录；普通修复无需 ADR，详见[记录门槛](docs/zh/workflow.md#何时值得记录)。
+将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md` 或 `CLAUDE.md`。任务开始时先运行 `adrkit list`，完整阅读相关的 implemented 记录，检查相关 proposed/rejected 记录，仅在需要历史上下文时读 archived。不能只看标题判断相关性。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。
 
 ## 命令
 
 ```text
 adrkit init [path] [--tools <list>] [--workflows <list>]
-                                       初始化 ADR Kit 仓库
-adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>
-                                       直接记录已做的决策（默认路径）
-adrkit propose <title>                 仅当决策还需评审时，创建临时提案草稿
-adrkit accept <name> --raised-by <human|agent> --decided-by <human|agent>
-                                       把草稿提升为决策（分配 N 编号）
-adrkit reject <name> [--reason <text>] 丢弃草稿（不留记录）
-adrkit supersede <name> --by <name>    标记已接受决策被新决策取代
-adrkit list                             列出决策与待决草稿
-adrkit show <name>                      查看决策或草稿
-adrkit status                           查看生命周期计数与校验状态
-adrkit instructions                     查看下一步；标注待决草稿已就绪或需修改
-adrkit validate [name] [--all]          校验单条记录或整个仓库
+adrkit propose <title>
+adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>
+adrkit record <title> --raised-by <human|agent> --decided-by <human|agent>
+adrkit reject <name> --reason <text>
+adrkit archive <name> --reason <text>
+adrkit supersede <old> --by <new>
+adrkit list
+adrkit show <name>
+adrkit status
+adrkit instructions
+adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
-                                        重写 AI 工具集成文件
-adrkit config                           查看当前配置
+adrkit config
 adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
-                                        输出决策关系图
-adrkit tree <name> [--mermaid|--text|--html] 渲染记录的 deliberation 树
-adrkit completion <bash|zsh|fish>      打印 shell 补全脚本
-adrkit version                         查看版本
+adrkit tree <name> [--mermaid|--text|--html]
+adrkit completion <bash|zsh|fish>
+adrkit version
 ```
 
-> [!IMPORTANT]
-> 集成默认写入开放的 [`.agents/`](https://agents.md/) 标准：一套技能和斜杠
-> 命令，所有主流 Agent 通用。Claude Code 是唯一的例外：它不仅[关闭了
-> AGENTS.md 支持请求](https://github.com/anthropics/claude-code/issues/6235)，
-> 还让 [Shopify CEO 公开放话要因此禁用它](https://thenewstack.io/shopify-claude-code-agentsmd/)。
-> 如果你的团队用 Claude Code，加 `--tools claude` 会同时安装 `.claude/`
-> 副本；这个例外我们一直背到 Anthropic 采纳标准为止。
-
-> [!TIP]
-> 集成默认安装全部九个工作流技能。只记录决策的小仓库可传
-> `--workflows init,decide,validate` 装精简子集；选择会写入
-> `adr/config.yaml`，`adrkit update` 会保持，`--workflows all` 恢复全套。
-
-`<name>` 支持按标题、文件名或决策编号（`1`）查找。
-
-## 文档
-
-| 文档 | 内容 |
-| --- | --- |
-| [CLI 参考](https://github.com/luochang212/adr-kit/blob/main/docs/zh/cli.md) | 命令参考：参数与输出形态 |
-| [记录格式](https://github.com/luochang212/adr-kit/blob/main/docs/zh/record-format.md) | ADR 文件格式与校验规则 |
-| [工作流](https://github.com/luochang212/adr-kit/blob/main/docs/zh/workflow.md) | 从提案到决策的生命周期 |
-| [Agent 技能](https://github.com/luochang212/adr-kit/blob/main/skills/README.md) | 驱动 `adrkit` CLI 的 agent 技能 |
+默认把集成安装到 `.agents/`；`--tools claude` 另装 `.claude/`，`--tools none` 不安装。可用 `--workflows init,propose,implement,validate` 选子集。
 
 ## 记录格式
 
-每条记录都是 YAML front matter 加 Markdown 正文：
+已交付决策在 `adr/implemented/N-slug.md`：
 
 ```markdown
 ---
-status: accepted
-date: 2026-08-19
+status: implemented
+date: 2026-09-25
 raised-by: human
 decided-by: human
-created: 2026-08-17
-commit: abc1234
-tags: [frontend]
+created: 2026-09-24
+tags: [storage]
 ---
 
 # ADR: 1 使用 SQLite 存储会话
 
 ## Problem
+
+...
+
+## Decision
+
+...
+
+## Alternatives considered
+
+...
+
+## Consequences
+
 ...
 ```
 
-`date` 字段记录当前状态达成的日期；CLI 在每次生命周期迁移时自动盖章，
-同时盖上该决策对应的 git `commit`。`created` 是创建日期，创建时盖一次、
-永不重盖，让时间轴在后续生命周期迁移后依然成立。可选的 `tags`（kebab-case
-关键词）让 `adrkit graph` 按主题分组和过滤决策。决策是不可变历史；当前
-事实以代码为准，不在记录里。
+提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`tags` 提供主题分类，不额外引入类别目录。`adrkit validate` 检查全部四个目录；新模板未填完时按预期失败。
 
-`accepted` 表示正式记录的决定，不代表人已审阅批准。`raised-by` 与 `decided-by`
-取值都是 `human` 或 `agent`，在 `decide` 或 `accept` 时声明：`raised-by` 是
-谁把决策提上台面，`decided-by` 是谁的判断定下了它。`decided-by` 取 `human`
-表示方向由人决定（人说出的、人把 agent 的提案改成最终落地方案的、或人此前定过
-而现在只是补记的），取 `agent` 表示由 AI 自主判断得出，包括人只是放行的情况。
-CLI 既不推断也不校验，只记录声明，所以它不能证明是谁自主拍板或授权；谁改写、
-谁批准写进正文。`supersede` 保留两个原值。局限见
-[记录格式参考](docs/zh/record-format.md)。身份留在 git 里。
+implemented 记录可以更新路径、符号、默认值等已交付事实，但不可悄悄重写选择或理由。选择改变应新建记录并建立关系。完整替代写入 `superseded-by: N`，旧记录移入 `archived/`；归档记录保持编号，只作历史参考。图谱包含编号历史，可选 `## Deliberation` 附录保留思辨树。
 
-- **决策**（`adr/decisions/N-slug.md`）是 `accepted` 或 `superseded`，
-  需要 `Problem`、`Decision`、`Alternatives considered`、`Consequences`；
-  `validate` 会拒绝提案时代的标题出现在已接受决策中。
-- **草稿**（`adr/.drafts/YYYY-MM-DD-slug.md`）是 `status: proposed` 的临时
-  提案，需要 `Problem`、`Proposal`、`Alternatives considered`、
-  `Acceptance criteria`、`Risks`，`validate` 不检查它们：`adrkit accept`
-  在提升前才校验草稿。必需 section 只有在 HTML 注释之外有文字时才算写了
-  内容，未填写的 `<!--` 占位不算通过。
-- **被否决**的想法不是独立记录：决策的 `Alternatives considered` 记录了
-  考虑过什么、为什么落选。
-- **Superseded** 决策保留在 `adr/decisions/` 作为历史，front matter 指向
-  取代它的决策：`status: superseded` 加 `superseded-by: N`。
-  `adrkit supersede <旧> --by <新>` 完成改写；
-  `validate` 沿完整替代链检查引用均存在、没有循环，且最终到达 accepted 决策；
-  保留各次替代的历史链接。
-
-`adrkit accept` 会自动完成生命周期迁移所要求的改写：`## Proposal` 改为
-`## Decision`，`Acceptance criteria` 与 `Risks` 合并进 `## Consequences`。
-
-决策还可以携带可选的 `## Deliberation` 附录：记录选择背后的 design tree，
-用嵌套 Markdown 列表存储，节点可标注 `[settled]`、`[rejected]`、`[open]`。
-后续问题嵌在提出它的节点之下，因此相关问题更深、无关问题平铺。用 `adrkit tree
-<name>` 渲染（默认文本，加 `--mermaid` 输出图形，加 `--html` 输出离线交互卡片树）。这
-棵树通常来自 `adrkit-grill` 工作流，它记录会话定下的每个决策。
-需要时让 AI 用 `adrkit-visualize` 可视化指定决策或整套决策。它会调用内置渲染器，主动用默认浏览器打开，
-并提供 HTML 文件链接。明确要求“只生成文件”或“不要打开”时不打开浏览器；
-无法打开时会说明原因并保留链接。HTML 不是 grilling 的默认交付。
-整套决策可用 `adrkit graph --html` 渲染为可交互的离线决策地图，并标出带 deliberation 树的决策。
-用 `adrkit update` 更新已安装的技能。
-
-```sh
-adrkit tree 7 --html > "adr-7.html"
-```
-
-## 工具兼容性
-
-ADR Kit 只拥有 `adr/` 这一个目录，并且只读取和校验自己的文件，因此可以
-与任何不占用该布局的工具共处于一个仓库。它的 agent skills 按工具命名空间
-隔离（`adrkit-*`），`adrkit update` 只重写自己的集成文件。
-
-| 工具 | 角色 | 与 ADR Kit 的关系 |
-|---|---|---|
-| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | 前瞻：规定要构建什么 | 互补：规格与记录各司其职 |
-| [Changesets](https://changesets.dev) | 发布：版本号与 changelog | 正交：changeset 正文引用 ADR 编号 |
-
-当某个变更做出了应比变更本身更长命的架构决策时，把它记成一条 ADR。
+详见[记录格式](docs/zh/record-format.md)、[工作流](docs/zh/workflow.md)与[CLI 参考](docs/zh/cli.md)。
 
 ## 灵感来源
 
-ADR Kit 站在两个项目之上，两者角色不同：
-
-- **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** 决定了这个工具*怎么建*：
-  agent 优先的 CLI、指令以 agent skills 安装、确定性的 `validate`，
-  以及"灵活而不僵化"的工作流。和 OpenSpec 一样，
-  ADR Kit 靠*引导* agent（会话开始可见的 skills），而不是硬性阶段门禁，
-  也不强制每次变更都记录。
-- **[deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)**
-  决定了 ADR Kit 里*记录是什么*。它的 **Agent Notes**：带 `Status:` 行的
-  纯 Markdown、生命周期文件夹（`proposed` → `implemented` → `rejected`，
-  外加冻结归档）、以及 `Problem` / `Proposal`·`Decision` /
-  `Alternatives considered` / `Consequences` 骨架，是 ADR Kit 记录格式的
-  直接祖先。
-
-是改编，不是照抄。已接受记录带 `N` 编号，`supersede` 原地退役一条决策，
-`accept` 机械地把提案改写成决策。记录一旦接受就不可变：决策记录是历史，
-当前事实以代码为准，不在记录里。
-
-## 理念
-
-- **记录是事实来源。** 代码注释会腐化，文档会漂移；一条写明了决定与代价的
-  ADR 会持续有用。
-- **备选方案是强制项。** 没有记录被否决方案的决策，是在邀请未来的重复争论。
-- **生命周期是机械操作，不是编辑操作。** 提升草稿、退役已接受决策都是命令
-  （`accept`、`supersede`），`validate` 强制检查结果形态。
-- **Agent 是一等用户。** 记录本身就是接口：纯 Markdown 加 YAML front matter，
-  agent 直接读，路径可预测，`validate` 充当机器检查。
+[DeepSeek Harness Agent Notes](https://github.com/deepseek-ai/deepseek-harness) 启发了生命周期目录及 proposed、implemented、rejected、archived 的语义。ADR Kit 保留自身的来源声明、稳定编号、校验、思辨树和关系图。OpenSpec 不是运行时或治理依赖。
 
 ## 开发
 
@@ -251,4 +130,4 @@ npm run build
 
 ## 许可证
 
-[MIT](https://github.com/luochang212/adr-kit/blob/main/LICENSE)
+MIT。

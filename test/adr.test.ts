@@ -129,7 +129,7 @@ describe('parseAdrFile', () => {
   it('rejects superseded-by on a non-superseded record', () => {
     const path = write(
       'record.md',
-      '---\nstatus: accepted\ndate: 2026-08-19\nsuperseded-by: 2\n---\n\n# ADR: 1 Title\n',
+      '---\nstatus: implemented\ndate: 2026-08-19\nsuperseded-by: 2\n---\n\n# ADR: 1 Title\n',
     );
     expect(() => parseAdrFile(path)).toThrow(/"superseded-by" is only allowed/);
   });
@@ -159,9 +159,9 @@ describe('parseAdrFile', () => {
     expect(record.supersededBy).toBe(2);
   });
 
-  it('parses accepted decision numbers', () => {
+  it('parses implemented decision numbers', () => {
     const record = parseAdrFile(write('record.md', `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 ---
@@ -189,7 +189,7 @@ Body.
 
   it('does not treat a zero-padded title number as a decision number', () => {
     const record = parseAdrFile(write('record.md', `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 ---
@@ -224,7 +224,7 @@ describe('created and tags', () => {
         renderAdr({
           title: '1 Use SQLite',
           fields: {
-            status: 'accepted',
+            status: 'implemented',
             date: '2026-08-19',
             created: '2026-08-17',
             tags: ['execution-layer', 'sandbox'],
@@ -244,7 +244,7 @@ describe('created and tags', () => {
           '1-x.md',
           renderAdr({
             title: '1 Use SQLite',
-            fields: { status: 'accepted', date: '2026-08-19', created: 'not-a-date' },
+            fields: { status: 'implemented', date: '2026-08-19', created: 'not-a-date' },
             sections: [{ heading: 'Problem', body: 'Body.\n' }],
           }),
         ),
@@ -259,7 +259,7 @@ describe('created and tags', () => {
           '1-x.md',
           renderAdr({
             title: '1 Use SQLite',
-            fields: { status: 'accepted', date: '2026-08-19', tags: 'sandbox' },
+            fields: { status: 'implemented', date: '2026-08-19', tags: 'sandbox' },
             sections: [{ heading: 'Problem', body: 'Body.\n' }],
           }),
         ),
@@ -274,7 +274,7 @@ describe('decided-by', () => {
       const text = renderAdr({
         title: '1 Use SQLite',
         fields: {
-          status: 'accepted',
+          status: 'implemented',
           date: '2026-08-19',
           'decided-by': value,
           created: '2026-08-17',
@@ -289,14 +289,14 @@ describe('decided-by', () => {
     }
   });
 
-  it('rejects any other value and names the accepted ones', () => {
+  it('rejects any other value and names the implemented ones', () => {
     expect(() =>
       parseAdrFile(
         write(
           '1-x.md',
           renderAdr({
             title: '1 Use SQLite',
-            fields: { status: 'accepted', date: '2026-08-19', 'decided-by': 'robot' },
+            fields: { status: 'implemented', date: '2026-08-19', 'decided-by': 'robot' },
             sections: [{ heading: 'Problem', body: 'Body.\n' }],
           }),
         ),
@@ -314,7 +314,7 @@ describe('decided-by', () => {
           '1-x.md',
           renderAdr({
             title: '1 Use SQLite',
-            fields: { status: 'accepted', date: '2026-08-19', 'decided-by': 'machine' },
+            fields: { status: 'implemented', date: '2026-08-19', 'decided-by': 'machine' },
             sections: [{ heading: 'Problem', body: 'Body.\n' }],
           }),
         ),

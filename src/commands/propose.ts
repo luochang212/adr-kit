@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { readConfig, requireRoot } from '../core/config.js';
-import { draftsPath, writeRecord } from '../core/repository.js';
+import { folderPath, writeRecord } from '../core/repository.js';
 import { todayStamp } from '../core/adr.js';
 import { proposalTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
@@ -17,19 +17,18 @@ export function proposeCommand(title: string, cwd: string): string {
   const root = requireRoot(cwd);
   const slug = slugify(trimmed);
   const fileName = `${todayStamp()}-${slug}.md`;
-  const path = join(draftsPath(root), fileName);
+  const path = join(folderPath(root, 'proposed'), fileName);
   if (existsSync(path)) {
-    throw new Error(`draft already exists: adr/.drafts/${fileName}`);
+    throw new Error(`proposal already exists: adr/proposed/${fileName}`);
   }
   const content = proposalTemplate(trimmed, readConfig(root).context);
-  writeRecord(root, 'drafts', fileName, content);
+  writeRecord(root, 'proposed', fileName, content);
   return [
-    `created adr/.drafts/${fileName}`,
+    `created adr/proposed/${fileName}`,
     '',
-    'A draft is ephemeral: promote it with',
-    `  adrkit accept "${trimmed}" --raised-by human --decided-by human`,
-    '  (use --raised-by agent when the agent raised it; --decided-by agent when the choice was the agent\'s own judgment)',
-    'or discard it with',
-    `  adrkit reject "${trimmed}"`,
+    'When the work ships, record its outcome with',
+    `  adrkit implement "${trimmed}" --raised-by human --decided-by human`,
+    'or reject the proposal with',
+    `  adrkit reject "${trimmed}" --reason "<why>"`,
   ].join('\n');
 }

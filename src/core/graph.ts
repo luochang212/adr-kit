@@ -8,7 +8,8 @@ export interface GraphNode {
   number: number;
   title: string;
   status: AdrRecord['status'];
-  /** Current status date (front matter `date`). */
+  archived: boolean;
+  /** Latest lifecycle date (front matter `date`). */
   date: string;
   /** Birth date (front matter `created`). */
   created: string;
@@ -61,6 +62,7 @@ export function buildDecisionGraph(
       number: record.number,
       title: record.title,
       status: record.status,
+      archived: record.folder === 'archived',
       date: record.date,
       created: record.created,
       fileName: record.fileName,
@@ -72,6 +74,7 @@ export function buildDecisionGraph(
     if (record.supersededBy !== undefined) node.supersededBy = record.supersededBy;
     nodes.push(node);
   }
+  nodes.sort((first, second) => first.number - second.number);
 
   // Theme filter: keep only decisions carrying the tag; edges survive only
   // when both endpoints survive.
@@ -171,7 +174,7 @@ export function mermaidGraph(graph: DecisionGraph): string {
   );
 
   const retired = graph.nodes
-    .filter((node) => node.status === 'superseded')
+    .filter((node) => node.archived)
     .map((node) => `n${node.number}`);
   const style: string[] = [];
   if (retired.length > 0) {
@@ -206,7 +209,7 @@ export const TAG_COLORS = [
 function tagStyleBlocks(graph: DecisionGraph): string[] {
   const tagIndex = new Map<string, number>();
   for (const node of graph.nodes) {
-    if (node.status === 'superseded') continue;
+    if (node.archived) continue;
     const first = node.tags[0];
     if (first === undefined) continue;
     if (!tagIndex.has(first)) tagIndex.set(first, tagIndex.size);
@@ -219,7 +222,7 @@ function tagStyleBlocks(graph: DecisionGraph): string[] {
     defs.push(`  classDef tag-${index} stroke:${color},color:${color}`);
   }
   for (const node of graph.nodes) {
-    if (node.status === 'superseded') continue;
+    if (node.archived) continue;
     const first = node.tags[0];
     if (first === undefined) continue;
     const index = tagIndex.get(first)!;
@@ -251,7 +254,7 @@ export function dotGraph(graph: DecisionGraph): string {
     lines.push('      rank=same;');
     for (const node of nodes) {
       const attrs = [`label="${dotLabel(node.title)}"`];
-      if (node.status === 'superseded') {
+      if (node.archived) {
         // Transparent fill like every node; dashed gray border + gray text
         // mark retirement without making it a colored block among empties.
         attrs.push('style=dashed', 'color="#999999"');

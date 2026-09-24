@@ -90,7 +90,7 @@ function layout(graph: DecisionGraph): { placed: Placed[]; columns: Column[]; wi
 function tagColors(nodes: GraphNode[]): Map<string, string> {
   const colors = new Map<string, string>();
   for (const node of nodes) {
-    if (node.status === 'superseded') continue;
+    if (node.archived) continue;
     const tag = node.tags[0];
     if (tag === undefined || colors.has(tag)) continue;
     colors.set(tag, TAG_COLORS[colors.size % TAG_COLORS.length]!);
@@ -188,10 +188,10 @@ function fitTagRun(tags: string[], maxWidth: number): string {
 function nodeMarkup(placed: Placed, colors: Map<string, string>, recordHref: (recordPath: string) => string): string {
   const { node, x, y, height, lines } = placed;
   const classes = ['node'];
-  if (node.status === 'superseded') classes.push('superseded');
+  if (node.archived) classes.push('superseded');
   if (node.hasDeliberation) classes.push('has-deliberation');
   const firstTag = node.tags[0];
-  const stroke = node.status === 'superseded'
+  const stroke = node.archived
     ? '#c2cabf'
     : (firstTag === undefined ? '#dce4dc' : (colors.get(firstTag) ?? '#dce4dc'));
   const metaY = y + PAD_Y + META_H - 5;
@@ -201,8 +201,8 @@ function nodeMarkup(placed: Placed, colors: Map<string, string>, recordHref: (re
   parts.push('<g class="' + classes.join(' ') + '" data-adr="' + node.number + '" data-has-deliberation="' + String(node.hasDeliberation) + '">');
   parts.push('<rect x="' + x + '" y="' + y + '" width="' + CARD_W + '" height="' + height + '" rx="12" stroke="' + stroke + '"/>');
   parts.push('<text class="num" x="' + (x + PAD_X) + '" y="' + metaY + '">#' + node.number + '</text>');
-  const meta = node.status === 'superseded'
-    ? (node.supersededBy === undefined ? 'superseded' : 'superseded by ' + node.supersededBy)
+  const meta = node.archived
+    ? (node.supersededBy === undefined ? 'archived' : 'superseded by ' + node.supersededBy)
     : node.created;
   parts.push('<text class="meta" x="' + (x + CARD_W - PAD_X) + '" y="' + metaY + '" text-anchor="end">' + escapeHtml(meta) + '</text>');
   lines.forEach((line, index) => {

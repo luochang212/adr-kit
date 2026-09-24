@@ -1,11 +1,10 @@
 node_modules/
 dist/
 coverage/
-archived/
+/archived/
 
-# This repository dogfoods its own decision records: `adr/` is tracked so the
-# records are durable and shared. Drafts under `adr/.drafts/` stay ignored
-# through `adr/.gitignore`.
+# This repository dogfoods its own decision records: all four lifecycle
+# directories under `adr/` are tracked and shared.
 *.tgz
 .DS_Store
 *.log

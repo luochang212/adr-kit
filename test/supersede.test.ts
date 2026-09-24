@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
-import { acceptCommand } from '../src/commands/accept.js';
+import { implementCommand } from '../src/commands/implement.js';
 import { initCommand } from '../src/commands/init.js';
 import { listCommand } from '../src/commands/list.js';
 import { proposeCommand } from '../src/commands/propose.js';
@@ -10,8 +10,8 @@ import { statusCommand } from '../src/commands/status.js';
 import { supersedeCommand } from '../src/commands/supersede.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { parseAdrFile, todayStamp } from '../src/core/adr.js';
-import { listDrafts } from '../src/core/repository.js';
-import { formatIssues, validateDraft } from '../src/core/validate.js';
+import { listProposals } from '../src/core/repository.js';
+import { formatIssues, validateProposal } from '../src/core/validate.js';
 
 const tempDirs: string[] = [];
 
@@ -30,10 +30,10 @@ function acceptDecision(
   raisedBy: 'human' | 'agent' = 'human',
 ): string {
   proposeCommand(title, root);
-  const draft = listDrafts(root)[0];
+  const draft = listProposals(root)[0];
   if (draft === undefined) throw new Error('draft not found');
   const slug = draft.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
-  writeFileSync(join(root, 'adr', '.drafts', draft.fileName), `---
+  writeFileSync(join(root, 'adr', 'proposed', draft.fileName), `---
 status: proposed
 date: 2026-08-19
 created: 2026-08-19
@@ -61,7 +61,7 @@ It works.
 
 Some risk.
 `);
-  acceptCommand(title, root, decidedBy, raisedBy);
+  implementCommand(title, root, decidedBy, raisedBy);
   return slug;
 }
 
@@ -72,15 +72,15 @@ afterEach(() => {
 });
 
 describe('supersedeCommand', () => {
-  it('rewrites the front matter and keeps the record in decisions/', () => {
+  it('rewrites the front matter and archives the old record', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
 
     const message = supersedeCommand('1', '2', root);
-    expect(message).toMatch(/superseded adr\/decisions\/1-.+ by adr\/decisions\/2-.+/);
+    expect(message).toMatch(/superseded adr\/implemented\/1-.+ by adr\/implemented\/2-.+/);
 
-    const old = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
+    const old = readFileSync(join(root, 'adr', 'archived', '1-use-sqlite.md'), 'utf8');
     const lines = old.split(/\r?\n/);
     expect(lines[1]).toBe('status: superseded');
     expect(lines[2]).toBe(`date: ${todayStamp()}`);
@@ -95,15 +95,15 @@ describe('supersedeCommand', () => {
     expect(result.valid).toBe(true);
   });
 
-  it('counts superseded decisions separately in status', () => {
+  it('counts archived records separately in status', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
     supersedeCommand('1', '2', root);
 
     const output = statusCommand(root).output;
-    expect(output).toContain('accepted: 1');
-    expect(output).toContain('superseded: 1');
+    expect(output).toContain('implemented: 1');
+    expect(output).toContain('archived: 1');
   });
 
   it('annotates superseded records in the text listing', () => {
@@ -119,8 +119,7 @@ describe('supersedeCommand', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use Postgres');
     proposeCommand('Use SQLite', root);
-    // Drafts are not decisions, so a draft title does not resolve for supersede.
-    expect(() => supersedeCommand('use-sqlite', '1', root)).toThrow('no ADR matches');
+    expect(() => supersedeCommand('use-sqlite', '1', root)).toThrow('must be an implemented decision');
   });
 
   it('refuses to supersede with a missing decision', () => {
@@ -149,7 +148,7 @@ describe('supersedeCommand', () => {
     acceptDecision(root, 'Use Postgres');
     acceptDecision(root, 'Use Spanner');
     supersedeCommand('2', '3', root);
-    expect(() => supersedeCommand('1', '2', root)).toThrow('is itself superseded');
+    expect(() => supersedeCommand('1', '2', root)).toThrow('must be an implemented decision');
   });
 });
 
@@ -184,14 +183,14 @@ It works.
 Some risk.
 `;
 
-  it('carries the tags a draft declares into the accepted decision', () => {
+  it('carries the tags a draft declares into the implemented decision', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const draft = listDrafts(root)[0];
+    const draft = listProposals(root)[0];
     if (draft === undefined) throw new Error('draft not found');
-    writeFileSync(join(root, 'adr', '.drafts', draft.fileName), TAGGED_DRAFT);
-    acceptCommand('Use SQLite', root, 'human', 'human');
-    const record = readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8');
+    writeFileSync(join(root, 'adr', 'proposed', draft.fileName), TAGGED_DRAFT);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    const record = readFileSync(join(root, 'adr', 'implemented', '1-use-sqlite.md'), 'utf8');
     expect(record).toContain('tags:');
     expect(record).toContain('- storage');
     expect(record).toContain('- execution-layer');
@@ -202,10 +201,10 @@ Some risk.
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
-    const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     writeFileSync(path, readFileSync(path, 'utf8').replace(/^(created:.*)$/m, '$1\ntags: [storage]'));
     supersedeCommand('1', '2', root);
-    const retired = readFileSync(path, 'utf8');
+    const retired = readFileSync(join(root, 'adr', 'archived', '1-use-sqlite.md'), 'utf8');
     expect(retired).toContain('- storage');
     expect(validateCommand(root).valid).toBe(true);
   });
@@ -244,12 +243,12 @@ Some risk.
   it('records the declaration made at promotion, not the draft', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
-    expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
+    expect(readFileSync(join(root, 'adr', 'implemented', '1-use-sqlite.md'), 'utf8')).toContain(
       'decided-by: human',
     );
 
     acceptDecision(root, 'Use Postgres', 'agent');
-    expect(readFileSync(join(root, 'adr', 'decisions', '2-use-postgres.md'), 'utf8')).toContain(
+    expect(readFileSync(join(root, 'adr', 'implemented', '2-use-postgres.md'), 'utf8')).toContain(
       'decided-by: agent',
     );
   });
@@ -257,19 +256,19 @@ Some risk.
   it('drops a decided-by smuggled into a draft, and rejects the draft while it exists', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    const file = join(root, 'adr', 'proposed', listProposals(root)[0]!.fileName);
     writeFileSync(file, DRAFT.replace('created:', 'decided-by: human\ncreated:'));
 
-    const issues = validateDraft(root, listDrafts(root)[0]!);
+    const issues = validateProposal(root, listProposals(root)[0]!);
     expect(formatIssues(issues)).toContain(
-      '"decided-by" is declared at promotion and must not appear on a draft',
+      'unshipped records must not include "decided-by"',
     );
 
     // Promote with an agent declaration: the decision must carry what the
     // caller declared, proving the draft's value found no path into the record.
     writeFileSync(file, DRAFT);
-    acceptCommand('Use SQLite', root, 'agent', 'human');
-    expect(readFileSync(join(root, 'adr', 'decisions', '1-use-sqlite.md'), 'utf8')).toContain(
+    implementCommand('Use SQLite', root, 'agent', 'human');
+    expect(readFileSync(join(root, 'adr', 'implemented', '1-use-sqlite.md'), 'utf8')).toContain(
       'decided-by: agent',
     );
   });
@@ -281,7 +280,8 @@ Some risk.
     supersedeCommand('1', '2', root);
 
     const frontMatter = (file: string): string => {
-      const text = readFileSync(join(root, 'adr', 'decisions', file), 'utf8');
+      const folder = file.startsWith('1-') ? 'archived' : 'implemented';
+      const text = readFileSync(join(root, 'adr', folder, file), 'utf8');
       return text.split('---')[1] ?? '';
     };
     // Superseding rewrites the retiring record's status, yet its declaration
@@ -297,9 +297,9 @@ describe('validate superseded references', () => {
   it('flags a dangling superseded-by reference', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
-    const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     const content = readFileSync(path, 'utf8');
-    writeFileSync(path, content.replace('status: accepted', 'status: superseded\nsuperseded-by: 9999'));
+    writeFileSync(path, content.replace('status: implemented', 'status: superseded\nsuperseded-by: 9999'));
 
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
@@ -312,7 +312,7 @@ describe('validate superseded references', () => {
     acceptDecision(root, 'Use Postgres');
     acceptDecision(root, 'Use Spanner');
     supersedeCommand('1', '2', root);
-    const ancestor = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    const ancestor = join(root, 'adr', 'archived', '1-use-sqlite.md');
     const before = readFileSync(ancestor, 'utf8');
     supersedeCommand('2', '3', root);
 
@@ -328,7 +328,7 @@ describe('supersede target and record integrity', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
-    const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     const tampered = readFileSync(path, 'utf8').replace('---\n', '---\nunknown-key: keep-me\n');
     writeFileSync(path, tampered);
 
@@ -337,31 +337,32 @@ describe('supersede target and record integrity', () => {
     expect(readFileSync(path, 'utf8')).toBe(tampered);
   });
 
-  it('refuses a replacement whose status is not accepted', () => {
+  it('refuses a replacement whose status is not implemented', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
-    const path = join(root, 'adr', 'decisions', '2-use-postgres.md');
-    writeFileSync(path, readFileSync(path, 'utf8').replace('status: accepted', 'status: proposed'));
+    const path = join(root, 'adr', 'implemented', '2-use-postgres.md');
+    writeFileSync(path, readFileSync(path, 'utf8').replace('status: implemented', 'status: proposed'));
 
-    expect(() => supersedeCommand('1', '2', root)).toThrow(/is not an accepted decision/);
+    expect(() => supersedeCommand('1', '2', root)).toThrow(/must be an implemented decision/);
   });
 
   it('preserves tags and provenance across the retirement', () => {
     const root = makeRepo();
     acceptDecision(root, 'Use SQLite');
     acceptDecision(root, 'Use Postgres');
-    const path = join(root, 'adr', 'decisions', '1-use-sqlite.md');
+    const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     writeFileSync(
       path,
       readFileSync(path, 'utf8').replace('decided-by: human', 'decided-by: human\ntags: [storage, data]'),
     );
 
     supersedeCommand('1', '2', root);
-    const after = readFileSync(path, 'utf8');
+    const archivedPath = join(root, 'adr', 'archived', '1-use-sqlite.md');
+    const after = readFileSync(archivedPath, 'utf8');
     expect(after).toContain('raised-by: human');
     expect(after).toContain('decided-by: human');
     expect(after).toContain('superseded-by: 2');
-    expect(parseAdrFile(path).tags).toEqual(['storage', 'data']);
+    expect(parseAdrFile(archivedPath).tags).toEqual(['storage', 'data']);
   });
 });

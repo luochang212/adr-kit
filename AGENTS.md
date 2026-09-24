@@ -6,12 +6,13 @@ contains standing orders for coding agents working in this repository.
 ## Reading architecture decisions
 
 At the start of a coding, design, or review task, if `adr/` exists, run
-`adrkit list` and read every decision in full with `adrkit show <N>` (or read
-its file). ADR sets are small; do not filter by title alone. Treat accepted
-records as decision context, superseded records as history, and pending
-drafts as unaccepted proposals. Check relevant decisions against current
-code and the task's requirements. Apply the constraints that still hold;
-explain conflicts or changed assumptions before choosing a different approach.
+`adrkit list` to discover the inventory. Read relevant implemented records
+in full with `adrkit show <N>` or their files, check relevant proposed and
+rejected records, and consult archived records only for history. Do not
+judge relevance by title alone; inspect tags, paths, relationships, and task
+scope. Check relevant decisions against current code and requirements.
+Apply constraints that still hold; explain conflicts or changed assumptions
+before choosing a different approach.
 Mention relevant ADR numbers in the implementation or review summary and
 verify the affected behavior. If no decisions apply, continue normally;
 reading does not require creating an ADR. Re-read on a new or resumed task,
@@ -31,8 +32,8 @@ local fixes, and easily reversible choices need no ADR. If no important
 architectural decision was made, create none. When you grill a decision with
 the `adrkit-grill` workflow, record every decision the session settles: the
 session is itself the importance signal, so the bar above governs only the
-direct `decide`/`propose` path. `accepted` means a recorded
-decision, not proof of human review. `decided-by` is a declaration of where the
+direct `record`/`propose` path. A settled but unshipped choice remains
+proposed; implemented means shipped. `decided-by` is a declaration of where the
 choice came from, not an inference: `human` when a person determined the
 direction — they stated it, changed a proposal into what shipped, or you are
 recording one they made earlier — `agent` when it came from the agent's own
@@ -114,6 +115,6 @@ update:
 
 ## Validation failures are success signals
 
-`adrkit validate` is supposed to fail on fresh drafts until humans or
+`adrkit validate` is supposed to fail on fresh proposals until humans or
 agents fill in the required sections. Tests must prove both sides: valid
 records pass, and draft records fail for the exact missing requirement.

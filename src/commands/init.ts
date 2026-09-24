@@ -30,7 +30,7 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
     ...(note === undefined ? [] : ['', note]),
     '',
     'Next:',
-    '  adrkit decide "use sqlite for sessions" --raised-by human --decided-by human # record a decision',
-    '  adrkit propose "your first decision"    # only when it still needs review',
+    '  adrkit propose "use sqlite for sessions" # plan an unshipped choice',
+    '  adrkit record "a shipped choice" --raised-by human --decided-by human',
   ].join('\n');
 }

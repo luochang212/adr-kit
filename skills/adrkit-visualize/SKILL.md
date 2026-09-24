@@ -5,38 +5,10 @@ description: Use when the user asks to visualize an existing ADR, its deliberati
 
 # ADR Kit Visualize
 
-## Render the requested view
+Visualize existing records only when asked. Run `adrkit list` first, then read the record or relationships relevant to the requested view. Do not create a decision or invent a deliberation tree to make a picture.
 
-When the user asks to visualize a recorded ADR, a grilling result, or the whole
-decision set, use these paths directly; do not start a new grilling session or
-create another ADR. There are two levels, and the request picks one:
+- For one record's design tree, use `adrkit tree <name> --html` and save stdout to a local HTML file. If no `## Deliberation` appendix exists, say so instead of fabricating one.
+- For the numbered decision set, use `adrkit graph --html --out "<path>.html"`. The map includes implemented guidance and archived history, but archived records are not current authority. Use `--tag` or `--formal-only` only when requested or useful to the question.
+- For lightweight previews, `--text` or `--mermaid` may be enough; do not generate HTML merely because the CLI supports it.
 
-- **One decision — the decision tree.** Resolve the record with `adrkit list`
-  and `adrkit show <N>`, and read its `## Deliberation` appendix. If there is
-  no tree, explain that the record has no recorded deliberation to visualize;
-  do not invent one. Render it with `adrkit tree <N> --html > "<path>.html"`.
-- **All decisions — the decision map.** Render the whole set with
-  `adrkit graph --html --out "<path>.html"`. It groups every decision by creation
-  date, draws supersede and reference edges, and marks the decisions that carry
-  a deliberation tree. A node links to its record file; it does not expand the
-  tree yet.
-
-Both renderers are built in, not agent-designed replacement pages. Write the
-map with `--out` to any new path the user asks for, a temporary directory
-included: the command resolves its record links against the file's own
-location, so the cards open wherever it lands. Redirecting stdout instead
-leaves record-relative links, which only resolve for a file written inside the
-repository. Quote paths and avoid overwriting a record or an existing file.
-Check the command succeeded.
-Deliver a clickable link; the file is self-contained and works offline. After
-successful HTML generation, open the file in the user's default browser unless
-the user asks for a file only or says not to open it. A visualization request
-is sufficient; do not ask for separate confirmation to open the browser.
-Use the platform opener with the quoted file path. If a browser is unavailable
-or opening fails, keep the file link and explain that it could not be opened.
-The agent opens the browser; the CLI continues to emit HTML to stdout only.
-
-Generate HTML only on an explicit visualization request, never automatically at
-the end of a grilling session. For explicit format requests, both commands support `--text` and `--mermaid`;
-only `graph` supports `--dot`. Return those formats without opening a browser. Keep Markdown as the source of
-truth.
+When the user requests HTML visualization, open the generated file in the default browser if available and return a clickable file path. If the user asks for a file only or says not to open it, leave the browser alone. If opening is unavailable or fails, explain that briefly and still return the file path. The CLI emits HTML to stdout unless `graph --out` is used; the agent owns the browser handoff.

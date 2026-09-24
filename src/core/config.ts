@@ -12,7 +12,7 @@ export interface AdrKitConfig {
   rules?: Record<string, string[]>;
   /** AI tool integrations selected at init time, e.g. `["claude", "codex"]`. */
   tools?: string[];
-  /** Workflow subset for integrations, e.g. `["init", "decide", "validate"]`. */
+  /** Workflow subset for integrations, e.g. `["init", "record", "validate"]`. */
   workflows?: string[];
   /** Version of the CLI that last wrote the integrations; absent before this stamp existed. */
   installedWith?: string;

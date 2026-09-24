@@ -10,15 +10,8 @@ import { basename, dirname, join, posix, relative, resolve } from 'node:path';
 import { ADR_DIR, CONFIG_FILE, configPath } from './config.js';
 import { parseAdrFile, type AdrFolder, type AdrRecord } from './adr.js';
 
-/** Durable records live in one folder; status is carried in the front matter. */
-export const FOLDERS: AdrFolder[] = ['decisions'];
-
-/**
- * Ephemeral proposal drafts. Created lazily on the first `adrkit propose`,
- * gitignored (init writes `adr/.gitignore`), never validated by `adrkit
- * validate` and never durable until `accept` promotes one into decisions/.
- */
-export const DRAFTS_DIR = '.drafts';
+/** Lifecycle folders are the repository inventory. */
+export const FOLDERS: AdrFolder[] = ['proposed', 'implemented', 'rejected', 'archived'];
 
 export interface InitResult {
   root: string;
@@ -33,12 +26,12 @@ function initConfig(tools: string[], workflows?: string[]): string {
   // tools 始终作为顶层键输出：全注释的 YAML 文档会被解析为空，
   // readConfig 的 isMap 检查会报 "top-level value must be a mapping"。
   const toolsYaml = `tools: ${list(tools)}\n`;
-  // workflows 仅在选择子集时输出：缺省即全部，老配置无需迁移。
+  // workflows 仅在选择子集时输出：缺省即全部。
   const workflowsYaml =
     workflows === undefined ? '' : `\n# Workflow subset written by adrkit init --workflows.\nworkflows: ${list(workflows)}\n`;
   return `# ADR Kit configuration
 # Fill in \`context\` and it is injected as a comment into every new
-# proposal/decision draft (adrkit propose / adrkit decide).
+# proposal/decision template (adrkit propose / adrkit record).
 # context: |
 #   Tech stack: TypeScript
 #   Conventions that decision records should respect.
@@ -57,79 +50,31 @@ ${toolsYaml}${workflowsYaml}
 
 const INIT_README = `# Architecture Decision Records
 
-This directory is an ADR Kit repository. Each record is plain Markdown with a
-machine-checkable header. Decisions are durable; proposals are ephemeral drafts.
+Records follow the lifecycle folders proposed/, implemented/, rejected/, and
+archived/. A proposal is unshipped even when its direction has been settled.
+Implemented records describe shipped decisions and receive stable ADR numbers.
+Every formally rejected proposal remains in rejected/ with its reason.
+Archived records are frozen history, not current authority.
 
-## Folders
+Never delete a numbered decision: its stable N may be referenced elsewhere.
+Implemented records may refresh factual paths, symbols, and defaults, but a
+changed choice needs a new record. Archive or supersede rather than erase it.
 
-| Folder | Meaning |
-| --- | --- |
-| \`decisions/\` | Decisions, numbered sequentially, immutable history (accepted or superseded) |
-| \`.drafts/\` | Proposal drafts, gitignored and ephemeral - promote one with \`adrkit accept\` or discard it with \`adrkit reject\` |
+The canonical header includes status, date, and created: YYYY-MM-DD (the
+birth date, never re-stamped). Numbered records declare raised-by: human | agent
+and decided-by: human | agent; these are provenance declarations, not proof
+of approval. Optional tags: [frontend] classify records by theme.
 
-Never delete or modify a decision: retire one with \`adrkit supersede\` instead.
-Deleting reuses its number, which silently breaks every \`ADR-N\` reference to it.
+Use adrkit propose for unshipped work, adrkit implement after it ships, and
+adrkit record for an already-shipped decision. Use adrkit reject with a reason
+for a proposal that will not ship. A full replacement archives the old
+implemented record through adrkit supersede; adrkit archive also retires
+implemented guidance whose rationale is no longer needed in the active set.
 
-Rejection is recorded in a decision's \`Alternatives considered\` section, never
-as a standalone record.
-
-## Record format
-
-Every record starts with a YAML front matter block:
-
-\`\`\`markdown
----
-status: accepted | superseded
-date: YYYY-MM-DD
-raised-by: human | agent
-decided-by: human | agent
-created: YYYY-MM-DD
-commit: abc1234
-tags: [frontend]
----
-
-# ADR: N <title>
-\`\`\`
-
-Decisions use \`# ADR: N <title>\` and require \`Problem\`, \`Decision\`,
-\`Alternatives considered\`, and \`Consequences\`. Superseded decisions add
-\`superseded-by: N\`. The \`date\` field records when the current status was
-reached; the CLI stamps it at every lifecycle move, alongside the git \`commit\`
-the decision was recorded against. \`created\` is the birth date, stamped once
-and never re-stamped, so the time axis survives later lifecycle moves. The
-\`raised-by\` records who put the decision on the table and \`decided-by\` records
-whose judgment settled it: \`human\` when a person determined the direction —
-they stated it, changed a proposal into what shipped, or you are recording one
-they made earlier — \`agent\` when it came from the agent's own judgment,
-including when a person only let it through. The two are independent: a person
-may raise what the agent settles, and the agent may raise what a person
-settles. \`decide\` and \`accept\` require the caller to declare both with
-\`--raised-by\` and \`--decided-by\`, and the CLI neither infers nor verifies
-either, so neither establishes who chose or authorized the decision. The CLI
-writes them at those moves and preserves them when a decision is superseded.
-When the writer cannot tell which value applies, ask the person before recording
-rather than guessing. The record body is where the nuance lives: when an agent
-proposed and a person redirected or approved the result, say so in
-\`## Decision\` rather than trying to split the field.
-Likewise, \`accepted\` means a recorded decision, not proof of human review.
-Commit identity stays in git. Optional \`tags\` (kebab-case keywords) let
-\`adrkit graph\` group and filter decisions by theme. Drafts (\`adr/.drafts/\`,
-\`status: proposed\`) require \`Problem\`, \`Proposal\`, \`Alternatives considered\`,
-\`Acceptance criteria\`, and \`Risks\`, and carry neither \`raised-by\` nor
-\`decided-by\`; \`adrkit accept\`
-promotes one into a decision, and \`adrkit reject\` discards it without leaving
-a record.
-
-A decision may also carry an optional \`## Deliberation\` appendix: the design
-tree behind the choice, stored as a nested Markdown list whose nodes may be
-tagged \`[settled]\`, \`[rejected]\`, or \`[open]\`. A follow-up question is
-nested under the node that raised it, so depth is the dependency. Render it
-with \`adrkit tree <name>\` (text by default, \`--mermaid\` for a graph,
-\`--html\` for an offline interactive card tree). Render the whole set with
-\`adrkit graph --html\`, an offline decision map that marks records
-carrying a tree.
-
-Run \`adrkit validate\` to check every record.
+Run adrkit list to discover records. Read relevant implemented records in
+full, check relevant proposed and rejected records, and consult archived
+records only for history. Do not decide relevance by title alone.
+Run adrkit validate to check the repository.
 `;
 
 export function initRepository(targetDir: string, tools: string[] = [], workflows?: string[]): InitResult {
@@ -153,13 +98,6 @@ export function initRepository(targetDir: string, tools: string[] = [], workflow
   writeFileSync(config, initConfig(tools, workflows));
   created.push(`${ADR_DIR}/${CONFIG_FILE}`);
 
-  // Drafts are ephemeral and must never be committed; the guard ships with init
-  // so a draft can never leak into git, even before the first propose creates
-  // the directory.
-  const gitignore = join(adrRoot, '.gitignore');
-  writeFileSync(gitignore, `${DRAFTS_DIR}\n`);
-  created.push(`${ADR_DIR}/.gitignore`);
-
   const readme = join(adrRoot, 'README.md');
   writeFileSync(readme, INIT_README);
   created.push(`${ADR_DIR}/README.md`);
@@ -172,12 +110,10 @@ export function adrRoot(root: string): string {
 }
 
 /**
- * Physical directory name for a folder value. The drafts folder is named
- * `.drafts` (dot-prefixed, gitignored) while the value carried on AdrRecord is
- * the bare `drafts`.
+ * Physical directory name for a lifecycle folder.
  */
 function folderDirName(folder: AdrFolder): string {
-  return folder === 'drafts' ? DRAFTS_DIR : folder;
+  return folder;
 }
 
 export function folderPath(root: string, folder: AdrFolder): string {
@@ -206,10 +142,14 @@ export function listRecords(root: string): AdrRecord[] {
     const folderOrder = (folder: AdrFolder) => FOLDERS.indexOf(folder);
     const folderDelta = folderOrder(a.folder) - folderOrder(b.folder);
     if (folderDelta !== 0) return folderDelta;
-    if (a.folder === 'decisions') return (a.number ?? 0) - (b.number ?? 0);
+    if (a.number !== undefined && b.number !== undefined) return a.number - b.number;
     return a.fileName.localeCompare(b.fileName);
   });
   return records;
+}
+
+export function listProposals(root: string): AdrRecord[] {
+  return listRecords(root).filter((record) => record.folder === 'proposed');
 }
 
 function fileNameMatchesQuery(fileName: string, needle: string): boolean {
@@ -238,7 +178,7 @@ function listRecordsForResolve(root: string, needle: string): AdrRecord[] {
         records.push(record);
       } catch (error) {
         const bareName = entry.replace(/\.md$/, '');
-        const numberMatch = folder === 'decisions' ? bareName.match(/^(\d+)-/) : null;
+        const numberMatch = folder === 'implemented' || folder === 'archived' ? bareName.match(/^(\d+)-/) : null;
         const isTarget =
           fileNameMatchesQuery(entry, needle) ||
           (numberMatch !== null && numberMatch[1] === needle);
@@ -265,7 +205,7 @@ export function resolveRecord(root: string, query: string): AdrRecord {
     if (record.title === needle || `# ADR: ${record.title}` === needle) {
       return true;
     }
-    if (record.folder === 'decisions') {
+    if (record.folder === 'implemented' || record.folder === 'archived') {
       if (String(record.number ?? 0) === needle) {
         return true;
       }
@@ -290,7 +230,7 @@ export function resolveRecord(root: string, query: string): AdrRecord {
 export function nextDecisionNumber(root: string): number {
   let max = 0;
   for (const record of listRecords(root)) {
-    if (record.folder === 'decisions' && (record.number ?? 0) > max) {
+    if ((record.folder === 'implemented' || record.folder === 'archived') && (record.number ?? 0) > max) {
       max = record.number ?? 0;
     }
   }
@@ -299,9 +239,7 @@ export function nextDecisionNumber(root: string): number {
 
 export function writeRecord(root: string, folder: AdrFolder, fileName: string, content: string): string {
   const path = join(folderPath(root, folder), fileName);
-  // mkdir-on-write: a target folder may not exist yet (e.g. .drafts/ before the
-  // first propose, or a decisions/ that was removed). Creating it on demand
-  // keeps every lifecycle command correct without eager directory ceremony.
+  // A removed lifecycle folder is recreated on write.
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
   return path;
@@ -311,45 +249,18 @@ export function removeRecord(record: AdrRecord): void {
   rmSync(record.path);
 }
 
-/** Path to the ephemeral drafts folder (`adr/.drafts/`). */
-export function draftsPath(root: string): string {
-  return join(adrRoot(root), DRAFTS_DIR);
-}
-
-export function listDrafts(root: string): AdrRecord[] {
-  const dir = draftsPath(root);
-  if (!existsSync(dir)) return [];
-  const drafts: AdrRecord[] = [];
-  for (const entry of readdirSync(dir)) {
-    if (!entry.endsWith('.md')) continue;
-    const path = join(dir, entry);
-    try {
-      const draft = parseAdrFile(path);
-      draft.folder = 'drafts';
-      drafts.push(draft);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`failed to parse ${relative(root, path)}: ${message}`);
-    }
-  }
-  drafts.sort((a, b) => a.fileName.localeCompare(b.fileName));
-  return drafts;
-}
-
-function draftMatchesQuery(draft: AdrRecord, needle: string): boolean {
-  if (fileNameMatchesQuery(draft.fileName, needle)) return true;
-  return draft.title === needle || `# ADR: ${draft.title}` === needle;
-}
-
-export function resolveDraft(root: string, query: string): AdrRecord {
+export function resolveProposed(root: string, query: string): AdrRecord {
   const needle = query.trim();
-  const drafts = listDrafts(root);
-  const candidates = drafts.filter((draft) => draftMatchesQuery(draft, needle));
+  const candidates = listRecords(root).filter((record) =>
+    record.folder === 'proposed' &&
+    (fileNameMatchesQuery(record.fileName, needle) ||
+      record.title === needle ||
+      `# ADR: ${record.title}` === needle));
   if (candidates.length === 0) {
-    throw new Error(`no draft proposal matches "${query}"`);
+    throw new Error(`no proposal matches "${query}"`);
   }
   if (candidates.length > 1) {
-    const paths = candidates.map((draft) => relative(root, draft.path)).join(', ');
+    const paths = candidates.map((record) => relative(root, record.path)).join(', ');
     throw new Error(`"${query}" is ambiguous; matches: ${paths}`);
   }
   return candidates[0]!;
@@ -360,7 +271,7 @@ export function readRecord(record: AdrRecord): string {
 }
 
 export function displayName(record: AdrRecord): string {
-  if (record.folder === 'decisions' && Number.isInteger(record.number)) {
+  if ((record.folder === 'implemented' || record.folder === 'archived') && Number.isInteger(record.number)) {
     const titleWithoutNumber = record.title.replace(/^\d+\s+/, '');
     return `[${record.number}] ${titleWithoutNumber}`;
   }
@@ -369,7 +280,6 @@ export function displayName(record: AdrRecord): string {
 
 export function relativePath(record: AdrRecord): string {
   // 始终输出 POSIX 风格路径：CLI 输出是用户可见文本，Windows 上也要
-  // 显示 adr/.drafts/... 而不是 adr\.drafts\...（与其它命令的硬编码
-  // 拼接保持一致，且测试断言跨平台稳定）。
+  // CLI paths remain POSIX-style on every host.
   return posix.join(ADR_DIR, folderDirName(record.folder), basename(record.path));
 }

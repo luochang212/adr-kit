@@ -28,7 +28,7 @@ function calendarDateIsValid(year: number, month: number, day: number): boolean 
 /**
  * The parser enforces YYYY-MM-DD when the field exists; this checks calendar
  * validity, presence (the field is required), and the invariant that a record
- * cannot be created after its current status date.
+ * cannot be created after its latest lifecycle date.
  */
 function createdIssues(path: string, record: AdrRecord): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
@@ -80,7 +80,7 @@ function dateIssue(record: AdrRecord): string | undefined {
   return undefined;
 }
 
-/** Required-section, meaningful-body, and duplicate-section checks, shared by decisions and drafts. */
+/** Required-section, meaningful-body, and duplicate-section checks for all records. */
 function sectionIssues(
   path: string,
   sections: AdrSection[],
@@ -129,20 +129,65 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   for (const key of record.frontMatterExtras ?? []) {
     issues.push({ path, message: `unknown front matter field "${key}"` });
   }
-
-  if (record.status !== 'accepted' && record.status !== 'superseded') {
-    const hint =
-      record.status === 'rejected'
-        ? 'rejection is recorded in a decision\'s "Alternatives considered", not as a standalone status'
-        : 'proposals are ephemeral drafts in adr/.drafts/';
-    issues.push({
-      path,
-      message: `status "${record.status}" is not a durable decision status; ${hint}`,
-    });
-  }
-
   if (record.commit !== undefined && !/^[0-9a-f]{7,40}$/.test(record.commit)) {
     issues.push({ path, message: `commit "${record.commit}" is not a git hash` });
+  }
+  const dateError = dateIssue(record);
+  if (dateError !== undefined) issues.push({ path, message: dateError });
+  issues.push(...createdIssues(path, record));
+  if (record.tags !== undefined) issues.push(...tagsIssues(path, record.tags));
+
+  const numbered = record.folder === 'implemented' || record.folder === 'archived';
+  if (numbered) {
+    if (!/^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/.test(record.fileName)) {
+      issues.push({ path, message: 'implemented file name must be "N-slug.md"' });
+    }
+    if (record.number === undefined) {
+      issues.push({ path, message: 'implemented title must be "# ADR: N <title>"' });
+    } else if (!record.fileName.startsWith(`${record.number}-`)) {
+      issues.push({ path, message: `file name number must match title number ${record.number}` });
+    }
+    if (record.raisedBy === undefined) {
+      issues.push({ path, message: 'front matter must include "raised-by"' });
+    }
+    if (record.decidedBy === undefined) {
+      issues.push({ path, message: 'front matter must include "decided-by"' });
+    }
+    if (
+      (record.folder === 'implemented' && record.status !== 'implemented') ||
+      (record.folder === 'archived' && record.status !== 'implemented' && record.status !== 'superseded')
+    ) {
+      issues.push({ path, message: `status "${record.status}" is not valid in ${record.folder}/` });
+    }
+    issues.push(...sectionIssues(path, record.sections, DECISION_REQUIRED, ['Problem', 'Decision']));
+    for (const heading of PROPOSAL_ERA_HEADINGS) {
+      if (record.sections.some((section) => section.heading === heading)) {
+        issues.push({ path, message: `implemented record must not contain proposal-era section "## ${heading}"` });
+      }
+    }
+  } else {
+    const match = record.fileName.match(/^(\d{4})-(\d{2})-(\d{2})-[a-z0-9一-鿿-]+\.md$/);
+    if (match === null) {
+      issues.push({ path, message: 'proposal file name must be "YYYY-MM-DD-slug.md"' });
+    } else if (!calendarDateIsValid(Number(match[1]), Number(match[2]), Number(match[3]))) {
+      issues.push({ path, message: 'file name contains an invalid calendar date' });
+    }
+    if (record.number !== undefined) {
+      issues.push({ path, message: 'unshipped records must not have an ADR number' });
+    }
+    if (record.raisedBy !== undefined) {
+      issues.push({ path, message: 'unshipped records must not include "raised-by"' });
+    }
+    if (record.decidedBy !== undefined) {
+      issues.push({ path, message: 'unshipped records must not include "decided-by"' });
+    }
+    if (record.status !== record.folder) {
+      issues.push({ path, message: `status "${record.status}" must match ${record.folder}/` });
+    }
+    const required = record.folder === 'rejected'
+      ? ['Problem', 'Proposal', 'Alternatives considered']
+      : PROPOSED_REQUIRED;
+    issues.push(...sectionIssues(path, record.sections, required, ['Problem', 'Proposal']));
   }
 
   if (record.status === 'superseded') {
@@ -152,94 +197,35 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
       issues.push({ path, message: 'a decision cannot supersede itself' });
     }
   }
-
-  const dateError = dateIssue(record);
-  if (dateError !== undefined) issues.push({ path, message: dateError });
-  issues.push(...createdIssues(path, record));
-  /**
-   * The parser enforces the two allowed values; this enforces presence. The
-   * field is declared by the caller at decide or accept time, so a durable
-   * record missing it was written by hand or by an older format. Nothing here
-   * repairs it: an agent inventing who made a past decision is the fabricated
-   * provenance this field exists to prevent.
-   */
-  if (record.raisedBy === undefined) {
-    issues.push({ path, message: 'front matter must include "raised-by"' });
-  }
-  if (record.decidedBy === undefined) {
-    issues.push({ path, message: 'front matter must include "decided-by"' });
-  }
-  if (record.tags !== undefined) issues.push(...tagsIssues(path, record.tags));
-
-  if (!/^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/.test(record.fileName)) {
-    issues.push({ path, message: 'decision file name must be "N-slug.md"' });
-  }
-  if (record.number === undefined) {
-    issues.push({ path, message: 'accepted decision title must be "# ADR: N <title>"' });
-  } else if (!record.fileName.startsWith(`${record.number}-`)) {
-    issues.push({ path, message: `file name number must match title number ${record.number}` });
-  }
-
-  issues.push(...sectionIssues(path, record.sections, DECISION_REQUIRED, ['Problem', 'Decision']));
-
-  const headings = new Set(record.sections.map((section) => section.heading));
-  for (const heading of PROPOSAL_ERA_HEADINGS) {
-    if (headings.has(heading)) {
-      issues.push({
-        path,
-        message: `accepted decision must not contain proposal-era section "## ${heading}"`,
-      });
+  if (record.folder === 'archived') {
+    if (record.archived === undefined) {
+      issues.push({ path, message: 'archived record must include "archived"' });
     }
+    if (record.archiveReason === undefined) {
+      issues.push({ path, message: 'archived record must include "archive-reason"' });
+    }
+    if (record.archived !== undefined) {
+      const match = record.archived.match(DATE_PATTERN);
+      if (match !== null && !calendarDateIsValid(Number(match[1]), Number(match[2]), Number(match[3]))) {
+        issues.push({ path, message: 'archived contains an invalid calendar date' });
+      }
+      if (record.archived !== record.date) {
+        issues.push({ path, message: 'archived date must match the latest lifecycle date' });
+      }
+      if (record.archived < record.created! || record.archived < record.date) {
+        issues.push({ path, message: 'archived date must not precede creation or lifecycle date' });
+      }
+    }
+  } else if (record.archived !== undefined || record.archiveReason !== undefined) {
+    issues.push({ path, message: 'archive metadata is only allowed in archived/' });
   }
 
   issues.push(...alternativesIssue(path, record.sections));
-
   return issues;
 }
 
-/**
- * Validate a draft proposal in `adr/.drafts/` before `accept` promotes it.
- * Drafts are ephemeral and deliberately outside the `adrkit validate` surface;
- * this is the gate that keeps a half-written proposal from becoming a decision.
- */
-export function validateDraft(root: string, draft: AdrRecord): ValidationIssue[] {
-  const issues: ValidationIssue[] = [];
-  const path = relative(root, draft.path);
-
-  for (const key of draft.frontMatterExtras ?? []) {
-    issues.push({ path, message: `unknown front matter field "${key}"` });
-  }
-
-  if (draft.status !== 'proposed') {
-    issues.push({ path, message: `draft status must be "proposed"` });
-  }
-
-  // A draft has not taken effect, so it has no decision to attribute. The key
-  // is rejected rather than ignored: promotion rebuilds the front matter from
-  // the canonical fields, so a value written here would silently vanish.
-  if (draft.raisedBy !== undefined) {
-    issues.push({ path, message: '"raised-by" is declared at promotion and must not appear on a draft' });
-  }
-  if (draft.decidedBy !== undefined) {
-    issues.push({ path, message: '"decided-by" is declared at promotion and must not appear on a draft' });
-  }
-
-  const dateError = dateIssue(draft);
-  if (dateError !== undefined) issues.push({ path, message: dateError });
-  issues.push(...createdIssues(path, draft));
-  if (draft.tags !== undefined) issues.push(...tagsIssues(path, draft.tags));
-
-  const match = draft.fileName.match(/^(\d{4})-(\d{2})-(\d{2})-[a-z0-9一-鿿-]+\.md$/);
-  if (match === null) {
-    issues.push({ path, message: 'draft file name must be "YYYY-MM-DD-slug.md"' });
-  } else if (!calendarDateIsValid(Number(match[1]), Number(match[2]), Number(match[3]))) {
-    issues.push({ path, message: 'file name contains an invalid calendar date' });
-  }
-
-  issues.push(...sectionIssues(path, draft.sections, PROPOSED_REQUIRED, ['Problem', 'Proposal']));
-  issues.push(...alternativesIssue(path, draft.sections));
-
-  return issues;
+export function validateProposal(root: string, record: AdrRecord): ValidationIssue[] {
+  return validateRecord(root, record);
 }
 
 export function validateRepository(root: string): ValidationIssue[] {
@@ -311,9 +297,9 @@ function supersedeReferenceIssues(
     if (target === undefined) {
       return [{ path, message: `"superseded-by: ${next}" references a missing decision` }];
     }
-    if (target.status === 'accepted') return [];
+    if (target.status === 'implemented') return [];
     if (target.status !== 'superseded') {
-      return [{ path, message: `supersession chain must end at an accepted decision; decision ${next} has status "${target.status}"` }];
+      return [{ path, message: `supersession chain must end at an implemented decision; decision ${next} has status "${target.status}"` }];
     }
     // Parsed superseded records always have a successor; retain the guard for
     // callers supplying AdrRecord values directly.
@@ -327,7 +313,7 @@ function supersedeReferenceIssues(
 
 /**
  * Repository-level checks for a single record: a `superseded-by: N` reference
- * must follow existing records without cycles to an accepted decision.
+ * must follow existing records without cycles to an implemented decision.
  * validateRecord only sees one file; this adds the cross-record half so
  * `adrkit validate <name>` keeps the same promise as a full validate.
  */

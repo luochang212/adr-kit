@@ -40,7 +40,7 @@ function writeDecision(root: string, number: number, title: string, options: Dec
   const tags = options.tags === undefined ? '' : `\ntags: [${options.tags.join(', ')}]`;
   const created = options.omitCreated === true ? '' : `\ncreated: ${options.created ?? options.date}`;
   const content = `---
-status: ${options.status ?? 'accepted'}
+status: ${options.status ?? 'implemented'}
 date: ${options.date}${created}${superseded}${tags}
 ---
 
@@ -62,7 +62,7 @@ a
 
 c${options.deliberation === undefined ? '' : '\n\n## Deliberation\n\n' + options.deliberation}
 `;
-  const dir = join(root, 'adr', 'decisions');
+  const dir = join(root, 'adr', options.status === 'superseded' ? 'archived' : 'implemented');
   mkdirSync(dir, { recursive: true });
   // Name the file through the real slug: a hand-rolled `replaceAll(' ', '-')`
   // keeps characters Windows forbids in a file name (`<`, `>`, `:`), which is
@@ -86,7 +86,7 @@ describe('buildDecisionGraph', () => {
     expect(graph.nodes.find((node) => node.number === 2)?.references).toEqual([1]);
   });
 
-  it('ignores self references and numbers that are not decisions', () => {
+  it('ignores self references and numbers that are not implemented', () => {
     const root = makeRepo();
     writeDecision(root, 3, 'Lone', { date: '2026-08-17', decisionBody: 'See ADR-3 itself and ADR-99.' });
     const graph = buildDecisionGraph(listRecords(root));
@@ -137,8 +137,8 @@ describe('graphCommand formats', () => {
 
   n2 -.-> n1
 
-  click n1 "adr/decisions/1-first.md"
-  click n2 "adr/decisions/2-second.md"`);
+  click n1 "adr/implemented/1-first.md"
+  click n2 "adr/implemented/2-second.md"`);
     // references only — no formal edges, so no linkStyle is emitted
     expect(graphCommand(root, {})).not.toContain('linkStyle');
   });
@@ -155,7 +155,7 @@ describe('graphCommand formats', () => {
     expect(output).toContain('n3 -.-> n2');
     expect(output).toContain('classDef retired');
     expect(output).toContain('class n1 retired');
-    expect(output).toContain('click n1 "adr/decisions/1-old.md"');
+    expect(output).toContain('click n1 "adr/archived/1-old.md"');
     // the one formal edge gets a long-dash override via linkStyle
     expect(output).toContain('linkStyle 0 stroke-dasharray:11 7');
     // reference edges keep their default style: no linkStyle targets them
@@ -226,9 +226,9 @@ describe('graphCommand formats', () => {
 
   it('excludes drafts from the graph', () => {
     const root = fixtureRepo();
-    mkdirSync(join(root, 'adr', '.drafts'), { recursive: true });
+    mkdirSync(join(root, 'adr', 'proposed'), { recursive: true });
     writeFileSync(
-      join(root, 'adr', '.drafts', '2026-08-19-side-quest.md'),
+      join(root, 'adr', 'proposed', '2026-08-19-side-quest.md'),
       `---
 status: proposed
 date: 2026-08-19
@@ -362,7 +362,7 @@ describe('graph output file', () => {
     const html = readFileSync(target, 'utf8');
     // Relative to the map, not to the repository root: the cards have to open
     // from wherever the file was written.
-    expect(html).toContain('href="../adr/decisions/1-old.md"');
+    expect(html).toContain('href="../adr/archived/1-old.md"');
     expect(existsSync(target)).toBe(true);
   });
 
@@ -374,7 +374,7 @@ describe('graph output file', () => {
     graphCommand(root, { html: true, out: target });
     const html = readFileSync(target, 'utf8');
     // The URL is the record's real path, which is what a browser resolves.
-    const record = join(realpathSync(root), 'adr', 'decisions', '1-old.md');
+    const record = join(realpathSync(root), 'adr', 'archived', '1-old.md');
     expect(html).toContain('href="' + pathToFileURL(record).href + '"');
     expect(html).not.toContain('href="../adr');
   });
@@ -405,7 +405,7 @@ describe('graph HTML map', () => {
     expect(html).toContain('class="node superseded"');
     expect(html).toContain('class="edge reference"');
     expect(html).toContain('class="edge supersede"');
-    expect(html).toContain('href="adr/decisions/1-grilled.md"');
+    expect(html).toContain('href="adr/implemented/1-grilled.md"');
     expect(html).toContain('has deliberation tree');
     expect(html).toContain('id="viewport"');
     expect(html).toContain('id="world"');

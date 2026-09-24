@@ -6,7 +6,7 @@ import { initCommand } from '../src/commands/init.js';
 import { instructionsCommand } from '../src/commands/instructions.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { statusCommand } from '../src/commands/status.js';
-import { folderPath, listDrafts } from '../src/core/repository.js';
+import { folderPath, listProposals } from '../src/core/repository.js';
 
 const tempDirs: string[] = [];
 
@@ -28,19 +28,19 @@ describe('statusCommand', () => {
     const root = makeRepo();
     const result = statusCommand(root);
     expect(result.valid).toBe(true);
-    expect(result.output).toContain('accepted: 0');
-    expect(result.output).toContain('drafts (pending): 0');
+    expect(result.output).toContain('implemented: 0');
+    expect(result.output).toContain('proposed: 0');
   });
 
   it('reports the invalid decision and its count in the text status', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-broken.md'),
-      '---\nstatus: accepted\ndate: 2026-08-19\n---\n\n# ADR: 1 Broken\n\n## Problem\n\nBody.\n',
+      join(folderPath(root, 'implemented'), '1-broken.md'),
+      '---\nstatus: implemented\ndate: 2026-08-19\n---\n\n# ADR: 1 Broken\n\n## Problem\n\nBody.\n',
     );
     const result = statusCommand(root);
     expect(result.valid).toBe(false);
-    expect(result.output).toContain('accepted: 1');
+    expect(result.output).toContain('implemented: 1');
     expect(result.output).toContain('validation:');
   });
 });
@@ -55,7 +55,7 @@ describe('instructionsCommand', () => {
   it('tells a repo with a pending proposal to decide next', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const record = listDrafts(root)[0];
+    const record = listProposals(root)[0];
     writeFileSync(
       record!.path,
       `---
@@ -88,19 +88,19 @@ Body.
 `,
     );
     const output = instructionsCommand(root);
-    expect(output).toContain('adrkit accept');
+    expect(output).toContain('adrkit implement');
   });
 
   it('flags readiness per pending proposal and never suggests accepting a draft', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const sqlite = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
+    const sqlite = listProposals(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
       '---\nstatus: proposed\ndate: 2026-08-19\ncreated: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
-    const plugin = listDrafts(root).find((record) => record.title === 'Add plugin API')!;
+    const plugin = listProposals(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
       `---
@@ -133,29 +133,29 @@ Body.
 `,
     );
     const output = instructionsCommand(root);
-    expect(output).toContain('validated - ready to accept');
+    expect(output).toContain('validated - ready after shipping');
     expect(output).toContain('missing required section "## Proposal"');
-    expect(output).toContain(`adrkit accept ${plugin.fileName}`);
+    expect(output).toContain(`adrkit implement ${plugin.fileName}`);
     // The ready line names both values instead of presetting one, so an agent
     // following it verbatim cannot label its own judgment as human.
     expect(output).toContain(
-      `adrkit accept ${plugin.fileName} --raised-by <human|agent> --decided-by <human|agent>`,
+      `adrkit implement ${plugin.fileName} --raised-by <human|agent> --decided-by <human|agent>`,
     );
     expect(output).not.toContain('--decided-by human   # promote to a decision');
-    expect(output).not.toContain(`adrkit accept ${sqlite.fileName}`);
-    expect(output).toContain(`adrkit reject ${sqlite.fileName}`);
+    expect(output).not.toContain(`adrkit implement ${sqlite.fileName}`);
+    expect(output).toContain('adrkit validate');
   });
 
   it('marks readiness per pending proposal in the text steer', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const sqlite = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
+    const sqlite = listProposals(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       sqlite.path,
       '---\nstatus: proposed\ndate: 2026-08-19\ncreated: 2026-08-19\n---\n\n# ADR: Use SQLite\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
-    const plugin = listDrafts(root).find((record) => record.title === 'Add plugin API')!;
+    const plugin = listProposals(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
       `---
@@ -190,18 +190,18 @@ Body.
     const output = instructionsCommand(root);
     // Readiness is per draft and lives in the marker: the complete one is ready
     // to accept, the one missing a section is not.
-    expect(output).toMatch(new RegExp(`✓ ${plugin.fileName}\\s+validated - ready to accept`));
+    expect(output).toMatch(new RegExp(`✓ ${plugin.fileName}\\s+validated - ready after shipping`));
     expect(output).toMatch(new RegExp(`✗ ${sqlite.fileName}\\s+missing required section`));
   });
 
   it('prioritizes pending proposals over unrelated validation issues', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-broken.md'),
-      '---\nstatus: accepted\ndate: 2026-08-19\n---\n\n# ADR: 1 Broken\n\n## Problem\n\nBody.\n',
+      join(folderPath(root, 'implemented'), '1-broken.md'),
+      '---\nstatus: implemented\ndate: 2026-08-19\n---\n\n# ADR: 1 Broken\n\n## Problem\n\nBody.\n',
     );
     proposeCommand('Add plugin API', root);
-    const plugin = listDrafts(root).find((record) => record.title === 'Add plugin API')!;
+    const plugin = listProposals(root).find((record) => record.title === 'Add plugin API')!;
     writeFileSync(
       plugin.path,
       `---
@@ -234,7 +234,7 @@ Body.
 `,
     );
     const output = instructionsCommand(root);
-    expect(output).toContain('adrkit accept');
+    expect(output).toContain('adrkit implement');
     expect(output).not.toContain('Fix them before creating more records');
   });
 });

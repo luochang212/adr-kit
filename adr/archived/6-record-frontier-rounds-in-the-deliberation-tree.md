@@ -1,11 +1,13 @@
 ---
 status: superseded
-date: 2026-09-21
+date: 2026-09-25
 raised-by: human
 decided-by: human
 created: 2026-09-21
 commit: e816e44
 superseded-by: 7
+archived: 2026-09-25
+archive-reason: superseded by ADR 7
 tags: [grilling, deliberation, record-format]
 ---
 

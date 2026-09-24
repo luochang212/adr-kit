@@ -4,10 +4,11 @@ import { VERSION } from './version.js';
 import type { DecidedBy, RaisedBy } from './core/adr.js';
 import { isDecidedBy, isRaisedBy } from './core/adr.js';
 import { unsupportedOptions } from './core/cli-options.js';
-import { acceptCommand } from './commands/accept.js';
+import { archiveCommand } from './commands/archive.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
-import { decideCommand } from './commands/decide.js';
+import { recordCommand } from './commands/record.js';
+import { implementCommand } from './commands/implement.js';
 import { graphCommand } from './commands/graph.js';
 import { initCommand } from './commands/init.js';
 import { instructionsCommand } from './commands/instructions.js';
@@ -23,9 +24,9 @@ import { validateCommand } from './commands/validate.js';
 
 const HELP = `adrkit ${VERSION} - A lightweight ADR workflow for humans and agents
 
-Decisions are durable records in adr/decisions/. Proposals are ephemeral drafts
-in adr/.drafts/ that are promoted by accept or discarded by reject. decide and
-accept require two declarations. --raised-by records who put the decision on
+Records live in adr/proposed/, adr/implemented/, adr/rejected/, or adr/archived/.
+An unshipped proposal stays proposed until implementation. record and
+implement require two declarations. --raised-by records who put the decision on
 the table; --decided-by records whose judgment settled it: human when a person
 determined the direction (they stated it, changed a proposal into what shipped,
 or you are recording one they made earlier), agent when it came from the
@@ -35,15 +36,16 @@ infers nor verifies either.
 Usage:
   adrkit init [path] [--tools <list>] [--workflows <list>]
                                            Initialize an ADR Kit repository
-  adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>
-                                           Record a decision (default path)
-  adrkit propose <title>                     Create an ephemeral proposal draft
-  adrkit accept <name> --raised-by <human|agent> --decided-by <human|agent>
-                                           Promote a draft to a decision (assigns the next number)
-  adrkit reject <name> [--reason <reason>]   Discard a draft (leaves no record)
-  adrkit supersede <name> --by <name>        Mark an accepted decision as superseded
-  adrkit list                                List decisions and pending drafts
-  adrkit show <name>                         Show a decision or draft
+  adrkit record <title> --raised-by <human|agent> --decided-by <human|agent>
+                                           Record an already-shipped decision
+  adrkit propose <title>                     Create an unshipped proposal
+  adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>
+                                           Mark shipped proposal implemented; assign number
+  adrkit reject <name> --reason <reason>     Reject and retain a proposal
+  adrkit archive <name> --reason <reason>    Retire an implemented record
+  adrkit supersede <name> --by <name>        Replace and archive an implemented decision
+  adrkit list                                List all lifecycle records
+  adrkit show <name>                         Show a record
   adrkit status                              Show lifecycle counts and validity
   adrkit instructions                        Print the next workflow step
   adrkit validate [name] [--all]             Validate one record or the whole repo
@@ -109,11 +111,11 @@ export function main(argv: string[]): void {
   const rest = positionals.slice(1);
 
   try {
-    // Only decide and accept record a decision. Anywhere else the flags are a
+    // Only record and implement assign provenance. Anywhere else the flags are a
     // mistake, not something to ignore, and this has to run before the switch
     // so a non-recording command never reaches the required-declaration check.
     for (const flag of ['decided-by', 'raised-by'] as const) {
-      if (values[flag] !== undefined && command !== 'decide' && command !== 'accept') {
+      if (values[flag] !== undefined && command !== 'record' && command !== 'implement') {
         throw new Error(
           `adrkit ${command.length > 0 ? command : '(no command)'} does not take --${flag}`,
         );
@@ -155,10 +157,10 @@ export function main(argv: string[]): void {
         console.log(proposeCommand(rest[0]!, process.cwd()));
         return;
       }
-      case 'decide': {
-        requireTitle(rest, 'decide');
+      case 'record': {
+        requireTitle(rest, 'record');
         console.log(
-          decideCommand(
+          recordCommand(
             rest[0]!,
             process.cwd(),
             requireDecidedBy(values['decided-by']),
@@ -167,10 +169,10 @@ export function main(argv: string[]): void {
         );
         return;
       }
-      case 'accept': {
-        requireTitle(rest, 'accept');
+      case 'implement': {
+        requireTitle(rest, 'implement');
         console.log(
-          acceptCommand(
+          implementCommand(
             rest[0]!,
             process.cwd(),
             requireDecidedBy(values['decided-by']),
@@ -181,7 +183,12 @@ export function main(argv: string[]): void {
       }
       case 'reject': {
         requireTitle(rest, 'reject');
-        console.log(rejectCommand(rest[0]!, values.reason, process.cwd()));
+        console.log(rejectCommand(rest[0]!, requireReason(values.reason, 'reject'), process.cwd()));
+        return;
+      }
+      case 'archive': {
+        requireTitle(rest, 'archive');
+        console.log(archiveCommand(rest[0]!, requireReason(values.reason, 'archive'), process.cwd()));
         return;
       }
       case 'supersede': {
@@ -270,6 +277,13 @@ function requireTitle(rest: string[], command: string): void {
   if (rest.length === 0 || rest[0]!.trim().length === 0) {
     throw new Error(`${command} requires a title or name`);
   }
+}
+
+function requireReason(value: string | undefined, command: string): string {
+  if (value === undefined || value.trim().length === 0) {
+    throw new Error(`${command} requires --reason <reason>`);
+  }
+  return value;
 }
 
 /**

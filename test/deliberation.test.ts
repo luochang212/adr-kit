@@ -44,11 +44,11 @@ describe('parseDeliberation', () => {
     expect(nodes).toHaveLength(1);
     const question = nodes[0]!.children[0]!;
     expect(question.type).toBe('question');
-    const [rejected, accepted] = question.children;
+    const [rejected, implemented] = question.children;
     expect(rejected!.status).toBe('rejected');
     expect(rejected!.reason).toBe('keep only the distilled ADR');
-    expect(accepted!.status).toBe('settled');
-    expect(accepted!.recommended).toBe(true);
+    expect(implemented!.status).toBe('settled');
+    expect(implemented!.recommended).toBe(true);
   });
 
   it('infers type when the marker is omitted', () => {
@@ -534,10 +534,10 @@ describe('offline card tree', () => {
 describe('treeCommand', () => {
   function writeRecord(root: string, deliberation: string): void {
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
+      join(folderPath(root, 'implemented'), '1-use-sqlite.md'),
       [
         '---',
-        'status: accepted',
+        'status: implemented',
         'date: 2026-08-19',
         'raised-by: human',
         'decided-by: human',

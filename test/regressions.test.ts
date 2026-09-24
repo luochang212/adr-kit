@@ -5,13 +5,13 @@ import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
 import type { AdrRecord } from '../src/core/adr.js';
-import { acceptCommand } from '../src/commands/accept.js';
+import { implementCommand } from '../src/commands/implement.js';
 import { initCommand } from '../src/commands/init.js';
 import { listCommand } from '../src/commands/list.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { showCommand } from '../src/commands/show.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { folderPath, listDrafts, listRecords, relativePath } from '../src/core/repository.js';
+import { folderPath, listProposals, listRecords, relativePath } from '../src/core/repository.js';
 
 const tempDirs: string[] = [];
 
@@ -29,12 +29,12 @@ afterEach(() => {
 });
 
 describe('regressions', () => {
-  it('shows accepted decisions without duplicating the number', () => {
+  it('shows implemented implemented without duplicating the number', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
+      join(folderPath(root, 'implemented'), '1-use-sqlite.md'),
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 ---
@@ -66,9 +66,9 @@ Body.
   it('accepts CJK slugs in decision file names', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-使用-sqlite.md'),
+      join(folderPath(root, 'implemented'), '1-使用-sqlite.md'),
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 raised-by: human
 decided-by: human
@@ -99,9 +99,9 @@ Body.
 
   it('rejects a draft whose file name has an invalid calendar date', () => {
     const root = makeRepo();
-    mkdirSync(join(root, 'adr', '.drafts'), { recursive: true });
+    mkdirSync(join(root, 'adr', 'proposed'), { recursive: true });
     writeFileSync(
-      join(root, 'adr', '.drafts', '2026-02-31-use-sqlite.md'),
+      join(root, 'adr', 'proposed', '2026-02-31-use-sqlite.md'),
       `---
 status: proposed
 date: 2026-08-19
@@ -132,13 +132,13 @@ Body.
 `,
     );
     // Drafts are outside the validate surface; the gate is accept.
-    expect(() => acceptCommand('Use SQLite', root, 'human', 'human')).toThrow(/invalid calendar date/);
+    expect(() => implementCommand('Use SQLite', root, 'human', 'human')).toThrow(/invalid calendar date/);
   });
 
   it('rejects a record whose status does not match its folder', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
+      join(folderPath(root, 'implemented'), '1-use-sqlite.md'),
       `---
 status: proposed
 date: 2026-08-19
@@ -166,15 +166,15 @@ Body.
     );
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
-    expect(result.output).toContain('not a durable decision status');
+    expect(result.output).toContain('not valid in implemented/');
   });
 
   it('resolves records by slug', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-use-sqlite.md'),
+      join(folderPath(root, 'implemented'), '1-use-sqlite.md'),
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 ---
@@ -207,10 +207,10 @@ Body.
     expect(() => proposeCommand('1 Use SQLite', root)).toThrow(/must not start with a number/);
   });
 
-  it('numbers decisions without zero padding (1, not 0001)', () => {
+  it('numbers implemented without zero padding (1, not 0001)', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const draft = listDrafts(root).find((record) => record.title === 'Use SQLite')!;
+    const draft = listProposals(root).find((record) => record.title === 'Use SQLite')!;
     writeFileSync(
       draft.path,
       `---
@@ -242,9 +242,9 @@ Sessions survive restart.
 Native dependency.
 `,
     );
-    const output = acceptCommand('Use SQLite', root, 'human', 'human');
-    expect(output).toContain('adr/decisions/1-use-sqlite.md');
-    const decision = listRecords(root).find((record) => record.folder === 'decisions')!;
+    const output = implementCommand('Use SQLite', root, 'human', 'human');
+    expect(output).toContain('adr/implemented/1-use-sqlite.md');
+    const decision = listRecords(root).find((record) => record.folder === 'implemented')!;
     expect(decision.fileName).toBe('1-use-sqlite.md');
     expect(decision.title).toBe('1 Use SQLite');
     const shown = showCommand('1', root);
@@ -254,9 +254,9 @@ Native dependency.
   it('does not tolerate leading zeros in lookups', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-good.md'),
+      join(folderPath(root, 'implemented'), '1-good.md'),
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 ---
@@ -287,13 +287,13 @@ Body.
   it('resolves a healthy record even when an unrelated record fails to parse', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-broken.md'),
+      join(folderPath(root, 'implemented'), '1-broken.md'),
       '# ADR: 1 Broken\nStatus: superseded\n',
     );
     writeFileSync(
-      join(folderPath(root, 'decisions'), '2-good.md'),
+      join(folderPath(root, 'implemented'), '2-good.md'),
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 ---
@@ -329,7 +329,7 @@ Body.
   it('surfaces the parse error when the queried record itself is corrupt', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-broken.md'),
+      join(folderPath(root, 'implemented'), '1-broken.md'),
       '# ADR: 1 Broken\nStatus: superseded\n',
     );
     expect(() => showCommand('1', root)).toThrow(/failed to parse.*1-broken\.md/);
@@ -338,19 +338,19 @@ Body.
 
   it('renders relative paths with POSIX separators on every platform', () => {
     // `show`/`list`/`validate` print relativePath() output. On Windows a plain
-    // join() yields `adr\.drafts\...`, which breaks the documented path form
-    // (and the CLI tests that assert `adr/.drafts/`). The path must render
+    // join() yields `adr\proposed\...`, which breaks the documented path form
+    // (and the CLI tests that assert `adr/proposed/`). The path must render
     // with forward slashes regardless of the host platform.
     const record: AdrRecord = {
-      folder: 'drafts',
-      path: join('adr', '.drafts', '2026-08-21-use-sqlite.md'),
+      folder: 'proposed',
+      path: join('adr', 'proposed', '2026-08-21-use-sqlite.md'),
       fileName: '2026-08-21-use-sqlite.md',
       title: 'Use SQLite',
       status: 'proposed',
       date: '2026-08-21',
       sections: [],
     };
-    expect(relativePath(record)).toBe('adr/.drafts/2026-08-21-use-sqlite.md');
+    expect(relativePath(record)).toBe('adr/proposed/2026-08-21-use-sqlite.md');
     expect(relativePath(record)).not.toContain('\\');
   });
 });
@@ -360,7 +360,7 @@ describe('non-regular record paths', () => {
 
   it('reports a directory instead of reading it', () => {
     const root = makeRepo();
-    mkdirSync(join(folderPath(root, 'decisions'), '1-dir.md'));
+    mkdirSync(join(folderPath(root, 'implemented'), '1-dir.md'));
     expect(() => listCommand(root)).toThrow(/not a regular file \(directory\)/);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
@@ -369,13 +369,13 @@ describe('non-regular record paths', () => {
 
   it.skipIf(windows)('reports a FIFO without blocking on it', () => {
     const root = makeRepo();
-    execSync(`mkfifo ${JSON.stringify(join(folderPath(root, 'decisions'), '1-fifo.md'))}`);
+    execSync(`mkfifo ${JSON.stringify(join(folderPath(root, 'implemented'), '1-fifo.md'))}`);
     expect(() => listCommand(root)).toThrow(/not a regular file \(fifo\)/);
   });
 
   it.skipIf(windows)('refuses a path that resolves to a character device', () => {
     const root = makeRepo();
-    symlinkSync('/dev/zero', join(folderPath(root, 'decisions'), '1-zero.md'));
+    symlinkSync('/dev/zero', join(folderPath(root, 'implemented'), '1-zero.md'));
     expect(() => listCommand(root)).toThrow(/not a regular file \(character device\)/);
   });
 
@@ -385,7 +385,7 @@ describe('non-regular record paths', () => {
     writeFileSync(
       target,
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 raised-by: human
 decided-by: human
@@ -411,7 +411,7 @@ Body.
 Body.
 `,
     );
-    symlinkSync(target, join(folderPath(root, 'decisions'), '1-linked.md'));
+    symlinkSync(target, join(folderPath(root, 'implemented'), '1-linked.md'));
     expect(listCommand(root)).toContain('[1] Linked');
     expect(validateCommand(root).valid).toBe(true);
   });
@@ -450,7 +450,7 @@ describe('cli option surface', () => {
     expect(tree.errors.join('\n')).toContain('does not take --out');
 
     const decide = runCli(
-      ['decide', 'x', '--raised-by', 'human', '--decided-by', 'human', '--tools', 'claude'],
+      ['record', 'x', '--raised-by', 'human', '--decided-by', 'human', '--tools', 'claude'],
       root,
     );
     expect(decide.exitCode).toBe(1);

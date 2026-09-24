@@ -1,39 +1,8 @@
 ---
 name: adrkit-supersede
-description: Use when an accepted decision is replaced by a newer accepted decision and must be retired without deleting history.
+description: Use when one implemented decision fully replaces another and the old record must become archived history.
 ---
 
 # ADR Kit Supersede
 
-## Overview
-
-Mark an accepted decision as superseded. The CLI rewrites its front matter
-to `status: superseded` with `superseded-by: N`, stamps the supersede date
-on the `date` field, and leaves the record in `adr/decisions/` as frozen
-history.
-
-## Steps
-
-1. Record the replacement first (`adrkit decide` or `adrkit propose` +
-   `adrkit accept`), and make sure it validates.
-2. Run:
-
-```bash
-adrkit supersede "<old name or number>" --by "<new name or number>"
-```
-
-## Rules
-
-- `--by` must reference an existing accepted decision that is not itself
-  superseded when this move is made. That replacement may later be superseded
-  in turn; validation follows the chain to an accepted decision and rejects
-  missing targets and cycles. Keep earlier historical links unchanged.
-- Re-run `adrkit list` right before superseding to confirm the `--by` target
-  still exists and is not itself superseded, even if you checked earlier in
-  this conversation.
-- Never hand-edit a superseded record afterwards; it is history, including
-  its `raised-by` and `decided-by` values, which the command preserves rather
-  than replacing with whoever retired it. Superseding changes the record's
-  status, not who raised or decided it.
-- Mention what it supersedes in the new decision's `## Problem` section so
-  the causal link survives in prose.
+First record or implement the replacement and validate it. Confirm it fully replaces the old decision; partial overlap calls for prose links while the old record remains active. Run `adrkit supersede <old> --by <new>`. Both records must be implemented; the command stamps `superseded-by`, moves the old numbered file into `archived/`, and preserves its provenance and number. Run `adrkit validate` to check the chain. Do not edit the archived choice or rationale afterward.

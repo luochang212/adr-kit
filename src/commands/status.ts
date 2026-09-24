@@ -1,6 +1,6 @@
 import type { AdrRecord } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
-import { listDrafts, listRecords } from '../core/repository.js';
+import { listRecords } from '../core/repository.js';
 import { formatIssues, validateRepository } from '../core/validate.js';
 
 export interface StatusResult {
@@ -17,24 +17,15 @@ export function statusCommand(cwd: string): StatusResult {
   } catch {
     // Validation already reported the parse failure above; keep counts empty.
   }
-  let drafts: AdrRecord[] = [];
-  try {
-    drafts = listDrafts(root);
-  } catch {
-    // A corrupt draft is surfaced by accept/instructions, not by the count.
-  }
-
-  const counts = { accepted: 0, superseded: 0, drafts: 0 };
+  const counts = { proposed: 0, implemented: 0, rejected: 0, archived: 0 };
   for (const record of records) {
-    if (record.status === 'superseded') counts.superseded += 1;
-    else counts.accepted += 1;
+    counts[record.folder] += 1;
   }
-  counts.drafts = drafts.length;
 
   const lines = ['Lifecycle', ''];
-  lines.push(`  accepted: ${counts.accepted}`);
-  lines.push(`  superseded: ${counts.superseded}`);
-  lines.push(`  drafts (pending): ${counts.drafts}`);
+  for (const folder of ['proposed', 'implemented', 'rejected', 'archived'] as const) {
+    lines.push(`  ${folder}: ${counts[folder]}`);
+  }
   lines.push('');
   lines.push(issues.length === 0 ? 'validation: OK' : `validation: ${formatIssues(issues)}`);
   return { valid: issues.length === 0, output: lines.join('\n') };

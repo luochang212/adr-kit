@@ -1,7 +1,9 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
-import { readRecord, resolveRecord, writeRecord } from '../core/repository.js';
+import { folderPath, readRecord, removeRecord, resolveRecord, writeRecord } from '../core/repository.js';
 import { stampLifecycleMove } from '../core/templates.js';
 
 export function supersedeCommand(query: string, byQuery: string, cwd: string): string {
@@ -18,18 +20,18 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   if (replacement.path === record.path) {
     throw new Error('a decision cannot supersede itself');
   }
-  if (replacement.status === 'superseded') {
-    throw new Error(`"--by ${byQuery}" is itself superseded; choose its currently accepted successor`);
-  }
-  if (replacement.status !== 'accepted') {
-    throw new Error(`"--by ${byQuery}" is not an accepted decision (status "${replacement.status}")`);
+  if (replacement.status !== 'implemented' || replacement.folder !== 'implemented') {
+    throw new Error(`"--by ${byQuery}" must be an implemented decision`);
   }
   if (replacement.number === undefined) {
     throw new Error(`"--by ${byQuery}" has no decision number`);
   }
 
-  if (record.status !== 'accepted') {
-    throw new Error(`unexpected status "${record.status}" in ${record.fileName}`);
+  if (record.status !== 'implemented' || record.folder !== 'implemented') {
+    throw new Error(`"${query}" must be an implemented decision`);
+  }
+  if (existsSync(join(folderPath(root, 'archived'), record.fileName))) {
+    throw new Error(`archived record already exists: adr/archived/${record.fileName}`);
   }
   // A lifecycle rewrite emits only the canonical fields, so a key outside the
   // set would disappear silently. Refuse and point at the command that reports
@@ -46,9 +48,12 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     status: 'superseded',
     date: todayStamp(),
     'superseded-by': replacement.number,
+    archived: todayStamp(),
+    'archive-reason': `superseded by ADR ${replacement.number}`,
   };
   const commit = gitHead(root);
   if (commit !== undefined) patch.commit = commit;
-  writeRecord(root, 'decisions', record.fileName, stampLifecycleMove(original, patch));
-  return `superseded adr/decisions/${record.fileName} by adr/decisions/${replacement.fileName}`;
+  writeRecord(root, 'archived', record.fileName, stampLifecycleMove(original, patch));
+  removeRecord(record);
+  return `superseded adr/implemented/${record.fileName} by adr/implemented/${replacement.fileName}; archived old record`;
 }

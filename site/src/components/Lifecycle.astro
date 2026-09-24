@@ -6,10 +6,10 @@ const { lang } = Astro.props;
 const t = useTranslations(lang);
 
 const states = [
-  { key: 'draft', mono: 'adr/.drafts/', cls: 'draft' },
-  { key: 'accepted', mono: 'decisions/N-*.md', cls: 'accepted' },
-  { key: 'superseded', mono: 'superseded-by: N', cls: 'superseded' },
-  { key: 'rejected', mono: 'Alternatives considered', cls: 'rejected' },
+  { key: 'proposed', mono: 'adr/proposed/', cls: 'proposed' },
+  { key: 'implemented', mono: 'adr/implemented/N-*.md', cls: 'implemented' },
+  { key: 'rejected', mono: 'adr/rejected/', cls: 'rejected' },
+  { key: 'archived', mono: 'adr/archived/N-*.md', cls: 'archived' },
 ] as const;
 ---
 
@@ -21,19 +21,15 @@ const states = [
       <p class="section__lead">{t('lifecycle.lead')}</p>
     </div>
     <div class="lifecycle__grid reveal">
-      {states.map((s, i) => (
-        <>
-          {i > 0 && i !== 3 && <span class="lifecycle__arrow" aria-hidden="true">→</span>}
-          {i === 3 && <span class="lifecycle__arrow lifecycle__arrow--branch" aria-hidden="true">↘</span>}
-          <article class={`lifecycle__card lifecycle__card--${s.cls}`}>
-            <header class="lifecycle__head">
-              <span class={`lifecycle__dot lifecycle__dot--${s.cls}`}></span>
-              <h3>{s.key}</h3>
-            </header>
-            <p class="lifecycle__body">{t(`lifecycle.${s.key}` as const)}</p>
-            <code class="lifecycle__mono">{s.mono}</code>
-          </article>
-        </>
+      {states.map((state) => (
+        <article class={`lifecycle__card lifecycle__card--${state.cls}`}>
+          <header class="lifecycle__head">
+            <span class={`lifecycle__dot lifecycle__dot--${state.cls}`}></span>
+            <h3>{state.key}</h3>
+          </header>
+          <p class="lifecycle__body">{t(`lifecycle.${state.key}` as const)}</p>
+          <code class="lifecycle__mono">{state.mono}</code>
+        </article>
       ))}
     </div>
   </div>
@@ -74,10 +70,10 @@ const states = [
     border-radius: 50%;
     flex: none;
   }
-  .lifecycle__dot--draft { background: var(--fg-30); }
-  .lifecycle__dot--accepted { background: var(--cyan); }
+  .lifecycle__dot--proposed { background: var(--fg-30); }
+  .lifecycle__dot--implemented { background: var(--cyan); }
   .lifecycle__dot--rejected { background: var(--fg-30); }
-  .lifecycle__dot--superseded { background: var(--indigo); }
+  .lifecycle__dot--archived { background: var(--indigo); }
   .lifecycle__body {
     margin: 12px 0 16px;
     font-size: 13.5px;
@@ -88,7 +84,6 @@ const states = [
     font-size: 11.5px;
     color: var(--fg-30);
   }
-  .lifecycle__arrow { display: none; }
   @media (max-width: 960px) {
     .lifecycle__grid { grid-template-columns: repeat(2, 1fr); }
     .lifecycle__body { min-height: 0; }

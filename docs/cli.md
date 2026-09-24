@@ -1,272 +1,34 @@
-# CLI Reference
+# CLI reference
 
-Run from anywhere inside a project; commands discover the nearest `adr/`
-directory by walking upward.
+Run from anywhere inside a project; ADR Kit discovers the nearest `adr/`.
+Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 
-## Global options
-
-| Option | Description |
+| Command | Purpose |
 | --- | --- |
-| `-h, --help` | Print help (`adrkit help` does the same) |
-| `-V, --version` | Print the version |
+| `adrkit init [path] [--tools <list>] [--workflows <list>]` | Create four lifecycle directories, config, README, and integrations |
+| `adrkit propose <title>` | Create dated, unnumbered unshipped proposal |
+| `adrkit implement <name> --raised-by <human\|agent> --decided-by <human\|agent>` | Promote a shipped proposal; assign stable ADR number |
+| `adrkit record <title> --raised-by <human\|agent> --decided-by <human\|agent>` | Record an already-shipped choice |
+| `adrkit reject <name> --reason <text>` | Retain a declined proposal in `rejected/` |
+| `adrkit archive <name> --reason <text>` | Retire implemented guidance to `archived/` |
+| `adrkit supersede <old> --by <new>` | Replace and archive a fully superseded implemented decision |
+| `adrkit list` | List records grouped by lifecycle |
+| `adrkit show <name>` | Show a record by title, filename, slug, or ADR number |
+| `adrkit status` | Count lifecycle folders and report validity |
+| `adrkit instructions` | Show pending proposals and the next valid action |
+| `adrkit validate [name] [--all]` | Validate one record or the whole repository |
+| `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
+| `adrkit config` | Show current config |
+| `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | Visualize numbered decision history |
+| `adrkit tree <name> [--mermaid\|--text\|--html]` | Render a record's deliberation tree |
+| `adrkit completion <bash\|zsh\|fish>` | Print shell completion |
+| `adrkit version` | Print version |
+| `adrkit help` | Print help |
 
-## Commands
-
-### `adrkit init [path] [--tools <list>] [--workflows <list>]`
-
-Create an `adr/` repository in `path` (default: current directory) and
-install the agent integration into `.agents/` (`commands/` + `skills/`) -
-the vendor-neutral convention every mainstream agent reads. `--tools claude`
-additionally installs `.claude/` copies for Claude Code (the one agent that
-does not read `.agents/`); `--tools none` installs nothing.
-
-`--workflows <list>` installs a subset of the nine workflow skills
-(`init, grill, visualize, propose, decide, validate, accept, reject, supersede`) instead
-of all of them, useful for small repositories that only exercise the
-decide/validate path. Entries may carry the `adrkit-` prefix;
-`--workflows all` is the explicit full set (also the default). The subset
-is recorded in `adr/config.yaml` so a bare `adrkit update` keeps it.
-
-```text
-adr/
-├── config.yaml
-├── README.md
-├── .gitignore     # keeps adr/.drafts/ out of git
-└── decisions/
-```
-
-Proposals are ephemeral drafts in `adr/.drafts/`; the directory is created
-on the first `adrkit propose`.
-
-The CLI never rewrites the project's instruction file: pasting the
-"Reading architecture decisions" section into `AGENTS.md` (or `CLAUDE.md`)
-is step 4 of the adrkit-init workflow. `init` and `update` print a note
-when neither file carries that section, so a repository whose agent never
-ran the workflow does not lose the task-start rules silently.
-
-### `adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>`
-
-Record an already-made decision in `adr/decisions/N-slug.md` with the
-next available number. This is the default path. Titles must not start with
-a number.
-
-Both declarations are required. `--raised-by` records who put the decision on
-the table. `--decided-by` records whose judgment settled it: `human` when a
-person determined the direction (they stated it, changed a proposal into what
-shipped, or you are recording one they made earlier), `agent` when it came from
-the agent's own judgment, including when a person only let it through. Either
-axis may be `human` or `agent`. The CLI records the declarations without
-inferring or checking them. When the writer cannot tell which value applies, ask
-before recording; the body is where nuance about who proposed and who approved
-belongs.
-
-### `adrkit propose <title>`
-
-Create an ephemeral proposal draft in `adr/.drafts/YYYY-MM-DD-slug.md`. A
-draft is temporary: `accept` promotes it to a numbered decision, `reject`
-discards it without leaving a record. Titles must not start with a number.
-Drafts carry neither `raised-by` nor `decided-by`; writing either into a
-draft is an error.
-
-### `adrkit accept <name> --raised-by <human|agent> --decided-by <human|agent>`
-
-Validate a draft, assign the next `N` number, rewrite the lifecycle
-sections, write `adr/decisions/N-slug.md`, and discard the draft.
-The draft's title must not start with a number. Both declarations are required
-here too, with the same meaning as for `decide`: promotion is where the values
-enter the durable record.
-
-### `adrkit reject <name> [--reason <text>]`
-
-Discard a proposal draft from `adr/.drafts/`. No record is created -
-rejection lives in the winning decision's `Alternatives considered`. The
-`--reason` is optional and only echoed.
-
-### `adrkit supersede <name> --by <name>`
-
-Mark an accepted decision as superseded by a newer accepted decision. The
-old record's front matter becomes `status: superseded` with
-`superseded-by: N` and its `date` field is stamped with the supersede
-date; its `raised-by` and `decided-by` values are preserved rather than
-replaced: they record who raised the original decision and whose judgment
-settled it, not who retired it; the file stays in `adr/decisions/` as history.
-`--by` must resolve to an existing accepted decision that is not itself
-superseded.
-
-### `adrkit list`
-
-List decisions (accepted and superseded) and any pending drafts.
-
-### `adrkit show <name>`
-
-Print a decision or draft. `name` resolves by title, file name, or decision
-number. A record that fails to parse elsewhere in the repository does not
-block `show`; `adrkit validate` still reports it.
-
-### `adrkit status`
-
-Print lifecycle counts (accepted, superseded, pending drafts) and
-repository validity.
-
-### `adrkit instructions`
-
-Print the next workflow step (init, fix validation, decide, or propose). When
-drafts are pending, each one is flagged as validated (ready to accept) or
-needs work, so the next action is executable rather than a direction.
-
-### `adrkit validate [name] [--all]`
-
-Validate one record, or the whole repository when `name` is omitted or
-`--all` is given. Single-record validation also checks that a
-`superseded-by: N` chain contains no missing targets or cycles and ends at an
-accepted decision. Intermediate superseded records are valid historical links.
-A path read as a record must resolve to a regular file: a directory, FIFO,
-socket, or device is reported by its kind instead of being read, and a
-symbolic link to a regular file is read like any other record.
-
-### `adrkit update [--tools <list>] [--workflows <list>]`
-
-Rewrite the agent integrations: the standard `.agents/` target plus, with
-`--tools claude`, the `.claude/` exception. Targets that are no longer
-selected are removed, and so are workflow skills outside the selection
-(`--workflows all` restores every skill). Without `--tools`/`--workflows`,
-the values recorded in `adr/config.yaml` are used.
-
-### `adrkit config`
-
-Print the current `adr/config.yaml` configuration: `context`, `tools`, the
-effective `workflows` selection (the recorded subset, or the full default set
-when the key is absent), and `rules`. `init` and `update` also stamp
-`installed-with`, the adr-kit version that last wrote the integrations.
-`list` and `instructions` compare that stamp against the running CLI and
-append a one-line note when they differ: a newer CLI suggests
-`adrkit update` to refresh the installed skills, an older one says to upgrade
-adr-kit to at least the version that wrote them. Repositories configured
-before the stamp existed stay quiet.
-
-### `adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]`
-
-Emit a relationship graph of the decisions: solid edges for formal
-`superseded-by` references, dashed edges for `ADR-N` mentions mined from
-record bodies, grouped by the `created` date so decision bursts are visible
-without implying a continuous timeline. `--mermaid` (the default) renders
-natively on GitHub and tints active nodes by their first `tag`; `--dot`
-emits Graphviz; `--text` prints a terminal-friendly tree; `--html` emits one
-offline self-contained decision map on a shared interactive canvas (drag or
-scroll to pan, zoom, fit-to-view, 1:1, keyboard, and a pointer-anchored
-trackpad pinch) with no CDN or renderer bundle, that links each node to its
-record and marks the decisions carrying a `## Deliberation` tree with a pale
-green card fill. A Share button in either HTML view renders the whole diagram
-into a PNG on the client — the map's SVG serialized, the tree's cards
-rasterized — framed to the diagram's own shape: a heading written on the canvas
-above the diagram naming the view, its title, and its statistics, and a
-one-line footer fused into the bottom edge, crediting the GitHub mark and
-`luochang212/adr-kit` beside the date. It downloads the image and copies it
-when the browser allows, reporting both in a status line; nothing is uploaded,
-and where the file lands is the browser's choice, not the page's. `--out <path>` writes the output to a file instead of stdout;
-for the map it also resolves those node links against that location, so a map
-written outside the repository — a temporary directory, say — still opens its
-records, while one written inside it keeps relative, portable links. `--tag <tag>` filters to decisions
-carrying that theme; `--formal-only` drops the mined edges. Note that `date` records the current status date, while `created` is
-the birth date.
-
-Hover or keyboard-focus a map decision to emphasize its direct references,
-incoming references, and supersession relationships. Escape clears the emphasis.
-Links use the facing card sides, spread attachment points, and route same-date
-relationships beside the column. Saved PNGs omit transient hover/focus dimming.
-
-### `adrkit tree <name> [--mermaid|--text|--html]`
-
-Render a record's optional `## Deliberation` appendix: the design tree behind
-the decision, stored in the record as a nested Markdown list whose nodes may be
-tagged `[settled]`, `[rejected]`, or `[open]`. A follow-up question is nested
-under the node that raised it, so depth is the dependency. `name` resolves by
-title, file name, or decision number, like the other commands. The default
-`--text` output reproduces the nested outline:
-
-```text
-- Storage decision [settled]
-  - Q: Which store? [settled]
-    - A: SQLite [settled] (recommended)
-      - Q: Which directory? [open]
-        - A: Workspace [open]
-    - A: JSON files [rejected] — needs a migration story
-```
-
-`--mermaid` emits a Mermaid graph: a `graph TD` header, one node per entry with
-a distinct shape for the root, questions, and options, parent-to-child edges, a
-`classDef` for every state plus the recommended and override styles, and a
-`class` line for each state, recommendation, or override the tree actually uses.
-An edge from a settled node to a follow-up question it raised is drawn thicker
-and purple (a `linkStyle` line), so the tree's depth reads as the frontier
-moving outward.
-
-`--html` emits an offline, left-to-right card tree with inline CSS and JavaScript.
-Hover or keyboard-focus a card to trace its ancestors and visible descendants;
-sibling branches fade. Folding updates the highlighted path. Escape clears it,
-and saved PNGs retain the current folded view without temporary dimming.
-Questions contain their chosen answers; other options and reasons expand in
-place. Follow-ups connect to the answer or question that raised them. The view
-supports folding branches, dragging or scrolling to pan, zoom buttons, 1:1 and
-fit-to-view, and keyboard navigation (focus the canvas, use arrows, +/−, or 0);
-a trackpad pinch (Ctrl/⌘ + scroll) zooms at the pointer. A view opens fitted to
-the width — readable first, panning a tall diagram rather than shrinking it to
-a thumbnail — and Fit shows the whole diagram at once. State, recommendation,
-and override labels remain visible. No CDN is needed. Both HTML views use a
-compact toolbar and give the remaining window height to the canvas: a legend
-panel floats over the canvas's bottom-left corner with the view's legend, and
-the zoom, 1:1, and fit-to-view buttons float over the bottom-right. The ADR
-Kit brand at the top left opens the repository in a new tab, so the viewer
-keeps its place. The toolbar ends with the icon-only Info disclosure, holding the full title, the
-labeled statistics, and the gesture hints, and the Share action that renders
-the view into a branded, watermarked PNG that names what the image is above
-the diagram and credits the repository below it. The button is a camera, since
-it makes a picture rather than sending one; a status line reports the saved
-file name and whether a copy reached the clipboard, and the download folder
-stays the browser's to choose.
-
-```sh
-adrkit tree 7 --html > "adr-7.html"
-```
-
-The command prints HTML to stdout and never opens a browser. The `adrkit-visualize` workflow
-exports only when visualization is requested, opens the result in the default
-browser, and returns a file link. An explicit file-only or no-open request skips
-opening; when opening is unavailable or fails, the agent explains and keeps the link.
-
-```mermaid
-graph TD
-  n1(["Storage decision"])
-  n2{{"Which store?"}}
-  n3["SQLite"]
-  n4{{"Which directory?"}}
-  n5["Workspace"]
-  n6["JSON files — needs a migration story"]
-  n1 --> n2
-  n2 --> n3
-  n3 --> n4
-  n4 --> n5
-  n2 --> n6
-  classDef settled fill:#dcfce7,stroke:#16a34a;
-  classDef rejected fill:#fee2e2,stroke:#dc2626;
-  classDef open fill:#fef9c3,stroke:#ca8a04;
-  classDef recommended stroke-width:3px;
-  classDef override stroke:#7c3aed,stroke-width:2px,stroke-dasharray:4 2;
-  class n1,n2,n3 settled;
-  class n6 rejected;
-  class n4,n5 open;
-  class n3 recommended;
-  linkStyle 2 stroke:#7c3aed,stroke-width:3px;
-```
-
-A record without a `## Deliberation` bullet list fails with a message naming
-the record. The appendix is reference material for that decision, not part of
-every task's reading.
-
-### `adrkit completion <bash|zsh|fish>`
-
-Print a shell completion script for the given shell.
-
-### `adrkit version`
-
-Print the version.
+`-h, --help` prints help; `-V, --version` prints the version. Unsupported
+options fail rather than being ignored. `--raised-by` says who introduced
+a shipped choice; `--decided-by` says whose judgment settled it. Both are
+declarations, not CLI inferences. `--reason` is required for rejection and
+archival. The CLI cannot verify that code shipped or another authoritative
+owner exists. `--tools claude` adds `.claude/` copies alongside the default
+`.agents/`; `--tools none` installs no integrations.

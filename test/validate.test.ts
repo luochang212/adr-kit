@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
 import { initCommand } from '../src/commands/init.js';
 import { proposeCommand } from '../src/commands/propose.js';
-import { acceptCommand } from '../src/commands/accept.js';
+import { implementCommand } from '../src/commands/implement.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { folderPath, listDrafts } from '../src/core/repository.js';
-import { formatIssues, validateDraft } from '../src/core/validate.js';
+import { folderPath, listProposals } from '../src/core/repository.js';
+import { formatIssues, validateProposal } from '../src/core/validate.js';
 
 const tempDirs: string[] = [];
 
@@ -56,7 +56,17 @@ Body.
 `;
 }
 
-const ACCEPTED = { status: 'accepted', date: '2026-08-19' };
+const ACCEPTED = { status: 'implemented', date: '2026-08-19' };
+
+function archivedDecision(title: string, successor: number): string {
+  return decision(title, {
+    status: 'superseded',
+    date: '2026-08-19',
+    'superseded-by': successor,
+    archived: '2026-08-19',
+    'archive-reason': `superseded by ADR ${successor}`,
+  });
+}
 
 afterEach(() => {
   for (const dir of tempDirs.splice(0)) {
@@ -73,7 +83,7 @@ describe('validateCommand', () => {
   it('fails a decision whose Alternatives considered has no written alternative', () => {
     const root = makeRepo();
     const content = `---
-status: accepted
+status: implemented
 date: 2026-08-19
 raised-by: human
 decided-by: human
@@ -98,7 +108,7 @@ Body.
 
 Body.
 `;
-    writeFileSync(join(folderPath(root, 'decisions'), '1-use-sqlite.md'), content);
+    writeFileSync(join(folderPath(root, 'implemented'), '1-use-sqlite.md'), content);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('must contain at least one written alternative');
@@ -107,7 +117,7 @@ Body.
   it('detects duplicate decision numbers', () => {
     const root = makeRepo();
     const content = `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 ---
@@ -130,17 +140,17 @@ Body.
 
 Body.
 `;
-    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'), content);
-    writeFileSync(join(folderPath(root, 'decisions'), '1-second.md'), content);
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    writeFileSync(join(folderPath(root, 'implemented'), '1-second.md'), content);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('duplicate decision number');
   });
 
-  it('rejects proposal-era headings in accepted decisions', () => {
+  it('rejects proposal-era headings in implemented implemented', () => {
     const root = makeRepo();
     const content = `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 ---
@@ -163,7 +173,7 @@ Body.
 
 Body.
 `;
-    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'), content);
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('proposal-era section');
@@ -172,7 +182,7 @@ Body.
   it('flags unknown front matter fields', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       decision('1 First', { ...ACCEPTED, owner: 'platform' }),
     );
     const result = validateCommand(root);
@@ -191,7 +201,7 @@ Body.
   it('flags a dangling supersede reference when validating a single record', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       decision('1 First', { status: 'superseded', date: '2026-08-19', 'superseded-by': 99 }),
     );
     const result = validateCommand(root, '1');
@@ -202,14 +212,14 @@ Body.
   it('accepts a supersession chain when validating a single record', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', { status: 'superseded', date: '2026-08-19', 'superseded-by': 2 }),
+      join(folderPath(root, 'archived'), '1-first.md'),
+      archivedDecision('1 First', 2),
     );
     writeFileSync(
-      join(folderPath(root, 'decisions'), '2-second.md'),
-      decision('2 Second', { status: 'superseded', date: '2026-08-19', 'superseded-by': 3 }),
+      join(folderPath(root, 'archived'), '2-second.md'),
+      archivedDecision('2 Second', 3),
     );
-    writeFileSync(join(folderPath(root, 'decisions'), '3-third.md'), decision('3 Third', ACCEPTED));
+    writeFileSync(join(folderPath(root, 'implemented'), '3-third.md'), decision('3 Third', ACCEPTED));
     const result = validateCommand(root, '1');
     expect(result.valid).toBe(true);
   });
@@ -217,11 +227,11 @@ Body.
   it('passes a single record whose supersede reference is valid', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', { status: 'superseded', date: '2026-08-19', 'superseded-by': 2 }),
+      join(folderPath(root, 'archived'), '1-first.md'),
+      archivedDecision('1 First', 2),
     );
     writeFileSync(
-      join(folderPath(root, 'decisions'), '2-second.md'),
+      join(folderPath(root, 'implemented'), '2-second.md'),
       decision('2 Second', ACCEPTED),
     );
     expect(validateCommand(root, '1').valid).toBe(true);
@@ -230,19 +240,19 @@ Body.
   it('flags a zero-padded decision title', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       decision('0001 First', ACCEPTED),
     );
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
-    expect(result.output).toContain('accepted decision title must be');
+    expect(result.output).toContain('implemented title must be');
   });
 
   it('flags an invalid calendar date in the front matter', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', { status: 'accepted', date: '2026-02-31' }),
+      join(folderPath(root, 'implemented'), '1-first.md'),
+      decision('1 First', { status: 'implemented', date: '2026-02-31' }),
     );
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
@@ -252,9 +262,9 @@ Body.
   it('requires the created field', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 ---
 
@@ -285,8 +295,8 @@ Body.
   it('flags created after the status date', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', { status: 'accepted', date: '2026-08-19', created: '2026-08-20' }),
+      join(folderPath(root, 'implemented'), '1-first.md'),
+      decision('1 First', { status: 'implemented', date: '2026-08-19', created: '2026-08-20' }),
     );
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
@@ -296,8 +306,8 @@ Body.
   it('flags an invalid calendar date in created', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
-      decision('1 First', { status: 'accepted', date: '2026-08-19', created: '2026-02-30' }),
+      join(folderPath(root, 'implemented'), '1-first.md'),
+      decision('1 First', { status: 'implemented', date: '2026-08-19', created: '2026-02-30' }),
     );
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
@@ -306,9 +316,9 @@ Body.
 
   it('flags malformed, duplicate, and empty tags', () => {    const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 tags: [Execution Layer, sandbox, sandbox]
@@ -334,9 +344,9 @@ Body.
 `,
     );
     writeFileSync(
-      join(folderPath(root, 'decisions'), '2-second.md'),
+      join(folderPath(root, 'implemented'), '2-second.md'),
       `---
-status: accepted
+status: implemented
 date: 2026-08-19
 created: 2026-08-19
 tags: []
@@ -376,7 +386,7 @@ describe('written content and comment handling', () => {
       '## Problem\n\nBody.',
       `## Problem\n\n${body}`,
     );
-    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'), content);
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
   }
 
   it('does not count an unterminated comment as written content', () => {
@@ -412,7 +422,7 @@ describe('written content and comment handling', () => {
   it('refuses a draft whose only alternative is an unterminated comment', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    const file = join(root, 'adr', 'proposed', listProposals(root)[0]!.fileName);
     writeFileSync(
       file,
       `---
@@ -444,14 +454,14 @@ It works.
 Some risk.
 `,
     );
-    const issues = validateDraft(root, listDrafts(root)[0]!);
+    const issues = validateProposal(root, listProposals(root)[0]!);
     expect(formatIssues(issues)).toContain('must contain at least one written alternative');
   });
 
   it('refuses to promote a draft whose sections hold only comment markers', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    const file = join(root, 'adr', 'proposed', listProposals(root)[0]!.fileName);
     // The audited defect: every required section held one unterminated marker
     // and `accept` promoted the result into an immutable, empty record.
     writeFileSync(
@@ -485,7 +495,7 @@ created: 2026-08-19
 <!--
 `,
     );
-    expect(() => acceptCommand('Use SQLite', root, 'human', 'human')).toThrow(
+    expect(() => implementCommand('Use SQLite', root, 'human', 'human')).toThrow(
       /must contain written content/,
     );
   });
@@ -508,7 +518,7 @@ describe('body references', () => {
   it('flags a body reference to a decision that does not exist', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       decision('1 First', ACCEPTED).replace('Body.', 'See ADR-99 for the follow-up.'),
     );
 
@@ -520,10 +530,10 @@ describe('body references', () => {
   it('accepts a body reference that resolves', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       decision('1 First', ACCEPTED).replace('Body.', 'See ADR 2 for the follow-up.'),
     );
-    writeFileSync(join(folderPath(root, 'decisions'), '2-second.md'), decision('2 Second', ACCEPTED));
+    writeFileSync(join(folderPath(root, 'implemented'), '2-second.md'), decision('2 Second', ACCEPTED));
 
     expect(validateCommand(root).valid).toBe(true);
   });
@@ -531,10 +541,10 @@ describe('body references', () => {
   it('resolves references against the whole repository in single-record validation', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       decision('1 First', ACCEPTED).replace('Body.', 'See ADR-2 for the follow-up.'),
     );
-    writeFileSync(join(folderPath(root, 'decisions'), '2-second.md'), decision('2 Second', ACCEPTED));
+    writeFileSync(join(folderPath(root, 'implemented'), '2-second.md'), decision('2 Second', ACCEPTED));
 
     expect(validateCommand(root, '1').valid).toBe(true);
   });
@@ -549,7 +559,7 @@ describe('decided-by', () => {
   it('flags a record missing raised-by', () => {
     const root = makeRepo();
     const content = decision('1 First', ACCEPTED).replace('raised-by: human\n', '');
-    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'), content);
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
 
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
@@ -559,7 +569,7 @@ describe('decided-by', () => {
   it('flags a record missing decided-by and leaves the file untouched', () => {
     const root = makeRepo();
     const content = withoutDecidedBy('1 First', ACCEPTED);
-    const path = join(folderPath(root, 'decisions'), '1-first.md');
+    const path = join(folderPath(root, 'implemented'), '1-first.md');
     writeFileSync(path, content);
 
     const result = validateCommand(root);
@@ -573,21 +583,21 @@ describe('decided-by', () => {
   it('flags a superseded record missing decided-by', () => {
     const root = makeRepo();
     writeFileSync(
-      join(folderPath(root, 'decisions'), '1-first.md'),
+      join(folderPath(root, 'implemented'), '1-first.md'),
       withoutDecidedBy('1 First', { status: 'superseded', date: '2026-08-19', 'superseded-by': 2 }),
     );
-    writeFileSync(join(folderPath(root, 'decisions'), '2-second.md'), decision('2 Second', ACCEPTED));
+    writeFileSync(join(folderPath(root, 'implemented'), '2-second.md'), decision('2 Second', ACCEPTED));
 
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain('front matter must include "decided-by"');
   });
 
-  it('passes records carrying either accepted value', () => {
+  it('passes records carrying either implemented value', () => {
     for (const value of ['human', 'agent'] as const) {
       const root = makeRepo();
       writeFileSync(
-        join(folderPath(root, 'decisions'), '1-first.md'),
+        join(folderPath(root, 'implemented'), '1-first.md'),
         decision('1 First', { ...ACCEPTED, 'decided-by': value }),
       );
       expect(validateCommand(root).valid).toBe(true);
@@ -597,33 +607,33 @@ describe('decided-by', () => {
   it('flags decided-by on a draft', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    const file = join(root, 'adr', 'proposed', listProposals(root)[0]!.fileName);
     const content = readFileSync(file, 'utf8').replace('created:', 'decided-by: human\ncreated:');
     writeFileSync(file, content);
 
-    const issues = validateDraft(root, listDrafts(root)[0]!);
+    const issues = validateProposal(root, listProposals(root)[0]!);
     expect(formatIssues(issues)).toContain(
-      '"decided-by" is declared at promotion and must not appear on a draft',
+      'unshipped records must not include "decided-by"',
     );
   });
 
   it('flags raised-by on a draft', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    const file = join(root, 'adr', 'proposed', listProposals(root)[0]!.fileName);
     const content = readFileSync(file, 'utf8').replace('created:', 'raised-by: human\ncreated:');
     writeFileSync(file, content);
 
-    const issues = validateDraft(root, listDrafts(root)[0]!);
+    const issues = validateProposal(root, listProposals(root)[0]!);
     expect(formatIssues(issues)).toContain(
-      '"raised-by" is declared at promotion and must not appear on a draft',
+      'unshipped records must not include "raised-by"',
     );
   });
 
   it('accepts a draft without the field', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
-    const file = join(root, 'adr', '.drafts', listDrafts(root)[0]!.fileName);
+    const file = join(root, 'adr', 'proposed', listProposals(root)[0]!.fileName);
     writeFileSync(
       file,
       `---
@@ -655,7 +665,7 @@ It works.
 Some risk.
 `,
     );
-    expect(validateDraft(root, listDrafts(root)[0]!)).toEqual([]);
+    expect(validateProposal(root, listProposals(root)[0]!)).toEqual([]);
   });
 });
 
@@ -672,7 +682,7 @@ describe('supersession chain integrity', () => {
     targets.forEach((target, index) => {
       const fields: Record<string, string | number> = { ...ACCEPTED, status: 'superseded' };
       if (target !== undefined) fields['superseded-by'] = target;
-      writeFileSync(join(folderPath(root, 'decisions'), `${index + 1}-record.md`),
+      writeFileSync(join(folderPath(root, 'implemented'), `${index + 1}-record.md`),
         decision(`${index + 1} Record`, fields));
     });
     for (const query of [undefined, '1']) {
@@ -684,14 +694,14 @@ describe('supersession chain integrity', () => {
 
   it('rejects a chain ending in a non-decision status', () => {
     const root = makeRepo();
-    writeFileSync(join(folderPath(root, 'decisions'), '1-first.md'),
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'),
       decision('1 First', { ...ACCEPTED, status: 'superseded', 'superseded-by': 2 }));
-    writeFileSync(join(folderPath(root, 'decisions'), '2-second.md'),
+    writeFileSync(join(folderPath(root, 'implemented'), '2-second.md'),
       decision('2 Second', { ...ACCEPTED, status: 'proposed' }));
     for (const query of [undefined, '1']) {
       const result = validateCommand(root, query);
       expect(result.valid).toBe(false);
-      expect(result.output).toContain('must end at an accepted decision');
+      expect(result.output).toContain('must end at an implemented decision');
     }
   });
 
@@ -703,7 +713,13 @@ describe('supersession chain integrity', () => {
         fields.status = 'superseded';
         fields['superseded-by'] = n < 3 ? 3 : n + 1;
       }
-      writeFileSync(join(folderPath(root, 'decisions'), `${n}-record.md`), decision(`${n} Record`, fields));
+      if (n < 12) {
+        writeFileSync(join(folderPath(root, 'archived'), `${n}-record.md`),
+          archivedDecision(`${n} Record`, Number(fields['superseded-by'])));
+      } else {
+        writeFileSync(join(folderPath(root, 'implemented'), `${n}-record.md`),
+          decision(`${n} Record`, fields));
+      }
     }
     expect(validateCommand(root).valid).toBe(true);
     expect(validateCommand(root, '1').valid).toBe(true);

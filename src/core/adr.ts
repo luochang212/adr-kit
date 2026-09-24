@@ -2,7 +2,7 @@ import { readFileSync, statSync, type Stats } from 'node:fs';
 import { basename } from 'node:path';
 import { parse } from 'yaml';
 
-export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'superseded';
+export type AdrStatus = 'proposed' | 'implemented' | 'rejected' | 'superseded';
 /**
  * The two declaration values, single-sourced: the parser, the CLI prompt, and
  * the shell completion scripts all read the set from here, so a third value
@@ -30,8 +30,7 @@ export function isDecidedBy(value: unknown): value is DecidedBy {
  * Who put the decision on the table, as opposed to `decided-by`, whose
  * judgment settled it. The same two values on a different axis: a person may
  * raise what the agent settles, and the agent may raise what a person settles.
- * Declared by the writer at decide or accept time, never inferred; a draft
- * never carries it.
+ * Declared on entry to implemented/, never inferred; proposals do not carry it.
  */
 export type RaisedBy = DecidedBy;
 /** Narrow an unknown front matter value to a raised-by declaration. */
@@ -39,17 +38,15 @@ export function isRaisedBy(value: unknown): value is RaisedBy {
   return isDecidedBy(value);
 }
 /**
- * The durable records folder (`decisions/`) and the ephemeral drafts folder
- * (`adr/.drafts/`). Status is never implied by location: durable records carry
- * their own status, and drafts are proposals that will either be promoted or
- * discarded.
+ * The four lifecycle directories. Numbered decisions occupy implemented/
+ * or archived/; unnumbered proposals occupy proposed/ or rejected/.
  */
-export type AdrFolder = 'decisions' | 'drafts';
+export type AdrFolder = 'proposed' | 'implemented' | 'rejected' | 'archived';
 
 /** Canonical front matter field order; only fields that exist are written. */
-export const FRONT_MATTER_ORDER = ['status', 'date', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'tags'] as const;
+export const FRONT_MATTER_ORDER = ['status', 'date', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'archived', 'archive-reason', 'tags'] as const;
 
-/** Sections that only make sense during the proposal era and must not appear in an accepted decision. */
+/** Sections that only make sense during the proposal era and must not appear in an implemented decision. */
 export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
 
 /** A `YYYY-MM-DD` date value. Shared by the parser (format) and validate (calendar validity). */
@@ -79,13 +76,13 @@ export interface AdrRecord {
   fileName: string;
   title: string;
   status: AdrStatus;
-  /** Date the current status was recorded, `YYYY-MM-DD` in local time. */
+  /** Date of the latest lifecycle move, `YYYY-MM-DD` in local time. */
   date: string;
   /**
    * For durable records: who put the decision on the table. The `decided-by`
    * axis turned around: a person may raise what the agent settles, and vice
-   * versa. Declared by the writer at decide or accept time, never inferred or
-   * verified. A draft never carries it.
+   * versa. Declared by the writer on implementation, never inferred or
+   * verified. An unshipped proposal never carries it.
    */
   raisedBy?: RaisedBy;
   /**
@@ -95,7 +92,7 @@ export interface AdrRecord {
    * choice they made earlier that is only now being recorded; `agent` means the
    * direction came from the agent's own judgment, even when a person let it
    * through. Declared by the writer at decide or accept time, never inferred or
-   * verified. A draft never carries it (see the proposal-era rules in validate).
+   * verified. An unshipped proposal never carries it.
    */
   decidedBy?: DecidedBy;
   /** Date the record was created; stamped once and never re-stamped, so the
@@ -105,8 +102,12 @@ export interface AdrRecord {
   commit?: string;
   rejectionReason?: string;
   /** For superseded decisions: the number of the decision that replaced this one. */
-  /** Immediate historical successor; validation follows the chain to an accepted record. */
+  /** Immediate historical successor; validation follows the chain to an implemented record. */
   supersededBy?: number;
+  /** Date a shipped record entered frozen history. */
+  archived?: string;
+  /** Why a shipped record no longer needs to be active guidance. */
+  archiveReason?: string;
   /** Optional kebab-case theme keywords; validate checks the shape. */
   tags?: string[];
   number?: number;
@@ -201,7 +202,7 @@ function readRecordFile(filePath: string): string {
  * The format is YAML front matter followed by a Markdown body:
  *
  *   ---
- *   status: proposed | accepted | rejected | superseded
+ *   status: proposed | implemented | rejected | superseded
  *   date: YYYY-MM-DD
  *   raised-by: human | agent    (durable records only)
  *   decided-by: human | agent   (durable records only)
@@ -214,9 +215,8 @@ function readRecordFile(filePath: string): string {
  *   ## Problem
  *   ...
  *
- * The `date` field records the date the current status was reached and is
- * stamped by the CLI at every lifecycle move (propose, decide, accept,
- * reject, supersede).
+ * The `date` field records the date of the latest lifecycle move and is
+ * stamped by the CLI at every lifecycle move.
  */
 export function parseAdrFile(filePath: string): AdrRecord {
   const text = readRecordFile(filePath);
@@ -252,12 +252,12 @@ export function parseAdrFile(filePath: string): AdrRecord {
   }
   if (
     statusText !== 'proposed' &&
-    statusText !== 'accepted' &&
+    statusText !== 'implemented' &&
     statusText !== 'rejected' &&
     statusText !== 'superseded'
   ) {
     throw new AdrFormatError(
-      'status must be "proposed", "accepted", "rejected", or "superseded"',
+      'status must be "proposed", "implemented", "rejected", or "superseded"',
       filePath,
     );
   }
@@ -349,6 +349,23 @@ export function parseAdrFile(filePath: string): AdrRecord {
     throw new AdrFormatError('"superseded-by" is only allowed when status is "superseded"', filePath);
   }
 
+  let archived: string | undefined;
+  const archivedField = fields['archived'];
+  if (archivedField !== undefined) {
+    if (typeof archivedField !== 'string' || !DATE_PATTERN.test(archivedField)) {
+      throw new AdrFormatError('archived must be a "YYYY-MM-DD" string', filePath);
+    }
+    archived = archivedField;
+  }
+  let archiveReason: string | undefined;
+  const archiveReasonField = fields['archive-reason'];
+  if (archiveReasonField !== undefined) {
+    if (typeof archiveReasonField !== 'string' || archiveReasonField.trim().length === 0) {
+      throw new AdrFormatError('archive-reason must be a non-empty string', filePath);
+    }
+    archiveReason = archiveReasonField.trim();
+  }
+
   const body = lines.slice(closing + 1);
   if ((body[0] ?? '') !== '') {
     throw new AdrFormatError('front matter must be followed by a blank line', filePath);
@@ -383,9 +400,9 @@ export function parseAdrFile(filePath: string): AdrRecord {
 
   const numberMatch = title.match(/^([1-9]\d*)\s+(.+)$/);
   // The parser does not know which folder the file lives in; listRecords and
-  // listDrafts set `folder` after scanning. 'decisions' is a neutral placeholder.
+  // Repository readers set the actual folder after scanning.
   const parsed: AdrRecord = {
-    folder: 'decisions',
+    folder: 'proposed',
     path: filePath,
     fileName: basename(filePath),
     title,
@@ -400,10 +417,11 @@ export function parseAdrFile(filePath: string): AdrRecord {
   if (tags !== undefined) parsed.tags = tags;
   if (rejectionReason !== undefined) parsed.rejectionReason = rejectionReason;
   if (supersededBy !== undefined) parsed.supersededBy = supersededBy;
+  if (archived !== undefined) parsed.archived = archived;
+  if (archiveReason !== undefined) parsed.archiveReason = archiveReason;
   if (extras.length > 0) parsed.frontMatterExtras = extras;
   if (numberMatch !== null) {
     parsed.number = Number(numberMatch[1]);
   }
   return parsed;
 }
-

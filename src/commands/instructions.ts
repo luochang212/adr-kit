@@ -1,104 +1,41 @@
 import { findRoot, installedWithNotice, readConfigSafe, withNotice } from '../core/config.js';
-import { listDrafts, listRecords } from '../core/repository.js';
-import { formatIssues, validateDraft, validateRepository } from '../core/validate.js';
+import { listRecords } from '../core/repository.js';
+import { formatIssues, validateRecord, validateRepository } from '../core/validate.js';
 import { VERSION } from '../version.js';
 
 export function instructionsCommand(cwd: string): string {
   const root = findRoot(cwd);
-  const config = root === undefined ? undefined : readConfigSafe(root);
-  const notice = config === undefined ? undefined : installedWithNotice(config, VERSION);
-  return withNotice(instructionsOutput(cwd), notice);
-}
-
-function instructionsOutput(cwd: string): string {
-  const root = findRoot(cwd);
   if (root === undefined) {
-    const output = [
-      'No ADR Kit repository found.',
-      '',
-      'Next:',
-      '  adrkit init',
-      '  adrkit decide "your first decision" --raised-by <human|agent> --decided-by <human|agent>',
-      '    (raised-by: who raised it; decided-by: whose judgment settled it)',
-    ].join('\n');
-    return output;
+    return 'No ADR Kit repository found.\n\nNext:\n  adrkit init';
   }
-
-  // Pending drafts come first: promoting or discarding them is the steer, and a
-  // draft elsewhere in the repo must not hide the proposals that are ready.
-  // A corrupt durable record falls back to the repository-level validation
-  // output, which reports the parse error as an issue.
+  const config = readConfigSafe(root);
+  const notice = config === undefined ? undefined : installedWithNotice(config, VERSION);
+  const issues = validateRepository(root);
+  let records;
   try {
-    listRecords(root);
+    records = listRecords(root);
   } catch {
-    const issues = validateRepository(root);
-    const output = [
-      'The repository has validation issues. Fix them before creating more records.',
-      '',
-      formatIssues(issues),
-      '',
-      'Next:',
-      '  adrkit validate',
-    ].join('\n');
-    return output;
+    return withNotice(`The repository has validation issues.\n\n${formatIssues(issues)}\n\nNext:\n  adrkit validate`, notice);
   }
-
-  const drafts = listDrafts(root);
-  if (drafts.length > 0) {
+  const proposed = records.filter((record) => record.folder === 'proposed');
+  if (proposed.length > 0) {
+    const lines = [`${proposed.length} proposal${proposed.length === 1 ? '' : 's'} pending:`];
     const ready: string[] = [];
-    const needsWork: Record<string, string[]> = {};
-    for (const draft of drafts) {
-      const issues = validateDraft(root, draft);
-      if (issues.length === 0) {
-        ready.push(draft.fileName);
-      } else {
-        needsWork[draft.fileName] = issues.map((issue) => issue.message);
-      }
-    }
-    const readySet = new Set(ready);
-
-    const lines = [`${drafts.length} draft${drafts.length === 1 ? '' : 's'} pending:`];
-    for (const draft of drafts) {
-      if (readySet.has(draft.fileName)) {
-        lines.push(`  ✓ ${draft.fileName}   validated - ready to accept`);
-      } else {
-        const first = needsWork[draft.fileName]?.[0] ?? 'validation failed';
-        lines.push(`  ✗ ${draft.fileName}   ${first}`);
-      }
+    for (const record of proposed) {
+      const recordIssues = validateRecord(root, record);
+      if (recordIssues.length === 0) ready.push(record.fileName);
+      lines.push(`  ${recordIssues.length === 0 ? '✓' : '✗'} ${record.fileName}   ${recordIssues.length === 0 ? 'validated - ready after shipping' : recordIssues[0]!.message}`);
     }
     lines.push('', 'Next:');
     for (const name of ready) {
-      // The placeholder keeps an agent from copy-pasting a human declaration
-      // for its own judgment: whoever runs this must pick the value.
-      lines.push(`  adrkit accept ${name} --raised-by <human|agent> --decided-by <human|agent>   # promote to a decision`);
+      lines.push(`  adrkit implement ${name} --raised-by <human|agent> --decided-by <human|agent>   # after shipping`);
+      lines.push(`  adrkit reject ${name} --reason <reason>   # if declined`);
     }
-    for (const name of Object.keys(needsWork)) {
-      lines.push(`  adrkit reject ${name}   # or fix adr/.drafts/${name} and accept it`);
-    }
-    const output = lines.join('\n');
-    return output;
+    if (ready.length < proposed.length) lines.push('  adrkit validate   # fix incomplete proposals first');
+    return withNotice(lines.join('\n'), notice);
   }
-
-  const issues = validateRepository(root);
   if (issues.length > 0) {
-    const output = [
-      'The repository has validation issues. Fix them before creating more records.',
-      '',
-      formatIssues(issues),
-      '',
-      'Next:',
-      '  adrkit validate',
-    ].join('\n');
-    return output;
+    return withNotice(`The repository has validation issues.\n\n${formatIssues(issues)}\n\nNext:\n  adrkit validate`, notice);
   }
-
-  const output = [
-    'No proposals waiting.',
-    '',
-    'Next:',
-    '  adrkit decide "an already-made decision" --raised-by <human|agent> --decided-by <human|agent>',
-    '    (raised-by: who raised it; decided-by: whose judgment settled it)',
-    '  adrkit propose "a decision that still needs review"   # ephemeral draft (the exception)',
-  ].join('\n');
-  return output;
+  return withNotice('No proposals waiting.\n\nNext:\n  adrkit propose "an unshipped choice"\n  adrkit record "an already-shipped choice" --raised-by <human|agent> --decided-by <human|agent>', notice);
 }

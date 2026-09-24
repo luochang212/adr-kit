@@ -1,24 +1,8 @@
 ---
 name: adrkit-reject
-description: Use when a proposal draft should be declined and discarded.
+description: Use when a formal proposal is declined and its rejection rationale should be retained.
 ---
 
 # ADR Kit Reject
 
-## Overview
-
-Discard a proposal draft. The CLI deletes the draft from `adr/.drafts/` and
-leaves no record - rejection lives in the winning decision's
-`## Alternatives considered`, not in a standalone rejected record.
-
-## Steps
-
-```bash
-adrkit reject "<name>" [--reason "<why it was rejected>"]
-```
-
-## Rules
-
-- `--reason` is optional and is only echoed; nothing is persisted. If the
-  rejection matters, record it in `## Alternatives considered` of the decision
-  that won.
+Read the proposal and check its alternatives. Run `adrkit reject <name> --reason "<why declined>"`. It moves the dated file from `proposed/` to `rejected/`, stamps the lifecycle date, and preserves the record and reason. A rejected proposal gets no ADR number. Do not use rejection to erase a settled but merely unshipped choice; that remains proposed.

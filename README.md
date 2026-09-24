@@ -17,18 +17,12 @@
   <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
-ADR Kit turns architecture decisions into plain Markdown files with a
-machine-checkable lifecycle. Decisions are durable records
-(**accepted / superseded**); proposals are ephemeral drafts that either become
-a decision or vanish. It borrows the spec-driven spirit of
-[OpenSpec](https://github.com/Fission-AI/OpenSpec)
-and the decision-record discipline of agent-native codebases: every record
-must say what problem it solves, what it chose, and what it gave up.
+ADR Kit stores architecture decisions as plain Markdown across four lifecycle directories. It is an independent, agent-friendly decision-record tool: proposals are unshipped, implemented records describe shipped choices, rejections retain their rationale, and archives preserve frozen history.
 
-- fluid not rigid
-- plain Markdown
-- one decision, one file
-- built for agents and humans alike
+- Plain Markdown and YAML front matter
+- One choice per file, with explicit alternatives
+- Stable ADR numbers assigned only when work ships
+- Built for agents and humans
 
 ## Quick start
 
@@ -38,240 +32,97 @@ Requires Node.js 20.19 or later.
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit decide "Use SQLite for session storage" --raised-by human --decided-by human
+adrkit propose "Use SQLite for session storage"
+# Fill the proposal; after the work ships:
+adrkit implement "Use SQLite for session storage" --raised-by human --decided-by human
+adrkit validate
 ```
 
-`adrkit init` creates an `adr/` directory:
+For an architectural choice already shipped, use `adrkit record "<title>" --raised-by human --decided-by human` instead.
 
 ```text
 adr/
-├── config.yaml      # project context and per-status rules
-├── README.md        # repository conventions
-├── .gitignore       # keeps adr/.drafts/ out of git
-└── decisions/       # decisions, numbered N, immutable history
+├── config.yaml
+├── README.md
+├── proposed/       # dated, unnumbered, unshipped
+├── implemented/    # numbered, shipped, active guidance
+├── rejected/       # dated, unnumbered, declined with reason
+└── archived/       # numbered, frozen history
 ```
 
-`adrkit decide` is the default path: it records an already-made decision
-directly. Proposals are the exception, used only when a decision still needs
-review. They are ephemeral drafts in `adr/.drafts/`: `adrkit propose` creates
-one, `adrkit accept` promotes it to a numbered decision, and `adrkit reject`
-discards it without leaving a record. Rejection is recorded in a decision's
-`Alternatives considered`, never as a standalone record.
-
-Fill in the decision, then:
-
-```bash
-adrkit validate
-adrkit list
-```
+An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` retains every formal rejection. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active.
 
 ## Tell your agent
 
-Paste this into any AI coding agent to record key decisions automatically:
-
-```text
-Use github.com/luochang212/adr-kit in this repository to automatically record key decisions. Prefer `adrkit decide`; use `adrkit propose` only when a decision still needs review. Every record declares two flags: `--raised-by` (who put the decision on the table) and `--decided-by` (whose judgment settled it). Use `human` when a person determined it, `agent` when it came from your own judgment, even if a person let it through.
-```
-
-To use decisions in later coding tasks, add the [reading rule](docs/workflow.md#read-decisions-before-coding)
-to the project's `AGENTS.md` (and `CLAUDE.md` for Claude Code teams). Start tasks
-with `adrkit list` and `adrkit show <N>` to read the existing decisions, then
-check them against current code and requirements. The init skill guides this
-setup; existing projects should run `adrkit update` and add the rule too.
-The CLI does not edit project instruction files automatically.
-Record only architectural choices that constrain future development and whose
-rationale is not apparent from code alone; routine fixes need no ADR. See
-[when to record](docs/workflow.md#when-to-record).
+Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`, read relevant implemented records in full, check relevant proposed and rejected records, and use archives for history. Do not filter by title alone. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills.
 
 ## Commands
 
 ```text
 adrkit init [path] [--tools <list>] [--workflows <list>]
-                                        Initialize an ADR Kit repository
-adrkit decide <title> --raised-by <human|agent> --decided-by <human|agent>
-                                        Record an already-made decision (default path)
-adrkit propose <title>                  Create an ephemeral proposal draft (only when review is needed)
-adrkit accept <name> --raised-by <human|agent> --decided-by <human|agent>
-                                        Promote a draft to a decision (assigns N)
-adrkit reject <name> [--reason <text>]  Discard a draft (leaves no record)
-adrkit supersede <name> --by <name>     Mark an accepted decision as superseded
-adrkit list                             List decisions and pending drafts
-adrkit show <name>                      Show a decision or draft
-adrkit status                           Show lifecycle counts and validity
-adrkit instructions                     Print the next step; flag pending drafts as ready or needing work
-adrkit validate [name] [--all]          Validate one record or the repository
+adrkit propose <title>
+adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>
+adrkit record <title> --raised-by <human|agent> --decided-by <human|agent>
+adrkit reject <name> --reason <text>
+adrkit archive <name> --reason <text>
+adrkit supersede <old> --by <new>
+adrkit list
+adrkit show <name>
+adrkit status
+adrkit instructions
+adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
-                                        Rewrite AI tool integrations
-adrkit config                           Print the current configuration
+adrkit config
 adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
-                                        Emit the decision relationship graph
-adrkit tree <name> [--mermaid|--text|--html] Render a record's deliberation tree
-adrkit completion <bash|zsh|fish>       Print a shell completion script
-adrkit version                          Print the version
+adrkit tree <name> [--mermaid|--text|--html]
+adrkit completion <bash|zsh|fish>
+adrkit version
 ```
 
-> [!IMPORTANT]
-> Integrations install into the open [`.agents/`](https://agents.md/) standard
-> by default: one set of skills and slash commands every mainstream agent
-> reads. Claude Code is the one holdout: it even [closed the AGENTS.md support
-> request](https://github.com/anthropics/claude-code/issues/6235), and Shopify's
-> CEO [publicly threatened to ban it over this](https://thenewstack.io/shopify-claude-code-agentsmd/).
-> If your team uses Claude Code, pass `--tools claude` to also install
-> `.claude/` copies; an exception we carry until Anthropic adopts the standard.
-
-> [!TIP]
-> Every integration ships all nine workflow skills by default. A small
-> repository that only records decisions can pass
-> `--workflows init,decide,validate` to install a lean subset; the choice is
-> recorded in `adr/config.yaml`, `adrkit update` keeps it, and
-> `--workflows all` restores the full set.
-
-`<name>` resolves by title, file name, or decision number (`1`).
-
-## Docs
-
-| Document | Content |
-| --- | --- |
-| [CLI reference](https://github.com/luochang212/adr-kit/blob/main/docs/cli.md) | Command reference with arguments and output shapes |
-| [Record format](https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md) | ADR file format and validation rules |
-| [Workflow](https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md) | Lifecycle from proposal to decision |
-| [Agent skills](https://github.com/luochang212/adr-kit/blob/main/skills/README.md) | Agent skills that drive the `adrkit` CLI |
+By default, integrations install into `.agents/`. Pass `--tools claude` for additional `.claude/` copies, or `--tools none` to install none. `--workflows` selects a subset such as `init,propose,implement,validate`.
 
 ## Record format
 
-Every record is YAML front matter followed by a Markdown body:
+A shipped decision is `adr/implemented/N-slug.md`:
 
 ```markdown
 ---
-status: accepted
-date: 2026-08-19
+status: implemented
+date: 2026-09-25
 raised-by: human
 decided-by: human
-created: 2026-08-17
-commit: abc1234
-tags: [frontend]
+created: 2026-09-24
+tags: [storage]
 ---
 
 # ADR: 1 Use SQLite for session storage
 
 ## Problem
+
+...
+
+## Decision
+
+...
+
+## Alternatives considered
+
+...
+
+## Consequences
+
 ...
 ```
 
-The `date` field records when the current status was reached; the CLI
-stamps it at every lifecycle move, alongside the git `commit` the decision
-was recorded against. `created` is the birth date, stamped once and never
-re-stamped, so the time axis survives later lifecycle moves. Optional
-`tags` (kebab-case keywords) let `adrkit graph` group and filter decisions
-by theme. Decisions are immutable history; the current facts
-live in code, not in the record.
+Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `tags` remain the thematic classification; no class directory is needed. `adrkit validate` checks all four folders; fresh templates intentionally fail until filled.
 
-`accepted` denotes a recorded decision, not proof of human review.
-`raised-by` and `decided-by` are each `human` or `agent`, declared when
-`decide` or `accept` runs: `raised-by` is who put the decision on the table,
-and `decided-by` is whose judgment settled it. For `decided-by`, `human`
-means a person determined the direction (they stated it, changed a proposal into
-what shipped, or you are recording one they made earlier), `agent` when it came
-from the agent's own judgment, including when a person only let it through. The
-CLI records the declarations without inferring or verifying them, so the fields
-do not establish who chose or authorized the decision; when who proposed and who
-approved matters, write it in the body. `supersede` preserves both original
-values. See the
-[record format reference](docs/record-format.md) for limitations. Identity
-stays in git.
+An implemented record may refresh factual paths, symbols, or defaults, but not rewrite the choice or rationale into another decision. A changed choice needs a new record and relationship. Full supersession stamps `superseded-by: N` and moves the old record to `archived/`. Archived records keep their numbers and are historical, not current authority. The graph includes numbered history; `## Deliberation` optionally preserves the design tree.
 
-- **Decisions** (`adr/decisions/N-slug.md`) are `accepted` or `superseded`
-  and require `Problem`, `Decision`, `Alternatives considered`, and
-  `Consequences`; proposal-era headings are rejected by `validate`.
-- **Drafts** (`adr/.drafts/YYYY-MM-DD-slug.md`) are ephemeral proposals with
-  `status: proposed`, require `Problem`, `Proposal`, `Alternatives
-  considered`, `Acceptance criteria`, and `Risks`, and are never checked by
-  `validate`: `adrkit accept` validates a draft right before promoting it.
-  A required section counts as written only when it has text outside HTML
-  comments, so an unfilled `<!--` placeholder never passes.
-- **Rejected** ideas are not standalone records: a decision's
-  `Alternatives considered` documents what was considered and why it lost.
-- **Superseded** decisions stay in `adr/decisions/` as history, with the
-  replacing decision in the front matter: `status: superseded` plus
-  `superseded-by: N`.
-  `adrkit supersede <old> --by <new>` performs the rewrite; `validate`
-  checks that the complete replacement chain exists, has no cycles, and
-  ends at an accepted decision. Historical links are preserved.
+See [record format](docs/record-format.md), [workflow](docs/workflow.md), and [CLI reference](docs/cli.md).
 
-`adrkit accept` performs the mechanical rewrite a lifecycle move always
-owed: `## Proposal` becomes `## Decision`, and `Acceptance criteria` plus
-`Risks` are folded into `## Consequences`.
+## Sources of inspiration
 
-A decision may also carry an optional `## Deliberation` appendix: the design
-tree behind the choice, stored as a nested Markdown list whose nodes may be
-tagged `[settled]`, `[rejected]`, or `[open]`. A follow-up question is
-nested under the node that raised it, so related questions run deeper and
-unrelated ones stay flat. Render it with `adrkit tree <name>` (text by default,
-`--mermaid` for a graph, `--html` for an offline interactive card tree). The
-`adrkit-grill` workflow produces that tree and records every decision the
-session settles. The whole set renders as an interactive offline decision map with
-`adrkit graph --html`, which marks the decisions that carry a tree. Ask your
-agent to visualize a recorded decision or the whole set with `adrkit-visualize`;
-it uses the built-in renderer, opens the result in your default browser, and
-returns an HTML file link. Ask for a file only to skip opening the browser. If
-opening is unavailable or fails, the agent explains and keeps the link. HTML is
-not a default grilling deliverable.
-Run `adrkit update` to refresh installed skills.
-
-```sh
-adrkit tree 7 --html > "adr-7.html"
-```
-
-## Compatibility with other tools
-
-ADR Kit owns one directory, `adr/`, and reads and validates only its own
-files, so it can share a repository with any tool that does not collide
-with that layout. Its agent skills are namespaced per tool (`adrkit-*`),
-and `adrkit update` only rewrites its own integrations.
-
-| Tool | Role | Relationship |
-|---|---|---|
-| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | Forward-looking: specifies what to build | Complementary: specs vs records |
-| [Changesets](https://changesets.dev) | Release tooling: versions and changelog | Orthogonal: cite the ADR number in the changeset body |
-
-When a change makes an architectural decision that should outlive the
-change, record it as an ADR.
-
-## Sources of Inspiration
-
-ADR Kit stands on two projects, in two different roles:
-
-- **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** shaped *how* the
-  tool is built: an agent-first CLI whose instructions are installed as
-  agent skills, a deterministic `validate`, and a "fluid not rigid" workflow.
-  Like OpenSpec, ADR Kit
-  *steers* agents: session-visible skills rather than imposing hard phase
-  gates or mandating that every change be recorded.
-- **[deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)**
-  gave ADR Kit *what a record is*. Its **Agent Notes**: plain Markdown
-  with a `Status:` line, lifecycle folders
-  (`proposed` → `implemented` → `rejected`, plus a frozen archive), and a
-  `Problem` / `Proposal`·`Decision` / `Alternatives considered` /
-  `Consequences` skeleton: that is the direct ancestor of the ADR Kit record
-  format.
-
-Adapted, not copied. Accepted records carry a `N` number, `supersede`
-retires a decision in place, and `accept` mechanically rewrites a proposal
-into a decision. Records are immutable once accepted: a decision record is
-history, and current facts live in code, not in the record.
-
-## Philosophy
-
-- **The record is the source of truth.** Code comments rot, docs drift; an
-  ADR that says what was decided and what was given up stays useful.
-- **Alternatives are mandatory.** A decision recorded without what it beat
-  invites re-litigation.
-- **Lifecycle is mechanical, not editorial.** Promoting a draft and retiring
-  an accepted decision are commands (`accept`, `supersede`), and `validate`
-  enforces the resulting shape.
-- **Agents are first-class users.** The record is the interface: plain
-  Markdown with YAML front matter an agent reads directly, at predictable
-  paths, with `validate` as the machine check.
+[DeepSeek Harness Agent Notes](https://github.com/deepseek-ai/deepseek-harness) inspired the lifecycle directories and the distinction between proposed, implemented, rejected, and archived. ADR Kit keeps its own provenance fields, numbered decisions, validation, deliberation tree, and graph. OpenSpec is not part of ADR Kit's runtime or governance model.
 
 ## Development
 
@@ -284,4 +135,4 @@ npm run build
 
 ## License
 
-[MIT](https://github.com/luochang212/adr-kit/blob/main/LICENSE)
+MIT.

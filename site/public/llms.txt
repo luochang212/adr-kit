@@ -1,9 +1,8 @@
 # ADR Kit
 
 > ADR Kit is a command-line tool for Architecture Decision Records (ADRs).
-> It turns architecture decisions into plain Markdown files with a
-> machine-checkable lifecycle: decisions are durable records, proposals are
-> ephemeral drafts. Built for humans and AI coding assistants.
+> Plain Markdown records follow four lifecycle folders: proposed, implemented,
+> rejected, archived. Built for humans and AI coding assistants.
 
 ## Links
 
@@ -12,56 +11,40 @@
 - CLI reference: https://github.com/luochang212/adr-kit/blob/main/docs/cli.md
 - Record format: https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md
 - Workflow guide: https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md
-- Changelog: https://github.com/luochang212/adr-kit/blob/main/CHANGELOG.md
 
 ## Quick start
-
-Requires Node.js 20.19 or later.
 
 ```bash
 npm install -g adr-kit
 cd your-project
 adrkit init
-adrkit decide "Use SQLite for session storage" --raised-by human --decided-by human
+adrkit propose "Use SQLite for session storage"
+# Once shipped:
+adrkit implement "Use SQLite for session storage" --raised-by human --decided-by human
 adrkit validate
 ```
 
-`--raised-by` and `--decided-by` are both required on `decide` and `accept`,
-one value each per record: `raised-by` is who put the decision on the table,
-`decided-by` whose judgment settled it. For `decided-by`, use `human` when a
-person determined the direction (they stated it, changed a proposal into what
-shipped, or you are recording one they made earlier), `agent` when it came from
-the agent's own judgment, including when a person only let it through. The CLI
-neither infers nor verifies either; who redirected or approved belongs in the
-record body.
-
-To record a decision that still needs review, use `adrkit propose "<title>"`
-(a draft in `adr/.drafts/`), then `adrkit accept "<title>" --raised-by human --decided-by human`
-to promote it or `adrkit reject "<title>"` to discard it.
+Use `adrkit record "<title>" --raised-by human --decided-by human` for an
+already-shipped choice. Use `adrkit reject <name> --reason "<why>"` for a
+formally declined proposal. Full supersession archives the old implemented
+record; `adrkit archive <N> --reason "<current authority>"` retires other
+implemented records that no longer guide work.
 
 ## Key facts
 
-- Records are plain Markdown; the parser and validator are the format
-  contract.
-- Validation failures are success signals: a draft that `accept` refuses to
-  promote is missing a required section.
-- Drafts carry dates; decision numbers are assigned only at accept time.
-- A decision may carry an optional `## Deliberation` appendix, the design tree
-  behind it as a nested list where a follow-up question is nested under the
-  node that raised it; `adrkit tree <name>` renders it as text, `--mermaid` as
-  a graph, or `--html` as an offline interactive card tree.
-- The whole decision set renders as an offline decision map with
-  `adrkit graph --html`: one self-contained file with supersede and reference
-  edges grouped by creation date, marking the decisions that carry a
-  deliberation tree and linking each node to its record.
-- `adrkit-grill` questions and records decisions; `adrkit-visualize` renders
-  existing trees or the whole decision map and opens HTML in the default browser
-  on request, with a file link and a file-only opt-out.
-- Rejection is not a record: it lives in the winner's `Alternatives
-  considered`.
-- AI tool integrations (`adrkit init --tools`): agents (the default,
-  vendor-neutral `.agents/`) and claude (adds `.claude/` copies). `--tools none`
-  installs nothing.
-- Works alongside spec-driven tools like OpenSpec: OpenSpec tracks what is
-  being built; ADR Kit records why a direction was chosen.
+- `proposed/` and `rejected/` hold dated, unnumbered files; `implemented/`
+  and `archived/` hold stable numbered files.
+- A settled but unshipped direction remains proposed. There is no separate
+  local draft folder; Git distinguishes uncommitted work from shared proposals.
+- `adrkit validate` checks all four folders. Fresh templates intentionally fail
+  until required sections contain real content.
+- `raised-by` and `decided-by` are required on numbered decisions; each is
+  declared as `human` or `agent`. The CLI cannot infer provenance or verify
+  delivery.
+- `adrkit tree <name>` renders an optional `## Deliberation` design tree;
+  `adrkit graph --html` renders the numbered decision history.
+- At task start, list the inventory, read relevant implemented records in full,
+  check relevant proposals and rejections, and consult archives for history.
+- Integrations install in `.agents/` by default; `--tools claude` adds
+  `.claude/`, and `--tools none` installs nothing.
 - License: MIT. Single runtime dependency: yaml.

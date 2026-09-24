@@ -11,7 +11,7 @@ import { slugify } from '../core/slug.js';
  * `decidedBy` is the declaration the caller made for this decision: the CLI
  * cannot observe who chose, so the value travels in rather than being inferred.
  */
-export function decideCommand(
+export function recordCommand(
   title: string,
   cwd: string,
   decidedBy: DecidedBy,
@@ -27,9 +27,9 @@ export function decideCommand(
   const root = requireRoot(cwd);
   const number = nextDecisionNumber(root);
   const fileName = `${number}-${slugify(trimmed)}.md`;
-  const path = join(folderPath(root, 'decisions'), fileName);
+  const path = join(folderPath(root, 'implemented'), fileName);
   if (existsSync(path)) {
-    throw new Error(`decision already exists: adr/decisions/${fileName}`);
+    throw new Error(`decision already exists: adr/implemented/${fileName}`);
   }
   const content = decisionTemplate(
     number,
@@ -39,6 +39,6 @@ export function decideCommand(
     decidedBy,
     raisedBy,
   );
-  writeRecord(root, 'decisions', fileName, content);
-  return `created adr/decisions/${fileName}\n\nfill in the decision and validate it with:\n  adrkit validate ${number}`;
+  writeRecord(root, 'implemented', fileName, content);
+  return `created adr/implemented/${fileName}\n\nfill in the shipped decision and validate it with:\n  adrkit validate ${number}`;
 }

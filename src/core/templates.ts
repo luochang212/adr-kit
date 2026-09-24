@@ -9,7 +9,7 @@ import {
   type RaisedBy,
 } from './adr.js';
 
-/** Proposal sections that survive the mechanical accept rewrite. */
+/** Proposal sections that survive the mechanical implementation rewrite. */
 const PRESERVED_SECTIONS = [
   'Problem',
   'Proposal',
@@ -19,7 +19,7 @@ const PRESERVED_SECTIONS = [
 ];
 
 /**
- * Proposal-era leftovers the accept rewrite cannot fold anywhere. The full
+ * Proposal-era leftovers the implementation rewrite cannot fold anywhere. The full
  * PROPOSAL_ERA_HEADINGS set is wider (it also names Proposal/Acceptance
  * criteria/Risks, which the rewrite folds into Decision/Consequences); only
  * these headings are genuinely dropped, with a warning.
@@ -30,7 +30,7 @@ const DROPPED_SECTION_HEADINGS = PROPOSAL_ERA_HEADINGS.filter(
 
 /**
  * 把 config.yaml 的 context 注入模板：放在标题块之后、第一个 section 之前。
- * 解析器忽略游离文本（current 为 null 时不收集），accept 的机械改写也会
+ * 解析器忽略游离文本（current 为 null 时不收集），implement 的机械改写也会
  * 丢弃它。注释只在草案期可见，正是写作者需要项目上下文的时刻。
  */
 function contextBlock(context?: string | null): string {
@@ -48,8 +48,7 @@ type FrontMatterValue = string | number | string[];
 
 /**
  * Render a YAML front matter block. Fields are written in the canonical
- * order (status, date, raised-by, decided-by, created, commit, superseded-by,
- * reason, tags); only the fields
+ * order from FRONT_MATTER_ORDER; only the fields
  * present in `fields` are emitted.
  */
 export function frontMatter(fields: Record<string, FrontMatterValue>): string {
@@ -102,7 +101,7 @@ export function decisionTemplate(
   raisedBy: RaisedBy,
 ): string {
   const fields: Record<string, string | number> = {
-    status: 'accepted',
+    status: 'implemented',
     date: todayStamp(),
     created: todayStamp(),
     'raised-by': raisedBy,
@@ -132,14 +131,14 @@ ${contextBlock(context)}## Problem
 }
 
 /**
- * Convert a draft proposal into an accepted decision using the same mechanical
+ * Convert a proposal into an implemented decision using the mechanical
  * rewrite the format requires: Proposal becomes Decision, and the
  * acceptance criteria and risks are folded into Consequences. `commit` anchors
  * the decision to the code state it was recorded against.
  *
  * `decidedBy` is the declaration made for the promoted decision, not the
- * draft's: the front matter below is rebuilt from a fixed field map, so a
- * `decided-by` key written by hand into a draft has no path into the decision.
+ * proposal's: the front matter below is rebuilt from a fixed field map, so a
+ * `decided-by` key written by hand into a proposal has no path into the decision.
  * It is required for the same reason the skeleton requires it: every durable
  * record has to name where the choice came from.
  */
@@ -178,7 +177,7 @@ export function proposalToDecision(
   );
 
   const fields: Record<string, FrontMatterValue> = {
-    status: 'accepted',
+    status: 'implemented',
     date: todayStamp(),
     // The decision inherits the proposal's birth date: created is stamped
     // once, at propose time, and survives the promotion.
@@ -220,7 +219,7 @@ function sectionBody(record: AdrRecord, heading: string): string {
 }
 
 /**
- * Proposal sections that have no place in an accepted decision and would be
+ * Proposal sections that have no place in an implemented decision and would be
  * silently discarded by `proposalToDecision`. Only proposal-era leftovers
  * (for example `Plan`, `Migration plan`) qualify; every other extra section
  * is carried through the rewrite. Callers should surface these so a
@@ -237,7 +236,7 @@ export function droppedSections(proposal: AdrRecord): string[] {
  * block, merge `patch` over it, and re-emit the fields in canonical order.
  * Supersede stamps only the retiring record and its immediate successor link;
  * earlier records keep their historical links when the chain grows.
- * Every non-creating move (accept, reject, supersede) must stamp the date so
+ * Every lifecycle move (implement, reject, archive, supersede) must stamp the date so
  * the front matter always reflects the current status; the Markdown body is
  * left untouched. Only canonical fields survive: a key outside
  * `FRONT_MATTER_ORDER` is dropped rather than copied through, because writing

@@ -6,7 +6,7 @@ const OPTION_DESCRIPTIONS: Record<string, string> = {
   '--by': 'the decision that replaces this one',
   '--decided-by': 'whose judgment settled the decision',
   '--raised-by': 'who raised the decision',
-  '--reason': 'why the draft is discarded',
+  '--reason': 'why this record changes lifecycle',
   '--tag': 'filter to one theme',
   '--out': 'write the output to this file',
   '--tools': 'AI tools to install integrations for',
@@ -40,7 +40,7 @@ export function completionCommand(shell: string): string {
 
   case "$prev" in
     --decided-by|--raised-by)
-      if [[ "$command" == "decide" || "$command" == "accept" ]]; then
+      if [[ "$command" == "record" || "$command" == "implement" ]]; then
         COMPREPLY=( $(compgen -W "${DECIDED_BY_VALUES.join(' ')}" -- "$cur") )
       else
         # The flag is not accepted here, so its values are not candidates.
@@ -117,9 +117,9 @@ _adrkit "$@"
         '\n' +
         // `-x` requires the value and suppresses file candidates; both
         // declarations live on one line with the two values as `-a`.
-        `complete -c adrkit -n "__fish_seen_subcommand_from decide accept" -l raised-by -x -a "${DECIDED_BY_VALUES.join(' ')}"` +
+        `complete -c adrkit -n "__fish_seen_subcommand_from record implement" -l raised-by -x -a "${DECIDED_BY_VALUES.join(' ')}"` +
         '\n' +
-        `complete -c adrkit -n "__fish_seen_subcommand_from decide accept" -l decided-by -x -a "${DECIDED_BY_VALUES.join(' ')}"` +
+        `complete -c adrkit -n "__fish_seen_subcommand_from record implement" -l decided-by -x -a "${DECIDED_BY_VALUES.join(' ')}"` +
         '\n'
       );
     default:
