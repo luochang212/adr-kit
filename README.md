@@ -50,11 +50,11 @@ adr/
 └── archived/       # numbered, frozen history
 ```
 
-An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` retains every formal rejection. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active.
+An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` retains every formal rejection. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active. Both moves seal the archived file in `adr/archived/MANIFEST.json`; `adrkit validate` checks the seal and `adrkit validate --base <git-ref>` proves the archive only grows.
 
 ## Tell your agent
 
-Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`, read relevant implemented records in full, check relevant proposed and rejected records, and use archives for history. Do not filter by title alone. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills.
+Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`, read relevant implemented records in full, check relevant proposed and rejected records, and use archives for history. Do not filter by title alone. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code.
 
 ## Commands
 
@@ -70,7 +70,7 @@ adrkit list
 adrkit show <name>
 adrkit status
 adrkit instructions
-adrkit validate [name] [--all]
+adrkit validate [name] [--all] [--base <git-ref>]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]

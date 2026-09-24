@@ -43,3 +43,23 @@ unique lowercase kebab-case keywords; optional `## Deliberation` preserves
 the design tree. `adrkit validate` checks all four directories and rejects
 duplicate numbers, malformed dates, mismatched folder/status pairs, and
 dangling ADR references.
+
+## Archive manifest
+
+`adr/archived/MANIFEST.json` seals the archive. It is a versioned JSON file
+(`{"version": 1, "entries": [...]}`) with one entry per archived record,
+appended in archival order:
+
+```json
+{ "path": "5-adopt-the-annotated-deliberation-grammar.md", "sha256": "<64 hex characters>" }
+```
+
+`sha256` is the hash of the archived file's complete bytes. `adrkit archive`
+and `adrkit supersede` append the seal; a path is never sealed twice, and an
+existing seal is never rewritten. `adrkit validate` fails on a missing,
+malformed, duplicate, or extra entry, a missing archived file, and archived
+bytes that no longer match their seal — restore the sealed bytes rather than
+re-sealing edited content. `adrkit validate --base <git-ref>` reads the
+manifest and sealed files from Git and requires every entry sealed at the
+base to survive unchanged as a prefix of the current manifest, so a
+coordinated edit of an archived file and its hash still fails.

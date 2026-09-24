@@ -44,7 +44,7 @@ export const COMMAND_OPTIONS: Record<string, string[]> = {
   show: ['--help'],
   status: ['--help'],
   instructions: ['--help'],
-  validate: ['--all', '--help'],
+  validate: ['--all', '--base', '--help'],
   update: ['--tools', '--workflows', '--help'],
   config: ['--help'],
   graph: ['--mermaid', '--dot', '--text', '--html', '--formal-only', '--tag', '--out', '--help'],
@@ -59,7 +59,7 @@ export const COMMAND_OPTIONS: Record<string, string[]> = {
  * valueless would make every shell treat them as flags, so completion would
  * repeat the option list where the CLI expects free text.
  */
-export const VALUE_OPTIONS = ['--by', '--reason', '--tag', '--tools', '--workflows', '--out'] as const;
+export const VALUE_OPTIONS = ['--base', '--by', '--reason', '--tag', '--tools', '--workflows', '--out'] as const;
 
 export function takesValue(option: string): boolean {
   return (VALUE_OPTIONS as readonly string[]).includes(option);

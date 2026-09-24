@@ -48,7 +48,8 @@ Usage:
   adrkit show <name>                         Show a record
   adrkit status                              Show lifecycle counts and validity
   adrkit instructions                        Print the next workflow step
-  adrkit validate [name] [--all]             Validate one record or the whole repo
+  adrkit validate [name] [--all] [--base <git-ref>]
+                                           Validate one record or the whole repo
   adrkit update [--tools <list>] [--workflows <list>]
                                            Rewrite AI tool integrations
   adrkit config                              Print the current configuration
@@ -80,6 +81,7 @@ export function main(argv: string[]): void {
     tokens: true,
     options: {
       all: { type: 'boolean', default: false },
+      base: { type: 'string' },
       by: { type: 'string' },
       'decided-by': { type: 'string' },
       'raised-by': { type: 'string' },
@@ -258,7 +260,7 @@ export function main(argv: string[]): void {
         return;
       }
       case 'validate': {
-        const result = validateCommand(process.cwd(), values.all ? undefined : rest[0]);
+        const result = validateCommand(process.cwd(), values.all ? undefined : rest[0], values.base);
         console.log(result.output);
         if (result.valid === false) process.exitCode = 1;
         return;

@@ -8,6 +8,7 @@ import {
 } from 'node:fs';
 import { basename, dirname, join, posix, relative, resolve } from 'node:path';
 import { ADR_DIR, CONFIG_FILE, configPath } from './config.js';
+import { emptyArchiveManifest, writeArchiveManifest } from './archive-seal.js';
 import { parseAdrFile, type AdrFolder, type AdrRecord } from './adr.js';
 
 /** Lifecycle folders are the repository inventory. */
@@ -54,7 +55,9 @@ Records follow the lifecycle folders proposed/, implemented/, rejected/, and
 archived/. A proposal is unshipped even when its direction has been settled.
 Implemented records describe shipped decisions and receive stable ADR numbers.
 Every formally rejected proposal remains in rejected/ with its reason.
-Archived records are frozen history, not current authority.
+Archived records are frozen history, not current authority. Each one is
+sealed in adr/archived/MANIFEST.json; adrkit validate checks the seal, and
+adrkit validate --base <git-ref> proves the archive only grows.
 
 Never delete a numbered decision: its stable N may be referenced elsewhere.
 Implemented records may refresh factual paths, symbols, and defaults, but a
@@ -97,6 +100,11 @@ export function initRepository(targetDir: string, tools: string[] = [], workflow
   const config = configPath(root);
   writeFileSync(config, initConfig(tools, workflows));
   created.push(`${ADR_DIR}/${CONFIG_FILE}`);
+
+  // The archive seal starts empty: archive and supersede append entries as
+  // records retire, and validate checks the manifest against archived bytes.
+  writeArchiveManifest(root, emptyArchiveManifest());
+  created.push(`${ADR_DIR}/archived/MANIFEST.json`);
 
   const readme = join(adrRoot, 'README.md');
   writeFileSync(readme, INIT_README);

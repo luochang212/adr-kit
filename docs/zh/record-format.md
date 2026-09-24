@@ -34,3 +34,21 @@ implemented 决策写 `archived` 和 `archive-reason`；原 `status` 保留
 implemented，表示历史上的交付状态。编号始终稳定。可选 `tags` 必须为不重复
 的小写 kebab-case；可选 `## Deliberation` 保留思辨树。`adrkit validate`
 检查四个目录、编号重复、日期、目录与状态匹配、悬空引用等。
+
+## 归档封存清单
+
+`adr/archived/MANIFEST.json` 封存归档目录。它是带版本号的 JSON 文件
+（`{"version": 1, "entries": [...]}`），每条归档记录一个条目，按归档顺序
+追加：
+
+```json
+{ "path": "5-adopt-the-annotated-deliberation-grammar.md", "sha256": "<64 位十六进制>" }
+```
+
+`sha256` 是归档文件完整字节的哈希。`adrkit archive` 和 `adrkit supersede`
+负责追加封存；同一路径永不二次封存，已有封存永不改写。`adrkit validate`
+会对缺失、格式错误、重复或多余的条目、缺失的归档文件、以及与封存不符的
+归档字节报错——应恢复被封存的字节，而不是给改过的内容重新封存。
+`adrkit validate --base <git-ref>` 从 Git 读取 base 的清单与归档文件，
+要求 base 已封存的每个条目原样保留为当前清单的前缀，因此同时改写归档
+文件与其哈希仍会失败。

@@ -21,7 +21,12 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
+      # Full history: base-aware archive validation reads the manifest and
+      # sealed files at the comparison commit, which a shallow checkout of
+      # the merge commit cannot see.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
@@ -35,6 +40,24 @@ jobs:
       # in CI too, not only on contributor machines. Runs after build: the bin
       # entry loads dist/.
       - run: node bin/adrkit.js validate --all
+      # Append-only history is a diff property: a coordinated edit of an
+      # archived file and its hash passes current-tree validation, so the
+      # archive is also checked against the actual review base rather than an
+      # assumed HEAD^. New branches and force-pushes report a zero "before"
+      # sha and have no comparison commit to protect.
+      - name: validate archive history against the comparison commit
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "no comparison commit; current-tree validation already ran"
+            exit 0
+          fi
+          node bin/adrkit.js validate --all --base "$BASE"
 
   upstream:
     name: upstream grilling

@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -6,6 +6,7 @@ import { initCommand } from '../src/commands/init.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { implementCommand } from '../src/commands/implement.js';
 import { validateCommand } from '../src/commands/validate.js';
+import { sealBytes, writeArchiveManifest } from '../src/core/archive-seal.js';
 import { folderPath, listProposals } from '../src/core/repository.js';
 import { formatIssues, validateProposal } from '../src/core/validate.js';
 
@@ -16,6 +17,22 @@ function makeRepo(): string {
   tempDirs.push(dir);
   initCommand(dir);
   return dir;
+}
+
+/**
+ * Seal every archived record currently on disk. Fixtures hand-write archived
+ * files, but the contract requires each one to carry a manifest seal, so a
+ * test asserting valid output seals its archive first.
+ */
+function sealArchive(root: string): void {
+  const dir = folderPath(root, 'archived');
+  const entries = existsSync(dir)
+    ? readdirSync(dir)
+        .filter((file) => file.endsWith('.md'))
+        .sort()
+        .map((file) => ({ path: file, sha256: sealBytes(readFileSync(join(dir, file))) }))
+    : [];
+  writeArchiveManifest(root, { version: 1, entries });
 }
 
 function decision(title: string, fields: Record<string, string | number>): string {
@@ -220,6 +237,7 @@ Body.
       archivedDecision('2 Second', 3),
     );
     writeFileSync(join(folderPath(root, 'implemented'), '3-third.md'), decision('3 Third', ACCEPTED));
+    sealArchive(root);
     const result = validateCommand(root, '1');
     expect(result.valid).toBe(true);
   });
@@ -234,6 +252,7 @@ Body.
       join(folderPath(root, 'implemented'), '2-second.md'),
       decision('2 Second', ACCEPTED),
     );
+    sealArchive(root);
     expect(validateCommand(root, '1').valid).toBe(true);
   });
 
@@ -721,6 +740,7 @@ describe('supersession chain integrity', () => {
           decision(`${n} Record`, fields));
       }
     }
+    sealArchive(root);
     expect(validateCommand(root).valid).toBe(true);
     expect(validateCommand(root, '1').valid).toBe(true);
     expect(validateCommand(root, '2').valid).toBe(true);

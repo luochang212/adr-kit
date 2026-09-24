@@ -24,10 +24,33 @@ work.
    replacement leaves still-relevant guidance active. `adrkit archive <N>
    --reason "<current authority>"` retires other low-guidance implemented
    records when current behavior has another owner. Never archive by age.
-5. `adrkit validate` checks all four directories. Fresh templates fail until
-   required sections are filled. `adrkit graph --html` visualizes numbered
-   decisions and their history; `adrkit tree <name> --html` renders an
-   optional `## Deliberation` appendix.
+   Both commands seal the final archived file in `adr/archived/MANIFEST.json`;
+   a sealed record is never edited again.
+5. `adrkit validate` checks all four directories and the archive seal.
+   `adrkit validate --base <git-ref>` additionally proves the archive only
+   grew since that ref, which CI runs against the PR base or push head.
+   Fresh templates fail until required sections are filled.
+   `adrkit graph --html` visualizes numbered decisions and their history;
+   `adrkit tree <name> --html` renders an optional `## Deliberation` appendix.
+
+## Keep records and shipped code aligned
+
+Creating, shipping, and reviewing are one governance loop:
+
+- **Before creating** a proposal or record, search the active records for the
+  same choice or mechanism. Judge overlap from content, not titles or tags.
+  Extend a duplicate; fully replace through `adrkit supersede --by` in the
+  same change; link a partial overlap while the older record stays active.
+- **When shipping**, compare the record's claimed paths, names, defaults, and
+  mechanisms with the current code and tests, and state shipped facts rather
+  than proposal-era intent. If a code change alters only the realization of
+  an active decision, update those facts in that record; a changed choice is
+  a new record with an explicit relationship.
+- **When reviewing**, the `adrkit-review` workflow checks changed records
+  against changed code, searches for stale realization facts and unresolved
+  supersession, and reports evidence-backed findings. It is scoped to
+  decision-record coherence, not general code review, and finding no issue is
+  a valid result.
 
 ## Read decisions before coding
 

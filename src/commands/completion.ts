@@ -3,6 +3,7 @@ import { COMMANDS, COMMAND_OPTIONS, takesValue, VALUE_OPTIONS } from '../core/cl
 
 /** Short descriptions for the shells that show one next to an option. */
 const OPTION_DESCRIPTIONS: Record<string, string> = {
+  '--base': 'git ref the archive history must have grown from',
   '--by': 'the decision that replaces this one',
   '--decided-by': 'whose judgment settled the decision',
   '--raised-by': 'who raised the decision',

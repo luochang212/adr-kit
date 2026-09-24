@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "path": "5-adopt-the-annotated-deliberation-grammar-and-a-rendered-tree-view.md",
+      "sha256": "5441ba454febfe6ea7d3c3a1f99ecf9e19b37d68c081794b10c3c1727f71834d"
+    },
+    {
+      "path": "6-record-frontier-rounds-in-the-deliberation-tree.md",
+      "sha256": "3afdde78effb1e2b0e38dd8fa36e5d111555caea4ef63056fef33d618f5bde4e"
+    }
+  ]
+}

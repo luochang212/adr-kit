@@ -5,7 +5,7 @@
 
 | 命令 | 作用 |
 | --- | --- |
-| `adrkit init [path] [--tools <list>] [--workflows <list>]` | 创建四个生命周期目录、配置、README 和集成 |
+| `adrkit init [path] [--tools <list>] [--workflows <list>]` | 创建四个生命周期目录、配置、归档封存清单、README 和集成 |
 | `adrkit propose <title>` | 创建按日期命名、未编号的未交付提案 |
 | `adrkit implement <name> --raised-by <human\|agent> --decided-by <human\|agent>` | 交付后提升提案并分配稳定编号 |
 | `adrkit record <title> --raised-by <human\|agent> --decided-by <human\|agent>` | 直接记录已交付选择 |
@@ -16,7 +16,7 @@
 | `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录 |
 | `adrkit status` | 显示各目录数量与校验状态 |
 | `adrkit instructions` | 显示待办提案与下一步 |
-| `adrkit validate [name] [--all]` | 校验单条或整个仓库 |
+| `adrkit validate [name] [--all] [--base <git-ref>]` | 校验单条记录、整个仓库，或归档的只增不改历史 |
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
 | `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | 可视化编号决策及历史 |
@@ -30,3 +30,5 @@
 二者都不是 CLI 推断。`reject` 与 `archive` 必须提供 `--reason`。
 CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` 在默认
 `.agents/` 之外增加 `.claude/` 副本；`--tools none` 不安装集成。
+`validate --base` 只支持整仓校验——与单条记录查询同用会被拒绝；base 引用
+无法读取时会报出可操作的错误。

@@ -5,7 +5,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 
 | Command | Purpose |
 | --- | --- |
-| `adrkit init [path] [--tools <list>] [--workflows <list>]` | Create four lifecycle directories, config, README, and integrations |
+| `adrkit init [path] [--tools <list>] [--workflows <list>]` | Create four lifecycle directories, config, archive manifest, README, and integrations |
 | `adrkit propose <title>` | Create dated, unnumbered unshipped proposal |
 | `adrkit implement <name> --raised-by <human\|agent> --decided-by <human\|agent>` | Promote a shipped proposal; assign stable ADR number |
 | `adrkit record <title> --raised-by <human\|agent> --decided-by <human\|agent>` | Record an already-shipped choice |
@@ -16,7 +16,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | `adrkit show <name>` | Show a record by title, filename, slug, or ADR number |
 | `adrkit status` | Count lifecycle folders and report validity |
 | `adrkit instructions` | Show pending proposals and the next valid action |
-| `adrkit validate [name] [--all]` | Validate one record or the whole repository |
+| `adrkit validate [name] [--all] [--base <git-ref>]` | Validate one record, the whole repository, or the archive's append-only history |
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
 | `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | Visualize numbered decision history |
@@ -31,4 +31,7 @@ a shipped choice; `--decided-by` says whose judgment settled it. Both are
 declarations, not CLI inferences. `--reason` is required for rejection and
 archival. The CLI cannot verify that code shipped or another authoritative
 owner exists. `--tools claude` adds `.claude/` copies alongside the default
-`.agents/`; `--tools none` installs no integrations.
+`.agents/`; `--tools none` installs no integrations. `validate --base`
+requires repository-wide validation — it is refused together with a
+single-record query — and fails with an actionable error when the base ref
+cannot be read.

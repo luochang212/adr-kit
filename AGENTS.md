@@ -23,6 +23,16 @@ A `## Deliberation` appendix records the design tree behind a decision. It is
 reference material: read it only when that decision is in play, not on every
 task.
 
+Before creating any record, compare it with the active records covering the
+same choice or mechanism: extend a duplicate, fully replace through
+`adrkit supersede --by` in the same change, or link a partial overlap while
+the older record stays active. When shipping or reviewing, keep each active
+record's realization facts — paths, names, defaults — aligned with shipped
+code; a changed choice is a new record with an explicit relationship, not a
+rewrite of old rationale. Archived records are sealed in
+`adr/archived/MANIFEST.json` and never edited; `adrkit validate --base
+<git-ref>` proves the archive only grows.
+
 Record an ADR when an architectural choice will constrain future development
 and its rationale is not apparent from code alone. Record only decisions
 actually made and genuine alternatives and trade-offs; do not invent reasons

@@ -46,6 +46,9 @@ export type AdrFolder = 'proposed' | 'implemented' | 'rejected' | 'archived';
 /** Canonical front matter field order; only fields that exist are written. */
 export const FRONT_MATTER_ORDER = ['status', 'date', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'archived', 'archive-reason', 'tags'] as const;
 
+/** File name of a numbered record in implemented/ or archived/: `N-slug.md`. */
+export const NUMBERED_FILE_NAME_PATTERN = /^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/;
+
 /** Sections that only make sense during the proposal era and must not appear in an implemented decision. */
 export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
 

@@ -226,6 +226,7 @@ describe('workflow subsets for tool integrations', () => {
       'record',
       'validate',
       'implement',
+      'review',
       'reject',
       'archive',
       'supersede',
@@ -358,7 +359,10 @@ rules:
   it('propose workflow guides a supersession check', () => {
     const propose = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-propose');
     expect(propose?.body).toContain('adrkit list');
-    expect(propose?.body).toContain('read relevant records');
+    expect(propose?.body).toContain('search the active records');
+    expect(propose?.body).toContain('Full replacement');
+    expect(propose?.body).toContain('Partial replacement');
+    expect(propose?.body).toContain('adrkit supersede --by');
   });
 
   it('decision-point workflows require re-querying the repo state', () => {
