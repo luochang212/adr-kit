@@ -22,8 +22,8 @@ function makeRepo(): string {
   return dir;
 }
 
-/** propose → fill → accept，返回 slug。两个来源默认 human，agent 分支显式传入。 */
-function acceptDecision(
+/** propose → fill → implement，返回 slug。两个来源默认 human，agent 分支显式传入。 */
+function implementDecision(
   root: string,
   title: string,
   decidedBy: 'human' | 'agent' = 'human',
@@ -74,8 +74,8 @@ afterEach(() => {
 describe('supersedeCommand', () => {
   it('rewrites the front matter and archives the old record', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
 
     const message = supersedeCommand('1', '2', root);
     expect(message).toMatch(/superseded adr\/implemented\/1-.+ by adr\/implemented\/2-.+/);
@@ -97,8 +97,8 @@ describe('supersedeCommand', () => {
 
   it('counts archived records separately in status', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
     supersedeCommand('1', '2', root);
 
     const output = statusCommand(root).output;
@@ -108,8 +108,8 @@ describe('supersedeCommand', () => {
 
   it('annotates superseded records in the text listing', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
     supersedeCommand('1', '2', root);
 
     expect(listCommand(root)).toContain('[superseded by 2]');
@@ -117,36 +117,36 @@ describe('supersedeCommand', () => {
 
   it('refuses to supersede a proposal', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use Postgres');
     proposeCommand('Use SQLite', root);
     expect(() => supersedeCommand('use-sqlite', '1', root)).toThrow('must be an implemented decision');
   });
 
   it('refuses to supersede with a missing decision', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use SQLite');
     expect(() => supersedeCommand('1', '9999', root)).toThrow('no ADR matches');
   });
 
   it('refuses self-supersede', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use SQLite');
     expect(() => supersedeCommand('1', '1', root)).toThrow('cannot supersede itself');
   });
 
   it('refuses to supersede an already-superseded decision', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
     supersedeCommand('1', '2', root);
     expect(() => supersedeCommand('1', '2', root)).toThrow('already superseded by 2');
   });
 
   it('refuses superseding with an already-superseded decision', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
-    acceptDecision(root, 'Use Spanner');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use Spanner');
     supersedeCommand('2', '3', root);
     expect(() => supersedeCommand('1', '2', root)).toThrow('must be an implemented decision');
   });
@@ -199,8 +199,8 @@ Some risk.
 
   it('keeps tags when a decision is superseded', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
     const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     writeFileSync(path, readFileSync(path, 'utf8').replace(/^(created:.*)$/m, '$1\ntags: [storage]'));
     supersedeCommand('1', '2', root);
@@ -242,12 +242,12 @@ Some risk.
 
   it('records the declaration made at promotion, not the draft', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use SQLite');
     expect(readFileSync(join(root, 'adr', 'implemented', '1-use-sqlite.md'), 'utf8')).toContain(
       'decided-by: human',
     );
 
-    acceptDecision(root, 'Use Postgres', 'agent');
+    implementDecision(root, 'Use Postgres', 'agent');
     expect(readFileSync(join(root, 'adr', 'implemented', '2-use-postgres.md'), 'utf8')).toContain(
       'decided-by: agent',
     );
@@ -275,8 +275,8 @@ Some risk.
 
   it('preserves declared origins across supersede', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres', 'agent');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres', 'agent');
     supersedeCommand('1', '2', root);
 
     const frontMatter = (file: string): string => {
@@ -296,7 +296,7 @@ Some risk.
 describe('validate superseded references', () => {
   it('flags a dangling superseded-by reference', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use SQLite');
     const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     const content = readFileSync(path, 'utf8');
     writeFileSync(path, content.replace('status: implemented', 'status: superseded\nsuperseded-by: 9999'));
@@ -308,9 +308,9 @@ describe('validate superseded references', () => {
 
   it('allows successive replacements without rewriting ancestors', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
-    acceptDecision(root, 'Use Spanner');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use Spanner');
     supersedeCommand('1', '2', root);
     const ancestor = join(root, 'adr', 'archived', '1-use-sqlite.md');
     const before = readFileSync(ancestor, 'utf8');
@@ -326,8 +326,8 @@ describe('validate superseded references', () => {
 describe('supersede target and record integrity', () => {
   it('refuses when the retiring record has an unknown front matter key', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
     const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     const tampered = readFileSync(path, 'utf8').replace('---\n', '---\nunknown-key: keep-me\n');
     writeFileSync(path, tampered);
@@ -339,8 +339,8 @@ describe('supersede target and record integrity', () => {
 
   it('refuses a replacement whose status is not implemented', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
     const path = join(root, 'adr', 'implemented', '2-use-postgres.md');
     writeFileSync(path, readFileSync(path, 'utf8').replace('status: implemented', 'status: proposed'));
 
@@ -349,8 +349,8 @@ describe('supersede target and record integrity', () => {
 
   it('preserves tags and provenance across the retirement', () => {
     const root = makeRepo();
-    acceptDecision(root, 'Use SQLite');
-    acceptDecision(root, 'Use Postgres');
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
     const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     writeFileSync(
       path,

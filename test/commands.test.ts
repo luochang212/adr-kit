@@ -40,7 +40,7 @@ function pendingDraftPath(root: string): string {
   return draftPath(root, draft.fileName);
 }
 
-/** Fill the sole pending draft with real content so `accept` can promote it. */
+/** Fill the sole pending draft with real content so `implement` can promote it. */
 function fillDraft(root: string): string {
   const file = pendingDraftPath(root);
   const content = `---
@@ -200,14 +200,14 @@ describe('the CLI requires an explicit declaration', () => {
     }
   }
 
-  it('refuses decide without --decided-by', () => {
+  it('refuses record without --decided-by', () => {
     const root = makeRepo();
     const { message, exitCode } = runMain(['record', 'Use SQLite'], root);
     expect(message).toContain('--decided-by is required');
     expect(exitCode).toBe(1);
   });
 
-  it('refuses accept without --decided-by', () => {
+  it('refuses implement without --decided-by', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
     const { message, exitCode } = runMain(['implement', 'Use SQLite'], root);
@@ -249,14 +249,14 @@ describe('the CLI requires an explicit declaration', () => {
     expect(exitCode).toBe(1);
   });
 
-  it('refuses decide without --raised-by once --decided-by is given', () => {
+  it('refuses record without --raised-by once --decided-by is given', () => {
     const root = makeRepo();
     const { message, exitCode } = runMain(['record', 'Use SQLite', '--decided-by', 'human'], root);
     expect(message).toContain('--raised-by is required');
     expect(exitCode).toBe(1);
   });
 
-  it('refuses accept without --raised-by once --decided-by is given', () => {
+  it('refuses implement without --raised-by once --decided-by is given', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
     const { message, exitCode } = runMain(['implement', 'Use SQLite', '--decided-by', 'human'], root);
@@ -272,7 +272,7 @@ describe('the CLI requires an explicit declaration', () => {
   });
 });
 
-describe('propose and accept', () => {
+describe('propose and implement', () => {
   it('requires removing a draft-supplied declaration before promotion', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
@@ -525,7 +525,7 @@ Body.
   });
 });
 
-describe('decide and show', () => {
+describe('record and show', () => {
   it('creates an implemented decision directly', () => {
     const root = makeRepo();
     recordCommand('Use SQLite', root, 'human', 'human');

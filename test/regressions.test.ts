@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 describe('regressions', () => {
-  it('shows implemented implemented without duplicating the number', () => {
+  it('shows an implemented record without duplicating the number', () => {
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'implemented'), '1-use-sqlite.md'),

@@ -16,8 +16,8 @@ ADR 8 and ADR 9 made file-link delivery the default and required a separate
 request to open a browser. After receiving the all-decision map, the maintainer
 explicitly asked that future visualization requests proactively open it. This
 amends only ADR 8 and ADR 9's delivery policy; their rendering and routing
-decisions remain accepted and are retained below. The older records stay
-accepted because this is a partial amendment, not replacement of those views.
+decisions remain implemented and are retained below. The older records stay
+implemented because this is a partial amendment, not replacement of those views.
 
 ## Decision
 

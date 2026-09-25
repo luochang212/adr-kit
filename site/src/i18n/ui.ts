@@ -33,7 +33,7 @@ const ui = {
 
     'stats.1.value': '1',
     'stats.1.label': 'directory in your repo',
-    'stats.2.value': "10",
+    'stats.2.value': "11",
     'stats.2.label': 'workflow skills',
     'stats.3.value': '0',
     'stats.3.label': 'dependencies added to your repo',
@@ -110,7 +110,7 @@ const ui = {
 
     'stats.1.value': '1',
     'stats.1.label': '只占用一个目录',
-    'stats.2.value': "10",
+    'stats.2.value': "11",
     'stats.2.label': '个工作流技能',
     'stats.3.value': '0',
     'stats.3.label': '给你仓库新增的依赖',

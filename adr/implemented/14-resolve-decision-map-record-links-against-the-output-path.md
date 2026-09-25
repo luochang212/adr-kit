@@ -12,8 +12,9 @@ tags: [visualization, decision-graph, delivery]
 ## Problem
 
 Each node of the decision map links to its record with a repository-relative
-path (`adr/decisions/8-….md`), which the browser resolves from the HTML file's
-own directory. Nothing had settled where that file goes: `adrkit graph --html`
+path (`adr/implemented/8-….md`; `adr/decisions/…` before ADR 18), which the
+browser resolves from the HTML file's own directory. Nothing had settled where
+that file goes: `adrkit graph --html`
 emitted the map to stdout, the visualize skill told the agent to write it to the
 user's location or a temporary directory, and the two disagreed. Delivered to a
 temporary directory, the map drew correctly while every card led to a

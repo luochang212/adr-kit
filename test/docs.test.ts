@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { COMMAND_OPTIONS, COMMANDS } from '../src/core/cli-options.js';
+import { WORKFLOWS } from '../src/core/tool-integrations.js';
 
 function read(relative: string): string {
   return readFileSync(fileURLToPath(new URL(`../${relative}`, import.meta.url)), 'utf8');
@@ -66,6 +67,37 @@ describe('agent-facing front door', () => {
       expect(COMMANDS as readonly string[]).toContain(match[1]);
     }
     expect(document).not.toContain('adr/.drafts/');
+  });
+
+  it('site stats count the installed workflow skills in both languages', () => {
+    const copy = read('site/src/i18n/ui.ts');
+    const values = [...copy.matchAll(/'stats\.2\.value': "(\d+)"/g)].map((match) => match[1]);
+    expect(values).toHaveLength(2);
+    for (const value of values) expect(value).toBe(String(WORKFLOWS.length));
+  });
+
+  it('site ui defines the same keys in both languages', () => {
+    const copy = read('site/src/i18n/ui.ts');
+    const block = (lang: string) => {
+      const start = copy.indexOf(`\n  ${lang}: {`);
+      const end = copy.indexOf('\n  },', start);
+      return copy.slice(start, end);
+    };
+    const keys = (text: string) => new Set([...text.matchAll(/^    '([^']+)':/gm)].map((match) => match[1]));
+    const en = keys(block('en'));
+    const zh = keys(block('zh'));
+    expect([...en].filter((key) => !zh.has(key))).toEqual([]);
+    expect([...zh].filter((key) => !en.has(key))).toEqual([]);
+  });
+
+  it('the README and social banners show the four-folder lifecycle', () => {
+    const oldStrip = 'draft <tspan fill="#22D3EE">&#8594;</tspan> accepted <tspan fill="#22D3EE">&#8594;</tspan> superseded';
+    const newStrip = 'proposed <tspan fill="#22D3EE">&#8594;</tspan> implemented <tspan fill="#22D3EE">&#8594;</tspan> archived';
+    for (const file of ['assets/readme-banner.svg', 'assets/social-preview.svg']) {
+      const svg = read(file);
+      expect(svg, file).toContain(newStrip);
+      expect(svg, file).not.toContain(oldStrip);
+    }
   });
 
   it('site copy agrees in both languages about the four folders and targets', () => {

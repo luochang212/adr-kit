@@ -164,7 +164,7 @@ Body.
     expect(result.output).toContain('duplicate decision number');
   });
 
-  it('rejects proposal-era headings in implemented implemented', () => {
+  it('rejects proposal-era headings in implemented records', () => {
     const root = makeRepo();
     const content = `---
 status: implemented

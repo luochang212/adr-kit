@@ -11,8 +11,8 @@ const stats = [1, 2, 3, 4] as const;
   <div class="stats__inner reveal">
     {stats.map((n) => (
       <div class="stats__cell">
-        {/* only the real count (9 workflow skills) plays the count-up; the
-            other cells are descriptive numbers and stay static */}
+        {/* only the workflow-skill count plays the count-up; the other cells
+            are descriptive numbers and stay static */}
         {n === 2 ? (
           <span class="stats__value" data-count={t(`stats.${n}.value` as const)}>{t(`stats.${n}.value` as const)}</span>
         ) : (
