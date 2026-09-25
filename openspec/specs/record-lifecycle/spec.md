@@ -20,25 +20,6 @@ A lifecycle rewrite performed by `adrkit implement`, `adrkit reject`, `adrkit ar
 - **WHEN** a lifecycle command rewrites a record carrying a front-matter key outside the canonical set
 - **THEN** the command refuses the move and names the key instead of discarding it
 
-### Requirement: Supersede target is an accepted decision
-
-`adrkit supersede <old> --by <new>` SHALL require both records to be numbered, active implemented decisions. A proposed, rejected, archived, or already-superseded record SHALL be refused as the replacement.
-
-#### Scenario: an accepted replacement is allowed
-
-- **WHEN** `--by` resolves to an active implemented decision distinct from the old decision
-- **THEN** the old decision moves to archived history and names the replacement
-
-#### Scenario: a superseded replacement is refused
-
-- **WHEN** `--by` resolves to an archived decision
-- **THEN** the command refuses it and reports that the replacement must be active and implemented
-
-#### Scenario: a proposed record is refused
-
-- **WHEN** `--by` resolves to an unnumbered proposed record
-- **THEN** the command refuses it and reports that the replacement must be an implemented decision
-
 ### Requirement: Lifecycle folders distinguish unshipped, shipped, declined, and retired records
 
 ADR Kit SHALL use `proposed/` for unshipped proposals, `implemented/` for shipped active decisions, `rejected/` for formally declined proposals, and `archived/` for retired numbered decisions. Only entry to `implemented/` SHALL assign a stable number; every formal rejection SHALL remain recorded. Moving an implemented decision to `archived/` SHALL also add the content seal required by `archive-integrity`.
@@ -52,3 +33,22 @@ ADR Kit SHALL use `proposed/` for unshipped proposals, `implemented/` for shippe
 
 - **WHEN** an active numbered decision is archived or fully superseded
 - **THEN** it moves to `archived/` with its number preserved and a matching content seal
+
+### Requirement: Supersede target is an implemented decision
+
+`adrkit supersede <old> --by <new>` SHALL require both records to be numbered, active implemented decisions. A proposed, rejected, archived, or already-superseded record SHALL be refused as the replacement.
+
+#### Scenario: an implemented replacement is allowed
+
+- **WHEN** `--by` resolves to an active implemented decision distinct from the old decision
+- **THEN** the old decision moves to archived history and names the replacement
+
+#### Scenario: a superseded replacement is refused
+
+- **WHEN** `--by` resolves to an archived decision
+- **THEN** the command refuses it and reports that the replacement must be active and implemented
+
+#### Scenario: a proposed record is refused
+
+- **WHEN** `--by` resolves to an unnumbered proposed record
+- **THEN** the command refuses it and reports that the replacement must be an implemented decision

@@ -17,7 +17,7 @@ deliberation grammar.
 
 #### Scenario: a decision without the appendix is valid
 
-- **WHEN** `adrkit validate` runs on an accepted decision that has no `## Deliberation` section
+- **WHEN** `adrkit validate` runs on an implemented decision that has no `## Deliberation` section
 - **THEN** validation passes, because the appendix is optional
 
 #### Scenario: status markers are read from the node
@@ -148,6 +148,7 @@ renderers SHALL report the same override for the same tree.
 
 - **WHEN** a node reads `- A: Use Postgres [rejected] — proven at scale — and cheap`
 - **THEN** its text is `Use Postgres`, its state is `rejected`, and its reason is `proven at scale — and cheap`
+
 ### Requirement: Nested dependency
 
 Dependency between recorded questions SHALL be expressed by nesting: a follow-up
@@ -276,6 +277,7 @@ frontier key for an edge the view styles as a frontier step.
 
 - **WHEN** a follow-up question hangs under a settled option of the root card
 - **THEN** its card carries the unlocked flag, the drawn edge is styled as a frontier step, and the legend keys it
+
 ### Requirement: On-demand visualization delivery
 
 The installed `adrkit-visualize` skill SHALL route requests to visualize an existing

@@ -1,10 +1,6 @@
-# cli-option-surface Specification
+# Spec Delta
 
-## Purpose
-
-Every command accepts only the options its reference documents, so a flag used on the wrong command fails loudly instead of being silently ignored.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Commands reject options they do not take
 
@@ -25,7 +21,7 @@ A command SHALL fail with an error naming the option when it is invoked with an 
 - **WHEN** `adrkit graph --html --out map.html` runs
 - **THEN** the map is written to the given path
 
-#### Scenario: an option belonging to another command is rejected on record
+#### Scenario: an option belonging to another command is rejected on decide
 
 - **WHEN** `adrkit record "<title>" --raised-by human --decided-by human --tools claude` runs
 - **THEN** the command exits non-zero with an error naming `--tools`

@@ -1,18 +1,6 @@
-# decision-provenance Specification
+# Spec Delta
 
-## Purpose
-Records and maintains the two provenance fields a durable decision carries:
-`raised-by`, who put the decision on the table, and `decided-by`, whose
-judgment settled it. Each is a single declaration the caller supplies at
-`record` or `implement` time, because no environment, terminal, or session marker
-can reveal either; each is never co-signed. The two axes are independent, so a
-person may raise what the agent settles and the agent may raise what a person
-settles. The fields do not establish who chose, authorized, or approved a
-decision. The capability collects the declarations across the record lifecycle
-and defines the limits of the claim so the fields are never presented as
-stronger evidence than they are.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Decided-by field shape
 
@@ -21,7 +9,7 @@ whose value is either `human` or `agent`. The field SHALL appear in the
 canonical front matter order between `date` and `created`. A value outside
 those two is a format error and SHALL be reported as such.
 
-#### Scenario: implemented record carries the field
+#### Scenario: accepted record carries the field
 
 - **WHEN** a durable record with `status: implemented` is parsed
 - **THEN** `decided-by` is one of `human` or `agent`
@@ -44,7 +32,7 @@ those two is a format error and SHALL be reported as such.
 `adrkit validate` SHALL fail a durable record that omits `decided-by`, in
 the same way it fails a record that omits `created`.
 
-#### Scenario: implemented record without the field fails
+#### Scenario: accepted record without the field fails
 
 - **WHEN** `adrkit validate` runs against a repository containing an
   implemented record with no `decided-by` field
@@ -67,7 +55,7 @@ Both commands SHALL refuse to write a durable record when the option is absent
 or names a value other than `human` or `agent`. A command other than `record`
 or `implement` SHALL reject the option rather than ignore it.
 
-#### Scenario: record writes the declaration
+#### Scenario: decide records the declaration
 
 - **WHEN** `adrkit record "<title>" --decided-by human` creates a decision
 - **THEN** the record carries `decided-by: human`
@@ -101,7 +89,7 @@ declaration. `adrkit implement` SHALL record the declaration it was given on the
 promoted decision. `adrkit supersede` SHALL preserve the retiring record's
 existing value and SHALL NOT ask for or write a new one.
 
-#### Scenario: record writes the declared value
+#### Scenario: decide records
 
 - **WHEN** `adrkit record` creates a decision
 - **THEN** the created record carries the declared `decided-by` value
@@ -134,64 +122,6 @@ reports a missing or unknown value instead of filling one in.
 - **WHEN** `adrkit validate` (or any other command) encounters an implemented record with no `raised-by` or `decided-by`
 - **THEN** validation reports the missing field(s) and the record file is left byte-identical on disk
 
-### Requirement: The claim and its limits are documented
-
-The record-format reference SHALL state, in one place, that `raised-by` and
-`decided-by` are declarations by the writer rather than observations, that the
-CLI neither infers nor verifies them, that they are weaker evidence than the
-observed `date` and `commit` fields, and that they are defeated by a careless
-or false declaration as well as by editing the file afterwards. It SHALL define
-`decided-by` by where the choice came from and `raised-by` as who put the
-decision on the table, and state that the two axes are independent. It SHALL
-state that each field carries exactly one value and is never co-signed, and that
-details about who redirected or approved belong in the record body. It SHALL
-also state that the fields do not establish who chose or authorized the
-decision. Identity SHALL remain git's responsibility and SHALL NOT be
-duplicated into the record.
-
-#### Scenario: reference states the trust boundary
-
-- **WHEN** a reader consults the record-format reference for `raised-by` or `decided-by`
-- **THEN** the same section explains that the values are declared, names them weaker than `date` and `commit`, and says the CLI does not verify them
-
-#### Scenario: reference defines the two values by where the choice came from
-
-- **WHEN** a reader consults the record-format reference for `decided-by`
-- **THEN** the same section states that `human` means a person determined the direction, including a proposal they changed into what shipped and a choice they made earlier that is recorded later, and that `agent` means the direction came from the agent's own judgment
-
-#### Scenario: reference defines raised-by as the other axis
-
-- **WHEN** a reader consults the record-format reference for `raised-by`
-- **THEN** the same section states that `raised-by` is who put the decision on the table, that it is independent of `decided-by`, and that any combination is valid
-
-#### Scenario: reference rules out a co-signed value
-
-- **WHEN** a reader consults the record-format reference for `decided-by`
-- **THEN** the same section states that the field carries one value, is never co-signed, and that a person passively letting an agent's choice through keeps the record `agent` with the approval described in the body
-
-#### Scenario: reference denies an authorization claim
-
-- **WHEN** a reader consults the record-format reference for `decided-by`
-- **THEN** the same section states that the field does not establish who chose or authorized the decision
-
-#### Scenario: identity is not recorded
-
-- **WHEN** a decision is recorded
-- **THEN** no author name, email, or account identifier is written to the record by this capability
-
-### Requirement: Provenance is two orthogonal axes
-
-A durable record SHALL carry exactly one `raised-by` field and exactly one
-`decided-by` field. `raised-by` states who put the decision on the table;
-`decided-by` states whose judgment settled it. The axes are independent: a
-person may raise what the agent settles, and the agent may raise what a person
-settles, so any combination of the two values is valid.
-
-#### Scenario: a record may carry opposite axes
-
-- **WHEN** a durable record declares `raised-by: agent` and `decided-by: human`
-- **THEN** the record is valid, because the two fields answer different questions
-
 ### Requirement: Raised-by field shape
 
 A durable record SHALL carry exactly one `raised-by` front matter field whose
@@ -199,7 +129,7 @@ value is either `human` or `agent`. The field SHALL appear in the canonical
 front matter order between `date` and `decided-by`. A value outside those two
 is a format error and SHALL be reported as such.
 
-#### Scenario: implemented record carries the field
+#### Scenario: accepted record carries the field
 
 - **WHEN** a durable record with `status: implemented` is parsed
 - **THEN** `raised-by` is one of `human` or `agent`
@@ -223,7 +153,7 @@ content. Both commands SHALL refuse to write a durable record when the option is
 absent or names a value other than `human` or `agent`. A command other than
 `record` or `implement` SHALL reject the option rather than ignore it.
 
-#### Scenario: record writes the declaration
+#### Scenario: decide records the declaration
 
 - **WHEN** `adrkit record "<title>" --raised-by agent --decided-by human` creates a decision
 - **THEN** the record carries `raised-by: agent`
@@ -248,7 +178,7 @@ absent or names a value other than `human` or `agent`. A command other than
 `adrkit validate` SHALL fail a durable record that omits `raised-by`, in the
 same way it fails a record that omits `decided-by` or `created`.
 
-#### Scenario: implemented record without the field fails
+#### Scenario: accepted record without the field fails
 
 - **WHEN** `adrkit validate` runs against a repository containing an implemented record with no `raised-by` field
 - **THEN** validation reports a missing `raised-by` issue for that record and exits non-zero
@@ -266,7 +196,7 @@ SHALL record the declaration it was given on the promoted decision.
 `adrkit supersede` SHALL preserve the retiring record's existing `raised-by`
 value and SHALL NOT ask for or write a new one.
 
-#### Scenario: record writes the declared value
+#### Scenario: decide records
 
 - **WHEN** `adrkit record` creates a decision
 - **THEN** the created record carries the declared `raised-by` value
@@ -280,6 +210,9 @@ value and SHALL NOT ask for or write a new one.
 
 - **WHEN** `adrkit supersede <old> --by <new>` retires an implemented decision
 - **THEN** the retired record's `raised-by` value is unchanged after the rewrite
+
+
+## ADDED Requirements
 
 ### Requirement: Proposals carry no decided-by
 
@@ -304,3 +237,11 @@ proposal that carries either field as an error.
 
 - **WHEN** the caller removes the invalid field from an otherwise valid proposal and runs `adrkit implement` with `--raised-by human --decided-by agent`
 - **THEN** the promoted decision records `raised-by: human` and `decided-by: agent`
+
+## REMOVED Requirements
+
+### Requirement: Proposed drafts carry no decided-by
+
+**Reason**: The heading and its scenarios named the removed draft/`accept` model and the retired `adrkit validate` behavior that ignored proposals; validation now covers all four lifecycle directories.
+
+**Migration**: Replaced by `Proposals carry no decided-by` above, which preserves the contract — proposals carry no provenance fields, and only entry to `implemented/` records them — in the four-folder lifecycle.

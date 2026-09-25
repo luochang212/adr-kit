@@ -92,6 +92,12 @@ describe('initCommand', () => {
     expect(existsSync(join(root, 'adr', '.gitignore'))).toBe(false);
   });
 
+  it('writes an empty archive manifest', () => {
+    const root = makeRepo();
+    const manifest = JSON.parse(readFileSync(join(root, 'adr', 'archived', 'MANIFEST.json'), 'utf8'));
+    expect(manifest).toEqual({ version: 1, entries: [] });
+  });
+
   it('refuses to initialize twice', () => {
     const root = makeRepo();
     expect(() => initCommand(root)).toThrow(/already exists/);

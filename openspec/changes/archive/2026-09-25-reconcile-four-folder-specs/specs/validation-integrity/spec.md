@@ -1,41 +1,6 @@
-# validation-integrity Specification
+# Spec Delta
 
-## Purpose
-Guarantees the validator the existing specs lean on: what counts as a
-section's written content, that a crafted record cannot make validation
-unbounded, and that a path read as a record resolves to a regular file.
-
-## Requirements
-
-### Requirement: Written content excludes comments
-
-A required section SHALL count as written only when it contains text outside
-HTML comments. A section whose text is entirely inside comments — closed or
-unterminated — SHALL NOT satisfy a `must contain written content` check, and an
-unterminated `<!--` SHALL swallow the remainder of that section, matching
-CommonMark's comment semantics for the section's extent. The rule is the same
-for proposals and numbered records, and for `## Alternatives considered`'s "at least
-one written alternative".
-
-#### Scenario: markers alone are not content
-
-- **WHEN** a required section's body is a single unterminated `<!--`
-- **THEN** validation reports that the section must contain written content
-
-#### Scenario: text outside a comment is content
-
-- **WHEN** a required section's body is `Considered SQLite, chose Postgres` with an unterminated `<!--` on the following line
-- **THEN** the section counts as written and validation reports no content issue for it
-
-#### Scenario: an unterminated comment swallows the rest of the section
-
-- **WHEN** a required section's body is `<!--` followed by prose lines
-- **THEN** the prose is inside the comment, the section counts as unwritten, and validation reports the missing content
-
-#### Scenario: a closed comment is still stripped
-
-- **WHEN** a required section's body is only `<!-- none written yet -->`
-- **THEN** validation reports that the section must contain written content
+## MODIFIED Requirements
 
 ### Requirement: Validation work is bounded on crafted input
 

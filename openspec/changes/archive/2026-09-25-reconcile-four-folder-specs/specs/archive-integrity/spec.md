@@ -1,24 +1,6 @@
-# archive-integrity Specification
+# Spec Delta
 
-## Purpose
-
-Makes the archived directory a verifiable historical snapshot rather than a status label whose contents can silently change after retirement.
-
-## Requirements
-
-### Requirement: Every archived decision has a content seal
-
-An ADR Kit repository SHALL keep a committed manifest of every numbered record in `adr/archived/`, identified by its archive-relative path and the hash of its complete archived bytes. `adrkit archive` and `adrkit supersede` SHALL append a seal for the final archived file. They SHALL refuse to overwrite an existing seal or archive target.
-
-#### Scenario: Archive adds a seal
-
-- **WHEN** an implemented decision is archived successfully
-- **THEN** its final archived file and a matching manifest entry exist together
-
-#### Scenario: Supersession adds a seal
-
-- **WHEN** an implemented decision is fully superseded
-- **THEN** the superseded file is archived with its final metadata and a matching manifest entry
+## MODIFIED Requirements
 
 ### Requirement: Validation detects archive drift
 
