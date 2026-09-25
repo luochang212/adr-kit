@@ -42,7 +42,7 @@ stays conversational, in the skill layer.
   `src/core/` console-free and `yaml` the only runtime dependency.
 - **Verbatim fork of the upstream skill**: rejected. It is generic — it does
   not read `adr/` records, and it ends in notes rather than
-  `adrkit decide`/`adrkit propose`.
+  `adrkit record`/`adrkit propose`.
 - **Documentation-only recipe**: rejected. A README note wastes
   `adrkit init`, the distribution channel that is the product's point.
 - **Side-by-side, no product change**: rejected. The provenance synergy — a
@@ -56,10 +56,11 @@ stays conversational, in the skill layer.
   `grill`; README and `docs/cli.md` updated; minor bump via changeset.
 - `test/integrations.test.ts` enforces the byte-exact mirror plus content
   assertions for the method, the attribution, and the CLI endpoints.
-- Grill sessions end in `adrkit decide`/`adrkit propose` with `decided-by`
+- Grill sessions end in `adrkit record`/`adrkit propose` with `decided-by`
   declared from the session: `human` when the user's answers set the
   direction, `agent` when every recommendation was adopted without
-  engagement.
+  engagement. ADR 18 later changed the terminal command from `adrkit decide`
+  to `adrkit record`; `adrkit propose` still holds an unshipped outcome.
 - This record is the first written through the new pipeline: the adoption
   was grilled (one round, three questions with recommended answers), and the
   maintainer approved the recommendations unchanged. Direction raised and

@@ -57,4 +57,3 @@ Repository-wide `adrkit validate --base <git-ref>` SHALL compare the current arc
 
 - **WHEN** `--base` names a ref that cannot be resolved or inspected
 - **THEN** validation fails and identifies the ref rather than silently skipping the history check
-

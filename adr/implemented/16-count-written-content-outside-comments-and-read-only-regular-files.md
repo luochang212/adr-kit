@@ -43,7 +43,7 @@ and a file can wedge is neither.
   FIFO, socket, or device is refused with the kind named in the message, before
   any read. The check follows symbolic links — a link to a regular file stays a
   record — and lives in `parseAdrFile`, the single chokepoint every reader
-  parses through (`listRecords`, `listDrafts`, `resolveRecord`, `resolveDraft`).
+  parses through (`listRecords`, `listProposals`, `resolveRecord`, `resolveProposed`).
 - **No size cap on records, and no race check.** A large committed regular file
   is a slow but bounded read, and an arbitrary limit would refuse legitimate
   records; git and review are the control there. A path swapped between the

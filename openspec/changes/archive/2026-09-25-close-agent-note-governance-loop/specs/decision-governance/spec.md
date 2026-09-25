@@ -52,4 +52,3 @@ ADR Kit SHALL install a selectable review workflow that checks changed records a
 
 - **WHEN** a change leaves relevant decisions and their realization facts current
 - **THEN** the workflow reports no ADR finding instead of requiring a new record for a mechanical edit
-

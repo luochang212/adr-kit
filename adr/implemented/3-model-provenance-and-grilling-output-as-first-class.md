@@ -27,7 +27,7 @@ a decision the session settled.
 
 - **Provenance is two flat, orthogonal fields.** Keep `decided-by: human |
   agent` (whose judgment settled the choice) and add a required `raised-by:
-  human | agent` (who put the decision on the table). `decide` and `accept`
+  human | agent` (who put the decision on the table). `record` and `implement`
   require both flags; the CLI neither infers nor verifies either, and
   `supersede` preserves both. No `provenance:` nesting.
 - **A grilling session defaults to one ADR.** Its design tree is stored as an
@@ -66,7 +66,7 @@ a decision the session settled.
 ## Consequences
 
 - The record format breaks: `raised-by` becomes required on durable records,
-  so `adr.ts`, `validate.ts`, `templates.ts`, `decide`/`accept`/
+  so `adr.ts`, `validate.ts`, `templates.ts`, `record`/`implement`/
   `supersede`, README, `docs/record-format.md` (English and Chinese), and
   tests change together, and ADR 1, 2, and this record are migrated.
 - A new `adrkit tree` command renders `## Deliberation`; the init reading
