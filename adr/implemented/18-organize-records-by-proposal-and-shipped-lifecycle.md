@@ -110,8 +110,8 @@ was shipped or that an archive has no remaining forward value. The
 maintainer raised the direction, chose the four-directory lifecycle, kept
 every formal rejection, removed local drafts and compatibility requirements,
 and confirmed this design after reviewing the alternatives. ADR 20 later
-replaced "kept every formal rejection" with anti-pattern memory that is pruned
-once it no longer teaches, and defined the four folders by context value —
-current authority to read in full, intent to check, anti-pattern to check and
-prune, and lowest-value history read only when a task cites it; the four-folder
-lifecycle itself is unchanged.
+defined the four folders by context value — current authority to read in full,
+intent to check, anti-pattern to check, and lowest-value history read only when
+a task cites it — and made "kept every formal rejection" a durable terminal:
+a rejection is removed only when another record owns its warning, never for
+appearing stale. The four-folder lifecycle itself is unchanged.

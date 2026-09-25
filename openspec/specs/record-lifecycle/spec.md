@@ -22,7 +22,7 @@ A lifecycle rewrite performed by `adrkit implement`, `adrkit reject`, `adrkit ar
 
 ### Requirement: Lifecycle folders distinguish unshipped, shipped, declined, and retired records
 
-ADR Kit SHALL use `proposed/` for unshipped proposals, `implemented/` for shipped active decisions, `rejected/` for formally declined proposals, and `archived/` for retired numbered decisions. The folders SHALL be defined by context value as well as lifecycle: `implemented/` is current authority to read in full; `proposed/` is intent to check; `rejected/` is anti-pattern memory to check and prune; `archived/` is lowest-value frozen history that is not read by default. A rejected proposal SHALL be kept only while its reason still blocks a plausible, meaningful mistake, and MAY be deleted once it no longer teaches, because rejections are unnumbered and unsealed. Only entry to `implemented/` SHALL assign a stable number. Moving an implemented decision to `archived/` SHALL also add the content seal required by `archive-integrity`.
+ADR Kit SHALL use `proposed/` for unshipped proposals, `implemented/` for shipped active decisions, `rejected/` for formally declined proposals, and `archived/` for retired numbered decisions. The folders SHALL be defined by context value as well as lifecycle: `implemented/` is current authority to read in full; `proposed/` is intent to check; `rejected/` is anti-pattern memory to check; `archived/` is lowest-value frozen history that is not read by default. A rejected proposal SHALL be retained as a durable terminal record and SHALL NOT be removed for appearing stale; its reason SHALL name the tempting mistake it blocks. A rejection MAY be removed only when another record owns that warning, and the removing change SHALL preserve any unique rationale first; rejections are unnumbered and unsealed, so removing a redundant one cannot reuse a number or break the archive. Only entry to `implemented/` SHALL assign a stable number. Moving an implemented decision to `archived/` SHALL also add the content seal required by `archive-integrity`.
 
 #### Scenario: Settled but unshipped choice remains proposed
 
@@ -34,10 +34,10 @@ ADR Kit SHALL use `proposed/` for unshipped proposals, `implemented/` for shippe
 - **WHEN** an active numbered decision is archived or fully superseded
 - **THEN** it moves to `archived/` with its number preserved and a matching content seal
 
-#### Scenario: A stale anti-pattern is pruned
+#### Scenario: A redundant anti-pattern is consolidated
 
-- **WHEN** a rejected proposal's reason no longer blocks a plausible, meaningful mistake
-- **THEN** its record may be deleted without affecting any ADR number or the archive seal
+- **WHEN** another record owns the warning a rejected proposal blocks
+- **THEN** the rejection may be removed after its unique rationale is preserved, without affecting any ADR number or the archive seal
 
 ### Requirement: Supersede target is an implemented decision
 

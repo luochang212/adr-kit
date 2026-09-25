@@ -26,8 +26,8 @@ adrkit validate
 
 Use `adrkit record "<title>" --raised-by human --decided-by human` for an
 already-shipped choice. Use `adrkit reject <name> --reason "<the tempting
-mistake this blocks>"` for a formally declined proposal; keep a rejection only
-while it still teaches. Full supersession archives the old implemented record;
+mistake this blocks>"` for a formally declined proposal; a rejection is durable,
+removed only when another record owns its warning. Full supersession archives the old implemented record;
 `adrkit archive <N> --reason "<current authority>"` retires other implemented
 records that no longer guide work.
 

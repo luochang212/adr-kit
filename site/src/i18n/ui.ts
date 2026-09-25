@@ -46,7 +46,7 @@ const ui = {
       "Four committed folders are a context budget: implemented guidance to read, proposals to check, rejected anti-patterns to avoid, and frozen history to leave alone.",
     'lifecycle.proposed': "An unshipped, dated proposal. A settled direction stays here until the work actually ships.",
     'lifecycle.implemented': "A shipped, numbered decision that still guides work.",
-    'lifecycle.rejected': "A formally declined proposal, kept as an anti-pattern to avoid while its reason still teaches, with no ADR number.",
+    'lifecycle.rejected': "A formally declined proposal, kept as a durable anti-pattern to avoid, removed only when another record owns its warning, with no ADR number.",
     'lifecycle.archived': "Frozen numbered history, lowest value and not read by default; full supersession or retirement moves the old record here.",
 
     'graph.eyebrow': 'Decision graph',
@@ -65,7 +65,7 @@ const ui = {
     'start.agent.prompt.short':
       'Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.',
     'start.agent.prompt.full':
-      "Use github.com/luochang212/adr-kit here. Propose unshipped choices, implement after delivery, and record choices already shipped. Keep a formal rejection only while its reason still blocks a plausible mistake. Declare --raised-by and --decided-by on implemented decisions.",
+      "Use github.com/luochang212/adr-kit here. Propose unshipped choices, implement after delivery, and record choices already shipped. Keep a formal rejection; remove it only when another record owns the warning it blocks. Declare --raised-by and --decided-by on implemented decisions.",
     'start.agents.footnote':
       'Pick one, paste it into your coding assistant, and it will record this repository\u2019s architecture decisions as ADRs.',
     'start.human.label': 'Or run it yourself',
@@ -122,7 +122,7 @@ const ui = {
     'lifecycle.lead': "四个纳入 Git 的目录是一份上下文预算：已交付指导要读，提案要检查，否决反例要避开，冻结历史不用看。",
     'lifecycle.proposed': "按日期命名的未交付提案；讨论定向后仍留在这里，直到实际交付。",
     'lifecycle.implemented': "已交付、已编号，仍指导工作的决策。",
-    'lifecycle.rejected': "正式否决的提案，作为待避免的反例保留（只要理由仍有教益），不分配 ADR 编号。",
+    'lifecycle.rejected': "正式否决的提案，作为稳定的反例保留，只有当另一条记录接管其警示时才移除，不分配 ADR 编号。",
     'lifecycle.archived': "冻结的编号历史，价值最低、默认不读；完整替代或退役会把旧记录移到这里。",
 
     'graph.eyebrow': '决策图谱',
@@ -158,7 +158,7 @@ const ui = {
       "只添加一个 adr/ 目录，内有配置、README 与 proposed、implemented、rejected、archived 四个目录。默认还将 agent 技能和命令写入 .agents/；--tools claude 另装 .claude/，--tools none 则不安装。记录仍是纯 Markdown。",
     'faq.2.q': '日常如何在项目中使用 ADR Kit？',
     'faq.2.a':
-      "未交付工作先用 adrkit propose，交付后运行 adrkit implement；已交付但未记录的选择用 adrkit record。正式否决用 adrkit reject --reason（只在理由仍有教益时保留）；过时指导用 archive 或 supersede。填写必填章节并运行 adrkit validate。用 adrkit tree 或 adrkit graph --html 可视化。",
+      "未交付工作先用 adrkit propose，交付后运行 adrkit implement；已交付但未记录的选择用 adrkit record。正式否决用 adrkit reject --reason（稳定保留，只在另一条记录接管其警示时移除）；过时指导用 archive 或 supersede。填写必填章节并运行 adrkit validate。用 adrkit tree 或 adrkit graph --html 可视化。",
     'faq.3.q': 'ADR Kit 能与 OpenSpec 这类工具同时使用吗？',
     'faq.3.a':
       '可以。ADR Kit 是独立的决策记录产品，自有完整生命周期。它的记录位于 adr/，agent 工作流也有命名空间，因此可以与规约工具共存，但不依赖任何其他工具。',

@@ -54,14 +54,15 @@ const INIT_README = `# Architecture Decision Records
 Records follow the lifecycle folders proposed/, implemented/, rejected/, and
 archived/. The folders are a context budget as well as a lifecycle:
 implemented/ is current authority and is read in full; proposed/ is intent and
-is checked; rejected/ is anti-pattern memory and is checked and pruned;
+is checked; rejected/ is anti-pattern memory and is checked;
 archived/ is lowest-value frozen history and is not read by default.
 
 A proposal is unshipped even when its direction has been settled. Implemented
 records describe shipped decisions and receive stable ADR numbers. A rejection
-is kept only while its reason still blocks a plausible, meaningful mistake, and
-is deleted once it no longer teaches — rejections are unnumbered and unsealed,
-so removing one cannot reuse a number or break the archive. Archived records
+is a durable terminal record of a declined proposal: it is removed only when
+another record owns the warning it blocks, never for appearing stale —
+rejections are unnumbered and unsealed, so removing a redundant one cannot
+reuse a number or break the archive. Archived records
 are frozen history, not current authority. Each one is
 sealed in adr/archived/MANIFEST.json; adrkit validate checks the seal, and
 adrkit validate --base <git-ref> proves the archive only grows.

@@ -18,10 +18,10 @@ work.
    `implemented/`. Use `adrkit record <title>` with the same declarations
    for a choice already shipped without a proposal.
 3. `adrkit reject <name> --reason "<the tempting mistake this blocks>"`
-   records an anti-pattern in `rejected/`, without an ADR number. Keep it only
-   while its reason still blocks a plausible, meaningful mistake; delete it once
-   it no longer teaches — rejections are unnumbered and unsealed, so removing
-   one cannot reuse a number or break the archive.
+   records a durable anti-pattern in `rejected/`, without an ADR number. Keep
+   it; remove it only when another record owns the warning it blocks, never for
+   appearing stale — rejections are unnumbered and unsealed, so removing a
+   redundant one cannot reuse a number or break the archive.
 4. Full replacement uses `adrkit supersede <old> --by <new>`; the old
    numbered record moves to `archived/` with `superseded-by`. Partial
    replacement leaves still-relevant guidance active. `adrkit archive <N>

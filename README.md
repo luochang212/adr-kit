@@ -50,7 +50,7 @@ adr/
 └── archived/       # numbered, frozen history
 ```
 
-An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern: keep it only while it still blocks a plausible mistake, and delete it once it no longer teaches. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active. Both moves seal the archived file in `adr/archived/MANIFEST.json`; `adrkit validate` checks the seal and `adrkit validate --base <git-ref>` proves the archive only grows.
+An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern as a durable terminal: keep it, and remove it only when another record owns the warning it blocks. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active. Both moves seal the archived file in `adr/archived/MANIFEST.json`; `adrkit validate` checks the seal and `adrkit validate --base <git-ref>` proves the archive only grows.
 
 ## Tell your agent
 

@@ -45,7 +45,7 @@ adr/
 └── archived/       # 保留编号，冻结历史
 ```
 
-未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为反例：只要理由仍能挡住一个可避免的错误就保留，不再有教益时删除（否决记录无编号、不入封存）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都会把归档文件封存进 `adr/archived/MANIFEST.json`；`adrkit validate` 检查封存，`adrkit validate --base <git-ref>` 证明归档只增不改。
+未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号、不入封存）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都会把归档文件封存进 `adr/archived/MANIFEST.json`；`adrkit validate` 检查封存，`adrkit validate --base <git-ref>` 证明归档只增不改。
 
 ## 告诉 Agent
 

@@ -18,14 +18,14 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 `# ADR: N <标题>`。
 
 四个目录也是一份上下文预算：`implemented/` 是现行权威、需完整阅读；
-`proposed/` 是意图、需检查；`rejected/` 是反例、需检查并裁剪；`archived/`
+`proposed/` 是意图、需检查；`rejected/` 是反例、需检查；`archived/`
 是最低价值的冻结历史、默认不读。
 
 提案需要 `Problem`、`Proposal`、`Alternatives considered`、
 `Acceptance criteria`、`Risks`。已实施和归档决策需要 `Problem`、
 `Decision`、`Alternatives considered`、`Consequences`，不得保留提案期
 章节。否决提案保留问题、方案和备选，并写入非空 `reason`，标明它挡住的
-诱惑性错误；不再有教益时可删除该记录。新模板未填实质内容时，`validate`
+诱惑性错误；该记录是稳定终态，只有当另一条记录接管了这个错误时才移除。新模板未填实质内容时，`validate`
 按预期失败；HTML 注释不算正文。
 
 编号决策必须写 `raised-by` 和 `decided-by`；未编号提案和否决记录禁止这

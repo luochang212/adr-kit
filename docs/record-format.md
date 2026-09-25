@@ -24,10 +24,10 @@ require `Problem`, `Decision`, `Alternatives considered`, and
 `Consequences`; proposal-era sections must not remain. The folders are also a
 context budget: `implemented/` is current authority and is read in full;
 `proposed/` is intent and is checked; `rejected/` is anti-pattern memory that
-is checked and pruned; `archived/` is lowest-value frozen history that is not
-read by default. A rejected proposal keeps its problem, proposal, and
-alternatives and adds a non-empty `reason` field naming the tempting mistake it
-blocks; delete the record once it no longer teaches. New templates intentionally fail validation until substantive sections
+is checked; `archived/` is lowest-value frozen history that is not read by
+default. A rejected proposal keeps its problem, proposal, and alternatives and
+adds a non-empty `reason` field naming the tempting mistake it blocks; the
+record is durable and is removed only when another record owns that warning. New templates intentionally fail validation until substantive sections
 are written outside HTML comments.
 
 `raised-by` and `decided-by` are required on numbered decisions and

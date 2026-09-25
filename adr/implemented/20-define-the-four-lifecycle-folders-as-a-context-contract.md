@@ -18,13 +18,13 @@ implemented records in full, check proposed and rejected records, consult
 archived only for history — yet that priority lives in prose spread across
 AGENTS.md and the skills, not in the folder contract itself.
 
-`rejected/` is the sharpest failure. It retains every formal rejection forever,
-so it grows without bound and buries the records that still warn against a
-tempting mistake under ones that no longer teach anything. An agent checking
-rejected records cannot tell which are the live bad cases. `archived/` is
-frozen and lowest value, but nothing states "do not read by default". The
-folder model is structurally correct yet does not do its main job: keeping
-low-value material out of the working context.
+`rejected/` had no principled terminal. The borrowed rule — keep a rejection
+only while it still teaches, otherwise delete it — rests on a subjective,
+unverifiable judgment, and it is the only place the model deletes a record at
+all. `archived/` is frozen and lowest value, but nothing stated "do not read by
+default". The folder model is structurally correct yet does not do its main
+job: keeping low-value material out of the working context, while the one
+folder that holds our anti-patterns wobbles on a feeling.
 
 ## Decision
 
@@ -38,33 +38,32 @@ reading policy per folder:
 - `archived/` — lowest-value frozen history. Consult only when a task explicitly
   cites history; never as current authority and never by default.
 
-Redefine `rejected/` from "every formal rejection retained" to anti-pattern
-memory: a rejected proposal is kept only while its rationale still prevents a
-tempting, meaningful mistake; once that mistake is no longer plausible, or a
-better record owns the warning, delete the record. Its `reason` exists to name
-the tempting mistake it blocks. Deletion costs nothing here because rejected
-records are unnumbered and unsealed: removing one cannot reuse an ADR number or
-break the archive manifest.
+`rejected/` is a durable terminal record of a declined proposal: keep it as
+the record of why a tempting direction was declined, and do not remove it for
+being old, brief, or currently quiet. Its `reason` names the tempting mistake
+it blocks. The only exit is replacement: when another record owns that warning
+— a newer decision, or a sharper rejection — the old rejection is redundant
+and may be removed, with the owner preserving any unique rationale first. That
+is a deliberate, reviewed edit, not automatic pruning.
 
-Keep `archived/` exactly as ADR 19 built it — frozen, sealed, never edited — and
-only make its reading posture explicit. Keep the stable numbers, the
+Keep `archived/` exactly as ADR 19 built it — frozen, sealed, never edited —
+and only make its reading posture explicit. Keep the stable numbers, the
 `superseded` status, the archive seal, and the `tags` classification unchanged.
 This is a definition and reading-policy change, not a structure change: no new
 folder, no new field, no new status, no code behavior change.
 
 Bind the policy into the surfaces an agent actually reads: this repository's
 AGENTS.md, the generated `adr/README.md`, the standing-orders template, and the
-`adrkit-*` skills that create, retire, or review records. This partially
-replaces ADR 18 and ADR 19's "retain every formal rejection" clause; both
-records stay active and link to this one.
+`adrkit-*` skills that create, retire, or review records. This refines ADR 18's
+rejection retention and ADR 19's archive rules; both records stay active and
+link to this one.
 
 ## Alternatives considered
 
-- **Keep "retain every formal rejection"**: rejected. It grows `rejected/`
-  without bound and buries the instructive bad cases, so the folder cannot be
-  used as a warning list. Rejections are unnumbered and unsealed, so pruning
-  costs none of the guarantees that make retention necessary for numbered
-  history.
+- **Delete a rejection once it no longer teaches** (the borrowed rule):
+  rejected. The judgment is subjective and unverifiable, and it is the only
+  deletion path in a model that otherwise keeps every record; it risks losing
+  the anti-pattern for a tidier-looking folder. Retention costs almost nothing.
 - **Discard every rejection at the moment of rejection**: rejected. A
   rejection's whole value is the temptation it blocks; dropping it immediately
   loses the anti-pattern memory the folder exists for.
@@ -74,7 +73,7 @@ records stay active and link to this one.
 - **Adopt DSH's deletion of fully superseded implemented notes**: rejected.
   Implemented records carry stable numbers and are sealed on archive; deleting
   one breaks number stability and the append-only manifest. Only unnumbered,
-  unsealed rejections can be pruned.
+  unsealed rejections can be removed, and only when another record owns them.
 - **Make `archived/` deletable or re-readable**: rejected. ADR 19 freezes
   archived bytes and `validate --base` proves the archive only grows; the right
   posture is "do not read by default", not "delete".
@@ -88,31 +87,27 @@ records stay active and link to this one.
 ### Acceptance criteria
 
 - `adr/README.md`, this repository's AGENTS.md, the standing-orders template, and
-  every affected `adrkit-*` skill state the per-folder reading policy and the
-  rejected pruning rule.
+  every affected `adrkit-*` skill state the per-folder reading policy and that
+  `rejected/` is a durable terminal retained until another record owns its warning.
 - `rejected/` is described and used as anti-pattern memory: a rejection's reason
-  names the tempting mistake it blocks, and a rejection is deleted once it no
-  longer teaches.
+  names the tempting mistake it blocks, and the record is not removed for
+  appearing stale.
 - `archived/` is described as lowest-value frozen history and "not read by
   default" everywhere it is mentioned.
 - No code behavior changes: `adrkit reject`, `adrkit validate`, the archive seal,
   and the `superseded` status are unchanged; `npm test` and
   `node bin/adrkit.js validate --all` pass.
-- ADR 18 and ADR 19 stay active and each links to this record as a partial
-  replacement.
+- ADR 18 and ADR 19 stay active and each links to this record.
 
 ### Risks
 
-- **Pruning a rejection that still teaches.** The deletion is a judgment call
-  with no mechanical check. Mitigation: keep the bar narrow — delete only when
-  the mistake is no longer plausible or another record owns the warning — and
-  require the reason to name the mistake.
-- **An agent deleting rejections to look tidy.** Mitigation: the skill states
-  the bar, and Git keeps a deleted record recoverable.
+- **A rejection lingers after its warning is owned elsewhere.** Mitigation: the
+  owner records the replacement and the redundant rejection is removed in that
+  deliberate edit; `adrkit list` groups rejections, so they stay visible.
+- **A large rejection list dilutes relevance.** Mitigation: agents read the
+  relevant rejections, and the removal bar is "another record owns the warning",
+  not staleness; `list` groups by folder.
 - **The reading policy drifting from the folder model.** Mitigation: the policy
-  lives in the folder contract (AGENTS.md, `adr/README.md`, the skills), and
-  `test/docs.test.ts` pins the wording.
-- **Giving up "retain every rejection" loses durable history.** Mitigation: the
-  record only removes rejections that no longer warn; a rejection that still
-  carries a live warning is retained, and any deleted one remains in Git.
-
+  lives in the folder contract (AGENTS.md, `adr/README.md`, the skills).
+- **Giving up DSH's pruning.** Mitigation: this is a deliberate divergence, like
+  never deleting a numbered decision; Git still records a removed rejection.
