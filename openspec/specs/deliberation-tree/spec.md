@@ -89,7 +89,7 @@ spaces SHALL be the only separator, so a hyphen inside the node text is text
 and can never hide the state or the recommendation; when the separator appears
 more than once, the first SHALL begin the reason. A state marker SHALL be
 recognized only when everything after it to the end of the content is whitespace
-or a parenthetical group (so a legacy `(round N)` stays text), never when prose
+or a parenthetical group (which stays text), never when prose
 follows it, so a bracketed state word embedded in a sentence SHALL remain part
 of the node text. A question's answer SHALL be its `[settled]` option
 child; a settled follow-up question SHALL NOT be treated as an answer. When the

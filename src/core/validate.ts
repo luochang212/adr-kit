@@ -237,10 +237,6 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   return issues;
 }
 
-export function validateProposal(root: string, record: AdrRecord): ValidationIssue[] {
-  return validateRecord(root, record);
-}
-
 export function validateRepository(root: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 

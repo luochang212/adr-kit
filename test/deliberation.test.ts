@@ -59,10 +59,9 @@ describe('parseDeliberation', () => {
   });
 
   it('treats an unknown parenthetical as text, not syntax', () => {
-    // ADR 6's `(round N)` marker is gone from the grammar; nothing reads it.
-    const nodes = parseDeliberation('- Q: Where? [settled] (round 2) (recommended) — Keep it local');
+    const nodes = parseDeliberation('- Q: Where? [settled] (note 2) (recommended) — Keep it local');
     expect(nodes).toEqual([{
-      text: 'Where?  (round 2)', type: 'question', status: 'settled',
+      text: 'Where?  (note 2)', type: 'question', status: 'settled',
       recommended: true, reason: 'Keep it local', children: [],
     }]);
     expect(renderDeliberationMermaid(nodes)).not.toContain('subgraph');

@@ -304,23 +304,6 @@ describe('decided-by', () => {
     ).toThrow(/decided-by must be "human" or "agent"/);
   });
 
-  it('rejects a value outside the two the format allows', () => {
-    // `machine` is what the retired environment probe used to write. Only
-    // human or agent is valid now, so such a record fails to load instead of
-    // being silently normalized to one of them.
-    expect(() =>
-      parseAdrFile(
-        write(
-          '1-x.md',
-          renderAdr({
-            title: '1 Use SQLite',
-            fields: { status: 'implemented', date: '2026-08-19', 'decided-by': 'machine' },
-            sections: [{ heading: 'Problem', body: 'Body.\n' }],
-          }),
-        ),
-      ),
-    ).toThrow(/decided-by must be "human" or "agent"/);
-  });
 });
 
 describe('renderAdr', () => {

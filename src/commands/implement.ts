@@ -5,7 +5,7 @@ import { requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
 import { folderPath, nextDecisionNumber, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
 import { droppedSections, proposalToDecision } from '../core/templates.js';
-import { formatIssues, validateProposal } from '../core/validate.js';
+import { formatIssues, validateRecord } from '../core/validate.js';
 
 /**
  * `decidedBy` is the declaration the caller made for the promoted decision:
@@ -24,7 +24,7 @@ export function implementCommand(
     throw new Error('proposal title must not start with a number; ADR Kit assigns decision numbers');
   }
 
-  const issues = validateProposal(root, proposal);
+  const issues = validateRecord(root, proposal);
   if (issues.length > 0) {
     throw new Error(`proposal is not ready to implement:\n${formatIssues(issues)}`);
   }

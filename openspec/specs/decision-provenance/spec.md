@@ -34,8 +34,8 @@ those two is a format error and SHALL be reported as such.
 
 #### Scenario: unknown value is rejected
 
-- **WHEN** a record declares `decided-by: robot`, the retired 0.7.0 value
-  `machine`, or any value other than `human` or `agent`
+- **WHEN** a record declares `decided-by: robot` or any value other than
+  `human` or `agent`
 - **THEN** the record fails to load with a format error naming the
   accepted values
 

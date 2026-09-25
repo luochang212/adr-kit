@@ -8,7 +8,7 @@ import { implementCommand } from '../src/commands/implement.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { sealBytes, writeArchiveManifest } from '../src/core/archive-seal.js';
 import { folderPath, listProposals } from '../src/core/repository.js';
-import { formatIssues, validateProposal } from '../src/core/validate.js';
+import { formatIssues, validateRecord } from '../src/core/validate.js';
 
 const tempDirs: string[] = [];
 
@@ -473,7 +473,7 @@ It works.
 Some risk.
 `,
     );
-    const issues = validateProposal(root, listProposals(root)[0]!);
+    const issues = validateRecord(root, listProposals(root)[0]!);
     expect(formatIssues(issues)).toContain('must contain at least one written alternative');
   });
 
@@ -630,7 +630,7 @@ describe('decided-by', () => {
     const content = readFileSync(file, 'utf8').replace('created:', 'decided-by: human\ncreated:');
     writeFileSync(file, content);
 
-    const issues = validateProposal(root, listProposals(root)[0]!);
+    const issues = validateRecord(root, listProposals(root)[0]!);
     expect(formatIssues(issues)).toContain(
       'unshipped records must not include "decided-by"',
     );
@@ -643,7 +643,7 @@ describe('decided-by', () => {
     const content = readFileSync(file, 'utf8').replace('created:', 'raised-by: human\ncreated:');
     writeFileSync(file, content);
 
-    const issues = validateProposal(root, listProposals(root)[0]!);
+    const issues = validateRecord(root, listProposals(root)[0]!);
     expect(formatIssues(issues)).toContain(
       'unshipped records must not include "raised-by"',
     );
@@ -684,7 +684,7 @@ It works.
 Some risk.
 `,
     );
-    expect(validateProposal(root, listProposals(root)[0]!)).toEqual([]);
+    expect(validateRecord(root, listProposals(root)[0]!)).toEqual([]);
   });
 });
 

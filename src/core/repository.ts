@@ -117,15 +117,8 @@ export function adrRoot(root: string): string {
   return join(root, ADR_DIR);
 }
 
-/**
- * Physical directory name for a lifecycle folder.
- */
-function folderDirName(folder: AdrFolder): string {
-  return folder;
-}
-
 export function folderPath(root: string, folder: AdrFolder): string {
-  return join(adrRoot(root), folderDirName(folder));
+  return join(adrRoot(root), folder);
 }
 
 export function listRecords(root: string): AdrRecord[] {
@@ -289,5 +282,5 @@ export function displayName(record: AdrRecord): string {
 export function relativePath(record: AdrRecord): string {
   // 始终输出 POSIX 风格路径：CLI 输出是用户可见文本，Windows 上也要
   // CLI paths remain POSIX-style on every host.
-  return posix.join(ADR_DIR, folderDirName(record.folder), basename(record.path));
+  return posix.join(ADR_DIR, record.folder, basename(record.path));
 }

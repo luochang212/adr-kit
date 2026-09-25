@@ -77,9 +77,8 @@ function parseNodeText(raw: string): ParsedNode | undefined {
   const statusMatch = content.match(STATUS);
   if (statusMatch !== null && statusMatch.index !== undefined) {
     status = statusMatch[1]!.toLowerCase() as DeliberationStatus;
-    // Remove only the token: a trailing unknown parenthetical such as a legacy
-    // (round N) stays in the text, and the spacing around the removed marker is
-    // not otherwise disturbed.
+    // Remove only the token: a trailing parenthetical stays in the text, and
+    // the spacing around the removed marker is not otherwise disturbed.
     const token = statusMatch[0].slice(0, statusMatch[0].indexOf(']') + 1);
     content = content.slice(0, statusMatch.index) + content.slice(statusMatch.index + token.length);
   }

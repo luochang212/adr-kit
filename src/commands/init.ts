@@ -13,7 +13,7 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
   const tools = parseTools(toolsValue);
   const workflows = parseWorkflows(workflowsValue);
   // `undefined` keeps the config key absent: only an explicit subset is
-  // recorded, so repositories that install every workflow need no migration.
+  // recorded, and an absent key means every workflow.
   const { root, created } = initRepository(
     targetDir,
     tools,

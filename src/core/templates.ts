@@ -35,8 +35,8 @@ const DROPPED_SECTION_HEADINGS = PROPOSAL_ERA_HEADINGS.filter(
  */
 function contextBlock(context?: string | null): string {
   const text = context?.trim() ?? '';
-  // 空 context 或纯占位注释（老 init 模板遗留）都不注入
-  if (text.length === 0 || text.startsWith('<!--')) return '';
+  // 空 context 不注入
+  if (text.length === 0) return '';
   return `<!-- Project context (adr/config.yaml):
 ${text}
 -->

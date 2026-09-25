@@ -11,7 +11,7 @@ import { supersedeCommand } from '../src/commands/supersede.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { parseAdrFile, todayStamp } from '../src/core/adr.js';
 import { listProposals } from '../src/core/repository.js';
-import { formatIssues, validateProposal } from '../src/core/validate.js';
+import { formatIssues, validateRecord } from '../src/core/validate.js';
 
 const tempDirs: string[] = [];
 
@@ -259,7 +259,7 @@ Some risk.
     const file = join(root, 'adr', 'proposed', listProposals(root)[0]!.fileName);
     writeFileSync(file, DRAFT.replace('created:', 'decided-by: human\ncreated:'));
 
-    const issues = validateProposal(root, listProposals(root)[0]!);
+    const issues = validateRecord(root, listProposals(root)[0]!);
     expect(formatIssues(issues)).toContain(
       'unshipped records must not include "decided-by"',
     );

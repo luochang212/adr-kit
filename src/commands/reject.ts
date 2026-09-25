@@ -4,7 +4,7 @@ import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { folderPath, readRecord, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
 import { stampLifecycleMove } from '../core/templates.js';
-import { formatIssues, validateProposal } from '../core/validate.js';
+import { formatIssues, validateRecord } from '../core/validate.js';
 
 export function rejectCommand(query: string, reason: string, cwd: string): string {
   const root = requireRoot(cwd);
@@ -12,7 +12,7 @@ export function rejectCommand(query: string, reason: string, cwd: string): strin
   if (reason.trim().length === 0) {
     throw new Error('reject requires a non-empty --reason');
   }
-  const issues = validateProposal(root, proposal);
+  const issues = validateRecord(root, proposal);
   if (issues.length > 0) {
     throw new Error(`proposal is not ready to reject:\n${formatIssues(issues)}`);
   }
