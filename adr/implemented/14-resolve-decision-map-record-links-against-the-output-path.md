@@ -4,6 +4,7 @@ date: 2026-09-22
 raised-by: human
 decided-by: human
 created: 2026-09-22
+commit: 059da29
 tags: [visualization, decision-graph, delivery]
 ---
 
