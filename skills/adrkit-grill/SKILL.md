@@ -9,7 +9,7 @@ Interrogate the user until the design tree has no silently assumed branch. This 
 
 ## Method
 
-1. Run `adrkit list`. Read relevant implemented records in full, check relevant proposed and rejected records, and consult archived records for history. Recheck the inventory even if this conversation read it earlier; do not reopen a settled choice without naming that change. As the tree takes shape, search the active records for anything covering the same choice or mechanism, so a settled direction lands in the right record rather than a duplicate.
+1. Run `adrkit list`. Read the relevant `implemented/` records in full, check the relevant `proposed/` records for intent and the `rejected/` records for the bad cases they warn against, and consult `archived/` only when a task cites history. Recheck the inventory even if this conversation read it earlier; do not reopen a settled choice without naming that change. As the tree takes shape, search the active records for anything covering the same choice or mechanism, so a settled direction lands in the right record rather than a duplicate.
 2. Map root questions and their dependent questions. Work in rounds: ask every question on the currently answerable frontier, each with genuine options and your recommendation. A downstream question waits until its prerequisite is answered. Format questions as `Q1 - <title>` with a clear recommendation.
 3. Research repository and environment facts yourself. Do not ask the user for facts you can inspect. Let answers reshape the tree; record which option or question unlocked each follow-up.
 4. Stop questioning only when the frontier is empty. State the proposed shared understanding and wait for the user's confirmation before acting or writing records.

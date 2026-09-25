@@ -74,4 +74,6 @@ and supersede now perform a two-file write with rollback, and CI needs full
 git history. The agent workflows carry obligations machine validation cannot
 prove, which the review workflow and human reviewers own. The maintainer
 raised the direction and confirmed the design; the full deliberation lives in
-the OpenSpec change `close-agent-note-governance-loop`.
+the OpenSpec change `close-agent-note-governance-loop`. ADR 20 later defined
+the four folders by context value and pruned stale rejections; the archive seal
+and its rules are unchanged.

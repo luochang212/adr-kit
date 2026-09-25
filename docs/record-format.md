@@ -6,7 +6,7 @@ ADR Kit stores Markdown with YAML front matter in four lifecycle directories:
 | --- | --- | --- | --- |
 | `adr/proposed/` | `proposed` | `YYYY-MM-DD-slug.md` | Unshipped proposal |
 | `adr/implemented/` | `implemented` | `N-slug.md` | Shipped, active decision |
-| `adr/rejected/` | `rejected` | `YYYY-MM-DD-slug.md` | Formally declined proposal |
+| `adr/rejected/` | `rejected` | `YYYY-MM-DD-slug.md` | Declined proposal (anti-pattern memory) |
 | `adr/archived/` | `implemented` or `superseded` | `N-slug.md` | Frozen history |
 
 The canonical front matter order is `status`, `date`, `raised-by`,
@@ -21,9 +21,13 @@ The header is followed by a blank line and `# ADR: <title>` (or
 Proposals require `Problem`, `Proposal`, `Alternatives considered`,
 `Acceptance criteria`, and `Risks`. Implemented and archived decisions
 require `Problem`, `Decision`, `Alternatives considered`, and
-`Consequences`; proposal-era sections must not remain. A rejected proposal
-keeps its problem, proposal, and alternatives and adds a non-empty `reason`
-field. New templates intentionally fail validation until substantive sections
+`Consequences`; proposal-era sections must not remain. The folders are also a
+context budget: `implemented/` is current authority and is read in full;
+`proposed/` is intent and is checked; `rejected/` is anti-pattern memory that
+is checked and pruned; `archived/` is lowest-value frozen history that is not
+read by default. A rejected proposal keeps its problem, proposal, and
+alternatives and adds a non-empty `reason` field naming the tempting mistake it
+blocks; delete the record once it no longer teaches. New templates intentionally fail validation until substantive sections
 are written outside HTML comments.
 
 `raised-by` and `decided-by` are required on numbered decisions and

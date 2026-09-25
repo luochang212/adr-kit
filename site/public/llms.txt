@@ -25,13 +25,17 @@ adrkit validate
 ```
 
 Use `adrkit record "<title>" --raised-by human --decided-by human` for an
-already-shipped choice. Use `adrkit reject <name> --reason "<why>"` for a
-formally declined proposal. Full supersession archives the old implemented
-record; `adrkit archive <N> --reason "<current authority>"` retires other
-implemented records that no longer guide work.
+already-shipped choice. Use `adrkit reject <name> --reason "<the tempting
+mistake this blocks>"` for a formally declined proposal; keep a rejection only
+while it still teaches. Full supersession archives the old implemented record;
+`adrkit archive <N> --reason "<current authority>"` retires other implemented
+records that no longer guide work.
 
 ## Key facts
 
+- The four folders are a context budget: read `implemented/` in full, check
+  `proposed/` for intent and `rejected/` for anti-patterns, and leave `archived/`
+  alone unless a task cites history.
 - `proposed/` and `rejected/` hold dated, unnumbered files; `implemented/`
   and `archived/` hold stable numbered files.
 - A settled but unshipped direction remains proposed. There is no separate

@@ -9,7 +9,7 @@
 | `adrkit propose <title>` | 创建按日期命名、未编号的未交付提案 |
 | `adrkit implement <name> --raised-by <human\|agent> --decided-by <human\|agent>` | 交付后提升提案并分配稳定编号 |
 | `adrkit record <title> --raised-by <human\|agent> --decided-by <human\|agent>` | 直接记录已交付选择 |
-| `adrkit reject <name> --reason <text>` | 将否决提案及理由保留在 `rejected/` |
+| `adrkit reject <name> --reason <text>` | 把否决提案记为 `rejected/` 中的反例 |
 | `adrkit archive <name> --reason <text>` | 将不再指导工作的已交付记录归档 |
 | `adrkit supersede <old> --by <new>` | 完整替代并归档旧决策 |
 | `adrkit list` | 按生命周期列出记录 |

@@ -17,7 +17,7 @@
   <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
-ADR Kit stores architecture decisions as plain Markdown across four lifecycle directories. It is an independent, agent-friendly decision-record tool: proposals are unshipped, implemented records describe shipped choices, rejections retain their rationale, and archives preserve frozen history.
+ADR Kit stores architecture decisions as plain Markdown across four lifecycle directories. It is an independent, agent-friendly decision-record tool: proposals are unshipped, implemented records describe shipped choices, rejections keep the anti-patterns worth avoiding, and archives preserve frozen history.
 
 - Plain Markdown and YAML front matter
 - One choice per file, with explicit alternatives
@@ -46,15 +46,15 @@ adr/
 ├── README.md
 ├── proposed/       # dated, unnumbered, unshipped
 ├── implemented/    # numbered, shipped, active guidance
-├── rejected/       # dated, unnumbered, declined with reason
+├── rejected/       # dated, unnumbered, anti-patterns to avoid
 └── archived/       # numbered, frozen history
 ```
 
-An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` retains every formal rejection. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active. Both moves seal the archived file in `adr/archived/MANIFEST.json`; `adrkit validate` checks the seal and `adrkit validate --base <git-ref>` proves the archive only grows.
+An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern: keep it only while it still blocks a plausible mistake, and delete it once it no longer teaches. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active. Both moves seal the archived file in `adr/archived/MANIFEST.json`; `adrkit validate` checks the seal and `adrkit validate --base <git-ref>` proves the archive only grows.
 
 ## Tell your agent
 
-Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`, read relevant implemented records in full, check relevant proposed and rejected records, and use archives for history. Do not filter by title alone. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code.
+Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code.
 
 ## Commands
 

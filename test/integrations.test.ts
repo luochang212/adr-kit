@@ -54,9 +54,9 @@ describe('initCommand tool integrations', () => {
     updateCommand(root);
     for (const target of ['.agents', '.claude']) {
       const init = readFileSync(join(root, target, 'skills/adrkit-init/SKILL.md'), 'utf8');
-      expect(init).toContain('read relevant implemented records in full');
-      expect(init).toContain('Check relevant proposed and rejected records');
-      expect(init).toContain('consult archived records only for history');
+      expect(init).toContain('read the relevant `implemented/` records in full');
+      expect(init).toContain('check the relevant `proposed/` records for intent');
+      expect(init).toContain('treat `archived/` as frozen history and read it only when a task explicitly cites it');
       expect(init).toContain('Record an ADR when an architectural choice constrains future work');
       expect(init).toContain('not invented template filler');
       expect(init).toContain('CLI neither infers nor verifies shipping or provenance');

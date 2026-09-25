@@ -13,8 +13,9 @@
 2. 交付后运行 `adrkit implement <name> --raised-by <human|agent>
    --decided-by <human|agent>`，校验并移入编号的 `implemented/`。未经过
    提案但已交付的选择，用相同来源声明运行 `adrkit record <title>`。
-3. `adrkit reject <name> --reason "<理由>"` 将正式否决提案保留在
-   `rejected/`，不分配 ADR 编号。
+3. `adrkit reject <name> --reason "<它挡住的诱惑性错误>"` 把否决提案记为
+   `rejected/` 的反例，不分配 ADR 编号。只要理由仍能挡住一个可避免的错误
+   就保留，不再有教益时删除——否决记录无编号、不入封存。
 4. 完整替代用 `adrkit supersede <old> --by <new>`：旧编号记录带
    `superseded-by` 进入 `archived/`。部分替代仍保留有效的现行指导。
    其他低未来价值记录，仅当现状另有权威来源时，才用 `adrkit archive <N>
@@ -43,9 +44,10 @@
 
 ## 任务开始前阅读决策
 
-任务开始先运行 `adrkit list` 发现目录清单。完整阅读相关 implemented 记录，
-检查相关 proposed、rejected 记录，archived 仅供历史参考。不能只看标题
-判断相关性，还应看标签、路径、关系和任务范围。将记录与当前代码核对，
+任务开始先运行 `adrkit list` 发现目录清单。四个目录是一份上下文预算：
+完整阅读相关 `implemented/` 记录；检查相关 `proposed/` 的意图与
+`rejected/` 的反例；`archived/` 是冻结历史，仅当任务明确引用时再读。不能
+只看标题判断相关性，还应看标签、路径、关系和任务范围。将记录与当前代码核对，
 解释假设变化，在总结中提及相关 ADR 编号。任务范围变化后重新阅读。
 Agent 技能指导生命周期操作，但 CLI 不会自动编辑 `AGENTS.md` 或
 `CLAUDE.md`。

@@ -41,7 +41,7 @@ Usage:
   adrkit propose <title>                     Create an unshipped proposal
   adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>
                                            Mark shipped proposal implemented; assign number
-  adrkit reject <name> --reason <reason>     Reject and retain a proposal
+  adrkit reject <name> --reason <reason>     Reject a proposal; keep it as an anti-pattern
   adrkit archive <name> --reason <reason>    Retire an implemented record
   adrkit supersede <name> --by <name>        Replace and archive an implemented decision
   adrkit list                                List all lifecycle records

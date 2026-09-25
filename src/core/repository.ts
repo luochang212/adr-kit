@@ -52,10 +52,17 @@ ${toolsYaml}${workflowsYaml}
 const INIT_README = `# Architecture Decision Records
 
 Records follow the lifecycle folders proposed/, implemented/, rejected/, and
-archived/. A proposal is unshipped even when its direction has been settled.
-Implemented records describe shipped decisions and receive stable ADR numbers.
-Every formally rejected proposal remains in rejected/ with its reason.
-Archived records are frozen history, not current authority. Each one is
+archived/. The folders are a context budget as well as a lifecycle:
+implemented/ is current authority and is read in full; proposed/ is intent and
+is checked; rejected/ is anti-pattern memory and is checked and pruned;
+archived/ is lowest-value frozen history and is not read by default.
+
+A proposal is unshipped even when its direction has been settled. Implemented
+records describe shipped decisions and receive stable ADR numbers. A rejection
+is kept only while its reason still blocks a plausible, meaningful mistake, and
+is deleted once it no longer teaches — rejections are unnumbered and unsealed,
+so removing one cannot reuse a number or break the archive. Archived records
+are frozen history, not current authority. Each one is
 sealed in adr/archived/MANIFEST.json; adrkit validate checks the seal, and
 adrkit validate --base <git-ref> proves the archive only grows.
 
@@ -74,9 +81,10 @@ for a proposal that will not ship. A full replacement archives the old
 implemented record through adrkit supersede; adrkit archive also retires
 implemented guidance whose rationale is no longer needed in the active set.
 
-Run adrkit list to discover records. Read relevant implemented records in
-full, check relevant proposed and rejected records, and consult archived
-records only for history. Do not decide relevance by title alone.
+Run adrkit list to discover records. Read the relevant implemented/ records in
+full, check the relevant proposed/ records for intent and the rejected/ records
+for the bad cases they warn against, and consult archived/ only when a task
+cites history. Do not decide relevance by title alone.
 Run adrkit validate to check the repository.
 `;
 

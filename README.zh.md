@@ -17,7 +17,7 @@
   <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
-ADR Kit 用纯 Markdown 记录架构决策，并以四个目录表示完整生命周期：`proposed/` 是未交付提案，`implemented/` 是已交付且仍有指导意义的决策，`rejected/` 保存正式否决及理由，`archived/` 保存冻结历史。它是独立的、面向人与 agent 的决策记录工具。
+ADR Kit 用纯 Markdown 记录架构决策，并以四个目录表示完整生命周期：`proposed/` 是未交付提案，`implemented/` 是已交付且仍有指导意义的决策，`rejected/` 保存待避免的反例（正式否决），`archived/` 保存最低价值的冻结历史。它是独立的、面向人与 agent 的决策记录工具。
 
 ## 快速开始
 
@@ -41,15 +41,15 @@ adr/
 ├── README.md
 ├── proposed/       # 按日期命名，未编号，尚未交付
 ├── implemented/    # 已编号、已交付，当前指导
-├── rejected/       # 按日期命名，保留否决理由
+├── rejected/       # 按日期命名，待避免的反例
 └── archived/       # 保留编号，冻结历史
 ```
 
-未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决必须用 `adrkit reject --reason` 留痕。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都会把归档文件封存进 `adr/archived/MANIFEST.json`；`adrkit validate` 检查封存，`adrkit validate --base <git-ref>` 证明归档只增不改。
+未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为反例：只要理由仍能挡住一个可避免的错误就保留，不再有教益时删除（否决记录无编号、不入封存）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都会把归档文件封存进 `adr/archived/MANIFEST.json`；`adrkit validate` 检查封存，`adrkit validate --base <git-ref>` 证明归档只增不改。
 
 ## 告诉 Agent
 
-将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md` 或 `CLAUDE.md`。任务开始时先运行 `adrkit list`，完整阅读相关的 implemented 记录，检查相关 proposed/rejected 记录，仅在需要历史上下文时读 archived。不能只看标题判断相关性。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。
+将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md` 或 `CLAUDE.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。
 
 ## 命令
 

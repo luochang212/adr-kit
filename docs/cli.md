@@ -9,7 +9,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | `adrkit propose <title>` | Create dated, unnumbered unshipped proposal |
 | `adrkit implement <name> --raised-by <human\|agent> --decided-by <human\|agent>` | Promote a shipped proposal; assign stable ADR number |
 | `adrkit record <title> --raised-by <human\|agent> --decided-by <human\|agent>` | Record an already-shipped choice |
-| `adrkit reject <name> --reason <text>` | Retain a declined proposal in `rejected/` |
+| `adrkit reject <name> --reason <text>` | Record a declined proposal's anti-pattern in `rejected/` |
 | `adrkit archive <name> --reason <text>` | Retire implemented guidance to `archived/` |
 | `adrkit supersede <old> --by <new>` | Replace and archive a fully superseded implemented decision |
 | `adrkit list` | List records grouped by lifecycle |

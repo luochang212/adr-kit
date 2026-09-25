@@ -6,13 +6,15 @@ contains standing orders for coding agents working in this repository.
 ## Reading architecture decisions
 
 At the start of a coding, design, or review task, if `adr/` exists, run
-`adrkit list` to discover the inventory. Read relevant implemented records
-in full with `adrkit show <N>` or their files, check relevant proposed and
-rejected records, and consult archived records only for history. Do not
-judge relevance by title alone; inspect tags, paths, relationships, and task
-scope. Check relevant decisions against current code and requirements.
-Apply constraints that still hold; explain conflicts or changed assumptions
-before choosing a different approach.
+`adrkit list` to discover the inventory. The four lifecycle folders are a
+context budget: read the relevant `implemented/` records in full with
+`adrkit show <N>` or their files; check the relevant `proposed/` records for
+intent and the relevant `rejected/` records for the bad cases they warn
+against; treat `archived/` as frozen history and read it only when a task
+explicitly cites it. Do not judge relevance by title alone; inspect tags,
+paths, relationships, and task scope. Check relevant decisions against
+current code and requirements. Apply constraints that still hold; explain
+conflicts or changed assumptions before choosing a different approach.
 Mention relevant ADR numbers in the implementation or review summary and
 verify the affected behavior. If no decisions apply, continue normally;
 reading does not require creating an ADR. Re-read on a new or resumed task,

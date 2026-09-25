@@ -17,8 +17,11 @@ work.
    --decided-by <human|agent>` validates and promotes it to numbered
    `implemented/`. Use `adrkit record <title>` with the same declarations
    for a choice already shipped without a proposal.
-3. `adrkit reject <name> --reason "<why>"` retains a formally declined
-   proposal in `rejected/`, without an ADR number.
+3. `adrkit reject <name> --reason "<the tempting mistake this blocks>"`
+   records an anti-pattern in `rejected/`, without an ADR number. Keep it only
+   while its reason still blocks a plausible, meaningful mistake; delete it once
+   it no longer teaches — rejections are unnumbered and unsealed, so removing
+   one cannot reuse a number or break the archive.
 4. Full replacement uses `adrkit supersede <old> --by <new>`; the old
    numbered record moves to `archived/` with `superseded-by`. Partial
    replacement leaves still-relevant guidance active. `adrkit archive <N>
@@ -54,9 +57,11 @@ Creating, shipping, and reviewing are one governance loop:
 
 ## Read decisions before coding
 
-At task start, run `adrkit list` to discover the inventory. Read relevant
-implemented records in full, check relevant proposed and rejected records,
-and consult archived records only for history. Relevance requires more than
+At task start, run `adrkit list` to discover the inventory. The four folders
+are a context budget: read the relevant `implemented/` records in full; check
+the relevant `proposed/` records for intent and the relevant `rejected/`
+records for the bad cases they warn against; treat `archived/` as frozen
+history and read it only when a task explicitly cites it. Relevance requires more than
 title matching: inspect tags, paths, relationships, and task scope. Check
 records against current code, explain changed assumptions, and mention
 relevant ADR numbers in the work summary. Re-read when the task or scope

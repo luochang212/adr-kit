@@ -5,7 +5,7 @@ description: Use when starting an architectural choice that has not shipped, whe
 
 # ADR Kit Propose
 
-Before writing, run `adrkit list` and search the active records — read relevant implemented records in full and check proposed and rejected ones — for anything covering the same choice, mechanism, or rejected alternative. Judge overlap from record content, not titles or tags; the CLI cannot infer it. Classify what you find:
+Before writing, run `adrkit list` and search the active records — read relevant implemented records in full, and check proposed records for intent and rejected ones for the bad cases they warn against — for anything covering the same choice, mechanism, or rejected alternative. Judge overlap from record content, not titles or tags; the CLI cannot infer it. Classify what you find:
 
 - **Duplicate**: extend the existing record instead of opening a new one.
 - **Full replacement**: write the new record, then resolve the old one in the same change with `adrkit supersede --by`; never leave duplicate active authority.

@@ -6,7 +6,7 @@ ADR Kit 用 YAML front matter 加 Markdown 正文，并按生命周期分目录�
 | --- | --- | --- | --- |
 | `adr/proposed/` | `proposed` | `YYYY-MM-DD-slug.md` | 未交付提案 |
 | `adr/implemented/` | `implemented` | `N-slug.md` | 已交付、仍指导当前工作 |
-| `adr/rejected/` | `rejected` | `YYYY-MM-DD-slug.md` | 正式否决并留存 |
+| `adr/rejected/` | `rejected` | `YYYY-MM-DD-slug.md` | 正式否决（反例库） |
 | `adr/archived/` | `implemented` 或 `superseded` | `N-slug.md` | 冻结历史 |
 
 front matter 的规范顺序是 `status`、`date`、`raised-by`、
@@ -17,11 +17,16 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 头部后必须空一行，再写 `# ADR: <标题>`；已编号决策为
 `# ADR: N <标题>`。
 
+四个目录也是一份上下文预算：`implemented/` 是现行权威、需完整阅读；
+`proposed/` 是意图、需检查；`rejected/` 是反例、需检查并裁剪；`archived/`
+是最低价值的冻结历史、默认不读。
+
 提案需要 `Problem`、`Proposal`、`Alternatives considered`、
 `Acceptance criteria`、`Risks`。已实施和归档决策需要 `Problem`、
 `Decision`、`Alternatives considered`、`Consequences`，不得保留提案期
-章节。否决提案保留问题、方案和备选，并写入非空 `reason`。新模板未填实质
-内容时，`validate` 按预期失败；HTML 注释不算正文。
+章节。否决提案保留问题、方案和备选，并写入非空 `reason`，标明它挡住的
+诱惑性错误；不再有教益时可删除该记录。新模板未填实质内容时，`validate`
+按预期失败；HTML 注释不算正文。
 
 编号决策必须写 `raised-by` 和 `decided-by`；未编号提案和否决记录禁止这
 两个字段。取值为 `human` 或 `agent`，分别声明谁提出、谁的判断定下选择。
