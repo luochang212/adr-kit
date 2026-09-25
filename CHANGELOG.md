@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.14.0
+
+### Minor Changes
+
+- ed77d77: Seal archived records and govern the lifecycle loop. `adrkit init` writes
+  `adr/archived/MANIFEST.json`; `archive` and `supersede` append a SHA-256 seal,
+  `validate` checks it, and `validate --base <git-ref>` proves the archive only
+  grows. The installed skills now require a scoped supersession check when
+  creating a record and shipped-fact checks on delivery, with a new
+  `adrkit-review` workflow.
+- ed77d77: Organize records by lifecycle. Records now live in `adr/proposed/`,
+  `adr/implemented/`, `adr/rejected/`, and `adr/archived/`; `adrkit accept`
+  becomes `adrkit implement` and `adrkit decide` becomes `adrkit record`, and
+  the old `adr/decisions/` and `.drafts/` layouts are gone. This is a breaking
+  rename for a pre-1.0 package, shipped as a minor bump with no migration layer.
+
+### Patch Changes
+
+- 4e20c7c: Require `adr/archived/MANIFEST.json` even when the archive is empty, so
+  `validate` reports a missing manifest instead of passing an empty directory,
+  and fail base-aware validation when the manifest exists at the base but cannot
+  be read, instead of treating an unreadable base as "no prior seals".
+
 ## 0.13.0
 
 ### Minor Changes
