@@ -127,4 +127,4 @@ update:
 
 `adrkit validate` is supposed to fail on fresh proposals until humans or
 agents fill in the required sections. Tests must prove both sides: valid
-records pass, and draft records fail for the exact missing requirement.
+records pass, and incomplete records fail for the exact missing requirement.

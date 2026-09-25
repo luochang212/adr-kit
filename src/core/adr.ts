@@ -94,7 +94,7 @@ export interface AdrRecord {
    * person's own choice, a proposal they changed into what shipped, and a
    * choice they made earlier that is only now being recorded; `agent` means the
    * direction came from the agent's own judgment, even when a person let it
-   * through. Declared by the writer at decide or accept time, never inferred or
+   * through. Declared by the writer at record or implement time, never inferred or
    * verified. An unshipped proposal never carries it.
    */
   decidedBy?: DecidedBy;

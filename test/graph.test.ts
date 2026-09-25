@@ -310,6 +310,41 @@ describe('created grouping, tags, and tree output', () => {
     └── 3 New`);
   });
 
+  it('marks a plain archived decision in --text', () => {
+    const root = makeRepo();
+    const dir = join(root, 'adr', 'archived');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, '1-retired.md'), `---
+status: implemented
+date: 2026-08-17
+created: 2026-08-17
+archived: 2026-08-17
+archive-reason: current behavior has another authoritative owner
+---
+
+# ADR: 1 Retired
+
+## Problem
+
+p
+
+## Decision
+
+d
+
+## Alternatives considered
+
+a
+
+## Consequences
+
+c
+`);
+    expect(graphCommand(root, { text: true })).toBe(`Decisions
+└── 2026-08-17 (1)
+    └── 1 Retired  [archived]`);
+  });
+
   it('filters to one theme with --tag in every format', () => {
     const root = makeRepo();
     writeDecision(root, 1, 'Sandbox', { date: '2026-08-17', tags: ['execution', 'sandbox'] });

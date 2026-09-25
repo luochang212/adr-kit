@@ -160,6 +160,36 @@ describe('archive and supersede append seals', () => {
       chmodSync(manifestPath(root), 0o644);
     }
   });
+
+  it('refuses to archive a decision that does not validate', () => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    expect(() => archiveCommand('1', 'Retired', root)).toThrow(/not valid/);
+    expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('implemented');
+    expect(readArchiveManifest(root)!.entries).toEqual([]);
+  });
+
+  it('refuses to supersede a decision that does not validate', () => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    recordCommand('Use Postgres', root, 'human', 'human');
+    fillDecision(root, 2);
+    expect(() => supersedeCommand('1', '2', root)).toThrow(/not valid/);
+    expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('implemented');
+  });
+
+  it('refuses a new archive when a prior seal has drifted', () => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    archiveCommand('1', 'Retired', root);
+    recordCommand('Use Postgres', root, 'human', 'human');
+    fillDecision(root, 2);
+    const sealed = join(root, 'adr', 'archived', '1-use-sqlite.md');
+    writeFileSync(sealed, `${readFileSync(sealed, 'utf8')}\nEDITED\n`);
+    expect(() => archiveCommand('2', 'Retired too', root)).toThrow(/inconsistent/);
+    expect(listRecords(root).find((record) => record.number === 2)?.folder).toBe('implemented');
+  });
 });
 
 describe('validate detects archive drift', () => {
@@ -277,5 +307,17 @@ describe('base-aware validation enforces append-only history', () => {
   it('rejects --base together with single-record validation', () => {
     const root = repo();
     expect(() => validateCommand(root, '1', 'HEAD')).toThrow(/repository-wide/);
+  });
+
+  it('reports a malformed current manifest instead of throwing under --base', () => {
+    const root = gitRepo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    archiveCommand('1', 'Retired', root);
+    git(root, 'add', '-A');
+    git(root, 'commit', '-m', 'base');
+    writeFileSync(manifestPath(root), '{oops');
+    const issues = validateRepositoryWithBase(root, 'HEAD');
+    expect(issues.some((issue) => /not valid JSON/.test(issue.message))).toBe(true);
   });
 });

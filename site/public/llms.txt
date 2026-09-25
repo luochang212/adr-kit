@@ -36,8 +36,10 @@ implemented records that no longer guide work.
   and `archived/` hold stable numbered files.
 - A settled but unshipped direction remains proposed. There is no separate
   local draft folder; Git distinguishes uncommitted work from shared proposals.
-- `adrkit validate` checks all four folders. Fresh templates intentionally fail
-  until required sections contain real content.
+- `adrkit validate` checks all four folders and the `adr/archived/MANIFEST.json`
+  content seal; `adrkit validate --base <git-ref>` proves the archive only grew.
+  Fresh templates intentionally fail until required sections contain real
+  content.
 - `raised-by` and `decided-by` are required on numbered decisions; each is
   declared as `human` or `agent`. The CLI cannot infer provenance or verify
   delivery.
@@ -45,6 +47,8 @@ implemented records that no longer guide work.
   `adrkit graph --html` renders the numbered decision history.
 - At task start, list the inventory, read relevant implemented records in full,
   check relevant proposals and rejections, and consult archives for history.
+- The `adrkit-review` skill keeps changed records aligned with changed code and
+  tests; it is scoped to decision-record coherence, not general code review.
 - Integrations install in `.agents/` by default; `--tools claude` adds
   `.claude/`, and `--tools none` installs nothing.
 - License: MIT. Single runtime dependency: yaml.

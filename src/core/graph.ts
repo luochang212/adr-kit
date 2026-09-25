@@ -296,6 +296,8 @@ export function textTree(graph: DecisionGraph): string {
       const annotations: string[] = [];
       if (node.supersededBy !== undefined) {
         annotations.push(`superseded by ${node.supersededBy}`);
+      } else if (node.archived) {
+        annotations.push('archived');
       }
       if (node.tags.length > 0) {
         annotations.push(node.tags.join(', '));

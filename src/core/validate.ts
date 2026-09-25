@@ -11,6 +11,7 @@ import {
 import {
   archivedManifestPath,
   archivedRecordPath,
+  type ArchiveManifest,
   ARCHIVED_DIR,
   MANIFEST_FILE,
   parseArchiveManifest,
@@ -455,7 +456,14 @@ export function validateRepositoryWithBase(root: string, baseRef: string): Valid
     }
   }
 
-  const current = readArchiveManifest(root);
+  let current: ArchiveManifest | undefined;
+  try {
+    current = readArchiveManifest(root);
+  } catch {
+    // validateRepository already reported the malformed manifest; there is no
+    // current manifest to compare against, so skip the prefix check.
+    return issues;
+  }
   if (current === undefined) {
     if (baseEntries.length > 0) {
       issues.push({

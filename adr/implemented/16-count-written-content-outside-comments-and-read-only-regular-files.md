@@ -72,13 +72,13 @@ and a file can wedge is neither.
 
 ## Consequences
 
-- A draft that used an unterminated marker as scratch space now fails `accept`
-  with `section "## X" must contain written content`, and a section whose only
+- A draft that used an unterminated marker as scratch space now fails
+  `adrkit implement` with `section "## X" must contain written content`, and a section whose only
   text sits inside a comment is reported by name. The failure is the point: the
   gate exists to stop a record nobody wrote.
 - Reading is bounded. A 1.9 MB crafted body validates in 0.27 s and reports the
   missing content, where it previously ran past 20 s, and a FIFO in
-  `adr/decisions/` makes every affected command return in ~0.3 s naming the
+  `adr/implemented/` makes every affected command return in ~0.3 s naming the
   kind instead of blocking.
 - The error text for a missing or dangling path changed from the raw
   `ENOENT ... open` form to `record path cannot be read: ...`; no test or doc

@@ -79,6 +79,10 @@ a decision the session settled.
 - This is a breaking change to a 0.x package. Per ADR 2's dogfooding and the
   project's 0-star, self-only use, compatibility is not a constraint; it ships
   as a minor changeset rather than a migration shim.
+- ADR 18 later replaced the terminal route this record chose: a settled choice
+  is now recorded with `adrkit record`, or stays a proposal with `adrkit
+  propose` while it is unshipped. The provenance, deliberation, and tree rules
+  above are unchanged.
 
 ## Deliberation
 

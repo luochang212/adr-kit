@@ -72,3 +72,6 @@ could silently rot.
   and CI wiring in `.github/workflows/ci.yml`.
 - The check distinguishes drift (exit 1) from an unreachable upstream (exit 2),
   so a flaky fetch is never mistaken for "no change".
+- ADR 18 later changed the unconditional terminal command from `adrkit decide`
+  to `adrkit record` (`adrkit propose` while an outcome is unshipped). The
+  always-record rule and the upstream pin above are unchanged.

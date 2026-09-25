@@ -124,3 +124,24 @@ export function appendSeal(manifest: ArchiveManifest, fileName: string, sha256: 
   }
   return { version: manifest.version, entries: [...manifest.entries, { path: fileName, sha256 }] };
 }
+
+/**
+ * Existing seals that no longer match their archived files. archive/supersede
+ * preflight this so a drifted manifest is refused instead of compounded: the
+ * design forbids re-sealing changed bytes, so appending on top of drift would
+ * cost the operator a manual repair.
+ */
+export function driftedSeals(root: string, manifest: ArchiveManifest): string[] {
+  const problems: string[] = [];
+  for (const entry of manifest.entries) {
+    const path = archivedRecordPath(root, entry.path);
+    if (!existsSync(path)) {
+      problems.push(`${sealedDisplayPath(entry.path)}: sealed in the manifest but missing from archived/`);
+      continue;
+    }
+    if (sealBytes(readFileSync(path)) !== entry.sha256) {
+      problems.push(`${sealedDisplayPath(entry.path)}: archived bytes no longer match the seal`);
+    }
+  }
+  return problems;
+}
