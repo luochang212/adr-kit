@@ -65,6 +65,16 @@ npm run check:upstream   # fails if the pinned upstream grilling directory drift
 Run the smallest check that covers the changed surface. `npm test` is the
 fast unit gate; CI also runs `npm run build` and `npm run typecheck`.
 
+## Concurrent agents
+
+This repository may be edited by more than one agent at a time. Keep writes
+single-writer: before any `git reset`, `rebase`, `checkout`, or `commit`, run
+`git status` and `git log origin/main..HEAD` and confirm no other agent has work
+in the tree or unpushed commits. When two agents must work together, give each a
+separate branch (or checkout) and merge through review instead of both
+committing to `main`; an agent that only needs to propose a change should hand
+over a patch rather than share the working tree.
+
 ## Conventions
 
 - The runtime CLI lives in `src/cli.ts` and the command implementations in

@@ -81,8 +81,11 @@ a decision the session settled.
   as a minor changeset rather than a migration shim.
 - ADR 18 later replaced the terminal route this record chose: a settled choice
   is now recorded with `adrkit record`, or stays a proposal with `adrkit
-  propose` while it is unshipped. The provenance, deliberation, and tree rules
-  above are unchanged.
+  propose` while it is unshipped. The product surfaces changed with it: the
+  `adrkit instructions` and `init` hints now present `propose` first with
+  `record` alongside, and the website demo leads with `record`, so no single
+  path is "the default". The provenance, deliberation, and tree rules above are
+  unchanged.
 
 ## Deliberation
 
