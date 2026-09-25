@@ -146,6 +146,17 @@ describe('archive and supersede append seals', () => {
     expect(existsSync(join(root, 'adr', 'archived', '1-use-sqlite.md'))).toBe(false);
   });
 
+  it('refuses to archive a decision the manifest already seals', () => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    // Pre-seal the target name so the duplicate check fires before staging.
+    writeArchiveManifest(root, { version: 1, entries: [{ path: '1-use-sqlite.md', sha256: sealBytes('x') }] });
+    expect(() => archiveCommand('1', 'Retired', root)).toThrow(/already seals/);
+    expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('implemented');
+    expect(existsSync(join(root, 'adr', 'archived', '1-use-sqlite.md'))).toBe(false);
+  });
+
   it('rolls the staged archived file back when the seal cannot be written', () => {
     const root = repo();
     recordCommand('Use SQLite', root, 'human', 'human');
@@ -215,6 +226,13 @@ describe('validate detects archive drift', () => {
     writeArchiveManifest(root, { version: 1, entries: [] });
     const issues = validateRepository(root);
     expect(issues.some((issue) => issue.path.endsWith('1-use-sqlite.md') && /no seal/.test(issue.message))).toBe(true);
+  });
+
+  it('reports a missing manifest even when the archive is empty', () => {
+    const root = repo();
+    rmSync(manifestPath(root));
+    const issues = validateRepository(root);
+    expect(issues.some((issue) => issue.path === 'adr/archived/MANIFEST.json' && /missing/.test(issue.message))).toBe(true);
   });
 
   it('reports a seal whose file is missing and an extra seal', () => {
@@ -319,5 +337,20 @@ describe('base-aware validation enforces append-only history', () => {
     writeFileSync(manifestPath(root), '{oops');
     const issues = validateRepositoryWithBase(root, 'HEAD');
     expect(issues.some((issue) => /not valid JSON/.test(issue.message))).toBe(true);
+  });
+
+  it('fails when the base manifest exists but its content cannot be read', () => {
+    const root = gitRepo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    archiveCommand('1', 'Retired', root);
+    git(root, 'add', '-A');
+    git(root, 'commit', '-m', 'base');
+    // Drop the loose blob so `git show <ref>:path` fails while the tree entry
+    // still resolves: the state a partial clone produces.
+    const blob = execFileSync('git', ['rev-parse', 'HEAD:adr/archived/MANIFEST.json'], { cwd: root, encoding: 'utf8' }).trim();
+    rmSync(join(root, '.git', 'objects', blob.slice(0, 2), blob.slice(2)));
+    const issues = validateRepositoryWithBase(root, 'HEAD');
+    expect(issues.some((issue) => /exists but cannot be read/.test(issue.message))).toBe(true);
   });
 });

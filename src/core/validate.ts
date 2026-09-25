@@ -20,7 +20,7 @@ import {
   sealBytes,
 } from './archive-seal.js';
 import { ADR_DIR, CONFIG_FILE, readConfig } from './config.js';
-import { gitRefExists, gitShow } from './git.js';
+import { gitPathExists, gitRefExists, gitShow } from './git.js';
 import { listRecords } from './repository.js';
 
 export interface ValidationIssue {
@@ -307,6 +307,13 @@ export function archiveSealIssues(root: string): ValidationIssue[] {
   const manifestFile = `${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`;
 
   if (!existsSync(archivedManifestPath(root))) {
+    // Every ADR Kit repository carries a manifest, even with an empty archive:
+    // init writes it, and archive/supersede require it, so a missing one is a
+    // repository error rather than a pass over an empty directory.
+    issues.push({
+      path: manifestFile,
+      message: `${manifestFile} is missing; it must exist even when the archive is empty — create it with {"version": 1, "entries": []} (adrkit init writes one for new repositories)`,
+    });
     for (const file of files) {
       issues.push({
         path: sealedDisplayPath(file),
@@ -424,8 +431,18 @@ export function validateRepositoryWithBase(root: string, baseRef: string): Valid
 
   const baseText = gitShow(root, baseRef, `${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`);
   if (baseText === undefined) {
-    // No manifest at the base means no prior seals; the current tree must
-    // still seal every archived decision, which validateRepository checked.
+    if (gitPathExists(root, baseRef, `${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`)) {
+      // The path is present at the base but its content could not be read
+      // (for example a partial clone with a missing object). Treating this as
+      // "no prior seals" would silently skip the append-only check.
+      issues.push({
+        path: manifestFile,
+        message: `the archive manifest at base "${baseRef}" exists but cannot be read; fetch the object and retry`,
+      });
+      return issues;
+    }
+    // An absent manifest at the base means no prior seals; the current tree
+    // must still seal every archived decision, which validateRepository checked.
     return issues;
   }
   let baseEntries: { path: string; sha256: string }[];

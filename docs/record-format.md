@@ -56,10 +56,14 @@ appended in archival order:
 
 `sha256` is the hash of the archived file's complete bytes. `adrkit archive`
 and `adrkit supersede` append the seal; a path is never sealed twice, and an
-existing seal is never rewritten. `adrkit validate` fails on a missing,
-malformed, duplicate, or extra entry, a missing archived file, and archived
-bytes that no longer match their seal — restore the sealed bytes rather than
-re-sealing edited content. `adrkit validate --base <git-ref>` reads the
-manifest and sealed files from Git and requires every entry sealed at the
-base to survive unchanged as a prefix of the current manifest, so a
-coordinated edit of an archived file and its hash still fails.
+existing seal is never rewritten. `adrkit init` writes the manifest, and it
+must exist even when the archive is empty, so `adrkit validate` reports a
+missing manifest as an error. Validation also fails on a missing, malformed,
+duplicate, or extra entry, a missing archived file, and archived bytes that no
+longer match their seal — restore the sealed bytes rather than re-sealing
+edited content. `adrkit validate --base <git-ref>` reads the manifest and
+sealed files from Git and requires every entry sealed at the base to survive
+unchanged as a prefix of the current manifest, so a coordinated edit of an
+archived file and its hash still fails; an absent manifest at the base means
+there were no prior seals, while a base manifest that exists but cannot be
+read fails rather than skipping the history check.
