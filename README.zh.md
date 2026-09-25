@@ -19,6 +19,11 @@
 
 ADR Kit 用纯 Markdown 记录架构决策，并以四个目录表示完整生命周期：`proposed/` 是未交付提案，`implemented/` 是已交付且仍有指导意义的决策，`rejected/` 保存待避免的反例（正式否决），`archived/` 保存最低价值的冻结历史。它是独立的、面向人与 agent 的决策记录工具。
 
+- 纯 Markdown 与 YAML front matter
+- 一个选择一个文件，含明确的备选
+- 仅在工作交付时分配稳定 ADR 编号
+- 面向 agent 与人类
+
 ## 快速开始
 
 需要 Node.js 20.19 或更新版本。

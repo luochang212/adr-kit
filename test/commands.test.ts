@@ -1,6 +1,7 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
 import { implementCommand } from '../src/commands/implement.js';
@@ -96,6 +97,13 @@ describe('initCommand', () => {
     const root = makeRepo();
     const manifest = JSON.parse(readFileSync(join(root, 'adr', 'archived', 'MANIFEST.json'), 'utf8'));
     expect(manifest).toEqual({ version: 1, entries: [] });
+  });
+
+  it('keeps the dogfooded adr/README.md identical to the generated one', () => {
+    const root = makeRepo();
+    const generated = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
+    const committed = readFileSync(fileURLToPath(new URL('../adr/README.md', import.meta.url)), 'utf8');
+    expect(committed).toBe(generated);
   });
 
   it('refuses to initialize twice', () => {

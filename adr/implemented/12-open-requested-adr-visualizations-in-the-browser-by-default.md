@@ -57,3 +57,6 @@ integration template, installed local skill, bilingual documentation, and
 workflow specification carry the new default. Existing installations receive
 it through `adrkit update` after the updated package is installed. Both
 provenance fields are human because the maintainer raised and chose this change.
+ADR 13 later moved visualization routing from `adrkit-grill` to
+`adrkit-visualize`; the browser-open default, file link, opt-out, and fallback
+above are unchanged.

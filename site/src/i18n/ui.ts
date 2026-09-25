@@ -140,7 +140,7 @@ const ui = {
     'start.agent.prompt.short':
       '在本仓库用 github.com/luochang212/adr-kit 自动记录关键架构决策',
     'start.agent.prompt.full':
-      "在本仓库使用 github.com/luochang212/adr-kit。未交付选择用 propose；交付后用 implement；已交付但未记录的选择用 record。正式否决要说明理由。已交付决策用 --raised-by 和 --decided-by 声明来源。",
+      "在本仓库使用 github.com/luochang212/adr-kit。未交付选择用 propose；交付后用 implement；已交付但未记录的选择用 record。正式否决稳定保留，只在另一条记录接管其警示时移除，且要说明理由。已交付决策用 --raised-by 和 --decided-by 声明来源。",
     'start.agents.footnote':
       '任选一段，贴给你的 AI 编码助手，它就会在本仓库帮你把架构决策记录成 ADR。',
     'start.human.label': '或自己动手',

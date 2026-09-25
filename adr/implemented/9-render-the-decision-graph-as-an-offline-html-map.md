@@ -82,7 +82,10 @@ decisions and cut supersede and reference edges through them.
   requirement; the deliberation-tree spec is untouched.
 - The website's `Graph.astro` remains a hand-maintained mirror and stays a known
   drift point (AGENTS.md already requires periodic regeneration). A later change
-  may make the site consume the generated map.
+  may make the site consume the generated map. ADR 12 later made browser
+opening the default on request, and ADR 13 moved this routing from
+`adrkit-grill` to `adrkit-visualize`; the map, its grouping, and the two-level
+model are unchanged.
 
 ## Deliberation
 

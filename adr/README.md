@@ -12,8 +12,8 @@ is a durable terminal record of a declined proposal: it is removed only when
 another record owns the warning it blocks, never for appearing stale —
 rejections are unnumbered and unsealed, so removing a redundant one cannot
 reuse a number or break the archive. Archived records
-are frozen history, not current authority. Each one is sealed in
-adr/archived/MANIFEST.json; adrkit validate checks the seal, and
+are frozen history, not current authority. Each one is
+sealed in adr/archived/MANIFEST.json; adrkit validate checks the seal, and
 adrkit validate --base <git-ref> proves the archive only grows.
 
 Never delete a numbered decision: its stable N may be referenced elsewhere.

@@ -10,7 +10,8 @@ At the start of a coding, design, or review task, if `adr/` exists, run
 context budget: read the relevant `implemented/` records in full with
 `adrkit show <N>` or their files; check the relevant `proposed/` records for
 intent and the relevant `rejected/` records for the bad cases they warn
-against; treat `archived/` as frozen history and read it only when a task
+against (a rejection is durable: it leaves only when another record owns its
+warning); treat `archived/` as frozen history and read it only when a task
 explicitly cites it. Do not judge relevance by title alone; inspect tags,
 paths, relationships, and task scope. Check relevant decisions against
 current code and requirements. Apply constraints that still hold; explain

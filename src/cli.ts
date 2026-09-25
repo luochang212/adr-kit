@@ -58,6 +58,7 @@ Usage:
   adrkit tree <name> [--mermaid|--text|--html] Render the record's deliberation tree
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
+  adrkit help                                Print this help
   adrkit -h, --help                          Print this help
   adrkit -V, --version                       Print the version
 

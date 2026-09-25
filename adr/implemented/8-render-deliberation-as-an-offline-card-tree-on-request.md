@@ -57,6 +57,9 @@ requires no frontend service. Users receive the workflow via `adrkit init` or
 `adrkit update`. The agent proposed the card layout and built-in renderer;
 the maintainer approved the prototype and changed the proposed automatic export
 policy to on-demand generation, then selected default file-link delivery.
+ADR 12 later made browser opening the default for a visualization request, and
+ADR 13 moved this routing from `adrkit-grill` to `adrkit-visualize`; on-request
+generation, the file link, and the no-open opt-out are unchanged.
 
 ## Deliberation
 

@@ -100,15 +100,16 @@ formal one.
 
 ### Requirement: temporal grouping
 
-The graph SHALL group decisions into per-date containers - Mermaid
-subgraphs titled with the date and count for same-date decisions; DOT
-output SHALL rank same-date decisions at the same layer in a left-to-right
-layout. Grouping SHALL NOT imply continuity between dates (no empty
-in-between buckets).
+The graph SHALL group decisions into per-creation-date containers -
+Mermaid subgraphs titled with the creation date and count for same-date
+decisions; DOT output SHALL rank same-date decisions at the same layer in a
+left-to-right layout. The grouping key SHALL be the record's `created`
+date, not its mutable `date` front matter. Grouping SHALL NOT imply
+continuity between dates (no empty in-between buckets).
 
 #### Scenario: same-date decisions share a subgraph
 
-- **WHEN** decisions 2 and 3 both carry `date: 2026-08-17`
+- **WHEN** decisions 2 and 3 both carry `created: 2026-08-17`
 - **THEN** the Mermaid output places their nodes in one subgraph whose
   title contains `2026-08-17`
 
