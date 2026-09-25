@@ -312,7 +312,7 @@ export function archiveSealIssues(root: string): ValidationIssue[] {
     // repository error rather than a pass over an empty directory.
     issues.push({
       path: manifestFile,
-      message: `${manifestFile} is missing; it must exist even when the archive is empty — create it with {"version": 1, "entries": []} (adrkit init writes one for new repositories)`,
+      message: `${manifestFile} is missing`,
     });
     for (const file of files) {
       issues.push({

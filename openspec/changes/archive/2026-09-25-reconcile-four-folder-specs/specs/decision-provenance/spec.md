@@ -9,7 +9,7 @@ whose value is either `human` or `agent`. The field SHALL appear in the
 canonical front matter order between `date` and `created`. A value outside
 those two is a format error and SHALL be reported as such.
 
-#### Scenario: accepted record carries the field
+#### Scenario: implemented record carries the field
 
 - **WHEN** a durable record with `status: implemented` is parsed
 - **THEN** `decided-by` is one of `human` or `agent`
@@ -32,7 +32,7 @@ those two is a format error and SHALL be reported as such.
 `adrkit validate` SHALL fail a durable record that omits `decided-by`, in
 the same way it fails a record that omits `created`.
 
-#### Scenario: accepted record without the field fails
+#### Scenario: implemented record without the field fails
 
 - **WHEN** `adrkit validate` runs against a repository containing an
   implemented record with no `decided-by` field
@@ -55,7 +55,7 @@ Both commands SHALL refuse to write a durable record when the option is absent
 or names a value other than `human` or `agent`. A command other than `record`
 or `implement` SHALL reject the option rather than ignore it.
 
-#### Scenario: decide records the declaration
+#### Scenario: record writes the declaration
 
 - **WHEN** `adrkit record "<title>" --decided-by human` creates a decision
 - **THEN** the record carries `decided-by: human`
@@ -89,7 +89,7 @@ declaration. `adrkit implement` SHALL record the declaration it was given on the
 promoted decision. `adrkit supersede` SHALL preserve the retiring record's
 existing value and SHALL NOT ask for or write a new one.
 
-#### Scenario: decide records
+#### Scenario: record writes the declared value
 
 - **WHEN** `adrkit record` creates a decision
 - **THEN** the created record carries the declared `decided-by` value
@@ -129,7 +129,7 @@ value is either `human` or `agent`. The field SHALL appear in the canonical
 front matter order between `date` and `decided-by`. A value outside those two
 is a format error and SHALL be reported as such.
 
-#### Scenario: accepted record carries the field
+#### Scenario: implemented record carries the field
 
 - **WHEN** a durable record with `status: implemented` is parsed
 - **THEN** `raised-by` is one of `human` or `agent`
@@ -153,7 +153,7 @@ content. Both commands SHALL refuse to write a durable record when the option is
 absent or names a value other than `human` or `agent`. A command other than
 `record` or `implement` SHALL reject the option rather than ignore it.
 
-#### Scenario: decide records the declaration
+#### Scenario: record writes the declaration
 
 - **WHEN** `adrkit record "<title>" --raised-by agent --decided-by human` creates a decision
 - **THEN** the record carries `raised-by: agent`
@@ -178,7 +178,7 @@ absent or names a value other than `human` or `agent`. A command other than
 `adrkit validate` SHALL fail a durable record that omits `raised-by`, in the
 same way it fails a record that omits `decided-by` or `created`.
 
-#### Scenario: accepted record without the field fails
+#### Scenario: implemented record without the field fails
 
 - **WHEN** `adrkit validate` runs against a repository containing an implemented record with no `raised-by` field
 - **THEN** validation reports a missing `raised-by` issue for that record and exits non-zero
@@ -196,7 +196,7 @@ SHALL record the declaration it was given on the promoted decision.
 `adrkit supersede` SHALL preserve the retiring record's existing `raised-by`
 value and SHALL NOT ask for or write a new one.
 
-#### Scenario: decide records
+#### Scenario: record writes the declared value
 
 - **WHEN** `adrkit record` creates a decision
 - **THEN** the created record carries the declared `raised-by` value

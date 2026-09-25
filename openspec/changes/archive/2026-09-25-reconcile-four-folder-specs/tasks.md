@@ -1,7 +1,5 @@
 # Tasks
 
-> **Known limitation.** OpenSpec 1.13.2 refuses to rename a scenario title inside a `MODIFIED` requirement: the scenario-loss guard reports the old title as dropped and archive aborts (Fission-AI/OpenSpec issue #1697, open). Every stale word in requirement text, scenario bodies, and requirement headings is corrected by this change. A scenario title that only embeds a removed word keeps that title verbatim; renaming it needs a future OpenSpec release or a separate requirement rename. Residual titles: cli-option-surface's `an option belonging to another command is rejected on decide`; decision-provenance's `accepted record carries the field`, `accepted record without the field fails`, `decide records the declaration`, and `decide records` (each appears twice). decision-provenance's `Purpose` also still names `decide`/`accept`/draft; a delta cannot rewrite an existing capability's Purpose, and this change is restricted to `openspec/changes/`, so that paragraph, and the residual scenario titles named above, are corrected by a direct main-spec edit after this change is archived.
-
 ## 1. Reconcile the four-folder vocabulary in the spec deltas
 
 - [x] 1.1 Confirm every delta under `openspec/changes/reconcile-four-folder-specs/specs/` reuses the correct main-spec requirement heading and reproduces the full requirement text, then run `openspec validate "reconcile-four-folder-specs" --strict` and confirm it passes.
