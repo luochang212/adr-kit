@@ -111,5 +111,7 @@ maintainer raised the direction, chose the four-directory lifecycle, kept
 every formal rejection, removed local drafts and compatibility requirements,
 and confirmed this design after reviewing the alternatives. ADR 20 later
 replaced "kept every formal rejection" with anti-pattern memory that is pruned
-once it no longer teaches, and named the four folders by context value; the
-four-folder lifecycle itself is unchanged.
+once it no longer teaches, and defined the four folders by context value —
+current authority to read in full, intent to check, anti-pattern to check and
+prune, and lowest-value history read only when a task cites it; the four-folder
+lifecycle itself is unchanged.
