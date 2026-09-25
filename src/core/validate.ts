@@ -20,7 +20,7 @@ import {
   sealBytes,
 } from './archive-seal.js';
 import { ADR_DIR, CONFIG_FILE, readConfig } from './config.js';
-import { gitPathExists, gitRefExists, gitShow } from './git.js';
+import { gitRefExists, gitShow } from './git.js';
 import { listRecords } from './repository.js';
 
 export interface ValidationIssue {
@@ -431,18 +431,13 @@ export function validateRepositoryWithBase(root: string, baseRef: string): Valid
 
   const baseText = gitShow(root, baseRef, `${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`);
   if (baseText === undefined) {
-    if (gitPathExists(root, baseRef, `${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`)) {
-      // The path is present at the base but its content could not be read
-      // (for example a partial clone with a missing object). Treating this as
-      // "no prior seals" would silently skip the append-only check.
-      issues.push({
-        path: manifestFile,
-        message: `the archive manifest at base "${baseRef}" exists but cannot be read; fetch the object and retry`,
-      });
-      return issues;
-    }
-    // An absent manifest at the base means no prior seals; the current tree
-    // must still seal every archived decision, which validateRepository checked.
+    // Every validated base carries the manifest: init writes it and archive/
+    // supersede require it. An absent or unreadable base manifest is an error,
+    // not a pass, so the append-only check is never silently skipped.
+    issues.push({
+      path: manifestFile,
+      message: `the archive manifest at base "${baseRef}" is missing or cannot be read`,
+    });
     return issues;
   }
   let baseEntries: { path: string; sha256: string }[];

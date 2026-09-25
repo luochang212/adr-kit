@@ -34,4 +34,4 @@ owner exists. `--tools claude` adds `.claude/` copies alongside the default
 `.agents/`; `--tools none` installs no integrations. `validate --base`
 requires repository-wide validation — it is refused together with a
 single-record query — and fails with an actionable error when the base ref or
-its manifest cannot be read.
+its manifest is missing or cannot be read.

@@ -38,25 +38,6 @@ export function gitRefExists(cwd: string, ref: string): boolean {
   }
 }
 
-/**
- * True when `ref:path` names an entry at `ref`. Base-aware validation needs
- * this to separate two states that look identical to a plain read: the path
- * is absent at the base (a legitimate no-prior-seals state) versus the path
- * exists there but its content cannot be read (a real error that must fail
- * rather than be skipped).
- */
-export function gitPathExists(cwd: string, ref: string, filePath: string): boolean {
-  try {
-    execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}:${filePath}`], {
-      cwd,
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 /** A file's content at a git ref, or undefined when it does not exist there. */
 export function gitShow(cwd: string, ref: string, filePath: string): string | undefined {
   try {

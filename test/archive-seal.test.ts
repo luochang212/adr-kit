@@ -308,18 +308,19 @@ describe('base-aware validation enforces append-only history', () => {
     expect(issues.some((issue) => /git base "no-such-ref" cannot be read/.test(issue.message))).toBe(true);
   });
 
-  it('treats a base without a manifest as having no prior seals', () => {
+  it('fails when the base has no manifest', () => {
     const root = gitRepo();
     rmSync(manifestPath(root));
     git(root, 'add', '-A');
     git(root, 'commit', '-m', 'base without manifest');
     // The archive command requires a manifest to append to, so the current
-    // tree gets a fresh one; the base ref itself still has no seals.
+    // tree gets a fresh one; the base ref still has none, which is an error.
     writeArchiveManifest(root, emptyArchiveManifest());
     recordCommand('Use SQLite', root, 'human', 'human');
     fillDecision(root, 1);
     archiveCommand('1', 'Retired', root);
-    expect(validateRepositoryWithBase(root, 'HEAD')).toEqual([]);
+    const issues = validateRepositoryWithBase(root, 'HEAD');
+    expect(issues.some((issue) => /missing or cannot be read/.test(issue.message))).toBe(true);
   });
 
   it('rejects --base together with single-record validation', () => {
@@ -351,6 +352,6 @@ describe('base-aware validation enforces append-only history', () => {
     const blob = execFileSync('git', ['rev-parse', 'HEAD:adr/archived/MANIFEST.json'], { cwd: root, encoding: 'utf8' }).trim();
     rmSync(join(root, '.git', 'objects', blob.slice(0, 2), blob.slice(2)));
     const issues = validateRepositoryWithBase(root, 'HEAD');
-    expect(issues.some((issue) => /exists but cannot be read/.test(issue.message))).toBe(true);
+    expect(issues.some((issue) => /missing or cannot be read/.test(issue.message))).toBe(true);
   });
 });

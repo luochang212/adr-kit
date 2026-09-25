@@ -64,6 +64,6 @@ longer match their seal — restore the sealed bytes rather than re-sealing
 edited content. `adrkit validate --base <git-ref>` reads the manifest and
 sealed files from Git and requires every entry sealed at the base to survive
 unchanged as a prefix of the current manifest, so a coordinated edit of an
-archived file and its hash still fails; an absent manifest at the base means
-there were no prior seals, while a base manifest that exists but cannot be
-read fails rather than skipping the history check.
+archived file and its hash still fails; the base must carry the manifest, and
+naming a base whose manifest is missing or unreadable fails rather than
+skipping the history check.

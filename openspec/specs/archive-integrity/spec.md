@@ -51,7 +51,7 @@ An ADR Kit repository SHALL keep a committed manifest of every numbered record i
 
 ### Requirement: Base-aware validation enforces append-only history
 
-Repository-wide `adrkit validate --base <git-ref>` SHALL compare the current archive manifest with the manifest at the supplied Git ref. Every entry sealed at the base SHALL retain its path, hash, and archived bytes; entries may only be appended. An absent manifest at the base ref means the base has no prior seals, while the current tree must still seal every archived decision. When the manifest path exists at the base ref but its content cannot be read, validation SHALL fail with an actionable error that identifies the ref rather than treating it as no prior seals. An unreadable base ref SHALL fail with an actionable error. The command SHALL NOT accept `--base` together with single-record validation.
+Repository-wide `adrkit validate --base <git-ref>` SHALL compare the current archive manifest with the manifest at the supplied Git ref. Every entry sealed at the base SHALL retain its path, hash, and archived bytes; entries may only be appended. The base ref SHALL carry `adr/archived/MANIFEST.json`; a missing or unreadable base manifest SHALL fail with an actionable error that identifies the ref. An unreadable base ref SHALL fail with an actionable error. The command SHALL NOT accept `--base` together with single-record validation.
 
 #### Scenario: File and manifest are both rewritten
 
@@ -63,9 +63,9 @@ Repository-wide `adrkit validate --base <git-ref>` SHALL compare the current arc
 - **WHEN** existing base entries are unchanged and a newly archived decision is appended with a matching seal
 - **THEN** base-aware validation passes
 
-#### Scenario: Base manifest exists but cannot be read
+#### Scenario: Base carries no readable manifest
 
-- **WHEN** the manifest path exists at the base ref but its content cannot be read, as in a partial clone
+- **WHEN** the base ref has no manifest, or its manifest cannot be read as in a partial clone
 - **THEN** `adrkit validate --base <git-ref>` fails with an error that identifies the ref instead of silently skipping the append-only check
 
 #### Scenario: Git base cannot be read
