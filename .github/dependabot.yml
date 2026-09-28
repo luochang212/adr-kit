@@ -4,6 +4,13 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # DefinitelyTyped publishes near-daily; patch/minor @types/node bumps
+      # dominated the weekly batch. Majors still land and realign the types.
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-patch"
+          - "version-update:semver-minor"
   - package-ecosystem: github-actions
     directory: /
     schedule:
