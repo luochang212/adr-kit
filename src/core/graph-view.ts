@@ -74,6 +74,11 @@ svg {
   background: #edf6ef
 }
 #world { position: relative; transform-origin: 0 0; }
-main { overflow: auto; }
+/* The same dotted ground the tree draws and the share export keys itself to
+   ("dotted like the live view"): one canvas contract, so the map is not the
+   one view whose cards sit on flat paper. The dots sit just under the card
+   hairline's weight and sparse enough that the texture stays a quiet ground
+   instead of competing with the cards. */
+main { overflow: auto; background-image: radial-gradient(#d8e1d9 .8px,transparent .8px); background-size: 24px 24px; }
 .empty { padding: 24px; }
 `;

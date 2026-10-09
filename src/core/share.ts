@@ -53,7 +53,7 @@ export const SHARE_SCRIPT = String.raw`
   const shareButton = document.getElementById('share');
   if (!shareButton) return;
   const REPO = '${SHARE_WATERMARK}';
-  const INK = '#233c36', MUTED = '#64756c', GREEN = '#294d3e', PAPER = '#f6f8f5', DOT = '#cdd8cc', LINE = '#dce4dc';
+  const INK = '#233c36', MUTED = '#64756c', GREEN = '#294d3e', PAPER = '#f6f8f5', DOT = '#d8e1d9', LINE = '#dce4dc';
   const HAIRLINE = '#e4eae4', TINT = 'rgba(41,77,62,.07)';
   const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   const GITHUB_MARK = '${GITHUB_MARK_PATH}';
@@ -369,10 +369,10 @@ export const SHARE_SCRIPT = String.raw`
     ctx.save();
     ctx.clip();
     ctx.fillStyle = DOT;
-    for (let gx = 10; gx <= W - 10; gx += 20) {
-      for (let gy = dy; gy < dy + h; gy += 20) {
+    for (let gx = 10; gx <= W - 10; gx += 24) {
+      for (let gy = dy; gy < dy + h; gy += 24) {
         ctx.beginPath();
-        ctx.arc(gx, gy, 0.9, 0, 7);
+        ctx.arc(gx, gy, 0.8, 0, 7);
         ctx.fill();
       }
     }

@@ -49,12 +49,21 @@ button:focus-visible, summary:focus-visible, main:focus-visible, a:focus-visible
 .canvas-dock > * { pointer-events: auto; }
 /* Without the script there is no floating canvas: the dock sits at the end of the content. */
 body:not(.interactive) main { padding-bottom: 84px; }
-.canvas-legend { display: grid; gap: 6px; min-width: 0; max-width: min(620px, 100%); padding: 10px 12px; background: #ffffffe8; border: 1px solid #e1e7e1; border-radius: 10px; box-shadow: 0 4px 20px #294d3e0a; font-size: 11px; color: #55655c; }
+/* Frosted chips: the dotted ground and panned cards blur behind the panel
+   instead of ghosting through it, and the shadow matches the Info panel's
+   tier so the whole chrome floats at one depth. */
+.canvas-legend, .controls { background: rgba(255,255,255,.72); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 8px 24px #294d3e1a; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .canvas-legend, .controls { background: #fffffff2; }
+}
+.canvas-legend { display: grid; gap: 6px; min-width: 0; max-width: min(620px, 100%); padding: 10px 12px; border: 1px solid #e1e7e1; border-radius: 10px; font-size: 11px; color: #55655c; }
 .canvas-legend .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .canvas-legend .legend span { display: flex; align-items: center; gap: 8px; }
 .viewer-panel .hint { border-top: 1px solid #e1e7e1; padding-top: 14px; margin: 16px 0 0; }
-.controls { display: none; align-items: center; gap: 2px; padding: 5px; background: #fff; border: 1px solid #dce4dc; border-radius: 11px; box-shadow: 0 4px 20px #294d3e0a; }
-.controls button { border: 0; background: none; font: inherit; color: inherit; cursor: pointer; padding: 6px 9px; border-radius: 7px; }
+.controls { display: none; align-items: center; gap: 2px; padding: 5px; border: 1px solid #dce4dc; border-radius: 11px; }
+/* Flex centering keeps an icon button level with its text neighbours: inline
+   SVG carries the font's descender space, which lifts a glyph out of line. */
+.controls button { display: inline-flex; align-items: center; justify-content: center; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; padding: 6px 9px; border-radius: 7px; }
 .controls button:hover { background: #edf3ef; }
 .controls output { font: 11px monospace; min-width: 44px; text-align: center; }
 .js-control { display: none; }
@@ -97,6 +106,16 @@ const INFO_ICON = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="
   + '<circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/>'
   + '<circle cx="8" cy="5.1" r=".95" fill="currentColor"/>'
   + '<path d="M8 7.4v4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+
+/**
+ * The Fit control draws corner brackets framing the view: the same stroke
+ * weight and rounding as the toolbar's glyphs, so one icon language runs
+ * through the chrome. The brackets alone do not say "fit" to every reader,
+ * so the button's label travels as its accessible name and hover title.
+ */
+const FIT_ICON = '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false">'
+  + '<path d="M6 2.5H4.75A2.25 2.25 0 0 0 2.5 4.75V6M10 2.5h1.25a2.25 2.25 0 0 1 2.25 2.25V6M13.5 10v1.25a2.25 2.25 0 0 1-2.25 2.25H10M2.5 10v1.25A2.25 2.25 0 0 0 4.75 13.5H6"'
+  + ' fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /**
  * The compact toolbar: brand, title, one headline count, and the controls —
@@ -317,7 +336,7 @@ function canvasControlsHTML(fitLabel: string): string {
     + '<button id="minus" aria-label="Zoom out">−</button>'
     + '<output id="zoom" aria-label="Zoom level">100%</output>'
     + '<button id="plus" aria-label="Zoom in">+</button>'
-    + '<button id="fit" aria-label="' + escapeHtml(fitLabel) + '">Fit</button>'
+    + '<button id="fit" aria-label="' + escapeHtml(fitLabel) + '" title="' + escapeHtml(fitLabel) + '">' + FIT_ICON + '</button>'
     + '<button id="reset">1:1</button>'
     + '</div>';
 }

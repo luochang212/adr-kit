@@ -465,7 +465,19 @@ describe('graph HTML map', () => {
     expect(dock).toContain('class="legend"');
     expect(dock).toContain('superseded by');
     expect(dock).toContain('id="fit"');
+    // The Fit control is a glyph, framed like the toolbar's icons; its label
+    // survives as the accessible name and the hover title.
+    expect(dock).toMatch(/<button id="fit" aria-label="Fit map" title="Fit map"><svg/);
+    expect(dock).not.toContain('>Fit<');
     expect(html.indexOf('id="world"')).toBeLessThan(html.indexOf('class="canvas-dock"'));
+    // The map shares the tree's dotted ground (ADR 11): the share export keys
+    // itself to "dotted like the live view", so a flat canvas here would make
+    // the exported image promise a texture the page never draws.
+    expect(html).toContain('radial-gradient(#d8e1d9 .8px,transparent .8px)');
+    // The dock chips are frosted over that ground, with a fallback for engines
+    // without backdrop-filter so translucent panels never leak canvas text.
+    expect(html).toContain('.canvas-legend, .controls { background: rgba(255,255,255,.72); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 8px 24px #294d3e1a; }');
+    expect(html).toContain('@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))');
     // The shared canvas pans from anywhere except real controls — node links
     // included: a moved press pans, a still press opens the record (ADR 11).
     expect(html).toContain(

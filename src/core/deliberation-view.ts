@@ -36,8 +36,8 @@ button:hover {
 }
 main {
   position: relative;
-  background-image: radial-gradient(#cdd8cc .8px,transparent .8px);
-  background-size: 20px 20px;
+  background-image: radial-gradient(#d8e1d9 .8px,transparent .8px);
+  background-size: 24px 24px;
 }
 #world {
   position: absolute;
