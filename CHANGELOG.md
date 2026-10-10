@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.15.0
+
+### Minor Changes
+
+- 5244e7a: Report invalid types in known configuration fields during repository validation. Explain partial completion and recovery when archive or supersede seals a record but cannot remove its active source. Removing the active source is idempotent: a record that is already gone counts as a completed move, so the partial-completion diagnostic appears only when removal actually fails.
+  
+  Repositories that leave a known field empty (`tools:`, `rules:`) or mistyped now fail `adrkit validate --all` until the field is corrected or removed; previously the invalid value was silently ignored.
+
+### Patch Changes
+
+- Unify the offline HTML canvas. The decision map now draws the same dotted ground as the deliberation card tree and the exported image, the floating legend and zoom controls are frosted over it, and the Fit control is an icon whose label survives as its accessible name and hover title.
+- Refresh the guidance installed by `adrkit init` and `adrkit update`. An ADR is now admitted only when its lasting rationale or genuine trade-offs are not already explained by code, tests, and existing documentation — a behavior change alone does not qualify — and the grilling method words each question so answering "yes" accepts the recommendation.
+
 ## 0.14.1
 
 ### Patch Changes
