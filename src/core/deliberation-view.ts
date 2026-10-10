@@ -1,3 +1,5 @@
+import { CANVAS_GROUND } from './share.js';
+
 /** Inline assets for the offline tree viewer. No network or runtime dependency. */
 export const TREE_STYLE = String.raw`
 
@@ -36,8 +38,8 @@ button:hover {
 }
 main {
   position: relative;
-  background-image: radial-gradient(#d8e1d9 .8px,transparent .8px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(${CANVAS_GROUND.dot} ${CANVAS_GROUND.radius}px,transparent ${CANVAS_GROUND.radius}px);
+  background-size: ${CANVAS_GROUND.gap}px ${CANVAS_GROUND.gap}px;
 }
 #world {
   position: absolute;

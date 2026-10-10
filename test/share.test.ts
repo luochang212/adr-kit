@@ -1,7 +1,23 @@
 import { describe, expect, it } from 'vitest';
+import { TREE_STYLE } from '../src/core/deliberation-view.js';
+import { MAP_STYLE } from '../src/core/graph-view.js';
 import {
-  CAMERA_ICON, GITHUB_MARK_PATH, SHARE_BUTTON_HTML, SHARE_SCRIPT, SHARE_STYLE, SHARE_WATERMARK,
+  CAMERA_ICON, CANVAS_GROUND, GITHUB_MARK_PATH, SHARE_BUTTON_HTML, SHARE_SCRIPT, SHARE_STYLE, SHARE_WATERMARK,
 } from '../src/core/share.js';
+
+describe('canvas ground', () => {
+  it('is one constant behind the map, the tree, and the share export (ADR 11)', () => {
+    const gradient = `radial-gradient(${CANVAS_GROUND.dot} ${CANVAS_GROUND.radius}px,transparent ${CANVAS_GROUND.radius}px)`;
+    const size = `background-size: ${CANVAS_GROUND.gap}px ${CANVAS_GROUND.gap}px`;
+    expect(MAP_STYLE).toContain(gradient);
+    expect(MAP_STYLE).toContain(size);
+    expect(TREE_STYLE).toContain(gradient);
+    expect(TREE_STYLE).toContain(size);
+    expect(SHARE_SCRIPT).toContain(`DOT = '${CANVAS_GROUND.dot}'`);
+    expect(SHARE_SCRIPT).toContain(`gx += ${CANVAS_GROUND.gap}`);
+    expect(SHARE_SCRIPT).toContain(`ctx.arc(gx, gy, ${CANVAS_GROUND.radius}, 0, 7);`);
+  });
+});
 
 /**
  * Helper names the code calls but never declares — a runtime TypeError the

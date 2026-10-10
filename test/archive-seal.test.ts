@@ -113,6 +113,32 @@ describe('post-seal source removal failures', () => {
   });
 });
 
+describe('source removal is idempotent', () => {
+  // The race this covers: the implemented source vanishes after the archive and
+  // seal are written but before it is deleted (another agent, external
+  // cleanup). The move is already complete, so removal must not fail the
+  // command nor claim both copies remain.
+  it('treats a source that disappears before removal as a completed move', () => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    const source = join(root, 'adr', 'implemented', '1-use-sqlite.md');
+    const realWrite = repository.writeRecord;
+    const injection = vi.spyOn(repository, 'writeRecord').mockImplementation((r, folder, fileName, content) => {
+      const path = realWrite(r, folder, fileName, content);
+      if (folder === 'archived') rmSync(source);
+      return path;
+    });
+    try {
+      expect(() => archiveCommand('1', 'Current authority is elsewhere', root)).not.toThrow();
+    } finally {
+      injection.mockRestore();
+    }
+    expect(existsSync(source)).toBe(false);
+    expect(validateCommand(root)).toEqual({ valid: true, output: 'OK' });
+  });
+});
+
 /** A repository that also has a real git checkout for base-aware checks. */
 function gitRepo(): string {
   const root = repo();

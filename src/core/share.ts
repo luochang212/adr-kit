@@ -46,6 +46,15 @@ export const GITHUB_MARK_PATH =
   + 's1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48'
   + ' 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z';
 
+/**
+ * The one canvas ground: the map and the card tree draw it as CSS, and the
+ * share export paints it onto the image. ADR 11 makes this a single contract,
+ * so the dot colour, radius, and spacing live here and every consumer derives
+ * from them. A second literal is how the map once sat on flat paper while the
+ * export promised dots.
+ */
+export const CANVAS_GROUND = { dot: '#d8e1d9', radius: 0.8, gap: 24 } as const;
+
 // Kept as readable JavaScript: tsc ships this string unchanged in the CLI bundle.
 // All record text is server-escaped HTML, never interpolated into this program.
 export const SHARE_SCRIPT = String.raw`
@@ -53,7 +62,7 @@ export const SHARE_SCRIPT = String.raw`
   const shareButton = document.getElementById('share');
   if (!shareButton) return;
   const REPO = '${SHARE_WATERMARK}';
-  const INK = '#233c36', MUTED = '#64756c', GREEN = '#294d3e', PAPER = '#f6f8f5', DOT = '#d8e1d9', LINE = '#dce4dc';
+  const INK = '#233c36', MUTED = '#64756c', GREEN = '#294d3e', PAPER = '#f6f8f5', DOT = '${CANVAS_GROUND.dot}', LINE = '#dce4dc';
   const HAIRLINE = '#e4eae4', TINT = 'rgba(41,77,62,.07)';
   const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   const GITHUB_MARK = '${GITHUB_MARK_PATH}';
@@ -369,10 +378,10 @@ export const SHARE_SCRIPT = String.raw`
     ctx.save();
     ctx.clip();
     ctx.fillStyle = DOT;
-    for (let gx = 10; gx <= W - 10; gx += 24) {
-      for (let gy = dy; gy < dy + h; gy += 24) {
+    for (let gx = 10; gx <= W - 10; gx += ${CANVAS_GROUND.gap}) {
+      for (let gy = dy; gy < dy + h; gy += ${CANVAS_GROUND.gap}) {
         ctx.beginPath();
-        ctx.arc(gx, gy, 0.8, 0, 7);
+        ctx.arc(gx, gy, ${CANVAS_GROUND.radius}, 0, 7);
         ctx.fill();
       }
     }

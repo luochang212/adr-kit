@@ -256,7 +256,13 @@ export function writeRecord(root: string, folder: AdrFolder, fileName: string, c
 }
 
 export function removeRecord(record: AdrRecord): void {
-  rmSync(record.path);
+  // Removal is idempotent: a record that is already gone is a completed move,
+  // not a failure. Callers stage the replacement (archived/rejected/implemented)
+  // before removing the source, so a vanished source means the move finished,
+  // and ENOENT here would otherwise be reported as a half-completed lifecycle
+  // move that still has both copies (see sourceRemovalFailure). Permission and
+  // directory errors still surface.
+  rmSync(record.path, { force: true });
 }
 
 export function resolveProposed(root: string, query: string): AdrRecord {

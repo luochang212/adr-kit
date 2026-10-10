@@ -9,6 +9,7 @@ import { treeCommand } from '../src/commands/tree.js';
 import { initCommand } from '../src/commands/init.js';
 import { buildDecisionGraph } from '../src/core/graph.js';
 import { listRecords } from '../src/core/repository.js';
+import { CANVAS_GROUND } from '../src/core/share.js';
 import { slugify } from '../src/core/slug.js';
 
 const tempDirs: string[] = [];
@@ -472,8 +473,9 @@ describe('graph HTML map', () => {
     expect(html.indexOf('id="world"')).toBeLessThan(html.indexOf('class="canvas-dock"'));
     // The map shares the tree's dotted ground (ADR 11): the share export keys
     // itself to "dotted like the live view", so a flat canvas here would make
-    // the exported image promise a texture the page never draws.
-    expect(html).toContain('radial-gradient(#d8e1d9 .8px,transparent .8px)');
+    // the exported image promise a texture the page never draws. The ground
+    // comes from CANVAS_GROUND, so this asserts the shared constant, not a copy.
+    expect(html).toContain(`radial-gradient(${CANVAS_GROUND.dot} ${CANVAS_GROUND.radius}px,transparent ${CANVAS_GROUND.radius}px)`);
     // The dock chips are frosted over that ground, with a fallback for engines
     // without backdrop-filter so translucent panels never leak canvas text.
     expect(html).toContain('.canvas-legend, .controls { background: rgba(255,255,255,.72); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 8px 24px #294d3e1a; }');

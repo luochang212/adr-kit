@@ -1,3 +1,5 @@
+import { CANVAS_GROUND } from './share.js';
+
 /** Map-specific inline styles; the viewer shell is shared with the tree. */
 export const MAP_STYLE = String.raw`
 svg {
@@ -79,6 +81,6 @@ svg {
    one view whose cards sit on flat paper. The dots sit just under the card
    hairline's weight and sparse enough that the texture stays a quiet ground
    instead of competing with the cards. */
-main { overflow: auto; background-image: radial-gradient(#d8e1d9 .8px,transparent .8px); background-size: 24px 24px; }
+main { overflow: auto; background-image: radial-gradient(${CANVAS_GROUND.dot} ${CANVAS_GROUND.radius}px,transparent ${CANVAS_GROUND.radius}px); background-size: ${CANVAS_GROUND.gap}px ${CANVAS_GROUND.gap}px; }
 .empty { padding: 24px; }
 `;
