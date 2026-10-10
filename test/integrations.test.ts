@@ -536,7 +536,13 @@ describe('completionCommand', () => {
       // reports the buffer after Tab without executing the proposed command.
       const output = execFileSync('zsh', ['-f'], {
         encoding: 'utf8',
-        timeout: 10000,
+        // zsh + zpty + nine completion rounds run ~5s idle and past 10s when the
+        // suite's 20 workers oversubscribe the machine. d2ada0f raised the global
+        // testTimeout for the same class of flake, but this call carries its own
+        // 10s cap that the global value cannot extend, so it stayed the one test
+        // that could still time out. Keep this below the vitest cap so a genuine
+        // hang still fails as an explicit ETIMEDOUT rather than a pass.
+        timeout: 25000,
         env: { ...process.env, TERM: 'xterm', ADRKIT_COMPLETION_DIR: dir },
         input: [
           'zmodload zsh/zpty',
@@ -555,7 +561,7 @@ describe('completionCommand', () => {
       const buffers = [...output.matchAll(/RESULT:([^\r\n]*)/g)].map((match) => match[1]!.trimEnd());
       expect(buffers).toEqual(cases.map(([, expected]) => expected));
     },
-    15000,
+    30000,
   );
 
   it.skipIf(spawnSync('fish', ['--version']).status !== 0)(
