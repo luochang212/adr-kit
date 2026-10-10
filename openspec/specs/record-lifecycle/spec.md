@@ -22,7 +22,7 @@ A lifecycle rewrite performed by `adrkit implement`, `adrkit reject`, `adrkit ar
 
 ### Requirement: Lifecycle folders distinguish unshipped, shipped, declined, and retired records
 
-ADR Kit SHALL use `proposed/` for unshipped proposals, `implemented/` for shipped active decisions, `rejected/` for formally declined proposals, and `archived/` for retired numbered decisions. The folders SHALL be defined by context value as well as lifecycle: `implemented/` is current authority to read in full; `proposed/` is intent to check; `rejected/` is anti-pattern memory to check; `archived/` is lowest-value frozen history that is not read by default. A rejected proposal SHALL be retained as a durable terminal record and SHALL NOT be removed for appearing stale; its reason SHALL name the tempting mistake it blocks. A rejection MAY be removed only when another record owns that warning, and the removing change SHALL preserve any unique rationale first; rejections are unnumbered and unsealed, so removing a redundant one cannot reuse a number or break the archive. Only entry to `implemented/` SHALL assign a stable number. Moving an implemented decision to `archived/` SHALL also add the content seal required by `archive-integrity`.
+ADR Kit SHALL use `proposed/` for unshipped proposals, `implemented/` for shipped active decisions, `rejected/` for formally declined proposals, and `archived/` for retired numbered decisions. Only entry to `implemented/` SHALL assign a stable number. Moving an implemented decision to `archived/` SHALL also add the content seal required by `archive-integrity`.
 
 #### Scenario: Settled but unshipped choice remains proposed
 
@@ -33,6 +33,19 @@ ADR Kit SHALL use `proposed/` for unshipped proposals, `implemented/` for shippe
 
 - **WHEN** an active numbered decision is archived or fully superseded
 - **THEN** it moves to `archived/` with its number preserved and a matching content seal
+
+### Requirement: Lifecycle folders define reading priority
+
+The folders SHALL be defined by context value as well as lifecycle: `implemented/` is current authority to read in full; `proposed/` is intent to check; `rejected/` is anti-pattern memory to check; `archived/` is lowest-value frozen history that is not read by default.
+
+#### Scenario: Read records for a current task
+
+- **WHEN** an agent starts a task in an ADR Kit repository
+- **THEN** it reads relevant implemented records in full, checks relevant proposals and rejections, and reads archived history only when the task explicitly cites it
+
+### Requirement: Rejected records retain anti-pattern memory
+
+A rejected proposal SHALL be retained as a durable terminal record and SHALL NOT be removed for appearing stale; its reason SHALL name the tempting mistake it blocks. A rejection MAY be removed only when another record owns that warning, and the removing change SHALL preserve any unique rationale first; rejections are unnumbered and unsealed, so removing a redundant one cannot reuse a number or break the archive.
 
 #### Scenario: A redundant anti-pattern is consolidated
 

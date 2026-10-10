@@ -8,7 +8,7 @@ Makes ADR Kit's installed agent workflows keep new and existing decision records
 
 ### Requirement: New records receive a scoped supersession review
 
-The installed `propose`, `record`, and `grill` workflows SHALL search active records about the same choice, mechanism, or rejected alternative before creating a new record. They SHALL distinguish a duplicate, a full replacement, a partial replacement, and an independent choice. A known full replacement SHALL resolve the older record in the same change; a partial replacement SHALL retain the still-relevant record and link both records. The workflow SHALL NOT claim that the CLI can infer semantic overlap from titles or tags alone.
+The installed `propose`, `record`, and `grill` workflows SHALL search active records about the same choice, mechanism, or rejected alternative before creating a new record. They SHALL distinguish a duplicate, a full replacement, a partial replacement, and an independent choice. A known full replacement SHALL resolve the older record in the same change; a partial replacement SHALL retain the still-relevant record and link both records.
 
 #### Scenario: Full replacement is identified while writing a record
 
@@ -24,6 +24,15 @@ The installed `propose`, `record`, and `grill` workflows SHALL search active rec
 
 - **WHEN** a scoped search finds no record covering the same choice or mechanism
 - **THEN** the agent may proceed without creating an empty supersession entry or changing unrelated records
+
+### Requirement: Semantic overlap is judged by agents
+
+The workflow SHALL NOT claim that the CLI can infer semantic overlap from titles or tags alone.
+
+#### Scenario: Titles do not establish supersession
+
+- **WHEN** an agent considers records with similar titles or tags
+- **THEN** the workflow requires judging their content rather than claiming the CLI inferred overlap
 
 ### Requirement: Delivery workflows compare records with shipped behavior
 

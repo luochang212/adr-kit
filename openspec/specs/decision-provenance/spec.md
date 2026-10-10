@@ -136,23 +136,16 @@ reports a missing or unknown value instead of filling one in.
 
 ### Requirement: The claim and its limits are documented
 
-The record-format reference SHALL state, in one place, that `raised-by` and
-`decided-by` are declarations by the writer rather than observations, that the
-CLI neither infers nor verifies them, that they are weaker evidence than the
-observed `date` and `commit` fields, and that they are defeated by a careless
-or false declaration as well as by editing the file afterwards. It SHALL define
-`decided-by` by where the choice came from and `raised-by` as who put the
-decision on the table, and state that the two axes are independent. It SHALL
-state that each field carries exactly one value and is never co-signed, and that
-details about who redirected or approved belong in the record body. It SHALL
-also state that the fields do not establish who chose or authorized the
-decision. Identity SHALL remain git's responsibility and SHALL NOT be
-duplicated into the record.
+The record-format reference SHALL state, in one place, that `raised-by` and `decided-by` are declarations by the writer rather than observations, that the CLI neither infers nor verifies them, that they are weaker evidence than the observed `date` and `commit` fields, and that they are defeated by a careless or false declaration as well as by editing the file afterwards.
 
 #### Scenario: reference states the trust boundary
 
 - **WHEN** a reader consults the record-format reference for `raised-by` or `decided-by`
 - **THEN** the same section explains that the values are declared, names them weaker than `date` and `commit`, and says the CLI does not verify them
+
+### Requirement: Provenance axes and single-value declarations are documented
+
+The record-format reference SHALL define `decided-by` by where the choice came from and `raised-by` as who put the decision on the table, and state that the two axes are independent. The record-format reference SHALL state that each field carries exactly one value and is never co-signed, and that details about who redirected or approved belong in the record body.
 
 #### Scenario: reference defines the two values by where the choice came from
 
@@ -168,6 +161,10 @@ duplicated into the record.
 
 - **WHEN** a reader consults the record-format reference for `decided-by`
 - **THEN** the same section states that the field carries one value, is never co-signed, and that a person passively letting an agent's choice through keeps the record `agent` with the approval described in the body
+
+### Requirement: Provenance does not establish authorization or identity
+
+The record-format reference SHALL also state that the fields do not establish who chose or authorized the decision. Identity SHALL remain git's responsibility and SHALL NOT be duplicated into the record.
 
 #### Scenario: reference denies an authorization claim
 

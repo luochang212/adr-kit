@@ -37,16 +37,7 @@ rendering target produced on demand and SHALL NOT be the stored form.
 
 ### Requirement: Tree rendering modes
 
-`adrkit tree <name>` SHALL render a record's `## Deliberation` appendix as a
-text tree by default, as a Mermaid graph with `--mermaid`, and as a single
-self-contained HTML document with `--html`. It SHALL give the root, questions,
-and options distinct visual treatments, label nodes by state, mark the recommended
-option, mark an overridden question, and style the edge that raised a follow-up
-question. `name` SHALL resolve like other commands (title, file name, or
-decision number). A record with no renderable tree SHALL fail with a clear error
-rather than print an empty document. Requesting two output formats in one
-invocation MUST fail with an error naming the conflicting flags, as
-`adrkit graph` does, rather than silently pick one.
+`adrkit tree <name>` SHALL render a record's `## Deliberation` appendix as a text tree by default, as a Mermaid graph with `--mermaid`, and as a single self-contained HTML document with `--html`. It SHALL give the root, questions, and options distinct visual treatments, label nodes by state, mark the recommended option, mark an overridden question, and style the edge that raised a follow-up question.
 
 #### Scenario: default output is text
 
@@ -63,15 +54,19 @@ invocation MUST fail with an error naming the conflicting flags, as
 - **WHEN** `adrkit tree <name> --html` runs
 - **THEN** the output is one offline HTML document containing a left-to-right card tree, inline styles and scripts, and a legend; no CDN or external request is needed
 
-#### Scenario: missing tree fails clearly
-
-- **WHEN** `adrkit tree <name>` runs on a record with no `## Deliberation` list
-- **THEN** the command exits non-zero with an error naming the record and the missing tree
-
 #### Scenario: rounds render as layers
 
 - **WHEN** a tree nests a follow-up question under the node that raised it
 - **THEN** the deeper question renders downstream of that node, so the derived frontier layer is visible without storing a round
+
+### Requirement: Tree input and format errors
+
+`name` SHALL resolve like other commands (title, file name, or decision number). A record with no renderable tree SHALL fail with a clear error rather than print an empty document. Requesting two output formats in one invocation MUST fail with an error naming the conflicting flags, as `adrkit graph` does, rather than silently pick one.
+
+#### Scenario: missing tree fails clearly
+
+- **WHEN** `adrkit tree <name>` runs on a record with no `## Deliberation` list
+- **THEN** the command exits non-zero with an error naming the record and the missing tree
 
 #### Scenario: two formats are rejected
 
@@ -80,39 +75,44 @@ invocation MUST fail with an error naming the conflicting flags, as
 
 ### Requirement: Annotated deliberation grammar
 
-A `## Deliberation` node SHALL be
-`- [Q: | A: ]<text>[ [status]][ (recommended)][ — <reason>]`. The optional
-`Q:`/`A:` prefix marks a question or an option; `[settled]`, `[rejected]`, or
-`[open]` is the node's state; `(recommended)` marks the option the agent
-recommended; ` — <reason>` explains the node. The em dash with surrounding
-spaces SHALL be the only separator, so a hyphen inside the node text is text
-and can never hide the state or the recommendation; when the separator appears
-more than once, the first SHALL begin the reason. A state marker SHALL be
-recognized only when everything after it to the end of the content is whitespace
-or a parenthetical group (which stays text), never when prose
-follows it, so a bracketed state word embedded in a sentence SHALL remain part
-of the node text. A question's answer SHALL be its `[settled]` option
-child; a settled follow-up question SHALL NOT be treated as an answer. When the
-tree marks a recommended option and the question's settled option child is not
-it, the question SHALL be reported as an override of the agent's
-recommendation; when no option is marked `(recommended)` there is nothing to
-override and no override SHALL be reported. The text, Mermaid, and HTML
-renderers SHALL report the same override for the same tree.
+A `## Deliberation` node SHALL be `- [Q: | A: ]<text>[ [status]][ (recommended)][ — <reason>]`. The optional `Q:`/`A:` prefix marks a question or an option; `[settled]`, `[rejected]`, or `[open]` is the node's state; `(recommended)` marks the option the agent recommended; ` — <reason>` explains the node.
 
 #### Scenario: a reason after the status is parsed
 
 - **WHEN** a node reads `- A: A1 do not persist it [rejected] — keep only the distilled ADR`
 - **THEN** the node's state is `rejected` and its reason is `keep only the distilled ADR`
 
+#### Scenario: a question is distinguished from an option
+
+- **WHEN** a node carries a `Q:` prefix and a child carries an `A:` prefix
+- **THEN** the renderer treats the first as a question and the second as an option
+
+### Requirement: Deliberation reason separator
+
+The em dash with surrounding spaces SHALL be the only separator, so a hyphen inside the node text is text and can never hide the state or the recommendation; when the separator appears more than once, the first SHALL begin the reason.
+
 #### Scenario: a hyphen in the text is not a reason
 
 - **WHEN** a node reads `- A: Postgres - it is proven [settled] (recommended)`
 - **THEN** its text is `Postgres - it is proven`, its state is `settled`, and it is still marked as the recommendation
 
-#### Scenario: a question is distinguished from an option
+#### Scenario: only the first em dash separates the reason
 
-- **WHEN** a node carries a `Q:` prefix and a child carries an `A:` prefix
-- **THEN** the renderer treats the first as a question and the second as an option
+- **WHEN** a node reads `- A: Use Postgres [rejected] — proven at scale — and cheap`
+- **THEN** its text is `Use Postgres`, its state is `rejected`, and its reason is `proven at scale — and cheap`
+
+### Requirement: Deliberation state marker position
+
+A state marker SHALL be recognized only when everything after it to the end of the content is whitespace or a parenthetical group (which stays text), never when prose follows it, so a bracketed state word embedded in a sentence SHALL remain part of the node text.
+
+#### Scenario: a bracketed state word in prose stays text
+
+- **WHEN** a node reads `- Note: the [open] state is documented`
+- **THEN** its text is `Note: the [open] state is documented` and it has no recorded state
+
+### Requirement: Deliberation override detection
+
+A question's answer SHALL be its `[settled]` option child; a settled follow-up question SHALL NOT be treated as an answer. When the tree marks a recommended option and the question's settled option child is not it, the question SHALL be reported as an override of the agent's recommendation; when no option is marked `(recommended)` there is nothing to override and no override SHALL be reported. The text, Mermaid, and HTML renderers SHALL report the same override for the same tree.
 
 #### Scenario: an override is detected
 
@@ -138,16 +138,6 @@ renderers SHALL report the same override for the same tree.
 
 - **WHEN** one tree is rendered as text, Mermaid, and HTML
 - **THEN** all three report the same overridden questions
-
-#### Scenario: a bracketed state word in prose stays text
-
-- **WHEN** a node reads `- Note: the [open] state is documented`
-- **THEN** its text is `Note: the [open] state is documented` and it has no recorded state
-
-#### Scenario: only the first em dash separates the reason
-
-- **WHEN** a node reads `- A: Use Postgres [rejected] — proven at scale — and cheap`
-- **THEN** its text is `Use Postgres`, its state is `rejected`, and its reason is `proven at scale — and cheap`
 
 ### Requirement: Nested dependency
 
@@ -176,14 +166,7 @@ round.
 
 ### Requirement: Offline interactive card tree
 
-The HTML view SHALL group questions with their selected option children and
-SHALL expose other options and their reasons through expandable disclosures.
-Question-dependent edges SHALL originate at the question; option-dependent
-edges SHALL originate at that option. Unsettled or rejected parents SHALL NOT
-be marked as having unlocked their follow-ups. The view SHALL preserve all
-recorded text, recommendation markers, states, and nested dependencies,
-including unannotated nodes and multiple roots. Missing states SHALL NOT be
-presented as settled.
+The HTML view SHALL group questions with their selected option children and SHALL expose other options and their reasons through expandable disclosures. Question-dependent edges SHALL originate at the question; option-dependent edges SHALL originate at that option. Unsettled or rejected parents SHALL NOT be marked as having unlocked their follow-ups.
 
 #### Scenario: inspect an alternative branch
 
@@ -200,6 +183,15 @@ presented as settled.
 - **WHEN** a trackpad pinch (a `ctrlKey` wheel event), or a wheel event with `Ctrl` or `Command` held, arrives over a card
 - **THEN** the canvas zooms with the point under the pointer staying put
 
+#### Scenario: the unlock edge starts at the node that raised it
+
+- **WHEN** a settled option on the root card raises a follow-up question
+- **THEN** the edge from that option to the question is styled as the frontier step, matching the Mermaid renderer
+
+### Requirement: Card tree preserves recorded content and missing states
+
+The view SHALL preserve all recorded text, recommendation markers, states, and nested dependencies, including unannotated nodes and multiple roots. Missing states SHALL NOT be presented as settled.
+
 #### Scenario: record text is untrusted
 
 - **WHEN** titles, questions, options, or reasons contain HTML or script-like text
@@ -210,36 +202,9 @@ presented as settled.
 - **WHEN** a title, question, option, or reason is written in a script that does not separate words with spaces
 - **THEN** the view wraps it by display width, counting a wide character as two, instead of letting it overflow its card or label
 
-#### Scenario: the unlock edge starts at the node that raised it
-
-- **WHEN** a settled option on the root card raises a follow-up question
-- **THEN** the edge from that option to the question is styled as the frontier step, matching the Mermaid renderer
-
 ### Requirement: Exception-only state labels
 
-A card SHALL draw a state label only when its state is an exception to
-`settled`: `open`, `rejected`, or no recorded state. A settled card SHALL draw
-no state label, because its chosen answer already states the outcome, and the
-option blocks carry their own state badges. Every card SHALL keep its state as a
-data attribute whether or not a label is drawn, so edge styling and layout read
-the same value. A folded option SHALL write its state as plain text rather than
-as a chip. Each card SHALL carry whether its incoming edge is an unlocked one,
-so the drawn edge and the legend read one answer instead of each deciding for
-itself.
-
-The view SHALL draw exactly two edge styles: the gray dependency stroke for
-every recorded link, and the green frontier stroke for a follow-up that a
-settled choice unlocked.
-
-The legend SHALL quote only what the picture draws: an entry appears when the
-view contains the symbol that entry points at, and the panel itself SHALL NOT be
-drawn when the legend has no entries. The override key waits for a question that
-took other than the recommended option, the selected-answer key for a settled
-option, and each exception state waits for a card that draws its chip. An edge
-key SHALL carry a line sample drawn in the stroke it names, and SHALL wait for a
-link the view actually styles with that stroke: the dependency key for a
-dependency link (a parented card that is not an unlocked follow-up), and the
-frontier key for an edge the view styles as a frontier step.
+A card SHALL draw a state label only when its state is an exception to `settled`: `open`, `rejected`, or no recorded state. A settled card SHALL draw no state label, because its chosen answer already states the outcome, and the option blocks carry their own state badges. Every card SHALL keep its state as a data attribute whether or not a label is drawn, so edge styling and layout read the same value. A folded option SHALL write its state as plain text rather than as a chip.
 
 #### Scenario: a settled question draws no state label
 
@@ -251,11 +216,33 @@ frontier key for an edge the view styles as a frontier step.
 - **WHEN** a question is `[open]`, `[rejected]`, or carries no state marker
 - **THEN** that card draws the `open`, `rejected`, or `unrecorded` label and the legend explains what it means
 
+#### Scenario: a folded option is plain text
+
+- **WHEN** an option is rejected, open, or untagged and sits inside a collapsed disclosure
+- **THEN** its state reads as text beside the option, with no chip, and adds no key to the legend
+
+### Requirement: Shared unlock state and edge styles
+
+Each card SHALL carry whether its incoming edge is an unlocked one, so the drawn edge and the legend read one answer instead of each deciding for itself. The view SHALL draw exactly two edge styles: the gray dependency stroke for every recorded link, and the green frontier stroke for a follow-up that a settled choice unlocked.
+
+#### Scenario: one unlock rule for the picture and the legend
+
+- **WHEN** a follow-up question hangs under a settled option of the root card
+- **THEN** its card carries the unlocked flag, the drawn edge is styled as a frontier step, and the legend keys it
+
+### Requirement: Tree legend keys only drawn symbols
+
+The legend SHALL quote only what the picture draws: an entry appears when the view contains the symbol that entry points at, and the panel itself SHALL NOT be drawn when the legend has no entries. The override key waits for a question that took other than the recommended option, the selected-answer key for a settled option, and each exception state waits for a card that draws its chip.
+
 #### Scenario: the legend keys only what the page draws
 
 - **WHEN** the tree contains no answer that overrode a recommendation, no edge styled as a frontier step, or no card that draws an exception chip
 - **THEN** the legend omits that key rather than sending the reader to look for a symbol that is not there
 - **AND** a tree whose picture supports no entry at all draws no legend panel
+
+### Requirement: Tree legend samples drawn edge styles
+
+An edge key SHALL carry a line sample drawn in the stroke it names, and SHALL wait for a link the view actually styles with that stroke: the dependency key for a dependency link (a parented card that is not an unlocked follow-up), and the frontier key for an edge the view styles as a frontier step.
 
 #### Scenario: a dependency key waits for a dependency link
 
@@ -267,16 +254,6 @@ frontier key for an edge the view styles as a frontier step.
 - **WHEN** the tree draws dependency links and no unlocked one
 - **THEN** the legend carries a gray line sample naming the dependency link and no frontier key
 - **AND** once a settled choice raises a follow-up, the green frontier sample joins it
-
-#### Scenario: a folded option is plain text
-
-- **WHEN** an option is rejected, open, or untagged and sits inside a collapsed disclosure
-- **THEN** its state reads as text beside the option, with no chip, and adds no key to the legend
-
-#### Scenario: one unlock rule for the picture and the legend
-
-- **WHEN** a follow-up question hangs under a settled option of the root card
-- **THEN** its card carries the unlocked flag, the drawn edge is styled as a frontier step, and the legend keys it
 
 ### Requirement: On-demand visualization delivery
 
@@ -298,14 +275,7 @@ with ad hoc generated HTML.
 
 ### Requirement: Compact canvas toolbar
 
-The offline HTML view SHALL keep its title and the Info disclosure in one
-compact header, with the canvas filling the remaining viewport height. A legend
-panel SHALL float over the canvas's bottom-left corner carrying the view's
-legend, and the zoom controls SHALL float over the bottom-right corner; neither
-panel SHALL resize the canvas. Long titles SHALL truncate in the header and
-remain fully readable in the Info disclosure, which SHALL list the labeled
-statistics and the gesture instructions, and SHALL list a statistic only when
-its count is non-zero.
+The offline HTML view SHALL keep its title and the Info disclosure in one compact header, with the canvas filling the remaining viewport height. A legend panel SHALL float over the canvas's bottom-left corner carrying the view's legend, and the zoom controls SHALL float over the bottom-right corner; neither panel SHALL resize the canvas.
 
 #### Scenario: viewing a large diagram
 
@@ -319,6 +289,15 @@ its count is non-zero.
 - **WHEN** the viewport narrows
 - **THEN** the toolbar may wrap, all controls remain reachable, and the canvas fills the remaining space
 - **AND** Info can be opened with the keyboard and closed with Escape
+
+### Requirement: Canvas Info preserves titles and non-zero statistics
+
+Long titles SHALL truncate in the header and remain fully readable in the Info disclosure, which SHALL list the labeled statistics and the gesture instructions, and SHALL list a statistic only when its count is non-zero.
+
+#### Scenario: Inspect a truncated tree title
+
+- **WHEN** a long tree title truncates in the header and a statistic is zero
+- **THEN** Info displays the full title and gesture instructions but omits the zero statistic
 
 ### Requirement: Trace a decision path
 

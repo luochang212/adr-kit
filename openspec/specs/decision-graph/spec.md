@@ -153,21 +153,22 @@ error naming the conflicting flags.
 
 ### Requirement: offline HTML map
 
-`adrkit graph --html` SHALL emit one self-contained HTML document of the same
-nodes and edges, in chronological columns grouped by `created`, with supersede
-and reference edges drawn distinctly, tag tinting, and retired styling. The
-document SHALL need no network and no CDN, SHALL be an interactive canvas
-(pan, zoom, fit-to-view, 1:1, and keyboard navigation, with a trackpad pinch
-zoom anchored at the pointer), SHALL link each node to its record file, and
-SHALL mark the nodes whose `## Deliberation` appendix parses to at least one
-node, without excluding them. Requesting `--html` with another format MUST fail
-naming the conflicting flags.
+`adrkit graph --html` SHALL emit one self-contained HTML document of the same nodes and edges, in chronological columns grouped by `created`, with supersede and reference edges drawn distinctly, tag tinting, and retired styling. Requesting `--html` with another format MUST fail naming the conflicting flags.
 
 #### Scenario: offline map
 
 - **WHEN** `adrkit graph --html` runs
 - **THEN** the output is one HTML document with an inline `svg` and no external
   script or stylesheet reference
+
+#### Scenario: conflicting flags
+
+- **WHEN** `adrkit graph --html --mermaid` runs
+- **THEN** the command exits non-zero with an error naming both flags
+
+### Requirement: Offline map navigation and deliberation markers
+
+The HTML map SHALL need no network and no CDN, SHALL be an interactive canvas (pan, zoom, fit-to-view, 1:1, and keyboard navigation, with a trackpad pinch zoom anchored at the pointer), SHALL link each node to its record file, and SHALL mark the nodes whose `## Deliberation` appendix parses to at least one node, without excluding them.
 
 #### Scenario: pointer-anchored zoom
 
@@ -186,11 +187,6 @@ naming the conflicting flags.
 - **THEN** its map node is not marked `has-deliberation`, matching `adrkit tree`
   refusing to render it
 
-#### Scenario: conflicting flags
-
-- **WHEN** `adrkit graph --html --mermaid` runs
-- **THEN** the command exits non-zero with an error naming both flags
-
 ### Requirement: Dedicated visualization workflow
 
 The installed `adrkit-visualize` skill SHALL route whole-set visualization
@@ -206,19 +202,7 @@ is unavailable or fails, it SHALL explain and retain the file link.
 
 ### Requirement: Compact canvas toolbar
 
-The offline HTML view SHALL keep its title and the Info disclosure in one
-compact header, with the canvas filling the remaining viewport height. A legend
-panel SHALL float over the canvas's bottom-left corner carrying the view's
-legend, and the zoom controls SHALL float over the bottom-right corner; neither
-panel SHALL resize the canvas. Long titles SHALL truncate in the header and
-remain fully readable in the Info disclosure, which SHALL list the labeled
-statistics and the gesture instructions, and SHALL list a statistic only when
-its count is non-zero.
-
-The legend SHALL quote only what the map draws: the supersede key waits for a
-supersede edge, the reference key for a reference edge, and the deliberation key
-for a marked node. A map whose picture supports no entry SHALL draw no legend
-panel.
+The offline HTML view SHALL keep its title and the Info disclosure in one compact header, with the canvas filling the remaining viewport height. A legend panel SHALL float over the canvas's bottom-left corner carrying the view's legend, and the zoom controls SHALL float over the bottom-right corner; neither panel SHALL resize the canvas.
 
 #### Scenario: viewing a large diagram
 
@@ -227,17 +211,30 @@ panel.
 - **AND** the legend panel and the zoom controls float over the canvas without resizing it
 - **AND** opening Info overlays the canvas without resizing it
 
-#### Scenario: a map with nothing to key
-
-- **WHEN** no decision supersedes another, none references another, and none carries a deliberation tree
-- **THEN** the map draws no legend panel rather than keys for marks it does not draw
-- **AND** the Info panel lists only the counts the map supports
-
 #### Scenario: narrow viewport and keyboard access
 
 - **WHEN** the viewport narrows
 - **THEN** the toolbar may wrap, all controls remain reachable, and the canvas fills the remaining space
 - **AND** Info can be opened with the keyboard and closed with Escape
+
+### Requirement: Map Info preserves titles and non-zero statistics
+
+Long titles SHALL truncate in the header and remain fully readable in the Info disclosure, which SHALL list the labeled statistics and the gesture instructions, and SHALL list a statistic only when its count is non-zero.
+
+#### Scenario: Inspect a truncated map title
+
+- **WHEN** a long map title truncates in the header and a statistic is zero
+- **THEN** Info displays the full title and gesture instructions but omits the zero statistic
+
+### Requirement: Map legend keys only drawn symbols
+
+The legend SHALL quote only what the map draws: the supersede key waits for a supersede edge, the reference key for a reference edge, and the deliberation key for a marked node. A map whose picture supports no entry SHALL draw no legend panel.
+
+#### Scenario: a map with nothing to key
+
+- **WHEN** no decision supersedes another, none references another, and none carries a deliberation tree
+- **THEN** the map draws no legend panel rather than keys for marks it does not draw
+- **AND** the Info panel lists only the counts the map supports
 
 ### Requirement: Map links resolve from the file's own location
 
