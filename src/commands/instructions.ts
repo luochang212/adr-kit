@@ -11,15 +11,17 @@ export function instructionsCommand(cwd: string): string {
   const config = readConfigSafe(root);
   const notice = config === undefined ? undefined : installedWithNotice(config, VERSION);
   const issues = validateRepository(root);
+  const validationIssues = () =>
+    withNotice(`The repository has validation issues.\n\n${formatIssues(issues)}\n\nNext:\n  adrkit validate`, notice);
   let records;
   try {
     records = listRecords(root);
   } catch {
-    return withNotice(`The repository has validation issues.\n\n${formatIssues(issues)}\n\nNext:\n  adrkit validate`, notice);
+    return validationIssues();
   }
   const proposed = records.filter((record) => record.folder === 'proposed');
   if (issues.some((issue) => issue.path === `${ADR_DIR}/${CONFIG_FILE}`)) {
-    return withNotice(`The repository has validation issues.\n\n${formatIssues(issues)}\n\nNext:\n  adrkit validate`, notice);
+    return validationIssues();
   }
   if (proposed.length > 0) {
     const lines = [`${proposed.length} proposal${proposed.length === 1 ? '' : 's'} pending:`];
@@ -38,7 +40,7 @@ export function instructionsCommand(cwd: string): string {
     return withNotice(lines.join('\n'), notice);
   }
   if (issues.length > 0) {
-    return withNotice(`The repository has validation issues.\n\n${formatIssues(issues)}\n\nNext:\n  adrkit validate`, notice);
+    return validationIssues();
   }
   return withNotice('No proposals waiting.\n\nNext:\n  adrkit propose "an unshipped choice"\n  adrkit record "an already-shipped choice" --raised-by <human|agent> --decided-by <human|agent>', notice);
 }

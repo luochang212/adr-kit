@@ -137,8 +137,8 @@ export function readConfig(root: string): AdrKitConfig {
 /**
  * Read the configuration without throwing. The drift notice must never turn a
  * command into a failure: a repository with a malformed `adr/config.yaml`
- * simply has nothing honest to say about its stamp, and `validate` remains the
- * command that reports the broken file.
+ * simply has nothing honest to say about its stamp, and validation (`validate`,
+ * plus `instructions` via the same repository check) reports the broken file.
  */
 export function readConfigSafe(root: string): AdrKitConfig | undefined {
   try {
