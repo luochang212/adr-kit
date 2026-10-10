@@ -37,4 +37,4 @@ schema: spec-driven
 operations:
   archive:
     guidance:
-      - Before archiving, inventory the architectural decisions this change settled and check adr/ with "adrkit list". Record any that constrain future development and whose rationale is not apparent from code alone with "adrkit record" or the "adrkit-grill" workflow, and mention the recorded ADR numbers in the archive summary.
+      - Before archiving, inventory the architectural decisions this change settled and check adr/ with "adrkit list". Record any that constrain future development and whose lasting rationale or genuine trade-offs are not adequately explained by code, tests, and existing documentation with "adrkit record" or the "adrkit-grill" workflow, and mention the recorded ADR numbers in the archive summary. A behavior change alone does not qualify.

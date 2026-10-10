@@ -2,8 +2,10 @@
 
 ## When to record
 
-Record architectural choices that constrain future work and whose rationale
-is not obvious from code. Record genuine alternatives and trade-offs; routine
+Record architectural choices that constrain future work and whose lasting rationale
+or genuine trade-offs are not adequately explained by code, tests, and existing
+documentation. A behavior change alone does not qualify. Record genuine
+alternatives and trade-offs; routine
 fixes need no ADR. A grilling session is itself the importance signal, so
 record every choice it settles. Do not confuse a settled choice with shipped
 work.

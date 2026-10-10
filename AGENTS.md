@@ -37,7 +37,9 @@ rewrite of old rationale. Archived records are sealed in
 <git-ref>` proves the archive only grows.
 
 Record an ADR when an architectural choice will constrain future development
-and its rationale is not apparent from code alone. Record only decisions
+and its lasting rationale or genuine trade-offs are not adequately explained
+by code, tests, and existing documentation. A behavior change alone does not
+qualify. Record only decisions
 actually made and genuine alternatives and trade-offs; do not invent reasons
 to fill a template. Reuse an existing record for the same choice; record a
 replacement when important assumptions change. Routine implementation details,
