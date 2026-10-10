@@ -8,6 +8,7 @@ import {
   MANIFEST_FILE,
   readArchiveManifest,
   sealBytes,
+  sourceRemovalFailure,
   writeArchiveManifest,
 } from '../core/archive-seal.js';
 import { requireRoot } from '../core/config.js';
@@ -92,6 +93,10 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     rmSync(join(folderPath(root, 'archived'), record.fileName), { force: true });
     throw error;
   }
-  removeRecord(record);
+  try {
+    removeRecord(record);
+  } catch (error) {
+    throw sourceRemovalFailure(record.path, join(folderPath(root, 'archived'), record.fileName), error);
+  }
   return `superseded adr/implemented/${record.fileName} by adr/implemented/${replacement.fileName}; archived old record with a manifest seal`;
 }

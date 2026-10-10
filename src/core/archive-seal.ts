@@ -47,6 +47,19 @@ export function sealBytes(bytes: string | Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
+/** Recovery diagnostic only for source removal after a successful seal write. */
+export function sourceRemovalFailure(source: string, archived: string, error: unknown): Error {
+  const detail = error instanceof Error ? error.message : String(error);
+  return new Error(
+    `archived record sealed at "${archived}", but source removal failed for "${source}": ${detail}\n`
+    + 'Inspect both copies and verify the archived file against its manifest seal. '
+    + 'Preserve any unique content in the source before repairing permissions and removing only the redundant implemented source.\n'
+    + 'Do not edit the archived file or its manifest seal. Retrying by decision number is ambiguous while both copies exist. '
+    + 'After recovery, run "adrkit validate --all".',
+    { cause: error },
+  );
+}
+
 /**
  * Parse manifest text. Every structural problem throws naming `source`, so
  * validate can report the manifest as malformed and the archive commands can

@@ -35,3 +35,42 @@ owner exists. `--tools claude` adds `.claude/` copies alongside the default
 requires repository-wide validation — it is refused together with a
 single-record query — and fails with an actionable error when the base ref or
 its manifest is missing or cannot be read.
+
+## Configuration type errors
+
+Repository-wide validation checks known fields in `adr/config.yaml`: `context`
+and `installed-with` must be strings; `tools` and `workflows` must be lists of
+strings; `rules` must map group names to lists of strings. Present fields with
+the wrong type, including `null`, fail validation. Optional fields may be absent,
+and unknown keys remain accepted. Rule text is advisory; validation checks its
+type, not whether the record follows it.
+
+An unquoted colon followed by a space can make a rule item a YAML mapping:
+
+```yaml
+rules:
+  proposal:
+    - Keep it short
+    - max: 500
+```
+
+`adrkit validate --all` fails naming `rules.proposal[1]` (indexes start at zero).
+Quote the whole item as `- "max: 500"` to make it a string. `list` still discovers
+records when config fields are mistyped; `status` and `instructions` report the
+repository's validation issues, including when proposals are pending.
+
+## Source removal after sealing
+
+`archive` and `supersede` write the archived file and its manifest seal before
+removing the implemented source. If source removal fails, the command exits
+non-zero and reports that sealing completed but source removal failed, with
+both file paths and the underlying error. Both copies remain; the operation
+has not fully completed or rolled back. For supersession, the replacement stays
+active.
+
+Inspect both copies and verify the archived file against its manifest seal.
+Preserve any unique source content outside the sealed archive before repairing
+permissions and removing only the redundant implemented source. Do not edit the
+archived file or manifest seal. Retrying by decision number is ambiguous while
+both copies exist. After removing the confirmed duplicate, run
+`adrkit validate --all` to verify recovery.

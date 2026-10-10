@@ -19,7 +19,7 @@ import {
   sealedDisplayPath,
   sealBytes,
 } from './archive-seal.js';
-import { ADR_DIR, CONFIG_FILE, readConfig } from './config.js';
+import { ADR_DIR, CONFIG_FILE, inspectConfig } from './config.js';
 import { gitRefExists, gitShow } from './git.js';
 import { listRecords } from './repository.js';
 
@@ -245,7 +245,9 @@ export function validateRepository(root: string): ValidationIssue[] {
     issues.push({ path: `${ADR_DIR}/${CONFIG_FILE}`, message: 'missing config file' });
   } else {
     try {
-      readConfig(root);
+      for (const message of inspectConfig(root).issues) {
+        issues.push({ path: `${ADR_DIR}/${CONFIG_FILE}`, message });
+      }
     } catch (error) {
       issues.push({
         path: `${ADR_DIR}/${CONFIG_FILE}`,

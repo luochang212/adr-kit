@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { archiveCommand } from '../src/commands/archive.js';
 import { recordCommand } from '../src/commands/record.js';
 import { supersedeCommand } from '../src/commands/supersede.js';
@@ -18,6 +18,7 @@ import {
   writeArchiveManifest,
 } from '../src/core/archive-seal.js';
 import { initRepository, listRecords } from '../src/core/repository.js';
+import * as repository from '../src/core/repository.js';
 import { validateRepository, validateRepositoryWithBase } from '../src/core/validate.js';
 
 const roots: string[] = [];
@@ -53,10 +54,63 @@ function git(root: string, ...args: string[]): string {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
   for (const root of roots.splice(0)) {
     if (existsSync(manifestPath(root))) chmodSync(manifestPath(root), 0o644);
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+describe('post-seal source removal failures', () => {
+  it.each(['archive', 'supersede'] as const)('%s reports partial completion and permits manual recovery', (command) => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    recordCommand('Use Postgres', root, 'human', 'human');
+    fillDecision(root, 2);
+    const source = join(root, 'adr', 'implemented', '1-use-sqlite.md');
+    const archived = join(root, 'adr', 'archived', '1-use-sqlite.md');
+    const replacement = join(root, 'adr', 'implemented', '2-use-postgres.md');
+    const sourceBytes = readFileSync(source, 'utf8');
+    const replacementBytes = readFileSync(replacement, 'utf8');
+    const remove = repository.removeRecord;
+    const injection = vi.spyOn(repository, 'removeRecord').mockImplementation((record) => {
+      if (record.path === source) throw new Error('EACCES: source deletion denied');
+      remove(record);
+    });
+    let message = '';
+    try {
+      if (command === 'archive') archiveCommand('1', 'Current authority is elsewhere', root);
+      else supersedeCommand('1', '2', root);
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    } finally {
+      injection.mockRestore();
+    }
+    // The injection must reach removal after the real archive and seal writes.
+    const archivedBytes = readFileSync(archived, 'utf8');
+    const manifestBytes = readFileSync(manifestPath(root), 'utf8');
+    expect(readArchiveManifest(root)?.entries).toEqual([{ path: '1-use-sqlite.md', sha256: sealBytes(archivedBytes) }]);
+    expect(readFileSync(source, 'utf8')).toBe(sourceBytes);
+    expect(readFileSync(replacement, 'utf8')).toBe(replacementBytes);
+    expect(validateCommand(root).output).toContain('duplicate decision number 1');
+    expect(message).toContain('sealed');
+    expect(message).toContain('source removal failed');
+    expect(message).toContain(source);
+    expect(message).toContain(archived);
+    expect(message).toContain('EACCES: source deletion denied');
+    expect(message).toContain('unique content');
+    expect(message).toContain('permissions');
+    expect(message).toContain('ambiguous');
+    expect(message).toContain('adrkit validate --all');
+    expect(message).toContain('Do not edit');
+    expect(message).not.toContain('rolled back');
+    // Follow the guidance only after checking the active copy has no unique content.
+    rmSync(source);
+    expect(validateCommand(root)).toEqual({ valid: true, output: 'OK' });
+    expect(readFileSync(archived, 'utf8')).toBe(archivedBytes);
+    expect(readFileSync(manifestPath(root), 'utf8')).toBe(manifestBytes);
+  });
 });
 
 /** A repository that also has a real git checkout for base-aware checks. */

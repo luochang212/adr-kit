@@ -8,6 +8,7 @@ import {
   MANIFEST_FILE,
   readArchiveManifest,
   sealBytes,
+  sourceRemovalFailure,
   writeArchiveManifest,
 } from '../core/archive-seal.js';
 import { ADR_DIR, requireRoot } from '../core/config.js';
@@ -65,6 +66,10 @@ export function archiveCommand(query: string, reason: string, cwd: string): stri
     rmSync(join(folderPath(root, 'archived'), record.fileName), { force: true });
     throw error;
   }
-  removeRecord(record);
+  try {
+    removeRecord(record);
+  } catch (error) {
+    throw sourceRemovalFailure(record.path, join(folderPath(root, 'archived'), record.fileName), error);
+  }
   return `archived adr/implemented/${record.fileName} as adr/archived/${record.fileName} and sealed it in ${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`;
 }

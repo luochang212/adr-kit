@@ -1,4 +1,4 @@
-import { findRoot, installedWithNotice, readConfigSafe, withNotice } from '../core/config.js';
+import { ADR_DIR, CONFIG_FILE, findRoot, installedWithNotice, readConfigSafe, withNotice } from '../core/config.js';
 import { listRecords } from '../core/repository.js';
 import { formatIssues, validateRecord, validateRepository } from '../core/validate.js';
 import { VERSION } from '../version.js';
@@ -18,6 +18,9 @@ export function instructionsCommand(cwd: string): string {
     return withNotice(`The repository has validation issues.\n\n${formatIssues(issues)}\n\nNext:\n  adrkit validate`, notice);
   }
   const proposed = records.filter((record) => record.folder === 'proposed');
+  if (issues.some((issue) => issue.path === `${ADR_DIR}/${CONFIG_FILE}`)) {
+    return withNotice(`The repository has validation issues.\n\n${formatIssues(issues)}\n\nNext:\n  adrkit validate`, notice);
+  }
   if (proposed.length > 0) {
     const lines = [`${proposed.length} proposal${proposed.length === 1 ? '' : 's'} pending:`];
     const ready: string[] = [];

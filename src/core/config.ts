@@ -66,38 +66,72 @@ function parseConfigDocument(text: string): ParsedConfig {
   return { document, map: document.contents };
 }
 
-export function readConfig(root: string): AdrKitConfig {
+/** Read effective config and type diagnostics from the same parsed values. */
+export function inspectConfig(root: string): { config: AdrKitConfig; issues: string[] } {
   const file = configPath(root);
   const { map } = parseConfigDocument(readFileSync(file, 'utf8'));
-  const raw = map.toJSON() as Record<string, unknown> | null;
+  const raw = map.toJSON() as Record<string, unknown>;
   const config: AdrKitConfig = {};
-  if (raw === null) return config;
-  if (typeof raw.context === 'string') {
-    config.context = raw.context;
-  }
-  if (Array.isArray(raw.tools) && raw.tools.every((entry) => typeof entry === 'string')) {
-    config.tools = raw.tools as string[];
-  }
-  if (
-    Array.isArray(raw.workflows) &&
-    raw.workflows.every((entry) => typeof entry === 'string')
-  ) {
-    config.workflows = raw.workflows as string[];
-  }
-  if (typeof raw['installed-with'] === 'string') {
-    config.installedWith = raw['installed-with'];
+  const issues: string[] = [];
+
+  function report(field: string, expected: string, hint = ''): void {
+    const safeField = field.replace(/[\u0000-\u001f\u007f-\u009f]/g,
+      (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`);
+    issues.push(`${safeField} must be ${expected}${hint}`);
   }
 
-  if (raw.rules !== null && typeof raw.rules === 'object' && !Array.isArray(raw.rules)) {
-    const rules: Record<string, string[]> = {};
-    for (const [key, value] of Object.entries(raw.rules as Record<string, unknown>)) {
-      if (Array.isArray(value) && value.every((entry) => typeof entry === 'string')) {
-        rules[key] = value as string[];
-      }
-    }
-    config.rules = rules;
+  function stringValue(key: string): string | undefined {
+    if (!Object.hasOwn(raw, key)) return undefined;
+    const value = raw[key];
+    if (typeof value === 'string') return value;
+    report(key, 'a string');
+    return undefined;
   }
-  return config;
+
+  function stringList(value: unknown, field: string): string[] | undefined {
+    if (!Array.isArray(value)) {
+      report(field, 'a list of strings');
+      return undefined;
+    }
+    let valid = true;
+    value.forEach((entry: unknown, index: number) => {
+      if (typeof entry === 'string') return;
+      const hint = field.startsWith('rules.') && entry !== null
+        && typeof entry === 'object' && !Array.isArray(entry)
+        ? '; an unquoted ": " creates a YAML mapping; quote the whole item to keep it a string'
+        : '';
+      report(`${field}[${index}]`, 'a string', hint);
+      valid = false;
+    });
+    return valid ? value as string[] : undefined;
+  }
+
+  const context = stringValue('context');
+  if (context !== undefined) config.context = context;
+  const installedWith = stringValue('installed-with');
+  if (installedWith !== undefined) config.installedWith = installedWith;
+  for (const key of ['tools', 'workflows'] as const) {
+    if (!Object.hasOwn(raw, key)) continue;
+    const values = stringList(raw[key], key);
+    if (values !== undefined) config[key] = values;
+  }
+  if (Object.hasOwn(raw, 'rules')) {
+    if (raw.rules !== null && typeof raw.rules === 'object' && !Array.isArray(raw.rules)) {
+      const rules: Record<string, string[]> = {};
+      for (const [key, value] of Object.entries(raw.rules)) {
+        const values = stringList(value, `rules.${key}`);
+        if (values !== undefined) rules[key] = values;
+      }
+      config.rules = rules;
+    } else {
+      report('rules', 'a mapping of string lists');
+    }
+  }
+  return { config, issues };
+}
+
+export function readConfig(root: string): AdrKitConfig {
+  return inspectConfig(root).config;
 }
 
 /**
