@@ -1,10 +1,13 @@
 ---
-status: proposed
+status: implemented
 date: 2026-10-12
+raised-by: agent
+decided-by: agent
 created: 2026-10-12
+commit: a3072af
 ---
 
-# ADR: capture decisions at the settle moment through purpose-bound surfaces and a note buffer
+# ADR: 21 capture decisions at the settle moment through purpose-bound surfaces and a note buffer
 
 ## Problem
 
@@ -40,17 +43,17 @@ No legal action leaves the repository valid at one line of cost.
 
 No active decision covers either term. ADR 17 deferred the task-end check — an
 enforcement-shaped nudge — and its evidence window has since closed positive — three archives, three
-inventory actions, zero falsifying traces (ADR 19 recorded from
-close-agent-note-governance-loop; ADRs 18/20 from the four-folder changes;
-the 2026-10-11 archive documents the explicit "checked, nothing to record"
-form) —
-nothing binds the tool's purpose to its name at the surfaces agents actually
+inventory actions, zero falsifying traces (ADR 19 recorded from the
+close-agent-note-governance-loop archive; ADRs 18 and 20 from the
+four-folder changes; the 2026-10-11 archive documents the explicit "checked,
+nothing to record" form) — nothing binds the tool's purpose to its name at the surfaces agents actually
 read, and nothing gives the settle moment a one-line legal action.
 
-## Proposal
+## Decision
 
-Two coordinated moves, shippable as independent phases. The maintainer raised
-the problem and the awareness framing; the agent derived the friction term and
+Two coordinated moves, both shipped: Phase 1 in the purpose-surface change
+(21bed9e), Phase 2 with the note buffer (a3072af). The maintainer raised the
+problem and the awareness framing; the agent derived the friction term and
 this design.
 
 **Phase 1 — purpose-bound, situation-mirrored surfaces.**
@@ -64,8 +67,8 @@ this design.
   introduces no new action, respecting the constitution-density discipline
   behind ADR 17's deferral.
 - Rewrite the capture-side skill descriptions (`propose`, `record`, `grill`)
-  in first-person situational language that mirrors the agent's state at the
-  moment — "when you catch yourself settling a trade-off future work must
+  in situational language that mirrors the agent's state at the moment
+  (`propose` in the first person; `record` and `grill` situation-naming) — "when you catch yourself settling a trade-off future work must
   live with (a dependency, format, boundary, or default) and `adr/` does not
   already own it" — because in skill-retrieval agents the description is the
   only retrieval key, and it is matched against the situation, not the
@@ -76,7 +79,7 @@ this design.
   `skills/`) and this repository's dogfooded `AGENTS.md` and `adr/README.md`
   in the same change.
 
-**Phase 2 — a zero-shape note buffer.**
+**Phase 2 — a zero-shape note buffer (shipped: `src/core/notes.ts`, `src/commands/note.ts`, the `adrkit-note` skill).**
 
 - `adrkit note "<one line>"` appends a timestamped line to `adr/notes.md`,
   creating the file on first use. It is a plain file: no front matter, no
@@ -123,7 +126,9 @@ decisions.
   constrain files they never name, and an empty result licenses skipping.
   Revisit only if dogfooding shows concrete read-misses.
 
-## Acceptance criteria
+## Consequences
+
+### Acceptance criteria
 
 - Phase 1: the standing-orders template, `INIT_README`, `adrkit instructions`
   output, and every skill body carry exactly one purpose line each, with no
@@ -139,7 +144,7 @@ decisions.
 - Both phases: `npm test`, `node bin/adrkit.js validate --all`, and
   `npm run check:upstream` pass.
 
-## Risks
+### Risks
 
 - **Constitution density.** The framing line could become noise agents skip.
   Mitigation: one line per surface, varied wording, no new action — the same
@@ -158,6 +163,7 @@ decisions.
 - **Scope.** Phase 2 adds a command to a one-dependency CLI. Mitigation: the
   primitive is append, count, and surface — no parsing sophistication — and
   the buffer is a plain file.
+
 
 ## Deliberation
 
