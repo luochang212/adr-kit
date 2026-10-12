@@ -1,9 +1,11 @@
 ---
 name: adrkit-grill
-description: Use when a decision is still being shaped or the user asks to grill a plan; question it to shared understanding and record every settled choice.
+description: Use when a decision is still being shaped, or the user asks to grill a plan; interrogate the design against the active records until no branch is silently assumed, and record every settled choice.
 ---
 
 # ADR Kit Grill
+
+Grilling is the co-design checkpoint an agent deep in a task will otherwise skip: it forces the conversation between the plan and the long-term decisions before anything settles.
 
 Interrogate the user until the design tree has no silently assumed branch. This method is adapted from mattpocock/skills (MIT). For viewing existing records, use `adrkit-visualize`; grilling does not generate HTML by default.
 

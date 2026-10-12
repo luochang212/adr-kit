@@ -54,7 +54,7 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 ## Tell your agent
 
-Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code.
+Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code.
 
 ## Commands
 

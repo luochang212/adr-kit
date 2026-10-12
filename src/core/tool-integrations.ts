@@ -33,6 +33,15 @@ export interface Workflow {
   body: string;
 }
 
+/**
+ * The purpose sentence that opens the standing-orders section, binding adr/ to
+ * the two failure modes it exists to block. The template and this repository's
+ * dogfooded AGENTS.md must carry it verbatim; test/integrations.test.ts checks
+ * both sides.
+ */
+export const STANDING_ORDERS_PURPOSE =
+  '`adr/` exists because agents over-focus on the current task and forget settled decisions: reading it at task start counters the drift, and recording when a choice settles counters the forgetting.';
+
 // The bodies mirror skills/<name>/SKILL.md one-to-one; the sync is
 // machine-checked in test/integrations.test.ts.
 export const WORKFLOWS: Workflow[] = [
@@ -41,13 +50,15 @@ export const WORKFLOWS: Workflow[] = [
     description: "Use when initializing ADR Kit in a repository or when the agent cannot find an adr/ directory.",
     body: `# ADR Kit Init
 
+Installing ADR Kit wires a repository's decision memory into the surfaces agents read, against two failure modes: mid-task drift from long-term decisions, and forgetting settled choices until they bite.
+
 Run \`adrkit init [path]\` for a new repository, or \`adrkit update\` if \`adr/\` exists. Confirm the four lifecycle folders: \`proposed/\`, \`implemented/\`, \`rejected/\`, and \`archived/\`. They are a context budget as well as a lifecycle: \`implemented/\` is current authority, \`proposed/\` is intent, \`rejected/\` is anti-pattern memory, and \`archived/\` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
 
 Add or update this section in \`AGENTS.md\` (and \`CLAUDE.md\` when used):
 
 ## Reading architecture decisions
 
-At the start of a coding, design, or review task, if \`adr/\` exists, run \`adrkit list\`. The four folders are a context budget: read the relevant \`implemented/\` records in full with \`adrkit show <N>\` or their files; check the relevant \`proposed/\` records for intent and the relevant \`rejected/\` records for the bad cases they warn against (a rejection is durable: it leaves only when another record owns its warning); treat \`archived/\` as frozen history and read it only when a task explicitly cites it. Do not judge relevance by title alone: inspect tags, paths, relationships, and task scope. Compare constraints with current code; explain conflicts or changed assumptions before choosing a different approach. Mention relevant ADR numbers and verify affected behavior. Re-read on a new or resumed task, or when scope changes. Read a \`## Deliberation\` appendix only when its decision is in play.
+${STANDING_ORDERS_PURPOSE} At the start of a coding, design, or review task, if \`adr/\` exists, run \`adrkit list\`. The four folders are a context budget: read the relevant \`implemented/\` records in full with \`adrkit show <N>\` or their files; check the relevant \`proposed/\` records for intent and the relevant \`rejected/\` records for the bad cases they warn against (a rejection is durable: it leaves only when another record owns its warning); treat \`archived/\` as frozen history and read it only when a task explicitly cites it. Do not judge relevance by title alone: inspect tags, paths, relationships, and task scope. Compare constraints with current code; explain conflicts or changed assumptions before choosing a different approach. Mention relevant ADR numbers and verify affected behavior. Re-read on a new or resumed task, or when scope changes. Read a \`## Deliberation\` appendix only when its decision is in play.
 
 Before creating a record, compare it with the active records covering the same choice or mechanism: extend a duplicate, fully replace through \`adrkit supersede --by\` in the same change, or link a partial overlap while the older record stays active. When shipping or reviewing, keep each active record's realization facts — paths, names, defaults — aligned with shipped code; a changed choice is a new record with an explicit relationship, not a rewrite of old rationale. Archived records are sealed in \`adr/archived/MANIFEST.json\`, never edited, and not read by default.
 
@@ -57,8 +68,10 @@ After installation, continue the original task; initializing ADR Kit is not itse
   },
   {
     name: "adrkit-grill",
-    description: "Use when a decision is still being shaped or the user asks to grill a plan; question it to shared understanding and record every settled choice.",
+    description: "Use when a decision is still being shaped, or the user asks to grill a plan; interrogate the design against the active records until no branch is silently assumed, and record every settled choice.",
     body: `# ADR Kit Grill
+
+Grilling is the co-design checkpoint an agent deep in a task will otherwise skip: it forces the conversation between the plan and the long-term decisions before anything settles.
 
 Interrogate the user until the design tree has no silently assumed branch. This method is adapted from mattpocock/skills (MIT). For viewing existing records, use \`adrkit-visualize\`; grilling does not generate HTML by default.
 
@@ -80,6 +93,8 @@ State who raised and settled the unshipped choice in prose; proposal front matte
     description: "Use when the user asks to visualize an existing ADR, its deliberation tree, or the whole decision set and its relationships.",
     body: `# ADR Kit Visualize
 
+Seeing the decision set as a picture surfaces relationships and contradictions that a file list hides.
+
 Visualize existing records only when asked. Run \`adrkit list\` first, then read the record or relationships relevant to the requested view. Do not create a decision or invent a deliberation tree to make a picture.
 
 - For one record's design tree, use \`adrkit tree <name> --html\` and save stdout to a local HTML file. If no \`## Deliberation\` appendix exists, say so instead of fabricating one.
@@ -90,8 +105,10 @@ When the user requests HTML visualization, open the generated file in the defaul
   },
   {
     name: "adrkit-propose",
-    description: "Use when starting an architectural choice that has not shipped, whether its direction is open or settled.",
+    description: "Use when you catch yourself settling a choice future work must live with — a dependency, format, boundary, or default — and adr/ does not already own it; the work is unshipped and the direction may be open or settled.",
     body: `# ADR Kit Propose
+
+A proposal is drift insurance: the cheapest durable home for a choice future tasks must inherit, written before the context that raised it evaporates.
 
 Before writing, run \`adrkit list\` and search the active records — read relevant implemented records in full, and check proposed records for intent and rejected ones for the bad cases they warn against — for anything covering the same choice, mechanism, or rejected alternative. Judge overlap from record content, not titles or tags; the CLI cannot infer it. Classify what you find:
 
@@ -104,8 +121,10 @@ Then run \`adrkit propose "<title>"\`; it creates a dated, unnumbered file in \`
   },
   {
     name: "adrkit-record",
-    description: "Use when recording an already-shipped architectural decision directly, without a pending proposal.",
+    description: "Use when a choice that will constrain future work has already shipped and adr/ does not own it yet; record it directly, with no pending proposal.",
     body: `# ADR Kit Record
+
+Recording a shipped choice at the moment of shipping keeps later tasks from re-deriving — and contradicting — it.
 
 First run \`adrkit list\` and read relevant implemented records in full; also check proposed records for intent and rejected records for the bad cases they warn against. Compare content, not titles or tags — the CLI cannot infer semantic overlap. A duplicate means recording the choice in the existing record instead; a full replacement means recording the new decision and resolving the old one with \`adrkit supersede --by\` in the same change; a partial replacement keeps the older record active with a prose link between them.
 
@@ -116,6 +135,8 @@ Confirm the choice has actually shipped, and compare its claimed paths, names, d
     description: "Use when checking ADR record format before implementation, rejection, archival, or commit.",
     body: `# ADR Kit Validate
 
+Validation keeps the record set a dependable memory: a format contract only works when drift fails loudly.
+
 Run \`adrkit validate [name]\` for one record or \`adrkit validate\` for the repository. All four lifecycle folders are checked. A fresh proposal or record template intentionally fails until required sections contain real content. Fix the exact reported requirement; do not add placeholder prose merely to pass. Validate again after every lifecycle move.
 
 Repository-wide validation also checks the archive seal: \`adr/archived/MANIFEST.json\` must cover exactly the archived records and match their bytes. When it reports drift — edited bytes, an unsealed file, a missing file, a malformed or missing manifest — restore the sealed bytes, the manifest entry, or the empty manifest; never re-seal changed archived content to make the check pass. Before pushing, \`adrkit validate --base <git-ref>\` additionally proves the archive only grew since that ref: entries sealed at the base must remain byte-identical, so a coordinated edit of an archived file and its hash still fails. A base that carries no readable manifest fails.`,
@@ -125,12 +146,16 @@ Repository-wide validation also checks the archive seal: \`adr/archived/MANIFEST
     description: "Use when a proposal has shipped and should become a numbered, active decision.",
     body: `# ADR Kit Implement
 
+Promotion is what makes \`implemented/\` trustworthy authority — shipped guidance rather than intent — so later tasks can rely on what they read in full.
+
 Confirm the proposal's work is shipped, not merely accepted for review. Compare the record's claimed paths, names, defaults, and mechanisms with the current code and tests, and check the active records for overlap with this choice: a full replacement is promoted and then resolved with \`adrkit supersede --by\` in the same change, while a partial replacement keeps the older record active and links both. Run \`adrkit show <name>\` and \`adrkit validate <name>\`; resolve errors. Then run \`adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>\`. The command assigns the next stable ADR number, rewrites proposal sections into a shipped decision, moves the record from \`proposed/\` to \`implemented/\`, and preserves \`created\` and \`tags\`. Inspect the generated Decision and Consequences so they state shipped facts rather than proposal-era intent, then validate the numbered record. Do not infer the two provenance declarations from the command runner.`,
   },
   {
     name: "adrkit-review",
     description: "Use when checking whether changed code and changed decision records still agree; scoped to record coherence, not general code review.",
     body: `# ADR Kit Review
+
+Review closes the loop between decisions and code: it catches the moment a change quietly stops obeying the record set, before the drift becomes a bug.
 
 Review decision-record coherence for a change, not general code quality. Run \`adrkit list\` first, then:
 
@@ -145,6 +170,8 @@ Report evidence-backed findings that name the record and the code evidence. Find
     description: "Use when a formal proposal is declined and its anti-pattern should be recorded.",
     body: `# ADR Kit Reject
 
+A rejection is memory of the road not taken; without it, a later task re-walks the same dead end.
+
 Read the proposal and check its alternatives. Run \`adrkit reject <name> --reason "<the tempting mistake this blocks>"\`. It moves the dated file from \`proposed/\` to \`rejected/\`, stamps the lifecycle date, and preserves the record and reason. A rejected proposal gets no ADR number. \`rejected/\` is a durable terminal record of a declined proposal — not a graveyard and not a cache: keep it, and remove it only when another record owns the warning it blocks, never merely because it seems stale. Its reason names that warning. Rejections are unnumbered and unsealed, so removing a redundant one cannot reuse a number or break the archive. Do not use rejection to erase a settled but merely unshipped choice; that remains proposed.`,
   },
   {
@@ -152,12 +179,16 @@ Read the proposal and check its alternatives. Run \`adrkit reject <name> --reaso
     description: "Use when an implemented record no longer guides work and current behavior has another authoritative owner.",
     body: `# ADR Kit Archive
 
+Archiving keeps the active set small enough to actually be read: guidance that stopped earning its context budget retires to sealed history.
+
 Confirm the record has shipped, its distinct rationale no longer guides future work, and current behavior has another authoritative owner. Do not archive by age or quota. Run \`adrkit archive <N> --reason "<owner and why retired>"\`. The numbered record moves from \`implemented/\` to \`archived/\` — the lowest-value folder: sealed, frozen history, not current authority, and not read by default. Its number and history remain, and the command appends a content seal for the final archived file to \`adr/archived/MANIFEST.json\`. Validate afterward. Never edit an archived file or its seal after archival; if validation reports drift, restore the sealed bytes. If a newer implemented decision fully replaces it, use \`adrkit supersede --by\` instead; partial replacement leaves the still-relevant record active.`,
   },
   {
     name: "adrkit-supersede",
     description: "Use when one implemented decision fully replaces another and the old record must become archived history.",
     body: `# ADR Kit Supersede
+
+Supersession turns a changed decision into an explicit handover instead of a silent contradiction between old and new guidance.
 
 First record or implement the replacement and validate it. Confirm it fully replaces the old decision; partial overlap calls for prose links while the old record remains active. Run \`adrkit supersede <old> --by <new>\`. Both records must be implemented; the command stamps \`superseded-by\`, moves the old numbered file into \`archived/\` (lowest-value frozen history), preserves its provenance and number, and seals the archived file in \`adr/archived/MANIFEST.json\`. Run \`adrkit validate\` to check the chain and the new seal. Do not edit the archived choice or rationale afterward.`,
   },

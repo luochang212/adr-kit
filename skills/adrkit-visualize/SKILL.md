@@ -5,6 +5,8 @@ description: Use when the user asks to visualize an existing ADR, its deliberati
 
 # ADR Kit Visualize
 
+Seeing the decision set as a picture surfaces relationships and contradictions that a file list hides.
+
 Visualize existing records only when asked. Run `adrkit list` first, then read the record or relationships relevant to the requested view. Do not create a decision or invent a deliberation tree to make a picture.
 
 - For one record's design tree, use `adrkit tree <name> --html` and save stdout to a local HTML file. If no `## Deliberation` appendix exists, say so instead of fabricating one.

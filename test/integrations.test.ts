@@ -11,6 +11,7 @@ import { updateCommand } from '../src/commands/update.js';
 import { readConfig } from '../src/core/config.js';
 import {
   STANDING_ORDERS_HEADING,
+  STANDING_ORDERS_PURPOSE,
   STANDING_ORDERS_RULE,
   WORKFLOWS,
   WORKFLOW_NAMES,
@@ -38,6 +39,26 @@ describe('initCommand tool integrations', () => {
     const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
     expect(initBody).toContain(STANDING_ORDERS_HEADING);
     expect(initBody).toContain(STANDING_ORDERS_RULE);
+  });
+
+  it('the purpose line rides the template and this repository\'s AGENTS.md', () => {
+    // The standing orders must open by binding adr/ to the failure modes it
+    // blocks: obligations without that anchor never teach an agent to
+    // recognize the settle moment. The dogfooded AGENTS.md must carry the
+    // same sentence, or this repository stops exercising what it ships.
+    const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
+    expect(initBody).toContain(STANDING_ORDERS_PURPOSE);
+    const agents = readFileSync(fileURLToPath(new URL('../AGENTS.md', import.meta.url)), 'utf8');
+    expect(agents).toContain(STANDING_ORDERS_PURPOSE);
+  });
+
+  it('capture-side descriptions mirror the settle moment', () => {
+    // Descriptions are the retrieval key in skill-based agents; they must
+    // speak the agent's situational language, not the tool's category.
+    const find = (name: string) => WORKFLOWS.find((workflow) => workflow.name === name)!;
+    expect(find('adrkit-propose').description).toContain('catch yourself settling a choice future work must live with');
+    expect(find('adrkit-record').description).toContain('has already shipped and adr/ does not own it yet');
+    expect(find('adrkit-grill').description).toContain('no branch is silently assumed');
   });
 
   it('installs and refreshes reading guidance without replacing project instructions', () => {

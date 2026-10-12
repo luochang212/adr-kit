@@ -54,7 +54,7 @@ adr/
 
 ## 告诉 Agent
 
-将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md` 或 `CLAUDE.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。
+Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md` 或 `CLAUDE.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。
 
 ## 命令
 

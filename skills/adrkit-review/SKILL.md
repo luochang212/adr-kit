@@ -5,6 +5,8 @@ description: Use when checking whether changed code and changed decision records
 
 # ADR Kit Review
 
+Review closes the loop between decisions and code: it catches the moment a change quietly stops obeying the record set, before the drift becomes a bug.
+
 Review decision-record coherence for a change, not general code quality. Run `adrkit list` first, then:
 
 - Compare each changed or newly shipped record with the changed code and tests: claimed paths, names, defaults, mechanisms, and verification evidence must match what actually shipped.

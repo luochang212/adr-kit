@@ -1,9 +1,11 @@
 ---
 name: adrkit-record
-description: Use when recording an already-shipped architectural decision directly, without a pending proposal.
+description: Use when a choice that will constrain future work has already shipped and adr/ does not own it yet; record it directly, with no pending proposal.
 ---
 
 # ADR Kit Record
+
+Recording a shipped choice at the moment of shipping keeps later tasks from re-deriving — and contradicting — it.
 
 First run `adrkit list` and read relevant implemented records in full; also check proposed records for intent and rejected records for the bad cases they warn against. Compare content, not titles or tags — the CLI cannot infer semantic overlap. A duplicate means recording the choice in the existing record instead; a full replacement means recording the new decision and resolving the old one with `adrkit supersede --by` in the same change; a partial replacement keeps the older record active with a prose link between them.
 

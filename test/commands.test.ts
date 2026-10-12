@@ -106,6 +106,15 @@ describe('initCommand', () => {
     expect(committed).toBe(generated);
   });
 
+  it('opens the generated README with the failure-mode framing', () => {
+    const root = makeRepo();
+    const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
+    // An agent entering adr/ must meet the why before the rules: the two
+    // failure modes are what teach it to recognize the settle moment.
+    expect(readme).toContain("repository's memory against two agent failure modes");
+    expect(readme.indexOf('failure modes')).toBeLessThan(readme.indexOf('Records follow the lifecycle folders'));
+  });
+
   it('refuses to initialize twice', () => {
     const root = makeRepo();
     expect(() => initCommand(root)).toThrow(/already exists/);
@@ -782,6 +791,11 @@ describe('integration drift: installed-with stamp and notice', () => {
     const root = makeRepo();
     expect(listCommand(root)).not.toContain('note:');
     expect(instructionsCommand(root)).not.toContain('note:');
+  });
+
+  it('instructions re-anchors the purpose at the check-in moment', () => {
+    const root = makeRepo();
+    expect(instructionsCommand(root)).toContain('memory against drift and forgetting');
   });
 
   it('no note for a repository configured before the stamp existed', () => {

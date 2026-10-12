@@ -3,6 +3,11 @@ import { listRecords } from '../core/repository.js';
 import { formatIssues, validateRecord, validateRepository } from '../core/validate.js';
 import { VERSION } from '../version.js';
 
+// The one-line purpose anchor for the check-in moment: an agent glancing at
+// this output re-binds adr/ to the drift and forgetting it exists to block.
+const PURPOSE_LINE =
+  "adr/ is this repository's memory against drift and forgetting: read it at task start, record when a choice settles.";
+
 export function instructionsCommand(cwd: string): string {
   const root = findRoot(cwd);
   if (root === undefined) {
@@ -24,7 +29,11 @@ export function instructionsCommand(cwd: string): string {
     return validationIssues();
   }
   if (proposed.length > 0) {
-    const lines = [`${proposed.length} proposal${proposed.length === 1 ? '' : 's'} pending:`];
+    const lines = [
+      PURPOSE_LINE,
+      '',
+      `${proposed.length} proposal${proposed.length === 1 ? '' : 's'} pending:`,
+    ];
     const ready: string[] = [];
     for (const record of proposed) {
       const recordIssues = validateRecord(root, record);
@@ -42,5 +51,5 @@ export function instructionsCommand(cwd: string): string {
   if (issues.length > 0) {
     return validationIssues();
   }
-  return withNotice('No proposals waiting.\n\nNext:\n  adrkit propose "an unshipped choice"\n  adrkit record "an already-shipped choice" --raised-by <human|agent> --decided-by <human|agent>', notice);
+  return withNotice(`${PURPOSE_LINE}\n\nNo proposals waiting.\n\nNext:\n  adrkit propose "an unshipped choice"\n  adrkit record "an already-shipped choice" --raised-by <human|agent> --decided-by <human|agent>`, notice);
 }

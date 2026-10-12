@@ -5,7 +5,7 @@ contains standing orders for coding agents working in this repository.
 
 ## Reading architecture decisions
 
-At the start of a coding, design, or review task, if `adr/` exists, run
+`adr/` exists because agents over-focus on the current task and forget settled decisions: reading it at task start counters the drift, and recording when a choice settles counters the forgetting. At the start of a coding, design, or review task, if `adr/` exists, run
 `adrkit list` to discover the inventory. The four lifecycle folders are a
 context budget: read the relevant `implemented/` records in full with
 `adrkit show <N>` or their files; check the relevant `proposed/` records for

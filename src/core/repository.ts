@@ -51,6 +51,10 @@ ${toolsYaml}${workflowsYaml}
 
 const INIT_README = `# Architecture Decision Records
 
+This directory is the repository's memory against two agent failure modes:
+drifting from long-term decisions while deep in a task, and forgetting settled
+choices until they resurface as inconsistencies.
+
 Records follow the lifecycle folders proposed/, implemented/, rejected/, and
 archived/. The folders are a context budget as well as a lifecycle:
 implemented/ is current authority and is read in full; proposed/ is intent and
