@@ -52,6 +52,12 @@ describe('instructionsCommand', () => {
     expect(output).toContain('adrkit propose');
   });
 
+  it('re-anchors the purpose on the pending-proposals path too', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    expect(instructionsCommand(root)).toContain('memory against drift and forgetting');
+  });
+
   it('tells a repo with a pending proposal to decide next', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);

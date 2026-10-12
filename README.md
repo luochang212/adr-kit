@@ -38,7 +38,7 @@ adrkit implement "Use SQLite for session storage" --raised-by human --decided-by
 adrkit validate
 ```
 
-For an architectural choice already shipped, use `adrkit record "<title>" --raised-by human --decided-by human` instead.
+For an architectural choice already shipped, use `adrkit record "<title>" --raised-by human --decided-by human` instead. Mid-task, when a choice is worth capturing but not worth the record's shape yet, `adrkit note "<one line>"` parks a timestamped line in `adr/notes.md` — outside the lifecycle, ignored by `adrkit validate`, counted by `adrkit list` and `adrkit instructions` until it is shaped or deleted.
 
 ```text
 adr/
@@ -61,6 +61,7 @@ Agents over-focus on the current task and forget settled decisions; `adr/` is th
 ```text
 adrkit init [path] [--tools <list>] [--workflows <list>]
 adrkit propose <title>
+adrkit note <text>
 adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>
 adrkit record <title> --raised-by <human|agent> --decided-by <human|agent>
 adrkit reject <name> --reason <text>

@@ -1,5 +1,6 @@
 import { installedWithNotice, readConfigSafe, requireRoot, withNotice } from '../core/config.js';
 import { displayName, listRecords, relativePath } from '../core/repository.js';
+import { unshapedNotesLine } from '../core/notes.js';
 import { VERSION } from '../version.js';
 
 export function listCommand(cwd: string): string {
@@ -7,9 +8,12 @@ export function listCommand(cwd: string): string {
   const config = readConfigSafe(root);
   const notice = config === undefined ? undefined : installedWithNotice(config, VERSION);
   const records = listRecords(root);
+  const notes = unshapedNotesLine(root);
   if (records.length === 0) {
     return withNotice(
-      'no ADRs yet: start one with "adrkit propose <title>" or "adrkit record <title> --raised-by human --decided-by human"',
+      notes.length > 0
+        ? `no ADRs yet, but ${notes}`
+        : 'no ADRs yet: start one with "adrkit propose <title>" or "adrkit record <title> --raised-by human --decided-by human"',
       notice,
     );
   }
@@ -27,5 +31,6 @@ export function listCommand(cwd: string): string {
     }
     lines.push('');
   }
+  if (notes.length > 0) lines.push(notes, '');
   return withNotice(lines.join('\n').trimEnd(), notice);
 }

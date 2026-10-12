@@ -31,10 +31,19 @@ Cheap-enough fails because the only legal capture actions are shaped ones:
 and `grill` interrogates the user. An agent that correctly notices and
 correctly associates still faces a detour against work in flight, rationally
 defers, and deferral is where capture dies. The quality bar is right for
-records and wrong for the spontaneous moment; the tension is structural.
+records and wrong for the spontaneous moment; the tension is structural. A
+worth-fix verification measured the gate directly (2026-10-12): an empty
+`propose` draft fails validation on three required sections, and `record`
+is worse mid-task — one title lands an empty record straight in
+`implemented/`, burning a stable number before its sections hold content.
+No legal action leaves the repository valid at one line of cost.
 
 No active decision covers either term. ADR 17 deferred the task-end check — an
-enforcement-shaped nudge — and its evidence window has since closed positive;
+enforcement-shaped nudge — and its evidence window has since closed positive — three archives, three
+inventory actions, zero falsifying traces (ADR 19 recorded from
+close-agent-note-governance-loop; ADRs 18/20 from the four-folder changes;
+the 2026-10-11 archive documents the explicit "checked, nothing to record"
+form) —
 nothing binds the tool's purpose to its name at the surfaces agents actually
 read, and nothing gives the settle moment a one-line legal action.
 
@@ -167,4 +176,4 @@ decisions.
         - A: hand-written scratch files without a command [rejected] — same friction, no surfacing
       - Q: Does the buffer get lifecycle semantics? [settled] — no: a plain file, or it becomes a fifth folder against ADR 18
 - Q: Exact wording of the mirrored descriptions? [open] — maintainer review against trigger honesty
-- Q: Does Phase 2 wait for dogfood evidence of Phase 1? [open] — recommended: Phase 1 lands first, Phase 2 in the next change
+- Q: Does Phase 2 wait for dogfood evidence of Phase 1? [settled] — no: the archive window closed positive (three archives, three inventory actions), Phase 1 shipped in the purpose-surface change, and a worth-fix pass measured the five-section gate and confirmed the buffer stays outside every existing scan path; each phase still stands if the other is struck

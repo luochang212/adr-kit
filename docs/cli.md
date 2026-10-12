@@ -7,6 +7,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | --- | --- |
 | `adrkit init [path] [--tools <list>] [--workflows <list>]` | Create four lifecycle directories, config, archive manifest, README, and integrations |
 | `adrkit propose <title>` | Create dated, unnumbered unshipped proposal |
+| `adrkit note <text>` | Append a timestamped one-line decision note to `adr/notes.md`; outside the lifecycle, ignored by validation, counted by `list` and `instructions` |
 | `adrkit implement <name> --raised-by <human\|agent> --decided-by <human\|agent>` | Promote a shipped proposal; assign stable ADR number |
 | `adrkit record <title> --raised-by <human\|agent> --decided-by <human\|agent>` | Record an already-shipped choice |
 | `adrkit reject <name> --reason <text>` | Record a declined proposal's anti-pattern in `rejected/` |

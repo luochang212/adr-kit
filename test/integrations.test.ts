@@ -41,6 +41,13 @@ describe('initCommand tool integrations', () => {
     expect(initBody).toContain(STANDING_ORDERS_RULE);
   });
 
+  it('the purpose line survives regeneration into the installed init skill', () => {
+    const root = makeTarget();
+    initCommand(root);
+    const installed = readFileSync(join(root, '.agents/skills/adrkit-init/SKILL.md'), 'utf8');
+    expect(installed).toContain(STANDING_ORDERS_PURPOSE);
+  });
+
   it('the purpose line rides the template and this repository\'s AGENTS.md', () => {
     // The standing orders must open by binding adr/ to the failure modes it
     // blocks: obligations without that anchor never teach an agent to
@@ -244,6 +251,7 @@ describe('workflow subsets for tool integrations', () => {
       'grill',
       'visualize',
       'propose',
+      'note',
       'record',
       'validate',
       'implement',

@@ -77,7 +77,7 @@ Interrogate the user until the design tree has no silently assumed branch. This 
 
 ## Method
 
-1. Run \`adrkit list\`. Read the relevant \`implemented/\` records in full, check the relevant \`proposed/\` records for intent and the \`rejected/\` records for the bad cases they warn against, and consult \`archived/\` only when a task cites history. Recheck the inventory even if this conversation read it earlier; do not reopen a settled choice without naming that change. As the tree takes shape, search the active records for anything covering the same choice or mechanism, so a settled direction lands in the right record rather than a duplicate.
+1. Run \`adrkit list\`. Read the relevant \`implemented/\` records in full, check the relevant \`proposed/\` records for intent and the \`rejected/\` records for the bad cases they warn against, and consult \`archived/\` only when a task cites history. Recheck the inventory even if this conversation read it earlier; do not reopen a settled choice without naming that change. \`adr/notes.md\` is the settle-moment buffer; read its unshaped lines as candidate material for the tree. As the tree takes shape, search the active records for anything covering the same choice or mechanism, so a settled direction lands in the right record rather than a duplicate.
 2. Map root questions and their dependent questions. Work in rounds: ask every question on the currently answerable frontier, each with genuine options and your recommendation. A downstream question waits until its prerequisite is answered. Format questions as \`Q1 - <title>\` with a clear recommendation. Word each question so "yes" accepts your recommended answer.
 3. Research repository and environment facts yourself. Do not ask the user for facts you can inspect. Let answers reshape the tree; record which option or question unlocked each follow-up.
 4. Stop questioning only when the frontier is empty. State the proposed shared understanding and wait for the user's confirmation before acting or writing records.
@@ -110,7 +110,7 @@ When the user requests HTML visualization, open the generated file in the defaul
 
 A proposal is drift insurance: the cheapest durable home for a choice future tasks must inherit, written before the context that raised it evaporates.
 
-Before writing, run \`adrkit list\` and search the active records — read relevant implemented records in full, and check proposed records for intent and rejected ones for the bad cases they warn against — for anything covering the same choice, mechanism, or rejected alternative. Judge overlap from record content, not titles or tags; the CLI cannot infer it. Classify what you find:
+Before writing, run \`adrkit list\` and search the active records — read relevant implemented records in full, and check proposed records for intent and rejected ones for the bad cases they warn against — for anything covering the same choice, mechanism, or rejected alternative. Read \`adr/notes.md\` too — its unshaped lines are the likeliest raw material for this record. Judge overlap from record content, not titles or tags; the CLI cannot infer it. Classify what you find:
 
 - **Duplicate**: extend the existing record instead of opening a new one.
 - **Full replacement**: write the new record, then resolve the old one in the same change with \`adrkit supersede --by\`; never leave duplicate active authority.
@@ -118,6 +118,15 @@ Before writing, run \`adrkit list\` and search the active records — read relev
 - **Independent**: proceed without touching unrelated records.
 
 Then run \`adrkit propose "<title>"\`; it creates a dated, unnumbered file in \`adr/proposed/\`. Fill Problem, Proposal, Alternatives considered, Acceptance criteria, and Risks with actual content. A settled direction stays proposed until shipped. An uncommitted file is a local working-tree draft; Git commit makes it shared. Run \`adrkit validate <name>\` and resolve missing requirements before formal review. Do not put provenance flags in proposal front matter; describe participants and reasoning in the body.`,
+  },
+  {
+    name: "adrkit-note",
+    description: "Use when you notice a choice future work must live with but cannot shape a record right now — park it as one line in the buffer and keep moving; the buffer is counted until shaped.",
+    body: `# ADR Kit Note
+
+The note buffer is the one-line legal action at the settle moment: capture first, shape later — the quality gate stays with propose, grill, and record.
+
+Run \`adrkit note "<one line>"\`; it appends a timestamped line to \`adr/notes.md\`, creating the file on first use. The buffer is a plain file outside the lifecycle — no front matter, no template, no number — and \`adrkit validate\` ignores it: notes are debt, not authority, and never a fifth lifecycle folder. Shape one when the moment allows — \`adrkit propose\` and \`adrkit grill\` read the buffer as candidate material, and \`adrkit record\` takes an already-shipped choice straight from it — and delete a line that shaped nothing. \`adrkit list\` and \`adrkit instructions\` count the unshaped lines so the debt stays visible.`,
   },
   {
     name: "adrkit-record",

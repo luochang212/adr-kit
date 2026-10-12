@@ -13,6 +13,7 @@ import { graphCommand } from './commands/graph.js';
 import { initCommand } from './commands/init.js';
 import { instructionsCommand } from './commands/instructions.js';
 import { listCommand } from './commands/list.js';
+import { noteCommand } from './commands/note.js';
 import { proposeCommand } from './commands/propose.js';
 import { rejectCommand } from './commands/reject.js';
 import { showCommand } from './commands/show.js';
@@ -39,6 +40,7 @@ Usage:
   adrkit record <title> --raised-by <human|agent> --decided-by <human|agent>
                                            Record an already-shipped decision
   adrkit propose <title>                     Create an unshipped proposal
+  adrkit note <text>                         Park a one-line decision note in adr/notes.md
   adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>
                                            Mark shipped proposal implemented; assign number
   adrkit reject <name> --reason <reason>     Reject a proposal; keep it as an anti-pattern
@@ -158,6 +160,11 @@ export function main(argv: string[]): void {
       case 'propose': {
         requireTitle(rest, 'propose');
         console.log(proposeCommand(rest[0]!, process.cwd()));
+        return;
+      }
+      case 'note': {
+        requireTitle(rest, 'note');
+        console.log(noteCommand(rest[0]!, process.cwd()));
         return;
       }
       case 'record': {

@@ -7,6 +7,7 @@
 | --- | --- |
 | `adrkit init [path] [--tools <list>] [--workflows <list>]` | 创建四个生命周期目录、配置、归档封存清单、README 和集成 |
 | `adrkit propose <title>` | 创建按日期命名、未编号的未交付提案 |
+| `adrkit note <text>` | 把带时间戳的一行决策便笺追加到 `adr/notes.md`；在生命周期之外，校验忽略它，`list` 与 `instructions` 计数显示 |
 | `adrkit implement <name> --raised-by <human\|agent> --decided-by <human\|agent>` | 交付后提升提案并分配稳定编号 |
 | `adrkit record <title> --raised-by <human\|agent> --decided-by <human\|agent>` | 直接记录已交付选择 |
 | `adrkit reject <name> --reason <text>` | 把否决提案记为 `rejected/` 中的反例 |

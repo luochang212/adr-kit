@@ -38,7 +38,7 @@ adrkit implement "使用 SQLite 存储会话" --raised-by human --decided-by hum
 adrkit validate
 ```
 
-已交付但尚未记录的选择可直接用 `adrkit record "<标题>" --raised-by human --decided-by human`。
+已交付但尚未记录的选择可直接用 `adrkit record "<标题>" --raised-by human --decided-by human`。任务进行中遇到值得先记下、但还不值得展开成记录形态的选择时，`adrkit note "<一行>"` 把带时间戳的一行写进 `adr/notes.md`——它在生命周期之外，`adrkit validate` 忽略它，`adrkit list` 和 `adrkit instructions` 会计数显示，直到它被成形或删除。
 
 ```text
 adr/
@@ -61,6 +61,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 ```text
 adrkit init [path] [--tools <list>] [--workflows <list>]
 adrkit propose <title>
+adrkit note <text>
 adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>
 adrkit record <title> --raised-by <human|agent> --decided-by <human|agent>
 adrkit reject <name> --reason <text>

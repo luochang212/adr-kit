@@ -8,6 +8,7 @@
 export const COMMANDS = [
   'init',
   'propose',
+  'note',
   'record',
   'implement',
   'reject',
@@ -35,6 +36,7 @@ export const COMMANDS = [
 export const COMMAND_OPTIONS: Record<string, string[]> = {
   init: ['--tools', '--workflows', '--help'],
   propose: ['--help'],
+  note: ['--help'],
   record: ['--raised-by', '--decided-by', '--help'],
   implement: ['--raised-by', '--decided-by', '--help'],
   reject: ['--reason', '--help'],
