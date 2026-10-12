@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.16.0
+
+### Minor Changes
+
+- a3072af: Give the settle moment a one-line legal action: `adrkit note "<text>"` appends a timestamped line to `adr/notes.md`.
+  
+  The buffer is a plain file outside the lifecycle — no front matter, no template, no number — and `adrkit validate` ignores it: capture and shape stay separate, so the record format keeps its validation-failures-are-success-signals contract while the spontaneous moment stops paying the five-section detour. `adrkit list` and `adrkit instructions` surface an "N unshaped notes" count so shaping becomes visible debt; the `adrkit-propose` and `adrkit-grill` skills read the buffer as candidate material, and a new `adrkit-note` skill mirrors the settle moment the way the capture-side descriptions do. Shell completion, the help synopsis, and the bilingual CLI reference document the new command.
+
+### Patch Changes
+
+- 21bed9e: Bind adr/'s purpose to every agent-facing surface and mirror the settle moment in capture-side skill descriptions.
+  
+  The standing orders, the generated `adr/README.md`, `adrkit instructions` output, and each workflow skill now open with one line stating the failure modes adr/ exists to block (mid-task drift from long-term decisions, forgetting settled choices), so agents learn the why along with the obligations. The `adrkit-propose`, `adrkit-record`, and `adrkit-grill` descriptions are rewritten in situational language because descriptions are the retrieval key in skill-based agents: they must mirror the moment ("catch yourself settling a choice future work must live with"), not the tool's category. The purpose sentence is shared between the template and the dogfooded AGENTS.md, machine-checked by a new test.
+
 ## 0.15.0
 
 ### Minor Changes
