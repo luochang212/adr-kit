@@ -44,7 +44,7 @@ export function isRaisedBy(value: unknown): value is RaisedBy {
 export type AdrFolder = 'proposed' | 'implemented' | 'rejected' | 'archived';
 
 /** Canonical front matter field order; only fields that exist are written. */
-export const FRONT_MATTER_ORDER = ['status', 'date', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'archived', 'archive-reason', 'tags'] as const;
+export const FRONT_MATTER_ORDER = ['status', 'date', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'archived', 'archive-reason', 'tags', 'paths'] as const;
 
 /** File name of a numbered record in implemented/ or archived/: `N-slug.md`. */
 export const NUMBERED_FILE_NAME_PATTERN = /^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/;
@@ -113,6 +113,16 @@ export interface AdrRecord {
   archiveReason?: string;
   /** Optional kebab-case theme keywords; validate checks the shape. */
   tags?: string[];
+  /**
+   * Optional repository-relative globs naming the files this record governs.
+   * The retrieval axis `adrkit relevant` matches against: unlike tags (a
+   * theme), a scope answers "which decisions govern this file?". Minimal
+   * glob semantics (`**` crosses separators, `*` within a segment, `?` one
+   * character); validate checks the shape and that the static prefix exists,
+   * except on archived records, whose frozen bytes must not depend on the
+   * live filesystem.
+   */
+  paths?: string[];
   number?: number;
   sections: AdrSection[];
   /** Front matter keys outside the canonical set; validate reports them. */
@@ -314,6 +324,15 @@ export function parseAdrFile(filePath: string): AdrRecord {
     tags = tagsField as string[];
   }
 
+  let paths: string[] | undefined;
+  const pathsField = fields['paths'];
+  if (pathsField !== undefined) {
+    if (!Array.isArray(pathsField) || !pathsField.every((entry) => typeof entry === 'string')) {
+      throw new AdrFormatError('paths must be a list of strings', filePath);
+    }
+    paths = pathsField as string[];
+  }
+
   let commit: string | undefined;
   const commitField = fields['commit'];
   if (commitField !== undefined) {
@@ -418,6 +437,7 @@ export function parseAdrFile(filePath: string): AdrRecord {
   if (decidedBy !== undefined) parsed.decidedBy = decidedBy;
   if (created !== undefined) parsed.created = created;
   if (tags !== undefined) parsed.tags = tags;
+  if (paths !== undefined) parsed.paths = paths;
   if (rejectionReason !== undefined) parsed.rejectionReason = rejectionReason;
   if (supersededBy !== undefined) parsed.supersededBy = supersededBy;
   if (archived !== undefined) parsed.archived = archived;

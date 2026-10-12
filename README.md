@@ -54,7 +54,7 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 ## Tell your agent
 
-Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code.
+Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. When a task targets specific files, `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern them. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code.
 
 ## Commands
 
@@ -68,6 +68,7 @@ adrkit reject <name> --reason <text>
 adrkit archive <name> --reason <text>
 adrkit supersede <old> --by <new>
 adrkit list
+adrkit relevant <path>...
 adrkit show <name>
 adrkit status
 adrkit instructions
@@ -115,7 +116,7 @@ tags: [storage]
 ...
 ```
 
-Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `tags` remain the thematic classification; no class directory is needed. `adrkit validate` checks all four folders; fresh templates intentionally fail until filled.
+Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `tags` remain the thematic classification; no class directory is needed. Optional `paths: [src/core/**]` scopes a record to the files it governs: repository-relative globs where `**` crosses directories, `*` stays within one segment, and `?` matches one character. `adrkit relevant <path>...` lists the records whose scopes govern a file or directory, grouped by lifecycle posture; records without `paths` never match, because scope retrieval is not full-text search. `adrkit validate` checks all four folders and requires each entry's static prefix to exist — a rename fails validation instead of silently stranding the scope, except on archived records, whose frozen bytes do not depend on the live tree; fresh templates intentionally fail until filled.
 
 An implemented record may refresh factual paths, symbols, or defaults, but not rewrite the choice or rationale into another decision. A changed choice needs a new record and relationship. Full supersession stamps `superseded-by: N` and moves the old record to `archived/`. Archived records keep their numbers and are historical, not current authority. The graph includes numbered history; `## Deliberation` optionally preserves the design tree.
 

@@ -14,6 +14,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | `adrkit archive <name> --reason <text>` | Retire implemented guidance to `archived/` |
 | `adrkit supersede <old> --by <new>` | Replace and archive a fully superseded implemented decision |
 | `adrkit list` | List records grouped by lifecycle |
+| `adrkit relevant <path>...` | List records whose `paths:` scopes govern the given file(s) or directory, grouped by reading posture; records without `paths` never match |
 | `adrkit show <name>` | Show a record by title, filename, slug, or ADR number |
 | `adrkit status` | Count lifecycle folders and report validity |
 | `adrkit instructions` | Show pending proposals and the next valid action |

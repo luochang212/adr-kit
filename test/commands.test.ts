@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +10,7 @@ import { recordCommand } from '../src/commands/record.js';
 import { initCommand } from '../src/commands/init.js';
 import { instructionsCommand } from '../src/commands/instructions.js';
 import { listCommand } from '../src/commands/list.js';
+import { relevantCommand } from '../src/commands/relevant.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { rejectCommand } from '../src/commands/reject.js';
 import { showCommand } from '../src/commands/show.js';
@@ -846,5 +847,91 @@ describe('integration drift: installed-with stamp and notice', () => {
     expect(listCommand(root)).not.toContain('note:');
     expect(instructionsCommand(root)).not.toContain('note:');
     expect(validateCommand(root).output).toContain('adr/config.yaml');
+  });
+});
+
+describe('relevant command', () => {
+  /** A minimal parseable record: front matter, title, no sections needed. */
+  function recordWith(
+    root: string,
+    folder: string,
+    fileName: string,
+    title: string,
+    paths?: string,
+  ): void {
+    const scope = paths === undefined ? '' : `paths: [${paths}]\n`;
+    const reason = folder === 'rejected' ? 'reason: too heavy\n' : '';
+    writeFileSync(
+      join(root, 'adr', folder, fileName),
+      `---
+status: ${folder === 'archived' ? 'implemented' : folder}
+date: 2026-10-12
+${reason}${scope}---
+
+# ADR: ${title}
+`,
+    );
+  }
+
+  it('retrieves records scoped to the given file, with the glob that fired', () => {
+    const root = makeRepo();
+    recordWith(root, 'implemented', '1-storage.md', '1 Use SQLite', 'src/core/**');
+    const output = relevantCommand(['src/core/adr.ts'], root);
+    expect(output).toContain('Implemented — current authority');
+    expect(output).toContain('[1] Use SQLite');
+    expect(output).toContain('[src/core/**]');
+    expect(output).toContain('Archived records are frozen history');
+  });
+
+  it('groups scoped proposals and rejections under their reading posture', () => {
+    const root = makeRepo();
+    recordWith(root, 'proposed', '2026-10-12-cache.md', 'Add Redis cache', 'src/core/**');
+    recordWith(root, 'rejected', '2026-10-12-mongo.md', 'Use MongoDB', 'src/**');
+    const output = relevantCommand(['src/core/adr.ts'], root);
+    expect(output).toContain('Proposed — intent');
+    expect(output).toContain('Add Redis cache');
+    expect(output).toContain('Rejected — anti-patterns');
+    expect(output).toContain('Use MongoDB');
+  });
+
+  it('never matches records without a paths field and says why', () => {
+    const root = makeRepo();
+    recordWith(root, 'implemented', '1-untagged.md', '1 Untagged');
+    const output = relevantCommand(['src/core/adr.ts'], root);
+    expect(output).toContain('no records scope src/core/adr.ts');
+    expect(output).toContain('not full-text search');
+  });
+
+  it('walks a directory argument and matches files under it', () => {
+    const root = makeRepo();
+    mkdirSync(join(root, 'src', 'payments'), { recursive: true });
+    writeFileSync(join(root, 'src', 'payments', 'api.ts'), 'export {};\n');
+    recordWith(root, 'implemented', '1-payments.md', '1 Payments boundary', 'src/payments/**');
+    const output = relevantCommand(['src/payments'], root);
+    expect(output).toContain('[1] Payments boundary');
+  });
+
+  it('excludes archived records from retrieval', () => {
+    const root = makeRepo();
+    recordWith(root, 'archived', '1-old.md', '1 Old choice', 'src/core/**');
+    const output = relevantCommand(['src/core/adr.ts'], root);
+    expect(output).toContain('no records scope');
+  });
+
+  it('carries a proposal scope through the implement promotion', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillDraft(root);
+    mkdirSync(join(root, 'src', 'storage'), { recursive: true });
+    writeFileSync(
+      file,
+      readFileSync(file, 'utf8').replace(
+        'created: 2026-08-19',
+        'created: 2026-08-19\npaths: [src/storage/**]',
+      ),
+    );
+    implementCommand('Use SQLite', root, 'agent', 'human');
+    const shipped = readFileSync(join(root, 'adr/implemented/1-use-sqlite.md'), 'utf8');
+    expect(shipped).toContain('paths:\n  - src/storage/**');
   });
 });

@@ -21,6 +21,7 @@ import {
 } from './archive-seal.js';
 import { ADR_DIR, CONFIG_FILE, inspectConfig } from './config.js';
 import { gitRefExists, gitShow } from './git.js';
+import { staticPrefix } from './glob.js';
 import { listRecords } from './repository.js';
 
 export interface ValidationIssue {
@@ -76,6 +77,53 @@ function tagsIssues(path: string, tags: string[]): ValidationIssue[] {
       issues.push({ path, message: `duplicate tag "${tag}"` });
     }
     seen.add(tag);
+  }
+  return issues;
+}
+
+/**
+ * Shape and drift checks for `paths:` scopes. Shape applies everywhere;
+ * drift — the static prefix must still exist in the repository — applies to
+ * every folder except archived/, whose sealed bytes must not start failing
+ * because the live filesystem moved on after the record froze.
+ */
+function pathsIssues(root: string, path: string, record: AdrRecord): ValidationIssue[] {
+  const paths = record.paths;
+  if (paths === undefined) return [];
+  const issues: ValidationIssue[] = [];
+  if (paths.length === 0) {
+    return [{ path, message: 'paths must not be empty' }];
+  }
+  const seen = new Set<string>();
+  for (const entry of paths) {
+    if (entry.trim().length === 0) {
+      issues.push({ path, message: 'path entries must not be empty' });
+      continue;
+    }
+    if (seen.has(entry)) {
+      issues.push({ path, message: `duplicate path "${entry}"` });
+    }
+    seen.add(entry);
+    if (entry.startsWith('/')) {
+      issues.push({ path, message: `path "${entry}" must be repository-relative` });
+      continue;
+    }
+    if (entry.split('/').includes('..')) {
+      issues.push({ path, message: `path "${entry}" must not climb out of the repository` });
+      continue;
+    }
+    if (entry.includes('\\')) {
+      issues.push({ path, message: `path "${entry}" must use forward slashes` });
+      continue;
+    }
+    if (record.folder === 'archived') continue;
+    const prefix = staticPrefix(entry);
+    if (prefix.length > 0 && !existsSync(join(root, prefix))) {
+      issues.push({
+        path,
+        message: `path "${entry}" matches nothing in the repository ("${prefix}" does not exist)`,
+      });
+    }
   }
   return issues;
 }
@@ -149,6 +197,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   if (dateError !== undefined) issues.push({ path, message: dateError });
   issues.push(...createdIssues(path, record));
   if (record.tags !== undefined) issues.push(...tagsIssues(path, record.tags));
+  issues.push(...pathsIssues(root, path, record));
 
   const numbered = record.folder === 'implemented' || record.folder === 'archived';
   if (numbered) {

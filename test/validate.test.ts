@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -744,5 +744,77 @@ describe('supersession chain integrity', () => {
     expect(validateCommand(root).valid).toBe(true);
     expect(validateCommand(root, '1').valid).toBe(true);
     expect(validateCommand(root, '2').valid).toBe(true);
+  });
+});
+
+describe('paths scope validation', () => {
+  it('accepts scopes whose static prefix exists', () => {
+    const root = makeRepo();
+    mkdirSync(join(root, 'src'));
+    mkdirSync(join(root, 'docs'));
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-scoped.md'),
+      decision('1 Scoped', { ...ACCEPTED, paths: '[src/**, docs/*.md]' }),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('accepts a scope with no checkable literal head', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-anywhere.md'),
+      decision('1 Anywhere', { ...ACCEPTED, paths: '["**/*.test.ts"]' }),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('fails a scope stranded by a rename', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-gone.md'),
+      decision('1 Gone', { ...ACCEPTED, paths: '[src/gone/**]' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('path "src/gone/**" matches nothing in the repository');
+  });
+
+  it('rejects absolute, climbing, backslashed, and duplicate entries', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-bad.md'),
+      decision('1 Bad', { ...ACCEPTED, paths: '[/etc/**, ../up/**, src\\core, src/**, src/**]' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('path "/etc/**" must be repository-relative');
+    expect(result.output).toContain('path "../up/**" must not climb out of the repository');
+    expect(result.output).toContain('path "src\\core" must use forward slashes');
+    expect(result.output).toContain('duplicate path "src/**"');
+  });
+
+  it('rejects an empty paths list', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-empty.md'),
+      decision('1 Empty', { ...ACCEPTED, paths: '[]' }),
+    );
+    expect(validateCommand(root).valid).toBe(false);
+    expect(validateCommand(root).output).toContain('paths must not be empty');
+  });
+
+  it('exempts archived records from the drift check', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '2-current.md'),
+      decision('2 Current', ACCEPTED),
+    );
+    const frozen = archivedDecision('1 Frozen', 2).replace(
+      'archive-reason: superseded by ADR 2',
+      'archive-reason: superseded by ADR 2\npaths: [gone/long-ago/**]',
+    );
+    writeFileSync(join(folderPath(root, 'archived'), '1-frozen.md'), frozen);
+    sealArchive(root);
+    expect(validateCommand(root).valid).toBe(true);
   });
 });

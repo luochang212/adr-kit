@@ -16,6 +16,7 @@ import { listCommand } from './commands/list.js';
 import { noteCommand } from './commands/note.js';
 import { proposeCommand } from './commands/propose.js';
 import { rejectCommand } from './commands/reject.js';
+import { relevantCommand } from './commands/relevant.js';
 import { showCommand } from './commands/show.js';
 import { statusCommand } from './commands/status.js';
 import { supersedeCommand } from './commands/supersede.js';
@@ -47,6 +48,7 @@ Usage:
   adrkit archive <name> --reason <reason>    Retire an implemented record
   adrkit supersede <name> --by <name>        Replace and archive an implemented decision
   adrkit list                                List all lifecycle records
+  adrkit relevant <path>...                  List records whose paths: scopes govern the file(s)
   adrkit show <name>                         Show a record
   adrkit status                              Show lifecycle counts and validity
   adrkit instructions                        Print the next workflow step
@@ -212,6 +214,13 @@ export function main(argv: string[]): void {
       }
       case 'list': {
         console.log(listCommand(process.cwd()));
+        return;
+      }
+      case 'relevant': {
+        if (rest.length === 0 || rest.some((value) => value.trim().length === 0)) {
+          throw new Error('relevant requires at least one file or directory path');
+        }
+        console.log(relevantCommand(rest, process.cwd()));
         return;
       }
       case 'show': {

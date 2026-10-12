@@ -10,6 +10,7 @@ Review closes the loop between decisions and code: it catches the moment a chang
 Review decision-record coherence for a change, not general code quality. Run `adrkit list` first, then:
 
 - Compare each changed or newly shipped record with the changed code and tests: claimed paths, names, defaults, mechanisms, and verification evidence must match what actually shipped.
+- Run `adrkit relevant <changed file>` for the files the change touched: the records whose `paths:` scopes govern them are the ones whose realization facts this change can invalidate, and the command names the glob that fired.
 - Search active implemented records for realization facts the change invalidated — moved files, renamed options, altered defaults, changed behavior — and report each stale record for a factual update in the same change. A decision reversal is a new record with an explicit relationship, never a rewrite of old rationale.
 - Look for unresolved supersession: a new record that fully replaces an active one without `adrkit supersede --by`, or a partial overlap that should be linked in prose while both stay active.
 

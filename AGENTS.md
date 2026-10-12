@@ -13,7 +13,9 @@ intent and the relevant `rejected/` records for the bad cases they warn
 against (a rejection is durable: it leaves only when another record owns its
 warning); treat `archived/` as frozen history and read it only when a task
 explicitly cites it. Do not judge relevance by title alone; inspect tags,
-paths, relationships, and task scope. Check relevant decisions against
+paths, relationships, and task scope; when a task targets specific files,
+`adrkit relevant <path>` retrieves the records whose `paths:` scopes govern
+them. Check relevant decisions against
 current code and requirements. Apply constraints that still hold; explain
 conflicts or changed assumptions before choosing a different approach.
 Mention relevant ADR numbers in the implementation or review summary and

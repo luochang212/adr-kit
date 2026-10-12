@@ -54,7 +54,7 @@ adr/
 
 ## 告诉 Agent
 
-Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md` 或 `CLAUDE.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。
+Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md` 或 `CLAUDE.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。
 
 ## 命令
 
@@ -68,6 +68,7 @@ adrkit reject <name> --reason <text>
 adrkit archive <name> --reason <text>
 adrkit supersede <old> --by <new>
 adrkit list
+adrkit relevant <path>...
 adrkit show <name>
 adrkit status
 adrkit instructions
@@ -115,7 +116,7 @@ tags: [storage]
 ...
 ```
 
-提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`tags` 提供主题分类，不额外引入类别目录。`adrkit validate` 检查全部四个目录；新模板未填完时按预期失败。
+提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`tags` 提供主题分类，不额外引入类别目录。可选 `paths: [src/core/**]` 把记录限定到它管辖的文件：仓库相对路径 glob，`**` 跨目录、`*` 不跨目录、`?` 匹配单字符。`adrkit relevant <path>...` 按阅读姿态列出管辖某文件或目录的记录；没有 `paths` 的记录永不匹配——范围检索不是全文搜索。`adrkit validate` 检查全部四个目录，并要求每个条目的静态前缀存在——重命名后校验失败而不是范围悄悄悬空（归档记录豁免，冻结字节不依赖当前文件树）；新模板未填完时按预期失败。
 
 implemented 记录可以更新路径、符号、默认值等已交付事实，但不可悄悄重写选择或理由。选择改变应新建记录并建立关系。完整替代写入 `superseded-by: N`，旧记录移入 `archived/`；归档记录保持编号，只作历史参考。图谱包含编号历史，可选 `## Deliberation` 附录保留思辨树。
 
@@ -136,4 +137,4 @@ npm run build
 
 ## 许可证
 
-MIT。
+MIT.

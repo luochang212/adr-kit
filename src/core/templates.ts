@@ -186,8 +186,11 @@ export function proposalToDecision(
     'decided-by': decidedBy,
   };
   // Tags are a writer's keywords, not a lifecycle field: the promotion must
-  // not quietly drop the ones the draft carried.
+  // not quietly drop the ones the draft carried. A paths: scope is the same
+  // kind of writer declaration — the files a record governs outlive the
+  // promotion and must travel with it.
   if (proposal.tags !== undefined) fields.tags = proposal.tags;
+  if (proposal.paths !== undefined) fields.paths = proposal.paths;
   if (commit !== undefined) fields.commit = commit;
   let output = `${frontMatter(fields)}
 # ADR: ${number} ${proposal.title}

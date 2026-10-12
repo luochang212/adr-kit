@@ -14,6 +14,7 @@
 | `adrkit archive <name> --reason <text>` | 将不再指导工作的已交付记录归档 |
 | `adrkit supersede <old> --by <new>` | 完整替代并归档旧决策 |
 | `adrkit list` | 按生命周期列出记录 |
+| `adrkit relevant <path>...` | 按阅读姿态列出 `paths:` 限定管辖给定文件或目录的记录；没有 `paths` 的记录不匹配 |
 | `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录 |
 | `adrkit status` | 显示各目录数量与校验状态 |
 | `adrkit instructions` | 显示待办提案与下一步 |

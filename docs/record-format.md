@@ -11,7 +11,7 @@ ADR Kit stores Markdown with YAML front matter in four lifecycle directories:
 
 The canonical front matter order is `status`, `date`, `raised-by`,
 `decided-by`, `created`, `commit`, `superseded-by`, `reason`,
-`archived`, `archive-reason`, `tags`. Only applicable fields appear.
+`archived`, `archive-reason`, `tags`, `paths`. Only applicable fields appear.
 `date` is machine-stamped at every lifecycle move; `created` preserves the
 record's birth date. `archived` is the archival date and matches `date`
 when a record enters frozen history.
@@ -47,6 +47,24 @@ unique lowercase kebab-case keywords; optional `## Deliberation` preserves
 the design tree. `adrkit validate` checks all four directories and rejects
 duplicate numbers, malformed dates, mismatched folder/status pairs, and
 dangling ADR references.
+
+Optional `paths` scope a record to the files it governs — a different axis
+from `tags`: tags classify by theme, `paths` answer "which decisions govern
+this file?". Entries are unique repository-relative globs with forward
+slashes; `**` crosses directory separators, `*` stays within one segment,
+`?` matches one character, and every other byte is literal (no brace
+expansion, no character classes); an entry that starts with `*` needs
+quotes in YAML flow style (`paths: ["**/*.ts"]`). `adrkit relevant <path>...` lists the
+records whose scopes govern the given file or directory, grouped by
+lifecycle posture; archived records are frozen history and are not searched
+by default, and a record without `paths` never matches — scope retrieval is
+not full-text search. The field survives every lifecycle move and the
+proposal-to-decision promotion. `adrkit validate` rejects an empty or
+duplicate entry, an absolute path, a `..` segment, a backslash, and an
+entry whose static prefix (the literal part before the first wildcard) does
+not exist in the repository — the drift check that fails a scope stranded by
+a rename. Archived records are exempt from the drift check: sealed bytes
+must not start failing because the live tree moved on after they froze.
 
 ## Archive manifest
 

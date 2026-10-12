@@ -27,7 +27,8 @@ changed choice needs a new record. Archive or supersede rather than erase it.
 The canonical header includes status, date, and created: YYYY-MM-DD (the
 birth date, never re-stamped). Numbered records declare raised-by: human | agent
 and decided-by: human | agent; these are provenance declarations, not proof
-of approval. Optional tags: [frontend] classify records by theme.
+of approval. Optional tags: [frontend] classify records by theme; optional
+paths: [src/payments/**] scope a record to the files it governs.
 
 Use adrkit propose for unshipped work, adrkit implement after it ships, and
 adrkit record for an already-shipped decision. Use adrkit reject with a reason
@@ -38,5 +39,6 @@ implemented guidance whose rationale is no longer needed in the active set.
 Run adrkit list to discover records. Read the relevant implemented/ records in
 full, check the relevant proposed/ records for intent and the rejected/ records
 for the bad cases they warn against, and consult archived/ only when a task
-cites history. Do not decide relevance by title alone.
+cites history. Do not decide relevance by title alone; when a task targets
+specific files, adrkit relevant <path> retrieves the records scoped to them.
 Run adrkit validate to check the repository.

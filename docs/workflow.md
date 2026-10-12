@@ -64,7 +64,9 @@ are a context budget: read the relevant `implemented/` records in full; check
 the relevant `proposed/` records for intent and the relevant `rejected/`
 records for the bad cases they warn against; treat `archived/` as frozen
 history and read it only when a task explicitly cites it. Relevance requires more than
-title matching: inspect tags, paths, relationships, and task scope. Check
+title matching: inspect tags, paths, relationships, and task scope; when a
+task targets specific files, `adrkit relevant <path>` retrieves the records
+whose `paths:` scopes govern them. Check
 records against current code, explain changed assumptions, and mention
 relevant ADR numbers in the work summary. Re-read when the task or scope
 changes. Agent skills guide lifecycle operations but the CLI does not
