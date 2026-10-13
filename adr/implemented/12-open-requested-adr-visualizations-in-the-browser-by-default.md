@@ -6,6 +6,11 @@ decided-by: human
 created: 2026-09-22
 commit: 02536cc
 tags: [visualization, agent-integration]
+paths:
+  - skills/adrkit-visualize/SKILL.md
+  - src/core/tool-integrations.ts
+  - src/commands/graph.ts
+  - src/commands/tree.ts
 ---
 
 # ADR: 12 Open requested ADR visualizations in the browser by default

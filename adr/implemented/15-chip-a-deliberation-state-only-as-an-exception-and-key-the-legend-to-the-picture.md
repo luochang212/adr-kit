@@ -6,6 +6,13 @@ decided-by: human
 created: 2026-09-22
 commit: 02536cc
 tags: [visualization, deliberation-tree, information-density]
+paths:
+  - src/core/deliberation.ts
+  - src/core/deliberation-html.ts
+  - src/core/deliberation-view.ts
+  - src/core/canvas-view.ts
+  - src/core/graph-html.ts
+  - src/core/share.ts
 ---
 
 # ADR: 15 Chip a deliberation state only as an exception, and key the legend to the picture

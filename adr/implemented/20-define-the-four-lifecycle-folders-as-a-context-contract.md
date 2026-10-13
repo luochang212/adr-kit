@@ -5,6 +5,18 @@ raised-by: human
 decided-by: human
 created: 2026-09-25
 commit: f398955
+paths:
+  - AGENTS.md
+  - adr/README.md
+  - src/core/tool-integrations.ts
+  - adr/rejected/**
+  - skills/adrkit-init/SKILL.md
+  - skills/adrkit-implement/SKILL.md
+  - skills/adrkit-record/SKILL.md
+  - skills/adrkit-reject/SKILL.md
+  - skills/adrkit-archive/SKILL.md
+  - skills/adrkit-supersede/SKILL.md
+  - skills/adrkit-visualize/SKILL.md
 ---
 
 # ADR: 20 Define the four lifecycle folders as a context contract

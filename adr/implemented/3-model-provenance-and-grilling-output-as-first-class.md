@@ -6,6 +6,22 @@ decided-by: human
 created: 2026-09-20
 commit: 78fc95f
 tags: [provenance, grilling, record-format]
+paths:
+  - src/core/adr.ts
+  - src/core/validate.ts
+  - src/core/templates.ts
+  - src/commands/record.ts
+  - src/commands/implement.ts
+  - src/commands/supersede.ts
+  - src/core/deliberation.ts
+  - src/commands/tree.ts
+  - skills/adrkit-grill/SKILL.md
+  - src/core/tool-integrations.ts
+  - AGENTS.md
+  - README.md
+  - README.zh.md
+  - docs/record-format.md
+  - docs/zh/record-format.md
 ---
 
 # ADR: 3 model provenance and grilling output as first-class

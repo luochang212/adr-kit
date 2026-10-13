@@ -6,6 +6,10 @@ decided-by: human
 created: 2026-09-20
 commit: ba15e73
 tags: [governance, dogfooding, process]
+paths:
+  - .gitignore
+  - adr/**
+  - .github/workflows/ci.yml
 ---
 
 # ADR: 2 dogfood adr records in this repository

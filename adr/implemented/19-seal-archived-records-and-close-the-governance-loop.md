@@ -6,6 +6,21 @@ decided-by: human
 created: 2026-09-25
 commit: 5bb940e
 tags: [archive-integrity, agent-integration, governance]
+paths:
+  - adr/archived/**
+  - src/core/archive-seal.ts
+  - src/commands/archive.ts
+  - src/commands/supersede.ts
+  - src/core/repository.ts
+  - src/core/validate.ts
+  - src/commands/validate.ts
+  - src/core/git.ts
+  - .github/workflows/ci.yml
+  - skills/adrkit-propose/SKILL.md
+  - skills/adrkit-record/SKILL.md
+  - skills/adrkit-grill/SKILL.md
+  - skills/adrkit-implement/SKILL.md
+  - skills/adrkit-review/SKILL.md
 ---
 
 # ADR: 19 Seal archived records and close the governance loop

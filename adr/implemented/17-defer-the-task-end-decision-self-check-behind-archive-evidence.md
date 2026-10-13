@@ -6,6 +6,11 @@ decided-by: human
 created: 2026-09-24
 commit: e999c3a
 tags: [agent-integration, decision-process]
+paths:
+  - src/core/tool-integrations.ts
+  - src/commands/instructions.ts
+  - AGENTS.md
+  - openspec/config.yaml
 ---
 
 # ADR: 17 Defer the task-end decision self-check behind archive evidence

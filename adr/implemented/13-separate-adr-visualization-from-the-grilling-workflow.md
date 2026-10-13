@@ -6,6 +6,10 @@ decided-by: human
 created: 2026-09-22
 commit: 02536cc
 tags: [skills, visualization, agent-integration]
+paths:
+  - skills/adrkit-visualize/SKILL.md
+  - skills/adrkit-grill/SKILL.md
+  - src/core/tool-integrations.ts
 ---
 
 # ADR: 13 Separate ADR visualization from the grilling workflow

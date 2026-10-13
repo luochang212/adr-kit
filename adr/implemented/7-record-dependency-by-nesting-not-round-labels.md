@@ -6,6 +6,12 @@ decided-by: human
 created: 2026-09-21
 commit: e816e44
 tags: [deliberation, visualization, record-format]
+paths:
+  - src/core/deliberation.ts
+  - src/core/deliberation-html.ts
+  - src/core/deliberation-view.ts
+  - skills/adrkit-grill/SKILL.md
+  - src/core/tool-integrations.ts
 ---
 
 # ADR: 7 Record dependency by nesting, not round labels

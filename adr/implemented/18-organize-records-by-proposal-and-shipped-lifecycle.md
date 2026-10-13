@@ -6,6 +6,33 @@ decided-by: human
 created: 2026-09-24
 commit: 9cfada4
 tags: [record-lifecycle, agent-integration, governance]
+paths:
+  - adr/**
+  - src/commands/propose.ts
+  - src/commands/reject.ts
+  - src/commands/implement.ts
+  - src/commands/record.ts
+  - src/commands/archive.ts
+  - src/commands/supersede.ts
+  - src/core/repository.ts
+  - src/core/templates.ts
+  - src/core/validate.ts
+  - src/core/tool-integrations.ts
+  - skills/adrkit-init/SKILL.md
+  - skills/adrkit-propose/SKILL.md
+  - skills/adrkit-implement/SKILL.md
+  - skills/adrkit-record/SKILL.md
+  - skills/adrkit-reject/SKILL.md
+  - skills/adrkit-archive/SKILL.md
+  - skills/adrkit-supersede/SKILL.md
+  - skills/adrkit-grill/SKILL.md
+  - README.md
+  - README.zh.md
+  - docs/record-format.md
+  - docs/zh/record-format.md
+  - docs/workflow.md
+  - docs/zh/workflow.md
+  - site/src/components/Lifecycle.astro
 ---
 
 # ADR: 18 Organize records by proposal and shipped lifecycle

@@ -6,6 +6,11 @@ decided-by: human
 created: 2026-09-22
 commit: c4c58fe
 tags: [visualization, decision-graph, agent-integration]
+paths:
+  - src/core/graph-html.ts
+  - src/core/graph-view.ts
+  - src/commands/graph.ts
+  - site/src/components/Graph.astro
 ---
 
 # ADR: 9 Render the decision graph as an offline HTML map

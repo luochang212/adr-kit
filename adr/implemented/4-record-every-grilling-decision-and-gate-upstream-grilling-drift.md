@@ -6,6 +6,16 @@ decided-by: human
 created: 2026-09-20
 commit: fbfea95
 tags: [grilling, governance, upstream]
+paths:
+  - skills/adrkit-grill/SKILL.md
+  - src/core/tool-integrations.ts
+  - AGENTS.md
+  - docs/workflow.md
+  - docs/zh/workflow.md
+  - assets/upstream/grilling/**
+  - tools/check-grilling-upstream.mjs
+  - .github/workflows/ci.yml
+  - package.json
 ---
 
 # ADR: 4 record every grilling decision and gate upstream grilling drift

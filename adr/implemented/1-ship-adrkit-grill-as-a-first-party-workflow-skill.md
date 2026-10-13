@@ -6,6 +6,9 @@ decided-by: human
 created: 2026-09-20
 commit: 83ac493
 tags: [skills, agent-integration, decision-process]
+paths:
+  - skills/adrkit-grill/SKILL.md
+  - src/core/tool-integrations.ts
 ---
 
 # ADR: 1 ship adrkit-grill as a first-party workflow skill

@@ -6,6 +6,10 @@ decided-by: human
 created: 2026-09-22
 commit: 651c064
 tags: [visualization, agent-integration, interaction]
+paths:
+  - src/core/canvas-view.ts
+  - src/core/graph-html.ts
+  - src/core/deliberation-html.ts
 ---
 
 # ADR: 11 Share one canvas interaction contract across the offline HTML views

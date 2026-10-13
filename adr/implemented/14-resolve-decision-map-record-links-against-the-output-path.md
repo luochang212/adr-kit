@@ -6,6 +6,14 @@ decided-by: human
 created: 2026-09-22
 commit: 059da29
 tags: [visualization, decision-graph, delivery]
+paths:
+  - src/commands/graph.ts
+  - src/core/graph-html.ts
+  - src/core/cli-options.ts
+  - src/commands/completion.ts
+  - skills/adrkit-visualize/SKILL.md
+  - docs/cli.md
+  - docs/zh/cli.md
 ---
 
 # ADR: 14 Resolve decision-map record links against the output path

@@ -5,6 +5,12 @@ raised-by: agent
 decided-by: human
 created: 2026-09-23
 commit: 6ec0049
+paths:
+  - src/core/adr.ts
+  - src/core/validate.ts
+  - src/core/repository.ts
+  - docs/record-format.md
+  - docs/zh/record-format.md
 ---
 
 # ADR: 16 Count written content outside comments and read only regular files

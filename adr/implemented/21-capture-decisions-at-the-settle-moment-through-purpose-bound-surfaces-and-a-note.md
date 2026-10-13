@@ -5,6 +5,20 @@ raised-by: agent
 decided-by: agent
 created: 2026-10-12
 commit: a3072af
+paths:
+  - src/core/notes.ts
+  - src/commands/note.ts
+  - src/commands/list.ts
+  - src/commands/instructions.ts
+  - src/core/tool-integrations.ts
+  - skills/adrkit-note/SKILL.md
+  - skills/adrkit-propose/SKILL.md
+  - skills/adrkit-record/SKILL.md
+  - skills/adrkit-grill/SKILL.md
+  - AGENTS.md
+  - adr/README.md
+  - README.md
+  - README.zh.md
 ---
 
 # ADR: 21 capture decisions at the settle moment through purpose-bound surfaces and a note buffer

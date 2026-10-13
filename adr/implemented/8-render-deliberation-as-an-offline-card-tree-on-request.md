@@ -6,6 +6,12 @@ decided-by: human
 created: 2026-09-22
 commit: e816e44
 tags: [deliberation, visualization, agent-integration]
+paths:
+  - src/core/deliberation-html.ts
+  - src/core/deliberation-view.ts
+  - src/commands/tree.ts
+  - skills/adrkit-visualize/SKILL.md
+  - src/core/tool-integrations.ts
 ---
 
 # ADR: 8 Render deliberation as an offline card tree on request
