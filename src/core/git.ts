@@ -63,7 +63,13 @@ export function gitChangedPaths(root: string, options: { base?: string; staged?:
     timeout: 10_000,
   });
   try {
-    const gitRoot = run(root, ['rev-parse', '--show-toplevel']).replace(/\r?\n$/, '');
+    // The two roots meet in path.relative, which compares textually, so both
+    // must come out in one spelling: git may report the toplevel through a
+    // different alias than the paths Node received (Windows CI hands out temp
+    // dirs as 8.3 short names, RUNNER~1, while git prints the long form).
+    // Only the native realpath expands those; the JS one keeps the spelling
+    // it was handed.
+    const gitRoot = realpathSync.native(run(root, ['rev-parse', '--show-toplevel']).replace(/\r?\n$/, ''));
     const base = options.base === undefined ? undefined : run(gitRoot, [
       'rev-parse', '--verify', '--end-of-options', `${options.base}^{commit}`,
     ]).trim();
@@ -74,7 +80,7 @@ export function gitChangedPaths(root: string, options: { base?: string; staged?:
       ...(options.staged ? ['--cached'] : [base!]), '--',
     ]);
     const untracked = options.staged ? '' : run(gitRoot, ['ls-files', '--others', '--exclude-standard', '-z']);
-    const adrRoot = realpathSync(root);
+    const adrRoot = realpathSync.native(root);
     const paths = new Set<string>();
     for (const path of (diff + untracked).split('\0')) {
       if (path.length === 0) continue;
