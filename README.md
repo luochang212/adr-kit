@@ -56,6 +56,15 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md` or `CLAUDE.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. When a task targets specific files, `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern them. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code.
 
+
+For a change already in progress, use `adrkit relevant --base <git-ref>` for the
+exact base-to-working-tree change (including non-ignored untracked files), or
+`adrkit relevant --staged` for the index only. These modes are exclusive with
+explicit paths and preserve deleted paths and both rename endpoints. Incomplete
+directory searches print diagnostics and exit non-zero. Scope coverage is never
+exhaustive: active records without `paths` are counted, and `list` plus full
+reading still apply. See the [retrieval contract](docs/cli.md#scope-retrieval-for-changes).
+
 ## Commands
 
 ```text
@@ -68,7 +77,7 @@ adrkit reject <name> --reason <text>
 adrkit archive <name> --reason <text>
 adrkit supersede <old> --by <new>
 adrkit list
-adrkit relevant <path>...
+adrkit relevant [<path>... | --base <git-ref> | --staged]
 adrkit show <name>
 adrkit status
 adrkit instructions

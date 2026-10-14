@@ -42,12 +42,14 @@ export function globToRegExp(pattern: string): RegExp {
       source += char;
     }
   }
-  return new RegExp(`^${source}$`);
+  return new RegExp(`^${source}$`, 's');
 }
 
 /** Whether a glob pattern matches a repository-relative path in full. */
 export function globMatches(pattern: string, path: string): boolean {
-  return globToRegExp(pattern).test(path);
+  // Dot-all preserves newline filenames; the equality check pins the
+  // full-path-match contract instead of relying on the anchors alone.
+  return globToRegExp(pattern).exec(path)?.[0] === path;
 }
 
 /**

@@ -56,6 +56,13 @@ adr/
 
 Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md` 或 `CLAUDE.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。
 
+
+实际变更可用 `adrkit relevant --base <git-ref>` 检索指定提交到工作区的变化
+（含未忽略的未跟踪文件），或用 `adrkit relevant --staged` 只看暂存区。
+三种输入互斥，保留删除与重命名的新旧路径。目录搜索不完整会输出诊断并以非零退出。
+范围命中不等于完整上下文：没有 `paths` 的现行记录会提示数量，仍需 `list`
+与完整阅读。详见[检索合同](docs/zh/cli.md#按变更检索决策)。
+
 ## 命令
 
 ```text
@@ -68,7 +75,7 @@ adrkit reject <name> --reason <text>
 adrkit archive <name> --reason <text>
 adrkit supersede <old> --by <new>
 adrkit list
-adrkit relevant <path>...
+adrkit relevant [<path>... | --base <git-ref> | --staged]
 adrkit show <name>
 adrkit status
 adrkit instructions

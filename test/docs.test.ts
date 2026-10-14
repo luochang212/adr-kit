@@ -110,3 +110,17 @@ describe('agent-facing front door', () => {
     }
   });
 });
+
+
+describe('change-context documentation', () => {
+  it('documents both Git modes and coverage limits in both languages', () => {
+    for (const file of ['README.md', 'README.zh.md', 'docs/cli.md', 'docs/zh/cli.md', 'docs/workflow.md', 'docs/zh/workflow.md']) {
+      const text = read(file);
+      expect(text, file).toContain('adrkit relevant --base');
+      expect(text, file).toContain('adrkit relevant --staged');
+    }
+    for (const file of ['docs/cli.md', 'docs/zh/cli.md']) {
+      expect(read(file)).toContain('2,000');
+    }
+  });
+});

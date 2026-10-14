@@ -15,7 +15,9 @@ warning); treat `archived/` as frozen history and read it only when a task
 explicitly cites it. Do not judge relevance by title alone; inspect tags,
 paths, relationships, and task scope; when a task targets specific files,
 `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern
-them. Check relevant decisions against
+them. For actual Git changes, use `adrkit relevant --base <review-base>` or
+`adrkit relevant --staged`; supplement scope matches with inventory reading for
+unscoped decisions and resolve incomplete-search diagnostics. Check relevant decisions against
 current code and requirements. Apply constraints that still hold; explain
 conflicts or changed assumptions before choosing a different approach.
 Mention relevant ADR numbers in the implementation or review summary and

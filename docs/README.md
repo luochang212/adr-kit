@@ -9,5 +9,6 @@ machine-checkable lifecycle.
 | [record-format.md](record-format.md) | ADR file format and validation rules |
 | [workflow.md](workflow.md) | Lifecycle from proposal to decision |
 | [research/peer-adr-tools.md](research/peer-adr-tools.md) | Peer ADR tools: what they do and what this project borrows (English) |
+| [research/agent-adr-competitors.md](research/agent-adr-competitors.md) | Coding Agent ADR competitors: verified mechanisms and adoption candidates (Chinese, 2026-10-14) |
 
 中文文档：[docs/zh/](zh/README.md)

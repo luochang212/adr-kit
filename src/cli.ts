@@ -48,7 +48,8 @@ Usage:
   adrkit archive <name> --reason <reason>    Retire an implemented record
   adrkit supersede <name> --by <name>        Replace and archive an implemented decision
   adrkit list                                List all lifecycle records
-  adrkit relevant <path>...                  List records whose paths: scopes govern the file(s)
+  adrkit relevant [<path>... | --base <git-ref> | --staged]
+                                           Retrieve scoped records for planned files or Git changes
   adrkit show <name>                         Show a record
   adrkit status                              Show lifecycle counts and validity
   adrkit instructions                        Print the next workflow step
@@ -86,6 +87,7 @@ export function main(argv: string[]): void {
     tokens: true,
     options: {
       all: { type: 'boolean', default: false },
+      staged: { type: 'boolean', default: false },
       base: { type: 'string' },
       by: { type: 'string' },
       'decided-by': { type: 'string' },
@@ -217,10 +219,9 @@ export function main(argv: string[]): void {
         return;
       }
       case 'relevant': {
-        if (rest.length === 0 || rest.some((value) => value.trim().length === 0)) {
-          throw new Error('relevant requires at least one file or directory path');
-        }
-        console.log(relevantCommand(rest, process.cwd()));
+        const result = relevantCommand(rest, process.cwd(), { base: values.base, staged: values.staged });
+        console.log(result.output);
+        if (!result.complete) process.exitCode = 1;
         return;
       }
       case 'show': {

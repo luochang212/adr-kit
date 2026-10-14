@@ -41,4 +41,7 @@ full, check the relevant proposed/ records for intent and the rejected/ records
 for the bad cases they warn against, and consult archived/ only when a task
 cites history. Do not decide relevance by title alone; when a task targets
 specific files, adrkit relevant <path> retrieves the records scoped to them.
+For actual changes, use adrkit relevant --base <review-base> or --staged.
+Supplement scope matches with inventory reading for unscoped decisions and
+resolve incomplete-search diagnostics; no match does not mean no constraints.
 Run adrkit validate to check the repository.

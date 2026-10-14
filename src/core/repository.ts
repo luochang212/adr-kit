@@ -92,6 +92,9 @@ full, check the relevant proposed/ records for intent and the rejected/ records
 for the bad cases they warn against, and consult archived/ only when a task
 cites history. Do not decide relevance by title alone; when a task targets
 specific files, adrkit relevant <path> retrieves the records scoped to them.
+For actual changes, use adrkit relevant --base <review-base> or --staged.
+Supplement scope matches with inventory reading for unscoped decisions and
+resolve incomplete-search diagnostics; no match does not mean no constraints.
 Run adrkit validate to check the repository.
 `;
 
@@ -136,9 +139,9 @@ export function folderPath(root: string, folder: AdrFolder): string {
   return join(adrRoot(root), folder);
 }
 
-export function listRecords(root: string): AdrRecord[] {
+export function listRecords(root: string, folders: readonly AdrFolder[] = FOLDERS): AdrRecord[] {
   const records: AdrRecord[] = [];
-  for (const folder of FOLDERS) {
+  for (const folder of folders) {
     const dir = folderPath(root, folder);
     if (!existsSync(dir)) continue;
     for (const entry of readdirSync(dir)) {

@@ -44,7 +44,7 @@ export const COMMAND_OPTIONS: Record<string, string[]> = {
   archive: ['--reason', '--help'],
   supersede: ['--by', '--help'],
   list: ['--help'],
-  relevant: ['--help'],
+  relevant: ['--base', '--staged', '--help'],
   show: ['--help'],
   status: ['--help'],
   instructions: ['--help'],

@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process';
+import { realpathSync } from 'node:fs';
+import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 /**
  * The short HEAD commit hash of the repository containing `cwd`, or undefined
@@ -48,5 +50,41 @@ export function gitShow(cwd: string, ref: string, filePath: string): string | un
     });
   } catch {
     return undefined;
+  }
+}
+
+/** Git file inputs are literal paths, including deleted files and rename origins. */
+export function gitChangedPaths(root: string, options: { base?: string; staged?: boolean }): string[] {
+  const run = (cwd: string, args: string[]): string => execFileSync('git', args, {
+    cwd,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 16 * 1024 * 1024,
+    timeout: 10_000,
+  });
+  try {
+    const gitRoot = run(root, ['rev-parse', '--show-toplevel']).replace(/\r?\n$/, '');
+    const base = options.base === undefined ? undefined : run(gitRoot, [
+      'rev-parse', '--verify', '--end-of-options', `${options.base}^{commit}`,
+    ]).trim();
+    // --no-renames reports a rename as deletion + addition, retaining both
+    // endpoints without parsing status scores. -z preserves arbitrary names.
+    const diff = run(gitRoot, [
+      'diff', '--name-only', '-z', '--no-renames', '--no-ext-diff', '--no-textconv',
+      ...(options.staged ? ['--cached'] : [base!]), '--',
+    ]);
+    const untracked = options.staged ? '' : run(gitRoot, ['ls-files', '--others', '--exclude-standard', '-z']);
+    const adrRoot = realpathSync(root);
+    const paths = new Set<string>();
+    for (const path of (diff + untracked).split('\0')) {
+      if (path.length === 0) continue;
+      const scoped = relative(adrRoot, resolve(gitRoot, path));
+      if (scoped === '..' || scoped.startsWith(`..${sep}`) || isAbsolute(scoped)) continue;
+      paths.add(scoped.split(sep).join('/'));
+    }
+    return [...paths].sort();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`cannot read Git changes${options.base === undefined ? '' : ` from base "${options.base}"`}: ${message}`);
   }
 }

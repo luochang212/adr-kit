@@ -71,3 +71,29 @@ records against current code, explain changed assumptions, and mention
 relevant ADR numbers in the work summary. Re-read when the task or scope
 changes. Agent skills guide lifecycle operations but the CLI does not
 automatically edit `AGENTS.md` or `CLAUDE.md`.
+
+
+## Co-design with evidence
+
+Before editing, use `list` and `relevant <planned path>...`, then `show` to read
+relevant implemented records, proposals, and rejections. During exploration,
+separate constraints that still hold, changed assumptions, and conflicts. Cite
+inspected code as file:line or a symbol, external facts by source link, and
+participant statements with attribution. Distinguish observation, inference,
+and unknown; implementation alone does not explain why an alternative lost.
+Never invent reasons or alternatives to fill a template. Evidence stays in
+ordinary Markdown in the existing sections, without a new mandatory field.
+
+A note may keep an available source on the same line, for example:
+`Candidate: use SQLite; rationale unknown; source: PR #42`. Links are optional;
+one-line capture stays cheap. A candidate is not a settled decision, and a note
+proves neither delivery nor provenance. Inspect its source before shaping it;
+expose truncated excerpts or mismatched sessions instead of silently using them.
+
+At review, rerun retrieval for actual changes: `adrkit relevant --base
+<review-base>` compares the exact commit with the working tree plus non-ignored
+untracked files; `adrkit relevant --staged` uses the index only. Delete and rename
+origins are included. Supplement scoped matches with inventory reading, resolve
+incomplete-search diagnostics, and read matching records in full. Zero matches
+are not permission to skip constraints. A validation pass proves record
+validity; code adherence requires its own review and applicable test evidence.

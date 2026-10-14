@@ -15,3 +15,7 @@ coverage/
 # Generated agent integration target (adrkit init/update) plus local-only
 # skills; the committed sources live in skills/.
 .agents/
+
+# Local artifacts kept out of the shared tree, such as the competitor-research
+# reading PDF cited by its openspec change.
+/output/

@@ -4,112 +4,114 @@ import type { AdrRecord } from './adr.js';
 import { globMatches } from './glob.js';
 import { listRecords } from './repository.js';
 
-/** One record whose `paths:` scope matched, with the glob that fired. */
 export interface RelevantMatch {
   record: AdrRecord;
   pattern: string;
 }
 
-/**
- * Matches grouped by lifecycle folder in the reading posture ADR 20 defined.
- * Archived records are absent by design: frozen history is not read by
- * default, and `relevant` is a retrieval command, not an archive search.
- */
+export interface ScopeDiagnostic {
+  path: string;
+  message: string;
+}
+
+/** Complete acquisition is not proof that optional scopes cover all decisions. */
 export interface RelevantResult {
   implemented: RelevantMatch[];
   proposed: RelevantMatch[];
   rejected: RelevantMatch[];
+  diagnostics: ScopeDiagnostic[];
+  unscopedCount: number;
 }
 
-/** Directories a directory walk never descends into. */
 const SKIPPED_DIRS = new Set(['.git', 'node_modules']);
-
-/** Ceiling on a directory walk, so `adrkit relevant .` stays bounded. */
 const WALK_LIMIT = 2000;
 
-/** POSIX-style, separator-normalized form of a path for glob matching. */
 function toPosix(path: string): string {
   return path.split(sep).join('/');
 }
 
-/**
- * The candidate path strings an input contributes: the input itself as a
- * repository-relative POSIX path when it lives inside the root (and as the
- * literal input otherwise), plus, for a directory, every file under it.
- * Relative inputs resolve against `cwd`, the directory the caller ran the
- * command from — not the repository root, so running from a subdirectory
- * behaves the way the shell already taught the user to expect. A walk is
- * bounded by WALK_LIMIT files and skips `.git` and `node_modules`, so the
- * common single-file case never walks at all.
- */
-export function candidatePaths(root: string, input: string, cwd: string): string[] {
+/** Missing paths remain valid planned files; other acquisition failures are explicit. */
+export function candidatePaths(root: string, input: string, cwd: string): {
+  paths: string[];
+  diagnostics: ScopeDiagnostic[];
+} {
   const cleaned = input.replace(/\/+$/, '');
   const absolute = isAbsolute(cleaned) ? resolve(cleaned) : resolve(cwd, cleaned);
   const inside = relative(root, absolute);
-  const base = inside.startsWith('..') || isAbsolute(inside) ? toPosix(cleaned) : toPosix(inside);
-
+  const base = inside === '..' || inside.startsWith(`..${sep}`) || isAbsolute(inside)
+    ? toPosix(cleaned) : toPosix(inside);
+  const paths = [base];
+  const diagnostics: ScopeDiagnostic[] = [];
   let info;
   try {
     info = statSync(absolute);
-  } catch {
-    // A path that does not exist yet (a planned file) still matches as a
-    // string: scope retrieval answers intent, not just the current tree.
-    return [base];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      diagnostics.push({ path: input, message: `cannot inspect path: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    return { paths, diagnostics };
   }
-  if (!info.isDirectory()) return [base];
+  if (!info.isDirectory()) return { paths, diagnostics };
 
-  const candidates = [base];
-  const queue: string[] = [absolute];
-  while (queue.length > 0 && candidates.length < WALK_LIMIT) {
-    const dir = queue.shift()!;
+  const queue = [absolute];
+  let fileCount = 0;
+  for (let index = 0; index < queue.length; index += 1) {
+    const dir = queue[index]!;
     let entries;
     try {
       entries = readdirSync(dir, { withFileTypes: true });
-    } catch {
+    } catch (error) {
+      diagnostics.push({
+        path: toPosix(relative(root, dir)) || '.',
+        message: `cannot read directory: ${error instanceof Error ? error.message : String(error)}`,
+      });
       continue;
     }
     for (const entry of entries) {
-      if (candidates.length >= WALK_LIMIT) break;
       const child = join(dir, entry.name);
       if (entry.isDirectory()) {
         if (!SKIPPED_DIRS.has(entry.name)) queue.push(child);
       } else if (entry.isFile()) {
-        candidates.push(toPosix(relative(root, child)));
+        if (fileCount === WALK_LIMIT) {
+          diagnostics.push({ path: input, message: `directory search truncated after ${WALK_LIMIT} files; pass narrower paths` });
+          return { paths, diagnostics };
+        }
+        paths.push(toPosix(relative(root, child)));
+        fileCount += 1;
       }
     }
   }
-  return candidates;
+  return { paths, diagnostics };
 }
 
-/**
- * Find the records whose `paths:` globs govern the given path(s). A record
- * without `paths:` never matches: this is scope retrieval, not full-text
- * search, and pretending otherwise would return confident nonsense.
- */
-export function relevantRecords(root: string, inputs: readonly string[], cwd: string): RelevantResult {
+/** The same scope matcher serves explicit paths and literal Git file inputs. */
+export function relevantRecords(
+  root: string,
+  inputs: readonly string[],
+  cwd: string,
+  literalPaths = false,
+): RelevantResult {
   const candidates = new Set<string>();
+  const result: RelevantResult = {
+    implemented: [], proposed: [], rejected: [], diagnostics: [], unscopedCount: 0,
+  };
   for (const input of inputs) {
-    for (const candidate of candidatePaths(root, input, cwd)) candidates.add(candidate);
+    const acquired = literalPaths ? { paths: [input], diagnostics: [] } : candidatePaths(root, input, cwd);
+    acquired.paths.forEach((path) => candidates.add(path));
+    result.diagnostics.push(...acquired.diagnostics);
   }
 
-  const result: RelevantResult = { implemented: [], proposed: [], rejected: [] };
-  for (const record of listRecords(root)) {
-    if (record.folder === 'archived' || record.paths === undefined) continue;
+  const candidateList = [...candidates];
+  // Frozen history is not an input to an active query, even when it is malformed.
+  for (const record of listRecords(root, ['implemented', 'proposed', 'rejected'])) {
+    if (record.paths === undefined || record.paths.length === 0) {
+      result.unscopedCount += 1;
+      continue;
+    }
     for (const pattern of record.paths) {
-      let matched = false;
-      for (const candidate of candidates) {
-        if (globMatches(pattern, candidate)) {
-          matched = true;
-          break;
-        }
-      }
-      if (matched) {
-        const group =
-          record.folder === 'implemented'
-            ? result.implemented
-            : record.folder === 'proposed'
-              ? result.proposed
-              : result.rejected;
+      if (candidateList.some((candidate) => globMatches(pattern, candidate))) {
+        const group = record.folder === 'implemented' ? result.implemented
+          : record.folder === 'proposed' ? result.proposed : result.rejected;
         group.push({ record, pattern });
         break;
       }

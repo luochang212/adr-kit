@@ -432,6 +432,33 @@ rules:
   });
 });
 
+describe('installed evidence-based co-design', () => {
+  it('delivers the evidence contract through init and update to both clients', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude');
+    for (const target of ['.agents', '.claude']) {
+      const skill = (name: string) => readFileSync(join(root, target, 'skills', name, 'SKILL.md'), 'utf8');
+      // Simulate an old installation: update must restore the canonical guidance.
+      writeFileSync(join(root, target, 'skills/adrkit-grill/SKILL.md'), '# Old installation\n');
+      updateCommand(root);
+      for (const name of ['adrkit-grill', 'adrkit-propose', 'adrkit-record']) {
+        const text = skill(name);
+        expect(text).toContain('observations, inferences, and unknowns');
+        expect(text).toContain('Do not invent reasons or alternatives');
+        expect(text).toContain('no new required field or section');
+        expect(text).toContain('passive approval do not establish who decided');
+      }
+      expect(skill('adrkit-grill')).toContain('constraints that still hold, changed assumptions, and conflicts');
+      expect(skill('adrkit-note')).toContain('a source is optional');
+      expect(skill('adrkit-note')).toContain('Candidate: use SQLite; rationale unknown');
+      expect(skill('adrkit-review')).toContain('adrkit relevant --base <review-base>');
+      expect(skill('adrkit-review')).toContain('adrkit relevant --staged');
+      expect(skill('adrkit-review')).toContain('not code compliance');
+      expect(skill('adrkit-init')).toContain('unscoped decisions');
+    }
+  });
+});
+
 describe('skills/ stays in sync with the tool integration templates', () => {
   const skillsDir = fileURLToPath(new URL('../skills/', import.meta.url));
 

@@ -33,6 +33,12 @@ describe('globMatches', () => {
     expect(globMatches('a+b.md', 'aab.md')).toBe(false);
   });
 
+  it('preserves newline filenames without treating trailing newlines as end-of-path', () => {
+    expect(globMatches('src/**', 'src/line\nbreak.ts')).toBe(true);
+    expect(globMatches('**/*.ts', 'line\nbreak/child.ts')).toBe(true);
+    expect(globMatches('src/exact.ts', 'src/exact.ts\n')).toBe(false);
+  });
+
   it('matches an exact path with no wildcard', () => {
     expect(globMatches('src/core/adr.ts', 'src/core/adr.ts')).toBe(true);
     expect(globMatches('src/core/adr.ts', 'src/core/adr.tsx')).toBe(false);

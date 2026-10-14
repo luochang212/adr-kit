@@ -876,7 +876,7 @@ ${reason}${scope}---
   it('retrieves records scoped to the given file, with the glob that fired', () => {
     const root = makeRepo();
     recordWith(root, 'implemented', '1-storage.md', '1 Use SQLite', 'src/core/**');
-    const output = relevantCommand(['src/core/adr.ts'], root);
+    const output = relevantCommand(['src/core/adr.ts'], root).output;
     expect(output).toContain('Implemented — current authority');
     expect(output).toContain('[1] Use SQLite');
     expect(output).toContain('[src/core/**]');
@@ -887,7 +887,7 @@ ${reason}${scope}---
     const root = makeRepo();
     recordWith(root, 'proposed', '2026-10-12-cache.md', 'Add Redis cache', 'src/core/**');
     recordWith(root, 'rejected', '2026-10-12-mongo.md', 'Use MongoDB', 'src/**');
-    const output = relevantCommand(['src/core/adr.ts'], root);
+    const output = relevantCommand(['src/core/adr.ts'], root).output;
     expect(output).toContain('Proposed — intent');
     expect(output).toContain('Add Redis cache');
     expect(output).toContain('Rejected — anti-patterns');
@@ -897,7 +897,7 @@ ${reason}${scope}---
   it('never matches records without a paths field and says why', () => {
     const root = makeRepo();
     recordWith(root, 'implemented', '1-untagged.md', '1 Untagged');
-    const output = relevantCommand(['src/core/adr.ts'], root);
+    const output = relevantCommand(['src/core/adr.ts'], root).output;
     expect(output).toContain('no records scope src/core/adr.ts');
     expect(output).toContain('not full-text search');
   });
@@ -907,14 +907,14 @@ ${reason}${scope}---
     mkdirSync(join(root, 'src', 'payments'), { recursive: true });
     writeFileSync(join(root, 'src', 'payments', 'api.ts'), 'export {};\n');
     recordWith(root, 'implemented', '1-payments.md', '1 Payments boundary', 'src/payments/**');
-    const output = relevantCommand(['src/payments'], root);
+    const output = relevantCommand(['src/payments'], root).output;
     expect(output).toContain('[1] Payments boundary');
   });
 
   it('excludes archived records from retrieval', () => {
     const root = makeRepo();
     recordWith(root, 'archived', '1-old.md', '1 Old choice', 'src/core/**');
-    const output = relevantCommand(['src/core/adr.ts'], root);
+    const output = relevantCommand(['src/core/adr.ts'], root).output;
     expect(output).toContain('no records scope');
   });
 

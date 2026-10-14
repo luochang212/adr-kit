@@ -14,7 +14,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | `adrkit archive <name> --reason <text>` | Retire implemented guidance to `archived/` |
 | `adrkit supersede <old> --by <new>` | Replace and archive a fully superseded implemented decision |
 | `adrkit list` | List records grouped by lifecycle |
-| `adrkit relevant <path>...` | List records whose `paths:` scopes govern the given file(s) or directory, grouped by reading posture; records without `paths` never match |
+| `adrkit relevant [<path>... | --base <git-ref> | --staged]` | Retrieve scoped records for explicit paths, an exact base-to-working-tree change, or staged files; input modes are exclusive |
 | `adrkit show <name>` | Show a record by title, filename, slug, or ADR number |
 | `adrkit status` | Count lifecycle folders and report validity |
 | `adrkit instructions` | Show pending proposals and the next valid action |
@@ -76,3 +76,30 @@ permissions and removing only the redundant implemented source. Do not edit the
 archived file or manifest seal. Retrying by decision number is ambiguous while
 both copies exist. After removing the confirmed duplicate, run
 `adrkit validate --all` to verify recovery.
+
+## Scope retrieval for changes
+
+```sh
+adrkit relevant src/payments/api.ts       # planned paths; Git is optional
+adrkit relevant --base HEAD               # exact commit → working tree + untracked
+adrkit relevant --staged                  # index only, including before first commit
+```
+
+Choose one input source; flags and explicit paths cannot be combined. `--base`
+uses the exact supplied commit, not a merge-base; choose the intended review base
+explicitly. It includes staged and unstaged changes plus non-ignored untracked
+files. `--staged` excludes unstaged-only and untracked-only changes. Both include
+deleted files and both endpoints of renames, normalize paths to the nearest ADR
+root, and never expand Git file paths into directory walks. An empty diff is
+reported as no changed paths, not proof that no decisions apply. Git or invalid
+ref failures exit non-zero rather than returning an empty context.
+
+Explicit directory inputs search at most 2,000 files per directory argument,
+skipping `.git` and `node_modules`. Truncation or filesystem read errors retain
+acquired matches, name the diagnostic, and exit **1**; narrow the paths or resolve
+the error before relying on the result. A nonexistent explicit path remains a
+valid planned-file query. Malformed or unreadable active records fail retrieval;
+archived records are not read. A count of active records without `paths:` is
+advisory even when other records match: use `adrkit list` to judge their relevance.
+Successful retrieval is a scope shortlist, not evidence that code complies or
+that all architectural constraints were found. Read relevant records in full.
