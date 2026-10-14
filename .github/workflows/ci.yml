@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # A push whose comparison commit was rewritten away (force-push) cannot
+  # produce a green run; dispatch re-runs CI without inventing commits.
+  workflow_dispatch:
 
 permissions:
   contents: read
