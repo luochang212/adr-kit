@@ -133,3 +133,8 @@ the file axis it deferred; ADR 20 stays active and links here.
   (capped file count, skipping `.git`/`node_modules`); the common case is a
   single file, which never walks.
 
+
+ADR 23 extends the retrieval consumer with exact Git-base and staged inputs,
+explicit incomplete-search diagnostics and unscoped coverage counts. It retains
+the optional paths field, minimal glob dialect, drift check and lifecycle reading
+postures defined here; no second retrieval model or record field is introduced.
