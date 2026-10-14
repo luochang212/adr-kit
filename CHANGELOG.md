@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.1
+
+### Patch Changes
+
+- aaeaf66: Canonicalize the Git toplevel and the ADR root through the native realpath before scope filtering, so Git-based retrieval still reports changed paths on Windows where the temp directory reaches Node and git under different spellings (8.3 short names).
+
 ## 0.18.0
 
 ### Minor Changes
