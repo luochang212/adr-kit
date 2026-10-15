@@ -47,6 +47,20 @@ ${text}
 type FrontMatterValue = string | number | string[];
 
 /**
+ * The write-time rot rule, carried by the proposal and decision template
+ * comments. Records are the memory of why; volatile facts belong to an owner
+ * next to the code, and the record points at that owner. Field evidence: a
+ * real site rediscovered this rule twice in its first three records — the
+ * discipline is too valuable to leave to rediscovery.
+ */
+const POINTER_RULE = [
+  'State the rule and its boundary, and point volatile facts — numbers,',
+  'inventories, versions — at an owner next to the code (a ledger file, a',
+  'config, a script header) instead of copying them: a record that mirrors',
+  'code rots.',
+].join('\n     ');
+
+/**
  * The one-time authoring hint that propose and record print. Scope retrieval
  * (`adrkit relevant`) only matches records that declare `paths:`, and field
  * sites wrote none — the creation output is the one moment every author is
@@ -80,7 +94,8 @@ ${contextBlock(context)}## Problem
 
 ## Proposal
 
-<!-- The proposed decision. Be specific about what will change. -->
+<!-- The proposed decision. Be specific about what will change.
+     ${POINTER_RULE} -->
 
 ## Alternatives considered
 
@@ -127,7 +142,8 @@ ${contextBlock(context)}## Problem
 
 ## Decision
 
-<!-- The decision that shipped, in present tense. -->
+<!-- The decision that shipped, in present tense.
+     ${POINTER_RULE} -->
 
 ## Alternatives considered
 

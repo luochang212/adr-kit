@@ -597,6 +597,20 @@ describe('creation output', () => {
   });
 });
 
+describe('templates', () => {
+  it('teach the pointer rule against rot-prone facts at write time', () => {
+    // The write moment is the only place this discipline is cheap: records
+    // are the memory of why, and volatile facts belong to an owner next to
+    // the code. A field site rediscovered the rule twice in its first three
+    // records; the template states it instead of hoping for rediscovery.
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    expect(readFileSync(pendingDraftPath(root), 'utf8')).toContain('a record that mirrors');
+    recordCommand('Use SQLite', root, 'human', 'human');
+    expect(showCommand('1', root)).toContain('a record that mirrors');
+  });
+});
+
 describe('config context injection', () => {
   function withContext(root: string, context: string): void {
     writeFileSync(join(root, 'adr', 'config.yaml'), `context: |\n${context}\n`);
