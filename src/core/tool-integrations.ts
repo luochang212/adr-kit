@@ -420,17 +420,33 @@ export const STANDING_ORDERS_HEADING = '## Reading architecture decisions';
 export const STANDING_ORDERS_RULE = 'Record an ADR when an architectural choice';
 
 /**
+ * The task-start inventory command, as the language-neutral anchor. A
+ * translated standing-orders section loses every English sentence — the field
+ * finding behind this anchor is a fully Chinese AGENTS.md that carried the
+ * real rules and still tripped the missing-section note — but the CLI
+ * invocations survive translation verbatim, and a repo whose AGENTS.md runs
+ * `adrkit list` at task start reads adr/ however the surrounding prose reads.
+ */
+export const STANDING_ORDERS_COMMAND = 'adrkit list';
+
+/**
  * The agent instruction file that carries the standing-orders section, or
- * undefined when AGENTS.md does not. Reading only — the file belongs to the
- * user, and the CLI never rewrites it. CLAUDE.md is deliberately not a
- * carrier: Claude Code reads AGENTS.md directly since v2.1.277, and no other
- * tool reads CLAUDE.md, so a second instruction file would double the paste
- * and verification surface without serving any tool.
+ * undefined when AGENTS.md does not. A section counts through its heading,
+ * its rule sentence, or its task-start command — the last anchor keeps
+ * translated sections honest (see STANDING_ORDERS_COMMAND). Reading only —
+ * the file belongs to the user, and the CLI never rewrites it. CLAUDE.md is
+ * deliberately not a carrier: Claude Code reads AGENTS.md directly since
+ * v2.1.277, and no other tool reads CLAUDE.md, so a second instruction file
+ * would double the paste and verification surface without serving any tool.
  */
 export function standingOrdersFile(root: string): string | undefined {
   try {
     const text = readFileSync(join(root, 'AGENTS.md'), 'utf8');
-    if (text.includes(STANDING_ORDERS_HEADING) || text.includes(STANDING_ORDERS_RULE)) {
+    if (
+      text.includes(STANDING_ORDERS_HEADING) ||
+      text.includes(STANDING_ORDERS_RULE) ||
+      text.includes(STANDING_ORDERS_COMMAND)
+    ) {
       return 'AGENTS.md';
     }
   } catch {

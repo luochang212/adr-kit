@@ -21,7 +21,8 @@ export function escapeHtml(text: string): string {
  */
 const WIDE = /[\u1100-\u115f\u2e80-\u303f\u3040-\u33ff\u3400-\u4dbf\u4e00-\u9fff\ua000-\ua4cf\uac00-\ud7a3\uf900-\ufaff\ufe30-\ufe4f\uff00-\uff60\uffe0-\uffe6]/;
 
-function displayWidth(text: string): number {
+/** Display columns of `text` in a monospace terminal: wide characters take two. */
+export function displayWidth(text: string): number {
   let width = 0;
   for (const char of text) width += WIDE.test(char) ? 2 : 1;
   return width;

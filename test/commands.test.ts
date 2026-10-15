@@ -19,6 +19,7 @@ import { validateCommand } from '../src/commands/validate.js';
 import { todayStamp } from '../src/core/adr.js';
 import { installedWithNotice, readConfig } from '../src/core/config.js';
 import { listProposals, listRecords as allRecords } from '../src/core/repository.js';
+import { displayWidth } from '../src/core/view-text.js';
 import { VERSION } from '../src/version.js';
 
 const tempDirs: string[] = [];
@@ -561,6 +562,39 @@ describe('record and show', () => {
     expect(shown).toContain('# ADR: Use SQLite');
     expect(shown).toContain('status: proposed');
   });
+
+  it('sizes the show underline by East Asian display width', () => {
+    const root = makeRepo();
+    recordCommand('训练环境选 WSL2 而非 Windows 原生', root, 'human', 'human');
+    const [head, underline] = showCommand('1', root).split('\n');
+    expect(head).toContain('训练环境选');
+    // Wide characters make the printed path wider than its code-point count;
+    // a code-point underline stops short of the text it underlines.
+    expect(head.length).toBeLessThan(displayWidth(head));
+    expect(underline).toBe('='.repeat(displayWidth(head)));
+  });
+
+  it('resolves a numbered record by its title without the number', () => {
+    const root = makeRepo();
+    recordCommand('训练环境选 WSL2 而非 Windows 原生', root, 'human', 'human');
+    // list prints "[1] 训练环境选…" and prose quotes the stripped title, so
+    // the stripped form must resolve, alongside the literal H1 title.
+    expect(showCommand('训练环境选 WSL2 而非 Windows 原生', root)).toContain(
+      'adr/implemented/1-训练环境选',
+    );
+    expect(showCommand('1 训练环境选 WSL2 而非 Windows 原生', root)).toContain('status: implemented');
+  });
+});
+
+describe('creation output', () => {
+  it('hints at optional paths scoping for retrieval', () => {
+    // Scope retrieval (adrkit relevant) only matches records that declare
+    // paths:, and field sites wrote none; the creation output is the one
+    // moment every author is looking at the record.
+    const root = makeRepo();
+    expect(proposeCommand('Use SQLite', root)).toContain('paths: [src/**]');
+    expect(recordCommand('Use SQLite', root, 'human', 'human')).toContain('paths: [src/**]');
+  });
 });
 
 describe('config context injection', () => {
@@ -746,6 +780,20 @@ describe('standing-orders note', () => {
     writeFileSync(
       join(dir, 'AGENTS.md'),
       '# mine\n\n## Our architecture implemented\n\nRecord an ADR when an architectural choice constrains future work.\n',
+    );
+    expect(initCommand(dir)).not.toContain('note: AGENTS.md does not carry');
+  });
+
+  it('a translated section counts through its command anchor', () => {
+    // A localized standing-orders section loses every English anchor — the
+    // field finding: a fully Chinese AGENTS.md carrying the real rules tripped
+    // the note. CLI invocations survive translation verbatim, and a repo whose
+    // AGENTS.md runs `adrkit list` at task start is wired to adr/ however the
+    // surrounding prose reads.
+    const dir = freshDir('adrkit-note-');
+    writeFileSync(
+      join(dir, 'AGENTS.md'),
+      '# 规则\n\n## 阅读架构决策记录\n\n编码任务开始时，先跑 `adrkit list`，完整阅读相关记录。\n',
     );
     expect(initCommand(dir)).not.toContain('note: AGENTS.md does not carry');
   });

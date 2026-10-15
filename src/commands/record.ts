@@ -4,7 +4,7 @@ import type { DecidedBy, RaisedBy } from '../core/adr.js';
 import { readConfig, requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
 import { folderPath, nextDecisionNumber, writeRecord } from '../core/repository.js';
-import { decisionTemplate } from '../core/templates.js';
+import { PATHS_TIP, decisionTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
 
 /**
@@ -40,5 +40,5 @@ export function recordCommand(
     raisedBy,
   );
   writeRecord(root, 'implemented', fileName, content);
-  return `created adr/implemented/${fileName}\n\nfill in the shipped decision and validate it with:\n  adrkit validate ${number}`;
+  return `created adr/implemented/${fileName}\n\nfill in the shipped decision and validate it with:\n  adrkit validate ${number}\n\n${PATHS_TIP}`;
 }

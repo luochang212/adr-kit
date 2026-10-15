@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { readConfig, requireRoot } from '../core/config.js';
 import { folderPath, writeRecord } from '../core/repository.js';
 import { todayStamp } from '../core/adr.js';
-import { proposalTemplate } from '../core/templates.js';
+import { PATHS_TIP, proposalTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
 
 export function proposeCommand(title: string, cwd: string): string {
@@ -30,5 +30,7 @@ export function proposeCommand(title: string, cwd: string): string {
     `  adrkit implement "${trimmed}" --raised-by human --decided-by human`,
     'or reject the proposal with',
     `  adrkit reject "${trimmed}" --reason "<why>"`,
+    '',
+    PATHS_TIP,
   ].join('\n');
 }

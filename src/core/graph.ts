@@ -38,7 +38,13 @@ export interface DecisionGraph {
   referenceEdges: GraphEdge[];
 }
 
-/** The prose cross-reference vocabulary: `ADR-12`, `ADR 4`. */
+/**
+ * The prose cross-reference vocabulary: `ADR-12`, `ADR 4`. Title-form
+ * references — CJK prose cites records as `ADR「标题」` or `「标题」`, often
+ * shortened to a title prefix — do not mine: quoted-span matching needs fuzzy
+ * title prefixes, which trades silent completeness for wrong edges in a
+ * governance view. Known limitation, parked in adr/notes.md.
+ */
 const REFERENCE_PATTERN = /ADR-?\s*([1-9]\d*)/g;
 
 export function buildDecisionGraph(

@@ -47,6 +47,16 @@ ${text}
 type FrontMatterValue = string | number | string[];
 
 /**
+ * The one-time authoring hint that propose and record print. Scope retrieval
+ * (`adrkit relevant`) only matches records that declare `paths:`, and field
+ * sites wrote none — the creation output is the one moment every author is
+ * looking at the record, so the hint rides there instead of on validate.
+ */
+export const PATHS_TIP =
+  'tip: a record governing specific files can declare optional "paths: [src/**]" in the\n' +
+  '  front matter; "adrkit relevant <path>" retrieves scoped records';
+
+/**
  * Render a YAML front matter block. Fields are written in the canonical
  * order from FRONT_MATTER_ORDER; only the fields
  * present in `fields` are emitted.

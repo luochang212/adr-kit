@@ -228,6 +228,11 @@ export function resolveRecord(root: string, query: string): AdrRecord {
       if (String(record.number ?? 0) === needle) {
         return true;
       }
+      // list prints "[N] Title" and prose references quote the title without
+      // its number, while the H1 stores "N Title"; accept the stripped form.
+      if (record.title.replace(/^\d+\s+/, '') === needle) {
+        return true;
+      }
     }
     return false;
   });
