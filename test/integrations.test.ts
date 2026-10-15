@@ -71,9 +71,7 @@ describe('initCommand tool integrations', () => {
   it('installs and refreshes reading guidance without replacing project instructions', () => {
     const root = makeTarget();
     initCommand(root, 'claude');
-    for (const file of ['AGENTS.md', 'CLAUDE.md']) {
-      writeFileSync(join(root, file), '# Existing project instructions\n');
-    }
+    writeFileSync(join(root, 'AGENTS.md'), '# Existing project instructions\n');
     for (const target of ['.agents', '.claude']) {
       const skill = join(root, target, 'skills/adrkit-init/SKILL.md');
       expect(readFileSync(skill, 'utf8')).toContain('At the start of a coding, design, or review task');
@@ -94,9 +92,7 @@ describe('initCommand tool integrations', () => {
         expect(command).toContain('relevant');
       }
     }
-    for (const file of ['AGENTS.md', 'CLAUDE.md']) {
-      expect(readFileSync(join(root, file), 'utf8')).toBe('# Existing project instructions\n');
-    }
+    expect(readFileSync(join(root, 'AGENTS.md'), 'utf8')).toBe('# Existing project instructions\n');
   });
 
   it('installs the standard .agents integration by default', () => {

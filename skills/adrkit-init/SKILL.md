@@ -9,7 +9,7 @@ Installing ADR Kit wires a repository's decision memory into the surfaces agents
 
 Run `adrkit init [path]` for a new repository, or `adrkit update` if `adr/` exists. Confirm the four lifecycle folders: `proposed/`, `implemented/`, `rejected/`, and `archived/`. They are a context budget as well as a lifecycle: `implemented/` is current authority, `proposed/` is intent, `rejected/` is anti-pattern memory, and `archived/` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
 
-Add or update this section in `AGENTS.md` (and `CLAUDE.md` when used):
+Add or update this section in `AGENTS.md`:
 
 ## Reading architecture decisions
 

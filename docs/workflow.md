@@ -70,7 +70,7 @@ whose `paths:` scopes govern them. Check
 records against current code, explain changed assumptions, and mention
 relevant ADR numbers in the work summary. Re-read when the task or scope
 changes. Agent skills guide lifecycle operations but the CLI does not
-automatically edit `AGENTS.md` or `CLAUDE.md`.
+automatically edit `AGENTS.md`.
 
 
 ## Co-design with evidence

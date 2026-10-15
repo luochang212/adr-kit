@@ -10,9 +10,9 @@ export interface ToolIntegration {
  * Integration targets. The default is the vendor-neutral `.agents/`
  * convention: every mainstream agent (Codex, Cursor, GitHub Copilot / VS
  * Code, Junie, OpenCode, ...) discovers skills and commands there. Claude
- * Code is the one holdout - it scans only `.claude/` - so it stays an
- * explicit exception (`--tools claude`) until Anthropic ships AGENTS.md
- * support.
+ * Code is the one holdout: since v2.1.277 it reads AGENTS.md for project
+ * instructions, but it still discovers skills and commands only under
+ * `.claude/`, so it stays an explicit exception (`--tools claude`).
  */
 export type IntegrationTarget = 'agents' | 'claude';
 
@@ -54,7 +54,7 @@ Installing ADR Kit wires a repository's decision memory into the surfaces agents
 
 Run \`adrkit init [path]\` for a new repository, or \`adrkit update\` if \`adr/\` exists. Confirm the four lifecycle folders: \`proposed/\`, \`implemented/\`, \`rejected/\`, and \`archived/\`. They are a context budget as well as a lifecycle: \`implemented/\` is current authority, \`proposed/\` is intent, \`rejected/\` is anti-pattern memory, and \`archived/\` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
 
-Add or update this section in \`AGENTS.md\` (and \`CLAUDE.md\` when used):
+Add or update this section in \`AGENTS.md\`:
 
 ## Reading architecture decisions
 
@@ -420,20 +420,21 @@ export const STANDING_ORDERS_HEADING = '## Reading architecture decisions';
 export const STANDING_ORDERS_RULE = 'Record an ADR when an architectural choice';
 
 /**
- * The agent instruction file (AGENTS.md, then CLAUDE.md) that carries the
- * standing-orders section, or undefined when neither does. Reading only —
- * the files belong to the user, and the CLI never rewrites them.
+ * The agent instruction file that carries the standing-orders section, or
+ * undefined when AGENTS.md does not. Reading only — the file belongs to the
+ * user, and the CLI never rewrites it. CLAUDE.md is deliberately not a
+ * carrier: Claude Code reads AGENTS.md directly since v2.1.277, and no other
+ * tool reads CLAUDE.md, so a second instruction file would double the paste
+ * and verification surface without serving any tool.
  */
 export function standingOrdersFile(root: string): string | undefined {
-  for (const file of ['AGENTS.md', 'CLAUDE.md']) {
-    try {
-      const text = readFileSync(join(root, file), 'utf8');
-      if (text.includes(STANDING_ORDERS_HEADING) || text.includes(STANDING_ORDERS_RULE)) {
-        return file;
-      }
-    } catch {
-      // Absent or unreadable: the file carries no section, keep looking.
+  try {
+    const text = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+    if (text.includes(STANDING_ORDERS_HEADING) || text.includes(STANDING_ORDERS_RULE)) {
+      return 'AGENTS.md';
     }
+  } catch {
+    // Absent or unreadable: the file carries no section.
   }
   return undefined;
 }
@@ -459,8 +460,8 @@ export function standingOrdersNote(
     ? `step 4 of ${relative(root, initSkill.path)}`
     : 'step 4 of the adrkit-init workflow (see the adr-kit README)';
   return [
-    'note: neither AGENTS.md nor CLAUDE.md carries the standing orders, so agents',
-    '  will not read adr/ at task start. Paste the "Reading architecture decisions"',
-    `  section from ${source} into AGENTS.md.`,
+    'note: AGENTS.md does not carry the standing orders, so agents will not read',
+    '  adr/ at task start. Paste the "Reading architecture decisions" section',
+    `  from ${source} into AGENTS.md.`,
   ].join('\n');
 }

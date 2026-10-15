@@ -719,7 +719,7 @@ describe('standing-orders note', () => {
     // write; without the note, a repo whose agent never ran the init skill
     // loses the task-start reading rules silently.
     const out = initCommand(freshDir('adrkit-note-'));
-    expect(out).toContain('note: neither AGENTS.md nor CLAUDE.md carries the standing orders');
+    expect(out).toContain('note: AGENTS.md does not carry the standing orders');
     expect(out).toContain('Reading architecture decisions');
     expect(out).toContain(join('.agents', 'skills', 'adrkit-init', 'SKILL.md'));
   });
@@ -727,13 +727,16 @@ describe('standing-orders note', () => {
   it('init stays quiet once AGENTS.md carries the section', () => {
     const dir = freshDir('adrkit-note-');
     writeFileSync(join(dir, 'AGENTS.md'), `# mine\n\n${SECTION}`);
-    expect(initCommand(dir)).not.toContain('note: neither');
+    expect(initCommand(dir)).not.toContain('note: AGENTS.md does not carry');
   });
 
-  it('CLAUDE.md alone satisfies the check', () => {
+  it('CLAUDE.md alone does not satisfy the check', () => {
+    // Claude Code reads AGENTS.md directly since v2.1.277 and no other tool
+    // reads CLAUDE.md; a second carrier would double the paste surface, so
+    // standing orders in CLAUDE.md alone keep the note visible.
     const dir = freshDir('adrkit-note-');
     writeFileSync(join(dir, 'CLAUDE.md'), SECTION);
-    expect(initCommand(dir)).not.toContain('note: neither');
+    expect(initCommand(dir)).toContain('note: AGENTS.md does not carry');
   });
 
   it('a reworked section still counts through its rule sentence', () => {
@@ -744,19 +747,19 @@ describe('standing-orders note', () => {
       join(dir, 'AGENTS.md'),
       '# mine\n\n## Our architecture implemented\n\nRecord an ADR when an architectural choice constrains future work.\n',
     );
-    expect(initCommand(dir)).not.toContain('note: neither');
+    expect(initCommand(dir)).not.toContain('note: AGENTS.md does not carry');
   });
 
   it('update reports the missing section and goes quiet once it lands', () => {
     const root = makeRepo();
-    expect(updateCommand(root)).toContain('note: neither AGENTS.md nor CLAUDE.md');
+    expect(updateCommand(root)).toContain('note: AGENTS.md does not carry');
     writeFileSync(join(root, 'AGENTS.md'), SECTION);
-    expect(updateCommand(root)).not.toContain('note: neither');
+    expect(updateCommand(root)).not.toContain('note: AGENTS.md does not carry');
   });
 
   it('no note for an explicit integrations opt-out', () => {
     const out = initCommand(freshDir('adrkit-note-'), 'none');
-    expect(out).not.toContain('note: neither');
+    expect(out).not.toContain('note: AGENTS.md does not carry');
   });
 });
 
