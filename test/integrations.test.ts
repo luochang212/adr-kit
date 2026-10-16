@@ -57,6 +57,9 @@ describe('initCommand tool integrations', () => {
     expect(initBody).toContain(STANDING_ORDERS_PURPOSE);
     const agents = readFileSync(fileURLToPath(new URL('../AGENTS.md', import.meta.url)), 'utf8');
     expect(agents).toContain(STANDING_ORDERS_PURPOSE);
+    // ADR 24: AGENTS.md is the only instruction carrier, so the repository
+    // must not regrow a CLAUDE.md — Claude Code skips AGENTS.md while one exists.
+    expect(existsSync(fileURLToPath(new URL('../CLAUDE.md', import.meta.url)))).toBe(false);
   });
 
   it('capture-side descriptions mirror the settle moment', () => {
