@@ -2,15 +2,20 @@
 
 ## When to record
 
-Record architectural choices that constrain future work and whose lasting rationale
-or genuine trade-offs are not adequately explained by code, tests, and existing
-documentation. A behavior change alone does not qualify. Record genuine
-alternatives and trade-offs; routine
-fixes need no ADR. A grilling session is itself the importance signal, so
-record every choice it settles. Do not confuse a settled choice with shipped
-work.
+Record architectural choices that constrain future work and whose lasting
+rationale or genuine trade-offs are not adequately explained by code, tests,
+and existing documentation. A behavior change alone does not qualify. Record
+genuine alternatives and trade-offs; routine fixes need no ADR.
 
-Records cost time to write, read, and maintain, and stale records can mislead; record only when preserving the rationale is worth that cost. For example, routing all writes through one boundary to preserve validation and auditing can merit an ADR: a later direct write may look locally correct while bypassing those guarantees. Routine fixes and local renames usually need none when code and tests adequately explain them.
+Records cost time to write, read, and maintain, and stale records can mislead;
+record only when preserving the rationale is worth that cost. For example,
+routing all writes through one boundary to preserve validation and auditing can
+merit an ADR: a later direct write may look locally correct while bypassing
+those guarantees. Routine fixes and local renames usually need none when code
+and tests adequately explain them.
+
+A grilling session is itself the importance signal, so record every choice it
+settles. Do not confuse a settled choice with shipped work.
 
 ## Lifecycle
 
