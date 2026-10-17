@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.19.1
+
+### Patch Changes
+
+- fd398af: Explain the cost of keeping records in the guidance installed by `adrkit init` and `adrkit update`. The standing orders, both READMEs, and the workflow guides now state that records cost time to write, read, and maintain, so routine fixes and local renames usually need none when code and tests already explain them. No runtime behavior change.
+
 ## 0.19.0
 
 ### Minor Changes
