@@ -10,6 +10,8 @@ fixes need no ADR. A grilling session is itself the importance signal, so
 record every choice it settles. Do not confuse a settled choice with shipped
 work.
 
+Records cost time to write, read, and maintain, and stale records can mislead; record only when preserving the rationale is worth that cost. For example, routing all writes through one boundary to preserve validation and auditing can merit an ADR: a later direct write may look locally correct while bypassing those guarantees. Routine fixes and local renames usually need none when code and tests adequately explain them.
+
 ## Lifecycle
 
 1. `adrkit propose "<title>"` creates an unnumbered file in `proposed/`.

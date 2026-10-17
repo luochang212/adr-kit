@@ -40,6 +40,8 @@ rewrite of old rationale. Archived records are sealed in
 `adr/archived/MANIFEST.json` and never edited; `adrkit validate --base
 <git-ref>` proves the archive only grows.
 
+Records cost time to write, read, and maintain, and stale records can mislead; record only when preserving the rationale is worth that cost. For example, routing all writes through one boundary to preserve validation and auditing can merit an ADR: a later direct write may look locally correct while bypassing those guarantees. Routine fixes and local renames usually need none when code and tests adequately explain them.
+
 Record an ADR when an architectural choice will constrain future development
 and its lasting rationale or genuine trade-offs are not adequately explained
 by code, tests, and existing documentation. A behavior change alone does not

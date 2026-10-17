@@ -24,6 +24,16 @@ ADR Kit stores architecture decisions as plain Markdown across four lifecycle di
 - Stable ADR numbers assigned only when work ships
 - Built for agents and humans
 
+## Why record only key decisions?
+
+Code and runtime results establish current behavior. Maintaining another document has a cost: it takes time and effort, and it can grow stale. A record earns its place only when its lasting benefit exceeds the cost of writing, reading, and maintaining it. That is why we record only key decisions.
+
+Imagine making a fundamental, far-reaching decision on the project's first day. It may exist only in your head: why a boundary belongs here, or why you accept a limitation instead of choosing a seemingly easier alternative. Unless you capture those reasons, the code may preserve the outcome without explicitly preserving the intent.
+
+Once the project reaches a hundred thousand lines, reconstructing that intent from the implementation becomes difficult. A new decision may conflict with the early choice, with no explicit record to reveal the constraint you need to consider. Two locally reasonable implementations can become inconsistent as a whole, causing bugs or creating conditions for recurring bugs.
+
+ADRs preserve reasons that are hard to recover from code yet continue to shape future work. You or a later agent can then discover a conflict and judge whether the old constraint still holds. If it needs to change, you can explicitly replace it and adjust the affected implementation. Routine fixes, local renames, and implementation details already adequately explained by code and tests usually need no additional record.
+
 ## Quick start
 
 Requires Node.js 20.19 or later.
