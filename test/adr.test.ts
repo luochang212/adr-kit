@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { stringify } from 'yaml';
 import { describe, expect, it } from 'vitest';
-import { FRONT_MATTER_ORDER, parseAdrFile, type AdrSection } from '../src/core/adr.js';
+import { FRONT_MATTER_ORDER, parseAdrFile, writtenHeadings, type AdrSection } from '../src/core/adr.js';
 
 function write(relative: string, content: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'adrkit-adr-'));
@@ -71,6 +71,48 @@ describe('parseAdrFile', () => {
     expect(record.status).toBe('proposed');
     expect(record.date).toBe('2026-08-19');
     expect(record.sections.find((s) => s.heading === 'Problem')?.body).toContain('Body.');
+  });
+
+  it.each([
+    ['backtick', '```'],
+    ['tilde', '~~~'],
+  ])('does not treat a heading inside a %s fence as a section', (_kind, marker) => {
+    const record = parseAdrFile(write('record.md', `---
+status: proposed
+date: 2026-08-19
+created: 2026-08-19
+---
+
+# ADR: Use SQLite
+
+## Problem
+
+Body.
+
+## Decision
+
+${marker}md
+## Alternatives considered
+${marker}
+
+Body.
+
+## Alternatives considered
+
+- **JSON**: no queries.
+
+## Consequences
+
+Body.
+`));
+    expect(record.sections.map((section) => section.heading)).toEqual([
+      'Problem',
+      'Decision',
+      'Alternatives considered',
+      'Consequences',
+    ]);
+    expect(record.sections.find((section) => section.heading === 'Decision')?.body)
+      .toContain('## Alternatives considered');
   });
 
   it('rejects a record without a front matter block', () => {
@@ -213,6 +255,24 @@ Body.
 Body.
 `));
     expect(record.number).toBeUndefined();
+  });
+});
+
+describe('writtenHeadings', () => {
+  it('ignores fenced code, comments, and other heading levels', () => {
+    const body = [
+      '### Risks',
+      '<!--',
+      '### Acceptance criteria',
+      '-->',
+      '```md',
+      '### Risks',
+      '```',
+      '#### Risks',
+      '### Trade-offs',
+    ].join('\n');
+    expect(writtenHeadings(body, 3)).toEqual(['Risks', 'Trade-offs']);
+    expect(writtenHeadings(body, 4)).toEqual(['Risks']);
   });
 });
 

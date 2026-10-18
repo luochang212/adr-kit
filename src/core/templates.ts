@@ -1,6 +1,7 @@
 import { parse, stringify } from 'yaml';
 import {
   FRONT_MATTER_ORDER,
+  hasMeaningfulBody,
   PROPOSAL_ERA_HEADINGS,
   section,
   todayStamp,
@@ -182,11 +183,11 @@ export function proposalToDecision(
   const risks = sectionBody(proposal, 'Risks');
 
   const consequences: string[] = [];
-  if (acceptance.trim().length > 0) {
-    consequences.push('### Acceptance criteria', '', acceptance.trim(), '');
+  if (hasMeaningfulBody(acceptance)) {
+    consequences.push('### Verification', '', acceptance, '');
   }
-  if (risks.trim().length > 0) {
-    consequences.push('### Risks', '', risks.trim(), '');
+  if (hasMeaningfulBody(risks)) {
+    consequences.push('### Trade-offs', '', risks, '');
   }
   if (consequences.length === 0) {
     consequences.push('_No consequences recorded._', '');

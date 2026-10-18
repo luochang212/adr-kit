@@ -209,6 +209,61 @@ function readRecordFile(filePath: string): string {
   return readFileSync(filePath, 'utf8');
 }
 
+/** A Markdown fenced-code opener: three or more backticks or tildes. */
+interface Fence {
+  readonly char: string;
+  readonly length: number;
+}
+
+/**
+ * A fence opener may be indented by at most three spaces. Four or more spaces
+ * make an indented code block, which has no closing fence and must not hide
+ * the sections that follow it.
+ */
+function openingFence(line: string): Fence | undefined {
+  const match = line.match(/^ {0,3}(`{3,}|~{3,})/);
+  if (match === null) return undefined;
+  const marker = match[1]!;
+  return { char: marker[0]!, length: marker.length };
+}
+
+/**
+ * A closing fence uses the opener's character, is at least as long, and has
+ * nothing but whitespace after it. A fence-looking line inside a block (for
+ * example a shorter marker or an info string) stays content.
+ */
+function closesFence(line: string, fence: Fence): boolean {
+  const match = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
+  if (match === null) return false;
+  const marker = match[1]!;
+  return marker[0] === fence.char && marker.length >= fence.length;
+}
+
+/**
+ * Headings of exactly `level` written outside fenced code and HTML comments.
+ * The record parser only structures `##` sections; callers that inspect
+ * subheadings use this helper so a code sample or a commented-out heading
+ * never becomes a rule violation.
+ */
+export function writtenHeadings(body: string, level: number): string[] {
+  const prefix = `${'#'.repeat(level)} `;
+  const headings: string[] = [];
+  let fence: Fence | undefined;
+  for (const line of stripComments(body).split(/\r?\n/)) {
+    if (fence !== undefined) {
+      if (closesFence(line, fence)) fence = undefined;
+      continue;
+    }
+    const opener = openingFence(line);
+    if (opener !== undefined) {
+      fence = opener;
+      continue;
+    }
+    if (line.startsWith(prefix)) headings.push(line.slice(prefix.length).trim());
+  }
+  return headings;
+}
+
 /**
  * Parse a single ADR markdown file into its structured parts.
  *
@@ -406,7 +461,22 @@ export function parseAdrFile(filePath: string): AdrRecord {
 
   const sections: AdrSection[] = [];
   let current: AdrSection | null = null;
+  let fence: Fence | undefined;
   for (const line of body.slice(3)) {
+    // A heading inside a fenced code block is example text, not structure:
+    // without this guard, a documented code sample can create a duplicate
+    // section and fail validation for the wrong reason.
+    if (fence !== undefined) {
+      if (closesFence(line, fence)) fence = undefined;
+      if (current !== null) current.body += `${line}\n`;
+      continue;
+    }
+    const opener = openingFence(line);
+    if (opener !== undefined) {
+      fence = opener;
+      if (current !== null) current.body += `${line}\n`;
+      continue;
+    }
     if (line.startsWith('## ')) {
       if (current !== null) sections.push(current);
       const heading = line.slice(3).trim();

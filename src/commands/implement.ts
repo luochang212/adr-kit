@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { DecidedBy, RaisedBy } from '../core/adr.js';
+import { hasMeaningfulBody, section, type DecidedBy, type RaisedBy } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
 import { folderPath, nextDecisionNumber, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
@@ -46,6 +46,16 @@ export function implementCommand(
     output += `\nwarning: dropped section(s) with no place in an implemented decision: ${dropped
       .map((heading) => `## ${heading}`)
       .join(', ')}`;
+  }
+  const folded: string[] = [];
+  if (hasMeaningfulBody(section(proposal, 'Acceptance criteria'))) {
+    folded.push('## Acceptance criteria -> ### Verification');
+  }
+  if (hasMeaningfulBody(section(proposal, 'Risks'))) {
+    folded.push('## Risks -> ### Trade-offs');
+  }
+  if (folded.length > 0) {
+    output += `\nwarning: folded ${folded.join(', ')} under ## Consequences; rewrite the new subsections as present-tense shipped facts before validating.`;
   }
   return output;
 }

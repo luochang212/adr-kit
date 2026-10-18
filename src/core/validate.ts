@@ -5,6 +5,7 @@ import {
   hasMeaningfulBody,
   NUMBERED_FILE_NAME_PATTERN,
   PROPOSAL_ERA_HEADINGS,
+  writtenHeadings,
   type AdrRecord,
   type AdrSection,
 } from './adr.js';
@@ -22,7 +23,7 @@ import {
 import { ADR_DIR, CONFIG_FILE, inspectConfig } from './config.js';
 import { gitRefExists, gitShow } from './git.js';
 import { staticPrefix } from './glob.js';
-import { listRecords } from './repository.js';
+import { FOLDERS, listRecords } from './repository.js';
 
 export interface ValidationIssue {
   path: string;
@@ -252,6 +253,20 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
     issues.push(...sectionIssues(path, record.sections, required, ['Problem', 'Proposal']));
   }
 
+  if (record.folder === 'implemented') {
+    const consequences = record.sections.find((section) => section.heading === 'Consequences');
+    if (consequences !== undefined) {
+      for (const heading of writtenHeadings(consequences.body, 3)) {
+        if (heading !== 'Acceptance criteria' && heading !== 'Risks') continue;
+        const replacement = heading === 'Acceptance criteria' ? '### Verification' : '### Trade-offs';
+        issues.push({
+          path,
+          message: `implemented record must not contain proposal-era subsection "### ${heading}"; use "${replacement}" and state shipped facts in the present tense`,
+        });
+      }
+    }
+  }
+
   if (record.status === 'superseded') {
     if (record.supersededBy === undefined) {
       issues.push({ path, message: 'superseded status must reference a decision number' });
@@ -286,6 +301,59 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   return issues;
 }
 
+/** Root Markdown files that document the directory rather than record a decision. */
+function isRootDocument(name: string): boolean {
+  return name === 'README.md'
+    || (name.startsWith('README.') && name.endsWith('.md'))
+    || name === 'notes.md'
+    || name === 'AGENTS.md'
+    || name === 'CLAUDE.md';
+}
+
+/**
+ * The four lifecycle folders are the whole inventory. A record at the adr
+ * root, in an unknown folder, or nested below a lifecycle folder is still a
+ * record: report it instead of letting listRecords skip it silently. Unknown
+ * folders fail even when empty, because the directory contract admits no
+ * second taxonomy and an empty folder is the first half of a silent record.
+ */
+function inventoryIssues(root: string): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const adrDir = join(root, ADR_DIR);
+  if (!existsSync(adrDir)) return issues;
+  const lifecycle = new Set<string>(FOLDERS);
+  const lifecycleNames = FOLDERS.map((folder) => `${folder}/`).join(', ');
+  for (const entry of readdirSync(adrDir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (!lifecycle.has(entry.name)) {
+        issues.push({
+          path: `${ADR_DIR}/${entry.name}`,
+          message: `unknown folder; only ${lifecycleNames} may sit under ${ADR_DIR}/`,
+        });
+      }
+      continue;
+    }
+    if (entry.name.endsWith('.md') && !isRootDocument(entry.name)) {
+      issues.push({
+        path: `${ADR_DIR}/${entry.name}`,
+        message: `record is outside a lifecycle folder; move it into ${lifecycleNames}`,
+      });
+    }
+  }
+  for (const folder of FOLDERS) {
+    const dir = join(adrDir, folder);
+    if (!existsSync(dir)) continue;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      issues.push({
+        path: `${ADR_DIR}/${folder}/${entry.name}`,
+        message: `nested folder; records must sit directly in ${folder}/`,
+      });
+    }
+  }
+  return issues;
+}
+
 export function validateRepository(root: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
@@ -304,6 +372,8 @@ export function validateRepository(root: string): ValidationIssue[] {
       });
     }
   }
+
+  issues.push(...inventoryIssues(root));
 
   let records: AdrRecord[];
   try {

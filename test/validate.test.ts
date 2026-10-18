@@ -398,6 +398,177 @@ Body.
   });
 });
 
+describe('closed lifecycle inventory', () => {
+  it('rejects a record in an unknown top-level folder', () => {
+    const root = makeRepo();
+    const dir = join(root, 'adr', 'accepted');
+    mkdirSync(dir);
+    writeFileSync(join(dir, '99-stray.md'), decision('99 Stray', ACCEPTED));
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('adr/accepted');
+    expect(result.output).toContain('unknown folder');
+  });
+
+  it('rejects an unknown folder even when it holds no record', () => {
+    const root = makeRepo();
+    mkdirSync(join(root, 'adr', 'drafts'));
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('adr/drafts');
+  });
+
+  it('rejects a record at the adr root', () => {
+    const root = makeRepo();
+    writeFileSync(join(root, 'adr', '99-stray.md'), decision('99 Stray', ACCEPTED));
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('adr/99-stray.md');
+    expect(result.output).toContain('outside a lifecycle folder');
+  });
+
+  it('rejects a nested folder inside a lifecycle folder', () => {
+    const root = makeRepo();
+    const dir = join(folderPath(root, 'implemented'), 'nested');
+    mkdirSync(dir);
+    writeFileSync(join(dir, '99-stray.md'), decision('99 Stray', ACCEPTED));
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('adr/implemented/nested');
+    expect(result.output).toContain('nested folder');
+  });
+
+  it('allows root documents but not a record among them', () => {
+    const root = makeRepo();
+    writeFileSync(join(root, 'adr', 'notes.md'), '');
+    writeFileSync(join(root, 'adr', 'README.zh.md'), '# 架构决策记录\n');
+    expect(validateCommand(root).valid).toBe(true);
+
+    writeFileSync(join(root, 'adr', '99-stray.md'), decision('99 Stray', ACCEPTED));
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('outside a lifecycle folder');
+  });
+});
+
+describe('implemented Consequences subheadings', () => {
+  it('rejects the old Acceptance criteria subsection under Consequences', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.',
+      '## Consequences\n\n### Acceptance criteria\n\nBody.',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('proposal-era subsection "### Acceptance criteria"');
+    expect(result.output).toContain('### Verification');
+  });
+
+  it('rejects the old Risks subsection under Consequences', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.',
+      '## Consequences\n\n### Verification\n\nBody.\n\n### Risks\n\nCost.',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('proposal-era subsection "### Risks"');
+    expect(result.output).toContain('### Trade-offs');
+  });
+
+  it('allows the old names under another section', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Decision\n\nBody.',
+      '## Decision\n\n### Risks\n\nRisk discussion.\n\n### Acceptance criteria\n\nCriteria.',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('ignores fenced code and comments under Consequences', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.',
+      '## Consequences\n\n```md\n### Risks\n### Acceptance criteria\n```\n\n<!-- ### Risks -->\n\nBody.',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('matches exact H3 names only', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.',
+      '## Consequences\n\n### Risks and mitigations\n\nCost.\n\n#### Risks\n\nDeeper detail.',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('does not check proposals', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const proposal = listProposals(root)[0]!;
+    writeFileSync(proposal.path, `---
+status: proposed
+date: 2026-08-19
+created: 2026-08-19
+---
+
+# ADR: Use SQLite
+
+## Problem
+
+P.
+
+## Proposal
+
+### Risks
+
+A legitimate subsection.
+
+## Alternatives considered
+
+- **JSON**: no queries.
+
+## Acceptance criteria
+
+Works.
+
+## Risks
+
+Native dependency.
+`);
+
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('does not check archived records', () => {
+    const root = makeRepo();
+    writeFileSync(join(folderPath(root, 'implemented'), '2-second.md'), decision('2 Second', ACCEPTED));
+    const frozen = archivedDecision('1 Frozen', 2).replace(
+      '## Consequences\n\nBody.',
+      '## Consequences\n\n### Risks\n\nOld risk.',
+    );
+    writeFileSync(join(folderPath(root, 'archived'), '1-frozen.md'), frozen);
+    sealArchive(root);
+
+    expect(validateCommand(root).valid).toBe(true);
+  });
+});
+
 describe('written content and comment handling', () => {
   /** Replace the fixture's `## Problem` body, keeping the rest of the record valid. */
   function withProblemBody(root: string, body: string): void {
@@ -427,6 +598,16 @@ describe('written content and comment handling', () => {
   it('counts text outside a comment as written content', () => {
     const root = makeRepo();
     withProblemBody(root, 'Chose Postgres over SQLite.\n<!--');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('does not report a duplicate section for a heading inside a fence', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.',
+      '## Consequences\n\n```md\n## Alternatives considered\n```\n\nBody.',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
     expect(validateCommand(root).valid).toBe(true);
   });
 

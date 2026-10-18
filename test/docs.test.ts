@@ -43,6 +43,19 @@ describe('bilingual lifecycle documentation', () => {
     }
   });
 
+  it('documents the promoted Consequences subsections in both languages', () => {
+    for (const file of [
+      'README.md',
+      'README.zh.md',
+      'docs/record-format.md',
+      'docs/zh/record-format.md',
+    ]) {
+      const document = read(file);
+      expect(document, file).toContain('### Verification');
+      expect(document, file).toContain('### Trade-offs');
+    }
+  });
+
   it('documents the complete CLI surface in both languages', () => {
     for (const file of ['docs/cli.md', 'docs/zh/cli.md']) {
       const document = read(file);

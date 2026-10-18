@@ -142,7 +142,7 @@ decisions.
 
 ## Consequences
 
-### Acceptance criteria
+### Verification
 
 - Phase 1: the standing-orders template, `INIT_README`, `adrkit instructions`
   output, and every skill body carry exactly one purpose line each, with no
@@ -158,9 +158,9 @@ decisions.
 - Both phases: `npm test`, `node bin/adrkit.js validate --all`, and
   `npm run check:upstream` pass.
 
-### Risks
+### Trade-offs
 
-- **Constitution density.** The framing line could become noise agents skip.
+- **Constitution density.** The framing line risks becoming noise agents skip.
   Mitigation: one line per surface, varied wording, no new action — the same
   discipline that justified deferring the task-end check.
 - **Description drift.** Situation-mirrored descriptions must stay

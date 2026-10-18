@@ -24,7 +24,11 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 提案需要 `Problem`、`Proposal`、`Alternatives considered`、
 `Acceptance criteria`、`Risks`。已实施和归档决策需要 `Problem`、
 `Decision`、`Alternatives considered`、`Consequences`，不得保留提案期
-章节。否决提案保留问题、方案和备选，并写入非空 `reason`，标明它挡住的
+章节。晋升时，提案的 `## Acceptance criteria` 与 `## Risks` 会折叠为
+`## Consequences` 下的 `### Verification` 与 `### Trade-offs`；implemented
+记录不得在 Consequences 下直接保留旧的 `### Acceptance criteria` 或
+`### Risks`。该检查忽略围栏代码与 HTML 注释，且只作用于 implemented 记录。
+否决提案保留问题、方案和备选，并写入非空 `reason`，标明它挡住的
 诱惑性错误；该记录是稳定终态，只有当另一条记录接管了这个错误时才移除。新模板未填实质内容时，`validate`
 按预期失败；HTML 注释不算正文。
 
@@ -38,7 +42,7 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 implemented 决策写 `archived` 和 `archive-reason`；原 `status` 保留
 implemented，表示历史上的交付状态。编号始终稳定。可选 `tags` 必须为不重复
 的小写 kebab-case；可选 `## Deliberation` 保留思辨树。`adrkit validate`
-检查四个目录、编号重复、日期、目录与状态匹配、悬空引用等。
+检查四个目录，拒绝编号重复、日期错误、目录与状态不匹配、四个目录之外的记录，以及悬空引用。
 
 可选 `paths` 把记录限定到它管辖的文件——与 `tags` 是不同的轴：tags 按
 主题分类，`paths` 回答「哪些决策管辖这个文件？」。条目为不重复的仓库相对

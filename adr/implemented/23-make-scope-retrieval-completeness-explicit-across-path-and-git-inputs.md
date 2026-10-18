@@ -45,11 +45,11 @@ The user requested and authorized both implementation batches. The agent chose t
 Delivered in `add-change-context-and-evidence-workflows`: `test/relevant.test.ts` covers the input and completeness contract, `test/glob.test.ts` covers newline boundaries, and integration tests cover evidence guidance on both installed clients. The built CLI and local integrations are updated; this working-tree delivery is not an npm publication.
 
 
-### Acceptance criteria
+### Verification
 
 Real Git fixtures cover staged versus unstaged/untracked, exact base changes, rename/deletion, unusual names, nested ADR roots, empty diffs, invalid refs and non-Git projects. Directory tests cover complete and truncated searches plus read failure. Output identifies scope gaps even with matches; archived records are not parsed. CLI errors and completion agree with the input contract. Bilingual docs and mirrored skills pass tests; typecheck, build and repository validation pass.
 
-### Risks
+### Trade-offs
 
 Exit non-zero on partial search changes caller behavior deliberately; docs explain reading partial matches and narrowing paths. Git invokes local Git but no shell or external diff/textconv, and buffer failures are fatal rather than parsed as partial. Optional scopes still cannot guarantee semantic recall. This implementation does not prove code compliance or that an agent actually read a returned record.
 

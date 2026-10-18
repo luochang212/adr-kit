@@ -21,14 +21,19 @@ The header is followed by a blank line and `# ADR: <title>` (or
 Proposals require `Problem`, `Proposal`, `Alternatives considered`,
 `Acceptance criteria`, and `Risks`. Implemented and archived decisions
 require `Problem`, `Decision`, `Alternatives considered`, and
-`Consequences`; proposal-era sections must not remain. The folders are also a
-context budget: `implemented/` is current authority and is read in full;
-`proposed/` is intent and is checked; `rejected/` is anti-pattern memory that
-is checked; `archived/` is lowest-value frozen history that is not read by
-default. A rejected proposal keeps its problem, proposal, and alternatives and
-adds a non-empty `reason` field naming the tempting mistake it blocks; the
-record is durable and is removed only when another record owns that warning. New templates intentionally fail validation until substantive sections
-are written outside HTML comments.
+`Consequences`; proposal-era sections must not remain. Promotion folds a
+proposal's `## Acceptance criteria` and `## Risks` into `### Verification`
+and `### Trade-offs` under `## Consequences`; an implemented record must not
+carry the old H3 names directly under Consequences. That check ignores fenced
+code and HTML comments and applies to implemented records only. The folders
+are also a context budget: `implemented/` is current authority and is read
+in full; `proposed/` is intent and is checked; `rejected/` is anti-pattern
+memory that is checked; `archived/` is lowest-value frozen history that is
+not read by default. A rejected proposal keeps its problem, proposal, and
+alternatives and adds a non-empty `reason` field naming the tempting mistake
+it blocks; the record is durable and is removed only when another record owns
+that warning. New templates intentionally fail validation until substantive
+sections are written outside HTML comments.
 
 `raised-by` and `decided-by` are required on numbered decisions and
 forbidden on unnumbered proposals and rejections. Each is `human` or
@@ -45,8 +50,8 @@ must end at an implemented decision without missing targets or cycles.
 Archived records retain stable numbers. Optional `tags` are non-empty,
 unique lowercase kebab-case keywords; optional `## Deliberation` preserves
 the design tree. `adrkit validate` checks all four directories and rejects
-duplicate numbers, malformed dates, mismatched folder/status pairs, and
-dangling ADR references.
+duplicate numbers, malformed dates, mismatched folder/status pairs, records
+outside the four folders, and dangling ADR references.
 
 Optional `paths` scope a record to the files it governs — a different axis
 from `tags`: tags classify by theme, `paths` answer "which decisions govern

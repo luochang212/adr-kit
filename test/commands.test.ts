@@ -404,6 +404,21 @@ describe('propose and implement', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 
+  it('promotes folded sections as Verification and Trade-offs', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    const output = implementCommand('Use SQLite', root, 'human', 'human');
+    expect(output).toContain('### Verification');
+    expect(output).toContain('### Trade-offs');
+    const content = readFileSync(listRecords(root)[0]!.path, 'utf8');
+    expect(content).toContain('### Verification');
+    expect(content).toContain('### Trade-offs');
+    expect(content).not.toContain('### Acceptance criteria');
+    expect(content).not.toContain('### Risks');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
   it('carries implementation sections through accept instead of dropping them', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
@@ -413,7 +428,7 @@ describe('propose and implement', () => {
       readFileSync(file, 'utf8') + '## Implementation\n\nPR #123: https://github.com/example/repo/pull/123\n',
     );
     const output = implementCommand('Use SQLite', root, 'human', 'human');
-    expect(output).not.toContain('warning');
+    expect(output).not.toContain('dropped section(s)');
     const decisionFile = listRecords(root)[0]!.path;
     const content = readFileSync(decisionFile, 'utf8');
     expect(content).toContain('## Implementation');

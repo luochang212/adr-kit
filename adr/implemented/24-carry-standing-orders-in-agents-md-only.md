@@ -29,14 +29,14 @@ The standing-orders section was carried twice: every repo pasted it into `AGENTS
 
 ## Consequences
 
-### Acceptance criteria
+### Verification
 
 - `npm run typecheck` and `npm test` pass; the init workflow template, `skills/adrkit-init/SKILL.md`, and the standing-orders note speak of `AGENTS.md` alone, and the template/skill sync test stays green.
 - `test/commands.test.ts` proves both directions: `AGENTS.md` carrying the section quiets the note; `CLAUDE.md` alone leaves it visible.
 - `test/integrations.test.ts` dogfood check verifies `AGENTS.md` only, and this repository carries no `CLAUDE.md`.
 - `adrkit update` refreshes this repository's installed integrations from the revised templates.
 
-### Risks
+### Trade-offs
 
 1. Repositories that pasted standing orders only into `CLAUDE.md` under the old guidance now get the missing-section note — intended: the section belongs in `AGENTS.md`, which every mainstream tool reads.
 2. Claude Code sessions that cannot load `AGENTS.md` directly (versions before v2.1.277, disabled built-in plugin, the availability exceptions the official documentation lists) fall back to `CLAUDE.md`-only reading; the official remedy — a one-line `@AGENTS.md` import — remains possible but is neither created nor checked by the CLI.

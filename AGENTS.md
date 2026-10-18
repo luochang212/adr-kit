@@ -114,6 +114,12 @@ over a patch rather than share the working tree.
   is irreducibly dependency-shaped.
 - Every behavior change gets a test in `test/`. Command tests create real
   repositories in a temp directory and assert on files and command output.
+- Design for the future, not for compatibility: breaking changes are allowed,
+  and forward-compatibility shims, deprecation windows, grandfather markers,
+  and migration commands are not carried. The maintainer is the only current
+  user (ADR 18, ADR 3); when a change breaks existing records or integrations,
+  fix them rather than preserving the old shape. Revisit only if a real
+  external adopter appears.
 
 ## Project website
 

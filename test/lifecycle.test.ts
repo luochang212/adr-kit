@@ -94,6 +94,37 @@ describe('four-folder lifecycle', () => {
     expect(validateRepository(root)).toEqual([]);
   });
 
+  it('promotes folded sections as verification and trade-offs with a rewrite warning', () => {
+    const root = repo();
+    fillProposal(root, 'Use SQLite');
+    const output = implementCommand('Use SQLite', root, 'human', 'human');
+    expect(output).toContain('folded');
+    expect(output).toContain('present-tense');
+    expect(output).toContain('### Verification');
+    expect(output).toContain('### Trade-offs');
+
+    const decision = listRecords(root).find((record) => record.number === 1)!;
+    const content = readFileSync(decision.path, 'utf8');
+    expect(content).toContain('### Verification');
+    expect(content).toContain('### Trade-offs');
+    expect(content).not.toContain('### Acceptance criteria');
+    expect(content).not.toContain('### Risks');
+    expect(validateRepository(root)).toEqual([]);
+  });
+
+  it('carries a bespoke Risks subsection outside Consequences without tripping the gate', () => {
+    const root = repo();
+    const path = fillProposal(root, 'Use SQLite');
+    writeFileSync(path, readFileSync(path, 'utf8') + '\n## Implementation\n\n### Risks\n\nBespoke section.\n');
+    expect(() => implementCommand('Use SQLite', root, 'human', 'human')).not.toThrow();
+    const decision = listRecords(root).find((record) => record.number === 1)!;
+    const content = readFileSync(decision.path, 'utf8');
+    expect(content).toContain('### Verification');
+    expect(content).toContain('### Trade-offs');
+    expect(content).toContain('### Risks');
+    expect(validateRepository(root)).toEqual([]);
+  });
+
   it('retains every formal rejection with a reason and no number', () => {
     const root = repo();
     const path = fillProposal(root, 'Use SQLite');

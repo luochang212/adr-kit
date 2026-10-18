@@ -96,7 +96,7 @@ link to this one.
 
 ## Consequences
 
-### Acceptance criteria
+### Verification
 
 - `adr/README.md`, this repository's AGENTS.md, the standing-orders template, and
   every affected `adrkit-*` skill state the per-folder reading policy and that
@@ -111,7 +111,7 @@ link to this one.
   `node bin/adrkit.js validate --all` pass.
 - ADR 18 and ADR 19 stay active and each links to this record.
 
-### Risks
+### Trade-offs
 
 - **A rejection lingers after its warning is owned elsewhere.** Mitigation: the
   owner records the replacement and the redundant rejection is removed in that

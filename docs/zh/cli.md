@@ -18,7 +18,7 @@
 | `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录 |
 | `adrkit status` | 显示各目录数量与校验状态 |
 | `adrkit instructions` | 显示待办提案与下一步 |
-| `adrkit validate [name] [--all] [--base <git-ref>]` | 校验单条记录、整个仓库，或归档的只增不改历史 |
+| `adrkit validate [name] [--all] [--base <git-ref>]` | 校验单条记录、整个仓库（含闭合的生命周期清单），或归档的只增不改历史 |
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
 | `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | 可视化编号决策及历史 |

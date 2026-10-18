@@ -99,7 +99,7 @@ the file axis it deferred; ADR 20 stays active and links here.
 
 ## Consequences
 
-### Acceptance criteria
+### Verification
 
 - `FRONT_MATTER_ORDER` includes `paths` after `tags`; the parser accepts an
   optional list of non-empty strings and rejects other shapes.
@@ -117,7 +117,7 @@ the file axis it deferred; ADR 20 stays active and links here.
   `adr/README.md` document the field and the command in the same change.
 - `npm test`, `npm run typecheck`, and `npm run build` pass.
 
-### Risks
+### Trade-offs
 
 - **The field goes unfilled and becomes a dead axis** — the ADR 20 worry.
   Mitigation: it ships with its consumer (`relevant`) in the same change, the

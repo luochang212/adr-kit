@@ -18,7 +18,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | `adrkit show <name>` | Show a record by title, filename, slug, or ADR number |
 | `adrkit status` | Count lifecycle folders and report validity |
 | `adrkit instructions` | Show pending proposals and the next valid action |
-| `adrkit validate [name] [--all] [--base <git-ref>]` | Validate one record, the whole repository, or the archive's append-only history |
+| `adrkit validate [name] [--all] [--base <git-ref>]` | Validate one record, the whole repository (including its closed lifecycle inventory), or the archive's append-only history |
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
 | `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | Visualize numbered decision history |
