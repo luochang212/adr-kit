@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { VERSION } from './version.js';
 import type { DecidedBy, RaisedBy } from './core/adr.js';
 import { isDecidedBy, isRaisedBy } from './core/adr.js';
-import { unsupportedOptions } from './core/cli-options.js';
+import { parseArgsOptions, unsupportedOptions } from './core/cli-options.js';
 import { archiveCommand } from './commands/archive.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
@@ -85,26 +85,7 @@ export function main(argv: string[]): void {
     args: argv,
     allowPositionals: true,
     tokens: true,
-    options: {
-      all: { type: 'boolean', default: false },
-      staged: { type: 'boolean', default: false },
-      base: { type: 'string' },
-      by: { type: 'string' },
-      'decided-by': { type: 'string' },
-      'raised-by': { type: 'string' },
-      dot: { type: 'boolean', default: false },
-      'formal-only': { type: 'boolean', default: false },
-      mermaid: { type: 'boolean', default: false },
-      html: { type: 'boolean', default: false },
-      text: { type: 'boolean', default: false },
-      tag: { type: 'string' },
-      out: { type: 'string' },
-      reason: { type: 'string' },
-      tools: { type: 'string' },
-      workflows: { type: 'string' },
-      help: { type: 'boolean', short: 'h', default: false },
-      version: { type: 'boolean', short: 'V', default: false },
-    },
+    options: parseArgsOptions(),
   });
 
   if (values.version) {
@@ -263,13 +244,13 @@ export function main(argv: string[]): void {
       }
       case 'tree': {
         requireTitle(rest, 'tree');
-        // Mirror `graph`: a second format flag is a mistake, not a hint to
-        // pick one for the caller.
-        const formats = (['mermaid', 'text', 'html'] as const).filter((format) => values[format]);
-        if (formats.length > 1) {
-          throw new Error(`--${formats.join(' and --')} are mutually exclusive; pick one output format`);
-        }
-        console.log(treeCommand(rest[0]!, process.cwd(), formats[0] ?? 'text'));
+        console.log(
+          treeCommand(rest[0]!, process.cwd(), {
+            mermaid: values.mermaid,
+            text: values.text,
+            html: values.html,
+          }),
+        );
         return;
       }
       case 'completion': {

@@ -1,8 +1,10 @@
 /**
  * The command surface: which commands exist and which options each one takes.
- * `src/cli.ts` uses it to reject an option a command does not take, and
- * `src/commands/completion.ts` uses it to offer the same options, so the two
- * cannot drift apart. Update this table whenever the CLI surface changes.
+ * One spec table feeds every consumer — the parseArgs declaration in
+ * `src/cli.ts`, the per-command rejection check, and the shell completion in
+ * `src/commands/completion.ts` — so the CLI cannot accept an option its
+ * completion does not offer, or offer one the parser rejects. Update this
+ * table whenever the CLI surface changes.
  */
 
 export const COMMANDS = [
@@ -29,44 +31,96 @@ export const COMMANDS = [
   'help',
 ] as const;
 
+export interface OptionSpec {
+  /** Option name without its leading dashes, e.g. `decided-by`. */
+  name: string;
+  type: 'boolean' | 'string';
+  /** Short alias for parseArgs, e.g. `h` for `--help`. */
+  short?: string;
+  /** True when completion hands the next word to the option as its value; the provenance declarations opt out because the shell offers their fixed values itself. */
+  takesValue?: boolean;
+  /** Commands whose synopsis lists the option; `all` (only `--help`) lists it everywhere, `none` (`--version`) lists it nowhere because the CLI answers it before dispatch. */
+  commands: readonly string[] | 'all' | 'none';
+}
+
 /**
- * Options each command accepts, spelled with their leading dashes. `--help` is
- * valid everywhere; the global `--version` never reaches a command because the
- * CLI handles it before dispatch.
+ * Every option the CLI declares, ordered so the derived per-command and
+ * value-option lists keep their long-standing shape; `as const` keeps the
+ * literal types parseArgs narrows on.
  */
-export const COMMAND_OPTIONS: Record<string, string[]> = {
-  init: ['--tools', '--workflows', '--help'],
-  propose: ['--help'],
-  note: ['--help'],
-  record: ['--raised-by', '--decided-by', '--help'],
-  implement: ['--raised-by', '--decided-by', '--help'],
-  reject: ['--reason', '--help'],
-  archive: ['--reason', '--help'],
-  supersede: ['--by', '--help'],
-  list: ['--help'],
-  relevant: ['--base', '--staged', '--help'],
-  show: ['--help'],
-  status: ['--help'],
-  instructions: ['--help'],
-  validate: ['--all', '--base', '--help'],
-  update: ['--tools', '--workflows', '--help'],
-  config: ['--help'],
-  graph: ['--mermaid', '--dot', '--text', '--html', '--formal-only', '--tag', '--out', '--help'],
-  tree: ['--mermaid', '--text', '--html', '--help'],
-  completion: ['--help'],
-  version: ['--help'],
-  help: ['--help'],
+export const OPTION_SPECS = [
+  { name: 'all', type: 'boolean', commands: ['validate'] },
+  { name: 'base', type: 'string', takesValue: true, commands: ['relevant', 'validate'] },
+  { name: 'staged', type: 'boolean', commands: ['relevant'] },
+  { name: 'raised-by', type: 'string', commands: ['record', 'implement'] },
+  { name: 'decided-by', type: 'string', commands: ['record', 'implement'] },
+  { name: 'by', type: 'string', takesValue: true, commands: ['supersede'] },
+  { name: 'reason', type: 'string', takesValue: true, commands: ['reject', 'archive'] },
+  { name: 'mermaid', type: 'boolean', commands: ['graph', 'tree'] },
+  { name: 'dot', type: 'boolean', commands: ['graph'] },
+  { name: 'text', type: 'boolean', commands: ['graph', 'tree'] },
+  { name: 'html', type: 'boolean', commands: ['graph', 'tree'] },
+  { name: 'formal-only', type: 'boolean', commands: ['graph'] },
+  { name: 'tag', type: 'string', takesValue: true, commands: ['graph'] },
+  { name: 'tools', type: 'string', takesValue: true, commands: ['init', 'update'] },
+  { name: 'workflows', type: 'string', takesValue: true, commands: ['init', 'update'] },
+  { name: 'out', type: 'string', takesValue: true, commands: ['graph'] },
+  { name: 'help', type: 'boolean', short: 'h', commands: 'all' },
+  { name: 'version', type: 'boolean', short: 'V', commands: 'none' },
+] as const satisfies readonly OptionSpec[];
+
+type SpecByName = { [S in (typeof OPTION_SPECS)[number] as S['name']]: S };
+
+/** The parseArgs declaration shape the spec table implies: booleans default to false, strings stay optional. */
+export type ParseArgsOptionsShape = {
+  [K in keyof SpecByName]: SpecByName[K]['type'] extends 'boolean'
+    ? { type: 'boolean'; short?: string; default: false }
+    : { type: 'string'; short?: string };
 };
+
+/**
+ * The parseArgs option declaration `src/cli.ts` parses with, built from the
+ * spec table.
+ */
+export function parseArgsOptions(): ParseArgsOptionsShape {
+  const options: Record<string, { type: 'boolean' | 'string'; short?: string; default?: false }> = {};
+  for (const spec of OPTION_SPECS as readonly OptionSpec[]) {
+    const entry: { type: 'boolean' | 'string'; short?: string; default?: false } = { type: spec.type };
+    if (spec.short !== undefined) entry.short = spec.short;
+    if (spec.type === 'boolean') entry.default = false;
+    options[spec.name] = entry;
+  }
+  return options as ParseArgsOptionsShape;
+}
+
+/**
+ * Options each command accepts, spelled with their leading dashes, derived
+ * from the spec table: `--help` is valid everywhere, and the global
+ * `--version` never reaches a command because the CLI handles it before
+ * dispatch.
+ */
+export const COMMAND_OPTIONS: Record<string, string[]> = Object.fromEntries(
+  COMMANDS.map((command) => [
+    command as string,
+    OPTION_SPECS
+      .filter((spec) =>
+        spec.commands === 'all' ||
+        (spec.commands !== 'none' && (spec.commands as readonly string[]).includes(command)))
+      .map((spec) => `--${spec.name}`),
+  ]),
+);
 
 /**
  * Options that consume the following word as their value. Declaring them as
  * valueless would make every shell treat them as flags, so completion would
  * repeat the option list where the CLI expects free text.
  */
-export const VALUE_OPTIONS = ['--base', '--by', '--reason', '--tag', '--tools', '--workflows', '--out'] as const;
+export const VALUE_OPTIONS: readonly string[] = (OPTION_SPECS as readonly OptionSpec[])
+  .filter((spec) => spec.takesValue === true)
+  .map((spec) => `--${spec.name}`);
 
 export function takesValue(option: string): boolean {
-  return (VALUE_OPTIONS as readonly string[]).includes(option);
+  return VALUE_OPTIONS.includes(option);
 }
 
 /** Options supplied for a `command` that its synopsis does not list. */

@@ -1,4 +1,4 @@
-import { CANVAS_GROUND } from './share.js';
+import { CANVAS_GROUND } from './view-text.js';
 
 /** Inline assets for the offline tree viewer. No network or runtime dependency. */
 export const TREE_STYLE = String.raw`

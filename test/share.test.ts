@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { TREE_STYLE } from '../src/core/deliberation-view.js';
 import { MAP_STYLE } from '../src/core/graph-view.js';
+import { CANVAS_GROUND } from '../src/core/view-text.js';
 import {
-  CAMERA_ICON, CANVAS_GROUND, GITHUB_MARK_PATH, SHARE_BUTTON_HTML, SHARE_SCRIPT, SHARE_STYLE, SHARE_WATERMARK,
+  CAMERA_ICON, GITHUB_MARK_PATH, SHARE_BUTTON_HTML, SHARE_SCRIPT, SHARE_STYLE, SHARE_WATERMARK,
 } from '../src/core/share.js';
 
 describe('canvas ground', () => {

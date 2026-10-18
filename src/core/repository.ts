@@ -20,14 +20,15 @@ export interface InitResult {
 }
 
 function initConfig(tools: string[], workflows?: string[]): string {
-  // 列表的空格必须与 writeListConfig 里 yaml 库的发射格式逐字节一致
-  // （`[ a, b ]`，空为 `[]`），否则裸 update 会把 init 写的 config 重排一遍。
+  // The list spacing must match the yaml library's own emission byte for byte
+  // (`[ a, b ]`, empty as `[]`), or a bare `adrkit update` would reformat the
+  // config init wrote; test/integrations.test.ts holds the two emitters to it.
   const list = (values: string[]): string =>
     values.length === 0 ? '[]' : `[ ${values.join(', ')} ]`;
-  // tools 始终作为顶层键输出：全注释的 YAML 文档会被解析为空，
-  // readConfig 的 isMap 检查会报 "top-level value must be a mapping"。
+  // `tools` is always written as a top-level key: a fully commented-out YAML
+  // document parses to null, and readConfig's mapping check would reject it.
   const toolsYaml = `tools: ${list(tools)}\n`;
-  // workflows 仅在选择子集时输出：缺省即全部。
+  // `workflows` is written only when a subset was chosen: absent means all.
   const workflowsYaml =
     workflows === undefined ? '' : `\n# Workflow subset written by adrkit init --workflows.\nworkflows: ${list(workflows)}\n`;
   return `# ADR Kit configuration
@@ -214,6 +215,22 @@ function listRecordsForResolve(root: string, needle: string): AdrRecord[] {
   return records;
 }
 
+/**
+ * The single candidate a query must resolve to, or the matching error: zero
+ * candidates name the label that has none, several name every match so the
+ * caller can disambiguate.
+ */
+function exactlyOne(root: string, query: string, candidates: AdrRecord[], label: string): AdrRecord {
+  if (candidates.length === 0) {
+    throw new Error(`no ${label} matches "${query}"`);
+  }
+  if (candidates.length > 1) {
+    const paths = candidates.map((record) => relative(root, record.path)).join(', ');
+    throw new Error(`"${query}" is ambiguous; matches: ${paths}`);
+  }
+  return candidates[0]!;
+}
+
 export function resolveRecord(root: string, query: string): AdrRecord {
   const needle = query.trim();
   let records: AdrRecord[];
@@ -239,19 +256,7 @@ export function resolveRecord(root: string, query: string): AdrRecord {
     }
     return false;
   });
-
-  if (candidates.length === 0) {
-    throw new Error(`no ADR matches "${query}"`);
-  }
-  if (candidates.length > 1) {
-    const paths = candidates.map((record) => relative(root, record.path)).join(', ');
-    throw new Error(`"${query}" is ambiguous; matches: ${paths}`);
-  }
-  const first = candidates[0];
-  if (first === undefined) {
-    throw new Error(`no ADR matches "${query}"`);
-  }
-  return first;
+  return exactlyOne(root, query, candidates, 'ADR');
 }
 
 export function nextDecisionNumber(root: string): number {
@@ -289,14 +294,7 @@ export function resolveProposed(root: string, query: string): AdrRecord {
     (fileNameMatchesQuery(record.fileName, needle) ||
       record.title === needle ||
       `# ADR: ${record.title}` === needle));
-  if (candidates.length === 0) {
-    throw new Error(`no proposal matches "${query}"`);
-  }
-  if (candidates.length > 1) {
-    const paths = candidates.map((record) => relative(root, record.path)).join(', ');
-    throw new Error(`"${query}" is ambiguous; matches: ${paths}`);
-  }
-  return candidates[0]!;
+  return exactlyOne(root, query, candidates, 'proposal');
 }
 
 export function readRecord(record: AdrRecord): string {
@@ -312,7 +310,6 @@ export function displayName(record: AdrRecord): string {
 }
 
 export function relativePath(record: AdrRecord): string {
-  // 始终输出 POSIX 风格路径：CLI 输出是用户可见文本，Windows 上也要
-  // CLI paths remain POSIX-style on every host.
+  // CLI output is user-visible text: paths stay POSIX-style on every host.
   return posix.join(ADR_DIR, record.folder, basename(record.path));
 }

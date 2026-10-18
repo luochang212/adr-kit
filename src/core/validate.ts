@@ -18,7 +18,7 @@ import {
   parseArchiveManifest,
   readArchiveManifest,
   sealedDisplayPath,
-  sealBytes,
+  sealProblem,
 } from './archive-seal.js';
 import { ADR_DIR, CONFIG_FILE, inspectConfig } from './config.js';
 import { gitRefExists, gitShow } from './git.js';
@@ -289,7 +289,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
       if (record.archived !== record.date) {
         issues.push({ path, message: 'archived date must match the latest lifecycle date' });
       }
-      if (record.archived < record.created! || record.archived < record.date) {
+      if (record.archived < record.date || (record.created !== undefined && record.archived < record.created)) {
         issues.push({ path, message: 'archived date must not precede creation or lifecycle date' });
       }
     }
@@ -454,15 +454,16 @@ export function archiveSealIssues(root: string): ValidationIssue[] {
 
   const sealed = new Set(entries.map((entry) => entry.path));
   for (const entry of entries) {
-    const filePath = archivedRecordPath(root, entry.path);
-    if (!existsSync(filePath)) {
+    const problem = sealProblem(entry, (fileName) => {
+      const filePath = archivedRecordPath(root, fileName);
+      return existsSync(filePath) ? readFileSync(filePath) : undefined;
+    });
+    if (problem === 'missing') {
       issues.push({
         path: sealedDisplayPath(entry.path),
         message: 'the manifest seals this file, but it does not exist in archived/',
       });
-      continue;
-    }
-    if (sealBytes(readFileSync(filePath)) !== entry.sha256) {
+    } else if (problem === 'mismatch') {
       issues.push({
         path: sealedDisplayPath(entry.path),
         message: 'archived bytes no longer match the seal recorded in the manifest',
@@ -516,8 +517,7 @@ export function recordSealIssues(root: string, record: AdrRecord): ValidationIss
       },
     ];
   }
-  const bytes = readFileSync(record.path);
-  if (sealBytes(bytes) !== seal.sha256) {
+  if (sealProblem(seal, () => readFileSync(record.path)) === 'mismatch') {
     return [
       {
         path: relative(root, record.path),
@@ -569,15 +569,14 @@ export function validateRepositoryWithBase(root: string, baseRef: string): Valid
   }
 
   for (const entry of baseEntries) {
-    const baseBytes = gitShow(root, baseRef, `${ADR_DIR}/${ARCHIVED_DIR}/${entry.path}`);
-    if (baseBytes === undefined) {
+    const problem = sealProblem(entry, (fileName) =>
+      gitShow(root, baseRef, `${ADR_DIR}/${ARCHIVED_DIR}/${fileName}`));
+    if (problem === 'missing') {
       issues.push({
         path: sealedDisplayPath(entry.path),
         message: `sealed file is missing at base ${baseRef}`,
       });
-      continue;
-    }
-    if (sealBytes(baseBytes) !== entry.sha256) {
+    } else if (problem === 'mismatch') {
       issues.push({
         path: sealedDisplayPath(entry.path),
         message: `archived bytes at base ${baseRef} do not match the base seal`,

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
 import { initCommand } from '../src/commands/init.js';
+import { OPTION_SPECS, parseArgsOptions } from '../src/core/cli-options.js';
 
 const tempDirs: string[] = [];
 let originalCwd: string;
@@ -82,5 +83,22 @@ describe('cli option handling', () => {
     main(['--help', '--decided-by', 'human']);
     expect(process.exitCode).toBeUndefined();
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Usage:'));
+  });
+});
+
+describe('the option spec table is the whole CLI surface', () => {
+  it('parseArgs declares exactly the spec options', () => {
+    expect(Object.keys(parseArgsOptions()).sort()).toEqual(
+      OPTION_SPECS.map((spec) => spec.name).sort(),
+    );
+  });
+
+  it('the help text spells out every spec option', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    main(['--help']);
+    const help = logSpy.mock.calls[0]?.[0] ?? '';
+    for (const spec of OPTION_SPECS) {
+      expect(help, `--${spec.name}`).toContain(`--${spec.name}`);
+    }
   });
 });

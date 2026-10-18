@@ -9,7 +9,7 @@ import { treeCommand } from '../src/commands/tree.js';
 import { initCommand } from '../src/commands/init.js';
 import { buildDecisionGraph } from '../src/core/graph.js';
 import { listRecords } from '../src/core/repository.js';
-import { CANVAS_GROUND } from '../src/core/share.js';
+import { CANVAS_GROUND } from '../src/core/view-text.js';
 import { slugify } from '../src/core/slug.js';
 
 const tempDirs: string[] = [];
@@ -747,8 +747,8 @@ describe('graph HTML map', () => {
     const html = graphCommand(root, { html: true });
     expect(html).toContain('data-adr="1" data-has-deliberation="false"');
     expect(html).toContain('data-adr="2" data-has-deliberation="true"');
-    expect(() => treeCommand('1', root, 'html')).toThrow(/no "## Deliberation" tree/);
-    expect(treeCommand('2', root, 'html')).toContain('<!doctype html>');
+    expect(() => treeCommand('1', root, { html: true })).toThrow(/no "## Deliberation" tree/);
+    expect(treeCommand('2', root, { html: true })).toContain('<!doctype html>');
   });
 
   it('exposes --html through main and rejects it beside another format', () => {

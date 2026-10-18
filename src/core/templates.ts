@@ -30,13 +30,15 @@ const DROPPED_SECTION_HEADINGS = PROPOSAL_ERA_HEADINGS.filter(
 );
 
 /**
- * 把 config.yaml 的 context 注入模板：放在标题块之后、第一个 section 之前。
- * 解析器忽略游离文本（current 为 null 时不收集），implement 的机械改写也会
- * 丢弃它。注释只在草案期可见，正是写作者需要项目上下文的时刻。
+ * Inject `adr/config.yaml`'s context into the template: after the title
+ * block, before the first section. The parser ignores loose text (nothing is
+ * collected while no section is open) and implement's mechanical rewrite
+ * drops it, so the comment is visible only while the record is a draft — the
+ * moment its writer needs the project context.
  */
 function contextBlock(context?: string | null): string {
   const text = context?.trim() ?? '';
-  // 空 context 不注入
+  // An empty context injects nothing.
   if (text.length === 0) return '';
   return `<!-- Project context (adr/config.yaml):
 ${text}

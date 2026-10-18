@@ -567,15 +567,15 @@ describe('treeCommand', () => {
   it('renders text, mermaid, and html for a record with a tree', () => {
     const root = makeRepo();
     writeRecord(root, BODY);
-    expect(treeCommand('1', root, 'text')).toContain('Q: Should a grilling session');
-    expect(treeCommand('1', root, 'mermaid')).toContain('graph TD');
-    expect(treeCommand('1', root, 'html')).toContain('<!doctype html>');
-    expect(treeCommand('1', root, 'html')).toContain('<h1>1 Use SQLite</h1>');
+    expect(treeCommand('1', root, { text: true })).toContain('Q: Should a grilling session');
+    expect(treeCommand('1', root, { mermaid: true })).toContain('graph TD');
+    expect(treeCommand('1', root, { html: true })).toContain('<!doctype html>');
+    expect(treeCommand('1', root, { html: true })).toContain('<h1>1 Use SQLite</h1>');
   });
 
   it('fails clearly when the record has no tree', () => {
     const root = makeRepo();
     writeRecord(root, 'no bullet list here');
-    expect(() => treeCommand('1', root, 'text')).toThrow('has no "## Deliberation" tree');
+    expect(() => treeCommand('1', root, { text: true })).toThrow('has no "## Deliberation" tree');
   });
 });

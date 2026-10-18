@@ -1,4 +1,4 @@
-import { CANVAS_GROUND } from './share.js';
+import { CANVAS_GROUND } from './view-text.js';
 
 /** Map-specific inline styles; the viewer shell is shared with the tree. */
 export const MAP_STYLE = String.raw`
