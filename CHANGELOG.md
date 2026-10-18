@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.20.0
+
+### Minor Changes
+
+- 847dc5e: Reject records outside the four lifecycle folders. Repository validation now fails an unknown folder under `adr/`, a record at the `adr/` root, and a nested folder inside `proposed/`, `implemented/`, `rejected/`, or `archived/`, so a misplaced record cannot disappear from `list` and `relevant`. Section parsing also ignores `##` headings inside fenced code blocks, so a documented example no longer becomes a duplicate section and fails validation for the wrong reason.
+- 847dc5e: Promote a proposal's acceptance criteria and risks into present-tense `### Verification` and `### Trade-offs` under `## Consequences` instead of the proposal-era `### Acceptance criteria` and `### Risks`; `adrkit implement` now warns that the folded content must be rewritten in the present tense. `adrkit validate` rejects the two old H3 names directly under Consequences in implemented records, while ignoring other sections, fenced code, HTML comments, proposals, rejections, and archived records. The five records carrying the old shape migrate in the same change. Existing records with the old shape fail validation; by decision, no compatibility path is carried — the real user is currently the maintainer, who renames the headings on upgrade.
+
 ## 0.19.1
 
 ### Patch Changes
