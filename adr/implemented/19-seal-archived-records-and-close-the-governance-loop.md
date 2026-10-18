@@ -9,6 +9,7 @@ tags: [archive-integrity, agent-integration, governance]
 paths:
   - adr/archived/**
   - src/core/archive-seal.ts
+  - src/core/retire.ts
   - src/commands/archive.ts
   - src/commands/supersede.ts
   - src/core/repository.ts
