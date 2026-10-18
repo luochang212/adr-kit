@@ -1,20 +1,11 @@
-import { existsSync, rmSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
-import {
-  appendSeal,
-  ARCHIVED_DIR,
-  driftedSeals,
-  MANIFEST_FILE,
-  readArchiveManifest,
-  sealBytes,
-  sourceRemovalFailure,
-  writeArchiveManifest,
-} from '../core/archive-seal.js';
 import { ADR_DIR, requireRoot } from '../core/config.js';
+import { ARCHIVED_DIR, MANIFEST_FILE } from '../core/archive-seal.js';
 import { formatIssues, validateRecord } from '../core/validate.js';
-import { folderPath, readRecord, removeRecord, resolveRecord, writeRecord } from '../core/repository.js';
-import { stampLifecycleMove } from '../core/templates.js';
+import { sealAndRetire } from '../core/retire.js';
+import { folderPath, resolveRecord } from '../core/repository.js';
 
 export function archiveCommand(query: string, reason: string, cwd: string): string {
   const root = requireRoot(cwd);
@@ -35,41 +26,15 @@ export function archiveCommand(query: string, reason: string, cwd: string): stri
   if (existsSync(join(folderPath(root, 'archived'), record.fileName))) {
     throw new Error(`archived record already exists: adr/archived/${record.fileName}`);
   }
-  // Preflight the manifest before anything moves: archiving appends exactly
-  // one seal, so a missing or malformed manifest fails while the record is
-  // still safely in implemented/. A duplicate seal would launder changed
-  // archived bytes, so it is refused the same way.
-  const manifest = readArchiveManifest(root);
-  if (manifest === undefined) {
-    throw new Error(
-      `missing ${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}; the archive manifest must exist before archiving`,
-    );
-  }
-  if (manifest.entries.some((entry) => entry.path === record.fileName)) {
-    throw new Error(`the archive manifest already seals adr/archived/${record.fileName}`);
-  }
-  const drift = driftedSeals(root, manifest);
-  if (drift.length > 0) {
-    throw new Error(`the archive is inconsistent; fix it before archiving:\n  ${drift.join('\n  ')}`);
-  }
-  const content = stampLifecycleMove(readRecord(record), {
-    date: todayStamp(),
-    archived: todayStamp(),
-    'archive-reason': reason.trim(),
-  });
-  writeRecord(root, 'archived', record.fileName, content);
-  try {
-    writeArchiveManifest(root, appendSeal(manifest, record.fileName, sealBytes(content)));
-  } catch (error) {
-    // Roll the staged archived file back: the active source must survive a
-    // failed seal so the move never half-happens.
-    rmSync(join(folderPath(root, 'archived'), record.fileName), { force: true });
-    throw error;
-  }
-  try {
-    removeRecord(record);
-  } catch (error) {
-    throw sourceRemovalFailure(record.path, join(folderPath(root, 'archived'), record.fileName), error);
-  }
+  sealAndRetire(
+    root,
+    record,
+    {
+      date: todayStamp(),
+      archived: todayStamp(),
+      'archive-reason': reason.trim(),
+    },
+    'archiving',
+  );
   return `archived adr/implemented/${record.fileName} as adr/archived/${record.fileName} and sealed it in ${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`;
 }

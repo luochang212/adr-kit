@@ -139,6 +139,21 @@ export function appendSeal(manifest: ArchiveManifest, fileName: string, sha256: 
 }
 
 /**
+ * The one predicate behind every seal check: read the bytes a sealed path
+ * names and compare them to the seal. `missing` when the reader cannot
+ * produce the bytes (filesystem or git), `mismatch` when the hash disagrees,
+ * undefined when the seal holds. Each caller words its own diagnostics.
+ */
+export function sealProblem(
+  entry: ArchiveSeal,
+  readBytes: (fileName: string) => string | Buffer | undefined,
+): 'missing' | 'mismatch' | undefined {
+  const bytes = readBytes(entry.path);
+  if (bytes === undefined) return 'missing';
+  return sealBytes(bytes) === entry.sha256 ? undefined : 'mismatch';
+}
+
+/**
  * Existing seals that no longer match their archived files. archive/supersede
  * preflight this so a drifted manifest is refused instead of compounded: the
  * design forbids re-sealing changed bytes, so appending on top of drift would
@@ -147,14 +162,14 @@ export function appendSeal(manifest: ArchiveManifest, fileName: string, sha256: 
 export function driftedSeals(root: string, manifest: ArchiveManifest): string[] {
   const problems: string[] = [];
   for (const entry of manifest.entries) {
-    const path = archivedRecordPath(root, entry.path);
-    if (!existsSync(path)) {
-      problems.push(`${sealedDisplayPath(entry.path)}: sealed in the manifest but missing from archived/`);
-      continue;
-    }
-    if (sealBytes(readFileSync(path)) !== entry.sha256) {
-      problems.push(`${sealedDisplayPath(entry.path)}: archived bytes no longer match the seal`);
-    }
+    const problem = sealProblem(entry, (fileName) => {
+      const path = archivedRecordPath(root, fileName);
+      return existsSync(path) ? readFileSync(path) : undefined;
+    });
+    if (problem === undefined) continue;
+    problems.push(problem === 'missing'
+      ? `${sealedDisplayPath(entry.path)}: sealed in the manifest but missing from archived/`
+      : `${sealedDisplayPath(entry.path)}: archived bytes no longer match the seal`);
   }
   return problems;
 }

@@ -1,21 +1,11 @@
-import { existsSync, rmSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
-import {
-  appendSeal,
-  ARCHIVED_DIR,
-  driftedSeals,
-  MANIFEST_FILE,
-  readArchiveManifest,
-  sealBytes,
-  sourceRemovalFailure,
-  writeArchiveManifest,
-} from '../core/archive-seal.js';
 import { requireRoot } from '../core/config.js';
 import { formatIssues, validateRecord } from '../core/validate.js';
 import { gitHead } from '../core/git.js';
-import { folderPath, readRecord, removeRecord, resolveRecord, writeRecord } from '../core/repository.js';
-import { stampLifecycleMove } from '../core/templates.js';
+import { sealAndRetire } from '../core/retire.js';
+import { folderPath, resolveRecord } from '../core/repository.js';
 
 export function supersedeCommand(query: string, byQuery: string, cwd: string): string {
   const root = requireRoot(cwd);
@@ -59,7 +49,6 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   if (recordIssues.length > 0) {
     throw new Error(`"${query}" is not valid; fix it before superseding:\n${formatIssues(recordIssues)}`);
   }
-  const original = readRecord(record);
   const patch: Record<string, string | number> = {
     status: 'superseded',
     date: todayStamp(),
@@ -69,34 +58,6 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   };
   const commit = gitHead(root);
   if (commit !== undefined) patch.commit = commit;
-  // Same preflight as archive: the manifest must be readable and must not
-  // already seal the retiring file, and both sides are checked before either
-  // file moves.
-  const manifest = readArchiveManifest(root);
-  if (manifest === undefined) {
-    throw new Error(
-      `missing adr/${ARCHIVED_DIR}/${MANIFEST_FILE}; the archive manifest must exist before superseding`,
-    );
-  }
-  if (manifest.entries.some((entry) => entry.path === record.fileName)) {
-    throw new Error(`the archive manifest already seals adr/archived/${record.fileName}`);
-  }
-  const drift = driftedSeals(root, manifest);
-  if (drift.length > 0) {
-    throw new Error(`the archive is inconsistent; fix it before superseding:\n  ${drift.join('\n  ')}`);
-  }
-  const content = stampLifecycleMove(original, patch);
-  writeRecord(root, 'archived', record.fileName, content);
-  try {
-    writeArchiveManifest(root, appendSeal(manifest, record.fileName, sealBytes(content)));
-  } catch (error) {
-    rmSync(join(folderPath(root, 'archived'), record.fileName), { force: true });
-    throw error;
-  }
-  try {
-    removeRecord(record);
-  } catch (error) {
-    throw sourceRemovalFailure(record.path, join(folderPath(root, 'archived'), record.fileName), error);
-  }
+  sealAndRetire(root, record, patch, 'superseding');
   return `superseded adr/implemented/${record.fileName} by adr/implemented/${replacement.fileName}; archived old record with a manifest seal`;
 }
