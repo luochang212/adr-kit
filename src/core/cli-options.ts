@@ -31,6 +31,8 @@ export const COMMANDS = [
   'help',
 ] as const;
 
+export type CommandName = (typeof COMMANDS)[number];
+
 export interface OptionSpec {
   /** Option name without its leading dashes, e.g. `decided-by`. */
   name: string;
@@ -39,8 +41,8 @@ export interface OptionSpec {
   short?: string;
   /** True when completion hands the next word to the option as its value; the provenance declarations opt out because the shell offers their fixed values itself. */
   takesValue?: boolean;
-  /** Commands whose synopsis lists the option; `all` (only `--help`) lists it everywhere, `none` (`--version`) lists it nowhere because the CLI answers it before dispatch. */
-  commands: readonly string[] | 'all' | 'none';
+  /** Commands whose synopsis lists the option; `all` (only `--help`) lists it everywhere, `none` (`--version`) lists it nowhere because the CLI answers it before dispatch. Members are constrained to `COMMANDS` so a misspelt command cannot silently drop the option. */
+  commands: readonly CommandName[] | 'all' | 'none';
 }
 
 /**
@@ -101,11 +103,11 @@ export function parseArgsOptions(): ParseArgsOptionsShape {
  */
 export const COMMAND_OPTIONS: Record<string, string[]> = Object.fromEntries(
   COMMANDS.map((command) => [
-    command as string,
+    command,
     OPTION_SPECS
-      .filter((spec) =>
+      .filter((spec: OptionSpec) =>
         spec.commands === 'all' ||
-        (spec.commands !== 'none' && (spec.commands as readonly string[]).includes(command)))
+        (spec.commands !== 'none' && spec.commands.includes(command)))
       .map((spec) => `--${spec.name}`),
   ]),
 );
@@ -115,8 +117,8 @@ export const COMMAND_OPTIONS: Record<string, string[]> = Object.fromEntries(
  * valueless would make every shell treat them as flags, so completion would
  * repeat the option list where the CLI expects free text.
  */
-export const VALUE_OPTIONS: readonly string[] = (OPTION_SPECS as readonly OptionSpec[])
-  .filter((spec) => spec.takesValue === true)
+export const VALUE_OPTIONS: readonly string[] = OPTION_SPECS
+  .filter((spec: OptionSpec) => spec.takesValue === true)
   .map((spec) => `--${spec.name}`);
 
 export function takesValue(option: string): boolean {

@@ -37,7 +37,7 @@ export function sealAndRetire(
   root: string,
   record: AdrRecord,
   patch: Record<string, string | number>,
-  verb: string,
+  verb: 'archiving' | 'superseding',
 ): void {
   const manifest = readArchiveManifest(root);
   if (manifest === undefined) {

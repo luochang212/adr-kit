@@ -104,8 +104,10 @@ over a patch rather than share the working tree.
 - The CLI surface lives in `src/core/cli-options.ts`: `COMMANDS` lists the
   commands and `OPTION_SPECS` declares every option, deriving the parseArgs
   declaration, the per-command rejection check, and the shell completion. Add a
-  command or option there and document it in `docs/cli.md`; keep
-  `src/commands/completion.ts` for the per-shell rendering.
+  command or option there, spell it in the `HELP` synopsis in `src/cli.ts`
+  (`test/cli.test.ts` holds each command's synopsis to the table), and document
+  it in `docs/cli.md`; keep `src/commands/completion.ts` for the per-shell
+  rendering.
 - Record files are YAML front matter plus a Markdown body. The parser and
   validator are the format contract; status and date live only in the
   front matter, never repeated in the body. Do not introduce a second

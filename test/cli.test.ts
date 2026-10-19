@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
 import { initCommand } from '../src/commands/init.js';
-import { OPTION_SPECS, parseArgsOptions } from '../src/core/cli-options.js';
+import { COMMANDS, COMMAND_OPTIONS, OPTION_SPECS, parseArgsOptions } from '../src/core/cli-options.js';
 
 const tempDirs: string[] = [];
 let originalCwd: string;
@@ -87,18 +87,42 @@ describe('cli option handling', () => {
 });
 
 describe('the option spec table is the whole CLI surface', () => {
+  function helpText(): string {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    main(['--help']);
+    return String(logSpy.mock.calls[0]?.[0] ?? '');
+  }
+
   it('parseArgs declares exactly the spec options', () => {
     expect(Object.keys(parseArgsOptions()).sort()).toEqual(
       OPTION_SPECS.map((spec) => spec.name).sort(),
     );
   });
 
-  it('the help text spells out every spec option', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    main(['--help']);
-    const help = logSpy.mock.calls[0]?.[0] ?? '';
-    for (const spec of OPTION_SPECS) {
-      expect(help, `--${spec.name}`).toContain(`--${spec.name}`);
+  it('each command synopsis lists exactly the options that command accepts', () => {
+    const help = helpText();
+    for (const command of COMMANDS) {
+      const line = help
+        .split('\n')
+        .find((candidate) => candidate.startsWith(`  adrkit ${command} `));
+      expect(line, `synopsis for ${command}`).toBeDefined();
+      // Whole option tokens only: a substring check would let --allow stand in
+      // for --all and hide a moved option.
+      const listed = line!.match(/--[a-z][a-z-]*/g) ?? [];
+      // --help is answered before dispatch and carries its own global line.
+      const accepted = (COMMAND_OPTIONS[command] ?? []).filter((option) => option !== '--help');
+      for (const option of accepted) {
+        expect(listed, `${command} must list ${option} in its synopsis`).toContain(option);
+      }
+      for (const option of listed) {
+        expect(accepted, `${command} lists ${option}, which the spec does not allow`).toContain(option);
+      }
     }
+  });
+
+  it('the global synopsis lines carry the short aliases', () => {
+    const help = helpText();
+    expect(help).toContain('adrkit -h, --help');
+    expect(help).toContain('adrkit -V, --version');
   });
 });
