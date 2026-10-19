@@ -122,6 +122,8 @@ describe('citation syntax', () => {
     expect(findCitations('@adrkit is not a citation')).toEqual([]);
     expect(findCitations(cite('N'))).toEqual([]);
     expect(findCitations(cite('14abc'))).toEqual([]);
+    // Zero is not a decision number, but it is still a citation worth rejecting.
+    expect(findCitations(cite(0))).toEqual([{ line: 1, numbers: [0] }]);
   });
 });
 
@@ -201,6 +203,23 @@ describe('citation validation', () => {
     writeSource(root, 'src/blob.ts', `${cite(99)}\n\0`);
     writeSource(root, 'adr/snippet.ts', `${cite(99)}\n`);
     expect(citationMessages(root)).toEqual([]);
+  });
+
+  it('skips dependency trees and the published site copy', () => {
+    const root = makeRepo();
+    writeSource(root, 'vendor/pkg/a.ts', `${cite(99)}\n`);
+    writeSource(root, '.venv/lib/a.py', `${cite(99)}\n`);
+    writeSource(root, 'Pods/Library/a.swift', `${cite(99)}\n`);
+    writeSource(root, 'site/src/i18n/ui.ts', `${cite(99)}\n`);
+    expect(citationMessages(root)).toEqual([]);
+  });
+
+  it('rejects a zero citation instead of dropping it', () => {
+    const root = makeRepo();
+    writeSource(root, 'src/a.ts', `${cite(0)}\n`);
+    expect(citationMessages(root)).toEqual([
+      expect.stringContaining('cites ADR 0, which does not exist'),
+    ]);
   });
 
   it('keeps the repository-wide scan out of single-record validation', () => {

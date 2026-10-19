@@ -42,7 +42,8 @@ Repository-wide validation also checks `@adr <number>` citations in code and
 configuration files. A citation must name an implemented decision whose `paths`
 cover the citing file; a citation to a missing, archived, or superseded decision
 fails and names the line and, for a superseded decision, its successor. Markdown
-is not scanned, and citations are optional: only the ones that exist are checked.
+and the root `site/` documentation copy are not scanned, and citations are
+optional: only the ones that exist are checked.
 
 ## Configuration type errors
 

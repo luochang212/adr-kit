@@ -64,7 +64,7 @@ adr/
 
 ## 告诉 Agent
 
-Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate --all` 失败。
+Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate` 失败。
 
 
 实际变更可用 `adrkit relevant --base <git-ref>` 检索指定提交到工作区的变化
@@ -148,7 +148,7 @@ implemented 记录可以更新路径、符号、默认值等已交付事实，�
 export function scope() { /* ... */ }
 ```
 
-`adrkit validate --all` 会扫描代码与配置文件（不扫描 Markdown）中的
+`adrkit validate` 会扫描代码与配置文件（不扫描 Markdown）中的
 `@adr <编号>`：记录不存在、已被替代（会报出替代者）、已归档，或引用文件不在该
 记录的 `paths` 内时校验失败。引用是可选的，只检查已经写下的那些；报错会给出
 行号，因此失效引用会让 CI 直接指出取代它的决策。

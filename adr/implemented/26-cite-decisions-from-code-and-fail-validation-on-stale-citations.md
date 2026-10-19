@@ -25,9 +25,9 @@ records pointed at files, and files pointed at nothing.
 ## Decision
 
 Code and configuration files cite the decision they follow with `@adr <number>`
-in a comment — `@adr 14` or `@adr 14, 22`. `adrkit validate --all` scans code and
-configuration files (not Markdown) outside `adr/`, dependency, and build
-directories, and fails when a citation:
+in a comment — `@adr 14` or `@adr 14, 22`. `adrkit validate` scans code and
+configuration files (not Markdown, not the root `site/` documentation copy)
+outside `adr/`, dependency, and build directories, and fails when a citation:
 
 - names a decision that does not exist;
 - names an archived decision;
@@ -67,6 +67,6 @@ stay silent — for the stated reason. The repository dogfoods the convention:
 A citation can rot, and fixing it requires touching the citing code; that is the
 point. A file outside a decision's `paths` now fails instead of passing
 silently, so a decision whose scope grows needs its `paths` updated in the same
-change. Scanning reads every code and configuration file on `validate --all`;
-dependencies and build output are skipped, and files over 1 MiB or containing a
-NUL byte are ignored.
+change. Scanning reads every code and configuration file on `validate`;
+dependency trees, build output, and the root `site/` documentation copy are
+skipped, and files over 1 MiB or containing a NUL byte are ignored.

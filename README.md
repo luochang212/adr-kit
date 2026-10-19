@@ -64,7 +64,7 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 ## Tell your agent
 
-Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. When a task targets specific files, `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern them. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code. When code implements a decision, cite it in a comment with `@adr <number>`; `adrkit validate --all` fails when the citation is stale.
+Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. When a task targets specific files, `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern them. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and resolve a full replacement with `adrkit supersede --by` in the same change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code. When code implements a decision, cite it in a comment with `@adr <number>`; `adrkit validate` fails when the citation is stale.
 
 
 For a change already in progress, use `adrkit relevant --base <git-ref>` for the
@@ -150,7 +150,7 @@ A code or configuration comment can point back at the decision it implements:
 export function scope() { /* ... */ }
 ```
 
-`adrkit validate --all` scans code and configuration files (not Markdown) for
+`adrkit validate` scans code and configuration files (not Markdown) for
 `@adr <number>` and fails when the citation names a missing decision, one that
 was superseded (naming the successor), or one that is archived, and when the
 citing file sits outside that decision's `paths`. Citations are optional and

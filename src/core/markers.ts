@@ -29,7 +29,12 @@ const SCANNED_EXTENSIONS = new Set([
 ]);
 
 /** Dependency and build trees never carry the repository's own citations. */
-const SKIPPED_DIRS = new Set(['.git', 'node_modules', 'dist', 'coverage', '.astro', '.next', 'target']);
+const SKIPPED_DIRS = new Set([
+  '.git', 'node_modules', 'dist', 'coverage', '.astro', '.next', 'target',
+  'vendor', 'third_party', 'Pods', 'bower_components',
+  '.venv', 'venv', '__pycache__', '.tox', '.mypy_cache', '.pytest_cache',
+  '.gradle', '.yarn',
+]);
 
 /** A generated or vendored file this large is not a place a person cites a decision. */
 const MAX_FILE_BYTES = 1024 * 1024;
@@ -48,7 +53,7 @@ export function findCitations(text: string): Citation[] {
     for (const match of line.matchAll(CITATION)) {
       for (const part of match[1]!.split(',')) {
         const number = Number(part.trim());
-        if (Number.isSafeInteger(number) && number > 0) numbers.add(number);
+        if (Number.isSafeInteger(number)) numbers.add(number);
       }
     }
     if (numbers.size > 0) {
@@ -126,7 +131,9 @@ function* scannedFiles(root: string): Generator<string> {
     for (const entry of entries) {
       const child = join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (dir === root && entry.name === ADR_DIR) continue;
+        // adr/ holds the records themselves; the root site/ is the published
+        // documentation surface, whose copy is prose like Markdown.
+        if (dir === root && (entry.name === ADR_DIR || entry.name === 'site')) continue;
         if (!SKIPPED_DIRS.has(entry.name)) queue.push(child);
         continue;
       }
