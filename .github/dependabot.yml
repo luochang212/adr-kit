@@ -25,7 +25,7 @@ updates:
           - patch
     ignore:
       # DefinitelyTyped publishes near-daily; patch/minor @types/node bumps
-      # dominated the weekly batch. Majors still land and realign the types.
+      # dominated every batch. Majors still land and realign the types.
       - dependency-name: "@types/node"
         update-types:
           - "version-update:semver-patch"
