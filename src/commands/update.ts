@@ -12,6 +12,7 @@ import {
   removeToolIntegrations,
   removeWorkflowIntegrations,
   staleIntegrationKeys,
+  standingOrdersDriftNote,
   standingOrdersNote,
   writeToolIntegrations,
 } from '../core/tool-integrations.js';
@@ -40,7 +41,9 @@ export function updateCommand(cwd: string, toolsValue?: string, workflowsValue?:
     lines.push(`  removed integrations for: ${removed.join(', ')}`);
   }
   lines.push(...integrationSummary(root, integrations));
-  const note = standingOrdersNote(root, integrations);
+  // The section note (missing) and the drift note (present but stale) are
+  // mutually exclusive: at most one describes AGENTS.md.
+  const note = standingOrdersNote(root, integrations) ?? standingOrdersDriftNote(root);
   if (note !== undefined) lines.push('', note);
   return lines.join('\n');
 }

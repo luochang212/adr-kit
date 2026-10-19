@@ -11,6 +11,7 @@ import { updateCommand } from '../src/commands/update.js';
 import { readConfig } from '../src/core/config.js';
 import {
   STANDING_ORDERS_HEADING,
+  STANDING_ORDERS_MARKER,
   STANDING_ORDERS_PURPOSE,
   STANDING_ORDERS_RULE,
   WORKFLOWS,
@@ -146,6 +147,42 @@ describe('initCommand tool integrations', () => {
     expect(config).toContain('agents');
     const output = updateCommand(root);
     expect(output).toContain(join('.agents', 'commands', 'adrkit-propose.md'));
+  });
+
+  it('update reports what each write actually did', () => {
+    // Blanket "created" lines read like an incident in a managed repository
+    // where nothing was created: the verb must reflect the write.
+    const root = makeTarget();
+    initCommand(root);
+    const unchanged = updateCommand(root);
+    expect(unchanged).toContain(
+      `unchanged ${join('.agents', 'skills', 'adrkit-propose', 'SKILL.md')}`,
+    );
+    expect(unchanged).not.toMatch(/^  created /m);
+    expect(unchanged).not.toMatch(/^  rewrote /m);
+
+    writeFileSync(join(root, '.agents', 'skills', 'adrkit-init', 'SKILL.md'), 'old installed skill');
+    const rewrote = updateCommand(root);
+    expect(rewrote).toContain(`rewrote ${join('.agents', 'skills', 'adrkit-init', 'SKILL.md')}`);
+    expect(rewrote).not.toMatch(/^  created /m);
+  });
+
+  it('init on a fresh target still reports created', () => {
+    const root = makeTarget();
+    const output = initCommand(root);
+    expect(output).toContain(`created ${join('.agents', 'skills', 'adrkit-propose', 'SKILL.md')}`);
+  });
+
+  it('the init workflow template carries the current standing-orders marker', () => {
+    // The marker is how AGENTS.md drift is detected; a template without it
+    // would leave every paste unmarked and the drift note permanently on.
+    const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
+    expect(initBody).toContain(STANDING_ORDERS_MARKER);
+    const root = makeTarget();
+    initCommand(root);
+    expect(readFileSync(join(root, '.agents', 'skills', 'adrkit-init', 'SKILL.md'), 'utf8')).toContain(
+      STANDING_ORDERS_MARKER,
+    );
   });
 
   it('removes the claude exception when it is no longer selected', () => {

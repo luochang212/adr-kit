@@ -21,4 +21,6 @@ Records cost time to write, read, and maintain, and stale records can mislead; r
 
 Record an ADR when an architectural choice constrains future work and its lasting rationale or genuine trade-offs are not adequately explained by code, tests, and existing documentation. A behavior change alone does not qualify. Record genuine alternatives and trade-offs, not invented template filler. A grilling session records every choice it settles, but unshipped outcomes remain proposals. Use `adrkit propose` for unshipped work, `adrkit implement` after it ships, and `adrkit record` for an already-shipped decision. `raised-by` declares who introduced the choice; `decided-by` declares whose judgment settled it. The CLI neither infers nor verifies shipping or provenance.
 
+<!-- adrkit: standing-orders fb81d001 -->
+
 After installation, continue the original task; initializing ADR Kit is not itself a reason to create a record.

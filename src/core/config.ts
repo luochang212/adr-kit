@@ -237,3 +237,9 @@ export function installedWithNotice(
 export function withNotice(output: string, notice: string | undefined): string {
   return notice === undefined ? output : `${output}\n\n${notice}`;
 }
+
+/** Join the present notices into one block for {@link withNotice}; quiet when none. */
+export function joinNotices(notices: (string | undefined)[]): string | undefined {
+  const present = notices.filter((note): note is string => note !== undefined);
+  return present.length === 0 ? undefined : present.join('\n');
+}

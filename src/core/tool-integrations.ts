@@ -1,9 +1,18 @@
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
+
+/**
+ * What a write did to the file: `created` when it did not exist, `rewrote`
+ * when it existed with different content, `unchanged` when the content was
+ * already byte-identical.
+ */
+export type IntegrationOutcome = 'created' | 'rewrote' | 'unchanged';
 
 export interface ToolIntegration {
   tool: string;
   path: string;
+  outcome: IntegrationOutcome;
 }
 
 /**
@@ -42,6 +51,45 @@ export interface Workflow {
 export const STANDING_ORDERS_PURPOSE =
   '`adr/` exists because agents over-focus on the current task and forget settled decisions: reading it at task start counters the drift, and recording when a choice settles counters the forgetting.';
 
+/** Heading of the standing-orders section the init workflow asks agents to paste. */
+export const STANDING_ORDERS_HEADING = '## Reading architecture decisions';
+
+/**
+ * The canonical section body between the heading and the marker: what an agent
+ * pastes into AGENTS.md and reconciles when the template changes.
+ */
+const STANDING_ORDERS_BODY = `${STANDING_ORDERS_PURPOSE} At the start of a coding, design, or review task, if \`adr/\` exists, run \`adrkit list\`. The four folders are a context budget: read the relevant \`implemented/\` records in full with \`adrkit show <N>\` or their files; check the relevant \`proposed/\` records for intent and the relevant \`rejected/\` records for the bad cases they warn against (a rejection is durable: it leaves only when another record owns its warning); treat \`archived/\` as frozen history and read it only when a task explicitly cites it. Do not judge relevance by title alone: inspect tags, paths, relationships, and task scope; when a task targets specific files, \`adrkit relevant <path>\` retrieves the records whose \`paths:\` scopes govern them. For actual Git changes, use \`adrkit relevant --base <review-base>\` or \`adrkit relevant --staged\`; supplement scope matches with inventory reading for unscoped decisions and resolve incomplete-search diagnostics. Compare constraints with current code; explain conflicts or changed assumptions before choosing a different approach. Mention relevant ADR numbers and verify affected behavior. Re-read on a new or resumed task, or when scope changes. Read a \`## Deliberation\` appendix only when its decision is in play.
+
+Before creating a record, compare it with the active records covering the same choice or mechanism: extend a duplicate, fully replace through \`adrkit supersede --by\` in the same change, or link a partial overlap while the older record stays active. When shipping or reviewing, keep each active record's realization facts — paths, names, defaults — aligned with shipped code; a changed choice is a new record with an explicit relationship, not a rewrite of old rationale. Archived records are sealed in \`adr/archived/MANIFEST.json\`, never edited, and not read by default.
+
+Records cost time to write, read, and maintain, and stale records can mislead; record only when preserving the rationale is worth that cost. For example, routing all writes through one boundary to preserve validation and auditing can merit an ADR: a later direct write may look locally correct while bypassing those guarantees. Routine fixes and local renames usually need none when code and tests adequately explain them.
+
+Record an ADR when an architectural choice constrains future work and its lasting rationale or genuine trade-offs are not adequately explained by code, tests, and existing documentation. A behavior change alone does not qualify. Record genuine alternatives and trade-offs, not invented template filler. A grilling session records every choice it settles, but unshipped outcomes remain proposals. Use \`adrkit propose\` for unshipped work, \`adrkit implement\` after it ships, and \`adrkit record\` for an already-shipped decision. \`raised-by\` declares who introduced the choice; \`decided-by\` declares whose judgment settled it. The CLI neither infers nor verifies shipping or provenance.`;
+
+/**
+ * Fingerprint of the canonical section body. The marker is derived, never
+ * hand-assigned: editing the wording changes the fingerprint, so a section
+ * pasted from an older template automatically reads as stale — there is no
+ * revision number to forget to bump.
+ */
+export const STANDING_ORDERS_MARK = createHash('sha256')
+  .update(STANDING_ORDERS_BODY)
+  .digest('hex')
+  .slice(0, 8);
+
+/** The marker line the pasted section and the template carry verbatim. */
+export const STANDING_ORDERS_MARKER = `<!-- adrkit: standing-orders ${STANDING_ORDERS_MARK} -->`;
+
+/**
+ * The canonical standing-orders section — heading through marker — that the
+ * init workflow asks agents to paste into AGENTS.md. The trailing marker
+ * declares the section was reconciled with this template generation; it
+ * survives translation because it is a comment, not prose.
+ */
+export function standingOrdersSection(): string {
+  return `${STANDING_ORDERS_HEADING}\n\n${STANDING_ORDERS_BODY}\n\n${STANDING_ORDERS_MARKER}`;
+}
+
 // The bodies mirror skills/<name>/SKILL.md one-to-one; the sync is
 // machine-checked in test/integrations.test.ts.
 export const WORKFLOWS: Workflow[] = [
@@ -56,15 +104,7 @@ Run \`adrkit init [path]\` for a new repository, or \`adrkit update\` if \`adr/\
 
 Add or update this section in \`AGENTS.md\`:
 
-## Reading architecture decisions
-
-${STANDING_ORDERS_PURPOSE} At the start of a coding, design, or review task, if \`adr/\` exists, run \`adrkit list\`. The four folders are a context budget: read the relevant \`implemented/\` records in full with \`adrkit show <N>\` or their files; check the relevant \`proposed/\` records for intent and the relevant \`rejected/\` records for the bad cases they warn against (a rejection is durable: it leaves only when another record owns its warning); treat \`archived/\` as frozen history and read it only when a task explicitly cites it. Do not judge relevance by title alone: inspect tags, paths, relationships, and task scope; when a task targets specific files, \`adrkit relevant <path>\` retrieves the records whose \`paths:\` scopes govern them. For actual Git changes, use \`adrkit relevant --base <review-base>\` or \`adrkit relevant --staged\`; supplement scope matches with inventory reading for unscoped decisions and resolve incomplete-search diagnostics. Compare constraints with current code; explain conflicts or changed assumptions before choosing a different approach. Mention relevant ADR numbers and verify affected behavior. Re-read on a new or resumed task, or when scope changes. Read a \`## Deliberation\` appendix only when its decision is in play.
-
-Before creating a record, compare it with the active records covering the same choice or mechanism: extend a duplicate, fully replace through \`adrkit supersede --by\` in the same change, or link a partial overlap while the older record stays active. When shipping or reviewing, keep each active record's realization facts — paths, names, defaults — aligned with shipped code; a changed choice is a new record with an explicit relationship, not a rewrite of old rationale. Archived records are sealed in \`adr/archived/MANIFEST.json\`, never edited, and not read by default.
-
-Records cost time to write, read, and maintain, and stale records can mislead; record only when preserving the rationale is worth that cost. For example, routing all writes through one boundary to preserve validation and auditing can merit an ADR: a later direct write may look locally correct while bypassing those guarantees. Routine fixes and local renames usually need none when code and tests adequately explain them.
-
-Record an ADR when an architectural choice constrains future work and its lasting rationale or genuine trade-offs are not adequately explained by code, tests, and existing documentation. A behavior change alone does not qualify. Record genuine alternatives and trade-offs, not invented template filler. A grilling session records every choice it settles, but unshipped outcomes remain proposals. Use \`adrkit propose\` for unshipped work, \`adrkit implement\` after it ships, and \`adrkit record\` for an already-shipped decision. \`raised-by\` declares who introduced the choice; \`decided-by\` declares whose judgment settled it. The CLI neither infers nor verifies shipping or provenance.
+${standingOrdersSection()}
 
 After installation, continue the original task; initializing ADR Kit is not itself a reason to create a record.`,
   },
@@ -284,12 +324,21 @@ ${workflow.body}
 `;
 }
 
+/** Write one integration file and report what the write actually did. */
+function writeIntegrationFile(path: string, content: string, tool: string): ToolIntegration {
+  const previous = existsSync(path) ? readFileSync(path, 'utf8') : undefined;
+  writeFileSync(path, content);
+  const outcome: IntegrationOutcome =
+    previous === undefined ? 'created' : previous === content ? 'unchanged' : 'rewrote';
+  return { tool, path, outcome };
+}
+
 export function writeToolIntegrations(
   root: string,
   tools: IntegrationTarget[],
   workflows: string[] = WORKFLOW_NAMES,
 ): ToolIntegration[] {
-  const created: ToolIntegration[] = [];
+  const written: ToolIntegration[] = [];
   const selected = WORKFLOWS.filter((workflow) =>
     workflows.includes(workflow.name.replace(/^adrkit-/, '')),
   );
@@ -299,27 +348,28 @@ export function writeToolIntegrations(
     for (const workflow of selected) {
       const fileName = `${workflow.name}.md`;
       const path = join(root, dirs.commands, fileName);
-      writeFileSync(
-        path,
-        `---
+      written.push(
+        writeIntegrationFile(
+          path,
+          `---
 description: ${workflow.description}
 ---
 
 ${workflow.body}
 `,
+          tool,
+        ),
       );
-      created.push({ tool, path });
     }
     if (dirs.skills !== undefined) {
       for (const workflow of selected) {
         const skillPath = join(root, dirs.skills, workflow.name, 'SKILL.md');
         mkdirSync(dirname(skillPath), { recursive: true });
-        writeFileSync(skillPath, skillFrontmatter(workflow));
-        created.push({ tool, path: skillPath });
+        written.push(writeIntegrationFile(skillPath, skillFrontmatter(workflow), tool));
       }
     }
   }
-  return created;
+  return written;
 }
 
 function removeEmptyDir(dir: string): void {
@@ -406,12 +456,9 @@ export function removeWorkflowIntegrations(
   }
 }
 
-export function integrationSummary(root: string, created: ToolIntegration[]): string[] {
-  return created.map((item) => `  created ${relative(root, item.path)} (${item.tool})`);
+export function integrationSummary(root: string, written: ToolIntegration[]): string[] {
+  return written.map((item) => `  ${item.outcome} ${relative(root, item.path)} (${item.tool})`);
 }
-
-/** Heading of the standing-orders section the init workflow asks agents to paste. */
-export const STANDING_ORDERS_HEADING = '## Reading architecture decisions';
 
 /**
  * A distinctive sentence from the section body. The init workflow allows an
@@ -458,10 +505,25 @@ export function standingOrdersFile(root: string): string | undefined {
 }
 
 /**
+ * Where to refresh the standing orders from: the installed init skill when
+ * integrations are present, the README otherwise. Names a source; never a
+ * rewrite.
+ */
+function initSkillReference(root: string): string {
+  for (const key of Object.keys(TARGET_DIRS) as IntegrationTarget[]) {
+    const skills = TARGET_DIRS[key].skills;
+    if (skills === undefined) continue;
+    const path = join(root, skills, 'adrkit-init', 'SKILL.md');
+    if (existsSync(path)) return relative(root, path);
+  }
+  return 'the adrkit-init workflow (see the adr-kit README)';
+}
+
+/**
  * The note for init/update output when no instruction file carries the
  * standing orders. Integration files being installed is what makes the
  * paste step meaningful, so an empty selection (an explicit `--tools none`
- * opt-out) stays quiet. The pointer is derived from what was actually
+ * opt-out) stays quiet. The pointer is derived from what is actually
  * installed: a `--workflows` subset without the init workflow cannot name a
  * file that does not exist.
  */
@@ -471,15 +533,37 @@ export function standingOrdersNote(
 ): string | undefined {
   if (integrations.length === 0) return undefined;
   if (standingOrdersFile(root) !== undefined) return undefined;
-  const initSkill = integrations.find((item) =>
-    item.path.endsWith(join('adrkit-init', 'SKILL.md')),
-  );
-  const source = initSkill
-    ? `step 4 of ${relative(root, initSkill.path)}`
-    : 'step 4 of the adrkit-init workflow (see the adr-kit README)';
   return [
     'note: AGENTS.md does not carry the standing orders, so agents will not read',
     '  adr/ at task start. Paste the "Reading architecture decisions" section',
-    `  from ${source} into AGENTS.md.`,
+    `  from step 4 of ${initSkillReference(root)} into AGENTS.md.`,
   ].join('\n');
+}
+
+/** The marker an AGENTS.md section carries when reconciled with a template. */
+const STANDING_ORDERS_MARKER_RE = /<!--\s*adrkit:\s*standing-orders\s+([0-9a-f]+)\s*-->/;
+
+/**
+ * The drift note for a standing-orders section whose marker does not match
+ * the current template: pasted from a different template generation, or
+ * pasted before the marker existed. Reading only — the file belongs to the
+ * user, and the note names the refresh source instead of rewriting anything.
+ * Quiet when AGENTS.md carries no section (the missing-section note owns
+ * that case) or when the marker matches the shipped template.
+ */
+export function standingOrdersDriftNote(root: string): string | undefined {
+  if (standingOrdersFile(root) === undefined) return undefined;
+  let text: string;
+  try {
+    text = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+  } catch {
+    return undefined;
+  }
+  const source = `step 4 of ${initSkillReference(root)}`;
+  const match = STANDING_ORDERS_MARKER_RE.exec(text);
+  if (match === null) {
+    return `note: the standing orders in AGENTS.md predate template marking; compare the section with ${source} and refresh it with the current marker`;
+  }
+  if (match[1] === STANDING_ORDERS_MARK) return undefined;
+  return `note: the standing orders in AGENTS.md were pasted from a different template than this adr-kit ships; compare the section with ${source} and refresh the marker`;
 }

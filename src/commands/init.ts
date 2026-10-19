@@ -4,6 +4,7 @@ import {
   integrationSummary,
   parseTools,
   parseWorkflows,
+  standingOrdersDriftNote,
   standingOrdersNote,
   writeToolIntegrations,
 } from '../core/tool-integrations.js';
@@ -22,7 +23,7 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
   const lines = created.map((path) => `  created ${path}`);
   const integrations = writeToolIntegrations(root, tools, workflows);
   writeInstalledWithConfig(root, VERSION);
-  const note = standingOrdersNote(root, integrations);
+  const note = standingOrdersNote(root, integrations) ?? standingOrdersDriftNote(root);
   return [
     `ADR Kit initialized at ${root}`,
     ...lines,

@@ -61,6 +61,8 @@ recording one they made earlier — `agent` when it came from the agent's own
 judgment, including when a person only let it through. The CLI neither infers
 nor verifies it.
 
+<!-- adrkit: standing-orders fb81d001 -->
+
 ## Commands
 
 ```sh

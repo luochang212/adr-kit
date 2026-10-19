@@ -1,7 +1,8 @@
-import { ADR_DIR, CONFIG_FILE, findRoot, installedWithNotice, readConfigSafe, withNotice } from '../core/config.js';
+import { ADR_DIR, CONFIG_FILE, findRoot, installedWithNotice, joinNotices, readConfigSafe, withNotice } from '../core/config.js';
 import { listRecords } from '../core/repository.js';
 import { formatIssues, validateRecord, validateRepository } from '../core/validate.js';
 import { unshapedNotesLine } from '../core/notes.js';
+import { standingOrdersDriftNote } from '../core/tool-integrations.js';
 import { VERSION } from '../version.js';
 
 // The one-line purpose anchor for the check-in moment: an agent glancing at
@@ -15,7 +16,10 @@ export function instructionsCommand(cwd: string): string {
     return 'No ADR Kit repository found.\n\nNext:\n  adrkit init';
   }
   const config = readConfigSafe(root);
-  const notice = config === undefined ? undefined : installedWithNotice(config, VERSION);
+  const notice = joinNotices([
+    config === undefined ? undefined : installedWithNotice(config, VERSION),
+    standingOrdersDriftNote(root),
+  ]);
   const issues = validateRepository(root);
   // Every reachable output of this command opens with the purpose anchor, not
   // only the happy paths: an agent fixing issues needs the same re-binding.

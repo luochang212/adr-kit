@@ -62,6 +62,10 @@ adr/
 
 未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号、不入封存）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都会把归档文件封存进 `adr/archived/MANIFEST.json`；`adrkit validate` 检查封存，`adrkit validate --base <git-ref>` 证明归档只增不改。
 
+## 升级
+
+ADR Kit 尚未稳定，升级可能有意变更记录格式或命令面，不带兼容路径。升级后先运行 `adrkit update` 刷新已安装集成，再在你的仓库运行 `adrkit validate --all`——校验错误会直接指出修复方法。`AGENTS.md` 中的常设指令段归你所有；当它粘贴自与当前 CLI 所带不同的模板时，`adrkit list` 会打印提示。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。
+
 ## 告诉 Agent
 
 Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，完整替代在同一次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate` 失败。
