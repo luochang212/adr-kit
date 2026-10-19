@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.21.0
+
+### Minor Changes
+
+- 3334592: Add `@adr <number>` citations in code and configuration files. `adrkit validate` now fails when a citation names a missing, archived, or superseded decision (naming the successor), or when the citing file sits outside that decision's `paths`. Citations are optional; Markdown and the root `site/` documentation copy are not scanned.
+
 ## 0.20.0
 
 ### Minor Changes
