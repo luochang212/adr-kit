@@ -20,6 +20,7 @@ import {
 } from './repository.js';
 import { stampLifecycleMove } from './templates.js';
 
+// @adr 19 — this module is the retirement boundary that record's seal guarantee owns.
 /**
  * The one retirement boundary `archive` and `supersede` both move through:
  * preflight the manifest, stage the stamped record in archived/, append its

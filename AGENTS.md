@@ -108,6 +108,10 @@ over a patch rather than share the working tree.
   (`test/cli.test.ts` holds each command's synopsis to the table), and document
   it in `docs/cli.md`; keep `src/commands/completion.ts` for the per-shell
   rendering.
+- Code and configuration may cite the decision they follow with `@adr N`
+  (`@adr 14, 22`). `adrkit validate --all` fails when a citation names a missing,
+  archived, or superseded decision, or a file outside that decision's `paths`.
+  Markdown is not scanned, and citations are optional.
 - Record files are YAML front matter plus a Markdown body. The parser and
   validator are the format contract; status and date live only in the
   front matter, never repeated in the body. Do not introduce a second

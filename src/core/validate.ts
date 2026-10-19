@@ -23,6 +23,7 @@ import {
 import { ADR_DIR, CONFIG_FILE, inspectConfig } from './config.js';
 import { gitRefExists, gitShow } from './git.js';
 import { staticPrefix } from './glob.js';
+import { citationIssues } from './markers.js';
 import { FOLDERS, listRecords } from './repository.js';
 
 export interface ValidationIssue {
@@ -404,6 +405,10 @@ export function validateRepository(root: string): ValidationIssue[] {
     issues.push(...supersedeReferenceIssues(root, record, decisionRecords));
     issues.push(...danglingReferenceIssues(relative(root, record.path), record, decisionRecords));
   }
+
+  // Code citations cross file and record boundaries, so they are a corpus
+  // property checked once here rather than inside one record's validation.
+  issues.push(...citationIssues(root, records));
 
   issues.push(...archiveSealIssues(root));
 

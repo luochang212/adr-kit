@@ -139,6 +139,20 @@ tags: [storage]
 
 implemented 记录可以更新路径、符号、默认值等已交付事实，但不可悄悄重写选择或理由。选择改变应新建记录并建立关系。完整替代写入 `superseded-by: N`，旧记录移入 `archived/`；归档记录保持编号，只作历史参考。图谱包含编号历史，可选 `## Deliberation` 附录保留思辨树。
 
+### 在代码中引用决策
+
+代码或配置文件的注释可以指回它遵循的决策：
+
+```ts
+// @adr 14 — 路径必须保持仓库相对
+export function scope() { /* ... */ }
+```
+
+`adrkit validate --all` 会扫描代码与配置文件（不扫描 Markdown）中的
+`@adr <编号>`：记录不存在、已被替代（会报出替代者）、已归档，或引用文件不在该
+记录的 `paths` 内时校验失败。引用是可选的，只检查已经写下的那些；报错会给出
+行号，因此失效引用会让 CI 直接指出取代它的决策。
+
 详见[记录格式](docs/zh/record-format.md)、[工作流](docs/zh/workflow.md)与[CLI 参考](docs/zh/cli.md)。
 
 ## 灵感来源

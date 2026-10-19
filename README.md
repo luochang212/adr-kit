@@ -141,6 +141,22 @@ Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considere
 
 An implemented record may refresh factual paths, symbols, or defaults, but not rewrite the choice or rationale into another decision. A changed choice needs a new record and relationship. Full supersession stamps `superseded-by: N` and moves the old record to `archived/`. Archived records keep their numbers and are historical, not current authority. The graph includes numbered history; `## Deliberation` optionally preserves the design tree.
 
+### Code cites the decision it follows
+
+A code or configuration comment can point back at the decision it implements:
+
+```ts
+// @adr 14 — paths must stay repository-relative
+export function scope() { /* ... */ }
+```
+
+`adrkit validate --all` scans code and configuration files (not Markdown) for
+`@adr <number>` and fails when the citation names a missing decision, one that
+was superseded (naming the successor), or one that is archived, and when the
+citing file sits outside that decision's `paths`. Citations are optional and
+only the ones that exist are checked; the message names the line, so a stale
+reference fails CI with the decision that replaced it.
+
 See [record format](docs/record-format.md), [workflow](docs/workflow.md), and [CLI reference](docs/cli.md).
 
 ## Sources of inspiration
