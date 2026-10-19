@@ -44,6 +44,10 @@ records that no longer guide work.
   content seal; `adrkit validate --base <git-ref>` proves the archive only grew.
   Fresh templates intentionally fail until required sections contain real
   content.
+- Code and configuration may cite a decision with `@adr <number>` in a comment.
+  `adrkit validate --all` fails when the citation names a missing, archived, or
+  superseded decision, or a file outside that decision's `paths`; Markdown is
+  not scanned.
 - `raised-by` and `decided-by` are required on numbered decisions; each is
   declared as `human` or `agent`. The CLI cannot infer provenance or verify
   delivery.

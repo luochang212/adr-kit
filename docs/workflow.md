@@ -58,6 +58,10 @@ Creating, shipping, and reviewing are one governance loop:
   than proposal-era intent. If a code change alters only the realization of
   an active decision, update those facts in that record; a changed choice is
   a new record with an explicit relationship.
+- **When code implements a decision**, cite it in a comment with `@adr <N>`
+  (`@adr 14, 22`). Citations are optional; `adrkit validate --all` fails when
+  one names a missing, archived, or superseded decision, or a file outside
+  that decision's `paths`.
 - **When reviewing**, the `adrkit-review` workflow checks changed records
   against changed code, searches for stale realization facts and unresolved
   supersession, and reports evidence-backed findings. It is scoped to

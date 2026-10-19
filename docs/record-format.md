@@ -71,6 +71,10 @@ not exist in the repository — the drift check that fails a scope stranded by
 a rename. Archived records are exempt from the drift check: sealed bytes
 must not start failing because the live tree moved on after they froze.
 
+Code may cite a record with `@adr <number>` in a comment; `adrkit validate`
+fails when the citation names a missing, archived, or superseded decision, or a
+file outside the record's `paths`.
+
 ## Archive manifest
 
 `adr/archived/MANIFEST.json` seals the archive. It is a versioned JSON file

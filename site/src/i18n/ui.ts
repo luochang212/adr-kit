@@ -88,6 +88,10 @@ const ui = {
     'faq.3.a':
       'Yes. ADR Kit is an independent decision-record product with its own lifecycle. It can coexist with specification tools because its records live in adr/ and its agent workflows are namespaced; no other tool is required.',
 
+    'faq.4.q': 'How do decisions stay connected to the code?',
+    'faq.4.a':
+      'Name the decision in a code or configuration comment with `@adr <number>` (comma-separate more than one). `adrkit validate --all` scans those files and fails when a citation names a missing, archived, or superseded decision, or a file outside that decision\u2019s `paths`. Citations are optional, and Markdown is not scanned.',
+
     'footer.tagline': 'Architecture Decision Records for AI coding assistants',
     'footer.docs': 'Documentation',
     'footer.license': 'MIT License',
@@ -162,6 +166,10 @@ const ui = {
     'faq.3.q': 'ADR Kit 能与 OpenSpec 这类工具同时使用吗？',
     'faq.3.a':
       '可以。ADR Kit 是独立的决策记录产品，自有完整生命周期。它的记录位于 adr/，agent 工作流也有命名空间，因此可以与规约工具共存，但不依赖任何其他工具。',
+
+    'faq.4.q': '决策如何与代码保持关联？',
+    'faq.4.a':
+      '在代码或配置注释里用 `@adr <编号>` 指向它遵循的决策（多条用逗号分隔）。`adrkit validate --all` 会扫描这些文件：引用不存在、已归档或已替代的决策，或引用文件不在该记录的 `paths` 内时，校验失败。引用可选，Markdown 不扫描。',
 
     'footer.tagline': '为 AI 编码助手而生的架构决策记录',
     'footer.docs': '文档',
