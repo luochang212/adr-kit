@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.22.0
+
+### Minor Changes
+
+- ab3ecaa: Protect numbered writes with an exclusive per-number lock and check both `implemented/` and `archived/` before writing. Concurrent `adrkit record`/`adrkit implement` writers fail with a retryable error instead of creating duplicate numbers, and new implemented records cannot overwrite the same filename. Archive staging retains its same-name write behavior. Document interrupted-lock recovery and the scope of this protection. The bilingual READMEs and CLI reference now describe validation coverage, including single-record reference and seal checks.
+- 74cb6df: Mark the standing-orders section with a content fingerprint and detect drift: `adrkit list`, `instructions`, `relevant`, `update`, and `init` print a note when AGENTS.md carries a section pasted from a different template (or before markers existed); the CLI never rewrites the file. `adrkit update` now reports `created`, `rewrote`, or `unchanged` per integration file instead of a blanket `created`. The READMEs document the breaking-upgrade contract and the `adr-kit` package name.
+
+### Patch Changes
+
+- 88129c1: Preserve existing archive seals on partial manifest writes and reject special-file manifests before reading. Share comment/fence-aware record scanning, validate generated decisions before promotion removes proposals, append concurrent notes without replacing another writer's content, report citation scan failures, and display repository issues alongside pending proposals. Accept filename-prefix scope globs and include symlink paths as directory-query leaves. Correct bilingual validation coverage and defer full supersession until a replacement has shipped.
+
 ## 0.21.0
 
 ### Minor Changes
