@@ -4,7 +4,10 @@ coverage/
 /archived/
 
 # This repository dogfoods its own decision records: all four lifecycle
-# directories under `adr/` are tracked and shared.
+# directories under `adr/` are tracked and shared. A writer killed mid-write
+# leaves its per-number lock behind (recovery: remove it by hand once no
+# writer is running); the file is local state, never shared.
+adr/.write-*.lock
 *.tgz
 .DS_Store
 *.log
