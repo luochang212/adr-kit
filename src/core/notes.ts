@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ADR_DIR } from './config.js';
 
@@ -36,7 +36,10 @@ export function appendNote(root: string, text: string): string {
   const file = notesPath(root);
   const existing = existsSync(file) ? readFileSync(file, 'utf8') : '';
   const separator = existing.length === 0 || existing.endsWith('\n') ? '' : '\n';
-  writeFileSync(file, `${existing}${separator}${line}\n`);
+  // Append one buffer instead of replacing the snapshot read above: another
+  // writer may already have appended since that read. Concurrent repair of a
+  // missing trailing newline can add a blank line, but never loses a note.
+  appendFileSync(file, `${separator}${line}\n`);
   return line;
 }
 

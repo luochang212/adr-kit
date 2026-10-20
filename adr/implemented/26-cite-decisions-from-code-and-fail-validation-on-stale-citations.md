@@ -70,3 +70,6 @@ silently, so a decision whose scope grows needs its `paths` updated in the same
 change. Scanning reads every code and configuration file on `validate`;
 dependency trees, build output, and the root `site/` documentation copy are
 skipped, and files over 1 MiB or containing a NUL byte are ignored.
+
+Source-file or directory acquisition errors are reported as validation issues;
+these failures are distinct from the deliberate scan exclusions above.

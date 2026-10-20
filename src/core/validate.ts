@@ -85,7 +85,7 @@ function tagsIssues(path: string, tags: string[]): ValidationIssue[] {
 
 /**
  * Shape and drift checks for `paths:` scopes. Shape applies everywhere;
- * drift — the static prefix must still exist in the repository — applies to
+ * drift — the static directory anchor (or literal path) must exist — applies to
  * every folder except archived/, whose sealed bytes must not start failing
  * because the live filesystem moved on after the record froze.
  */

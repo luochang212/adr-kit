@@ -45,7 +45,9 @@ noticed.
   `adrkit archive` and `adrkit supersede` preflight the manifest, append
   exactly one seal for the final archived file, and roll back the staged file
   when the seal cannot be written, so the active source is never removed on a
-  half-finished move. An existing seal is never overwritten.
+  half-finished move. The manifest is written to a temporary sibling and
+  renamed into place only after a successful write, so partial-write and
+  rename failures preserve prior seals. An existing seal is never overwritten.
 - Repository-wide `adrkit validate` checks the manifest against the archived
   bytes without Git and fails on malformed, missing, duplicate, extra, and
   unsealed entries and on edited archived content. `adrkit validate --base
@@ -58,7 +60,9 @@ noticed.
 - The installed `propose`, `record`, and `grill` workflows require a scoped
   supersession review — duplicate, full replacement, partial replacement, or
   independent — before creating a record, with full replacements resolved
-  through `adrkit supersede --by` in the same change. `implement` and
+  through `adrkit supersede --by` in the same delivery change after shipping;
+  an unshipped proposal links the intended replacement and leaves the old
+  authority active. `implement` and
   `record` require comparing the record's claimed paths, names, defaults, and
   mechanisms with shipped code and tests. A focused `adrkit-review` workflow
   checks changed records against changed code and reports evidence-backed

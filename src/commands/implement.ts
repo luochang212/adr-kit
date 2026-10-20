@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { hasMeaningfulBody, section, type DecidedBy, type RaisedBy } from '../core/adr.js';
+import { hasMeaningfulBody, parseAdrText, section, type DecidedBy, type RaisedBy } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
 import { folderPath, nextDecisionNumber, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
@@ -38,6 +38,12 @@ export function implementCommand(
   }
 
   const content = proposalToDecision(proposal, number, gitHead(root), decidedBy, raisedBy);
+  const generated = parseAdrText(content, path);
+  generated.folder = 'implemented';
+  const generatedIssues = validateRecord(root, generated);
+  if (generatedIssues.length > 0) {
+    throw new Error(`proposal cannot become a valid implemented decision:\n${formatIssues(generatedIssues)}`);
+  }
   writeRecord(root, 'implemented', fileName, content);
   removeRecord(proposal);
   let output = `implemented adr/proposed/${proposal.fileName} as adr/implemented/${fileName}`;

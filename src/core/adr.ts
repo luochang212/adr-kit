@@ -1,6 +1,6 @@
-import { readFileSync, statSync, type Stats } from 'node:fs';
 import { basename } from 'node:path';
 import { parse } from 'yaml';
+import { readRegularText } from './files.js';
 
 export type AdrStatus = 'proposed' | 'implemented' | 'rejected' | 'superseded';
 /**
@@ -118,7 +118,8 @@ export interface AdrRecord {
    * The retrieval axis `adrkit relevant` matches against: unlike tags (a
    * theme), a scope answers "which decisions govern this file?". Minimal
    * glob semantics (`**` crosses separators, `*` within a segment, `?` one
-   * character); validate checks the shape and that the static prefix exists,
+   * character); validate checks the shape and that the static directory anchor
+   * (or full literal path) exists,
    * except on archived records, whose frozen bytes must not depend on the
    * live filesystem.
    */
@@ -152,61 +153,21 @@ export function section(record: AdrRecord, heading: string): string | undefined 
  * comment swallows the rest of the section, which is CommonMark's reading of a
  * comment block that runs to its end of context.
  */
-function stripComments(body: string): string {
-  const open = '<!--';
-  const close = '-->';
-  let text = '';
-  let index = 0;
-  for (;;) {
-    const start = body.indexOf(open, index);
-    if (start === -1) return text + body.slice(index);
-    text += body.slice(index, start);
-    const end = body.indexOf(close, start + open.length);
-    if (end === -1) return text;
-    index = end + close.length;
-  }
-}
-
 export function hasMeaningfulBody(body: string | undefined): boolean {
   if (body === undefined) return false;
-  return stripComments(body).trim().length > 0;
+  for (const line of markdownLines(body)) {
+    if (line.visible.trim().length > 0) return true;
+  }
+  return false;
 }
 
-/**
- * The kind of a path that is not a regular file, named in the error so the
- * reader learns what is there (`directory`, `fifo`, `character device`).
- */
-function pathKind(info: Stats): string {
-  if (info.isDirectory()) return 'directory';
-  if (info.isFIFO()) return 'fifo';
-  if (info.isSocket()) return 'socket';
-  if (info.isCharacterDevice()) return 'character device';
-  if (info.isBlockDevice()) return 'block device';
-  return 'special file';
-}
-
-/**
- * Read a record's text, refusing a path that does not resolve to a regular
- * file. A FIFO blocks the read until a writer appears and a device (a symlink
- * to `/dev/zero`, which git can carry as mode 120000) reads without end, so the
- * kind is reported instead of read. The check follows symbolic links: a link
- * whose target is a regular file is a record like any other.
- */
+/** Keep record-format errors contextual while sharing the safe reader with the manifest. */
 function readRecordFile(filePath: string): string {
-  let info: Stats;
   try {
-    info = statSync(filePath);
+    return readRegularText(filePath, 'record');
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
-    throw new AdrFormatError(`record path cannot be read: ${detail}`, filePath);
+    throw new AdrFormatError(error instanceof Error ? error.message : String(error), filePath);
   }
-  if (!info.isFile()) {
-    throw new AdrFormatError(
-      `record path is not a regular file (${pathKind(info)})`,
-      filePath,
-    );
-  }
-  return readFileSync(filePath, 'utf8');
 }
 
 /** A Markdown fenced-code opener: three or more backticks or tildes. */
@@ -239,27 +200,81 @@ function closesFence(line: string, fence: Fence): boolean {
   return marker[0] === fence.char && marker.length >= fence.length;
 }
 
+interface MarkdownLine {
+  raw: string;
+  visible: string;
+  code: boolean;
+}
+
 /**
- * Headings of exactly `level` written outside fenced code and HTML comments.
- * The record parser only structures `##` sections; callers that inspect
- * subheadings use this helper so a code sample or a commented-out heading
- * never becomes a rule violation.
+ * One linear scan for content and heading checks. Comments cross line and
+ * section boundaries; fence contents are literal, including HTML markers.
+ * Masking comments preserves columns so removing one cannot invent a heading.
  */
+function* markdownLines(body: string): Generator<MarkdownLine> {
+  let fence: Fence | undefined;
+  let comment = false;
+  for (const raw of body.split(/\r?\n/)) {
+    if (fence !== undefined) {
+      if (closesFence(raw, fence)) fence = undefined;
+      yield { raw, visible: raw, code: true };
+      continue;
+    }
+    const opener = comment ? undefined : openingFence(raw);
+    if (opener !== undefined) {
+      fence = opener;
+      yield { raw, visible: raw, code: true };
+      continue;
+    }
+    // Index matching backtick runs once, rather than repeatedly searching the
+    // remaining line. Inline examples such as `<!--` are literal text too.
+    const inlineEnds = new Map<number, number>();
+    const nextRun = new Map<number, number>();
+    const runs = [...raw.matchAll(/`+/g)];
+    for (let run = runs.length - 1; run >= 0; run -= 1) {
+      const match = runs[run]!;
+      const end = nextRun.get(match[0].length);
+      if (end !== undefined) inlineEnds.set(match.index, end);
+      nextRun.set(match[0].length, match.index + match[0].length);
+    }
+    const tokens = /<!--|`+/g;
+    let visible = '';
+    let index = 0;
+    while (index < raw.length) {
+      if (comment) {
+        const end = raw.indexOf('-->', index);
+        const next = end === -1 ? raw.length : end + 3;
+        visible += ' '.repeat(next - index);
+        index = next;
+        if (end !== -1) comment = false;
+      } else {
+        tokens.lastIndex = index;
+        const token = tokens.exec(raw);
+        if (token === null) {
+          visible += raw.slice(index);
+          break;
+        }
+        if (token[0] === '<!--') {
+          visible += raw.slice(index, token.index);
+          comment = true;
+          index = token.index;
+        } else {
+          const end = inlineEnds.get(token.index) ?? token.index + token[0].length;
+          visible += raw.slice(index, end);
+          index = end;
+        }
+      }
+    }
+    yield { raw, visible, code: false };
+  }
+}
+
+/** Headings of exactly level outside fenced code and HTML comments. */
 export function writtenHeadings(body: string, level: number): string[] {
   const prefix = `${'#'.repeat(level)} `;
   const headings: string[] = [];
-  let fence: Fence | undefined;
-  for (const line of stripComments(body).split(/\r?\n/)) {
-    if (fence !== undefined) {
-      if (closesFence(line, fence)) fence = undefined;
-      continue;
-    }
-    const opener = openingFence(line);
-    if (opener !== undefined) {
-      fence = opener;
-      continue;
-    }
-    if (line.startsWith(prefix)) headings.push(line.slice(prefix.length).trim());
+  for (const line of markdownLines(body)) {
+    if (!line.code && line.visible.startsWith(prefix)) headings.push(line.visible.slice(prefix.length).trim());
   }
   return headings;
 }
@@ -287,7 +302,11 @@ export function writtenHeadings(body: string, level: number): string[] {
  * stamped by the CLI at every lifecycle move.
  */
 export function parseAdrFile(filePath: string): AdrRecord {
-  const text = readRecordFile(filePath);
+  return parseAdrText(readRecordFile(filePath), filePath);
+}
+
+/** Parse generated content before a lifecycle move writes or removes any file. */
+export function parseAdrText(text: string, filePath: string): AdrRecord {
   const lines = text.split(/\r?\n/);
 
   if (lines[0] !== '---') {
@@ -461,23 +480,9 @@ export function parseAdrFile(filePath: string): AdrRecord {
 
   const sections: AdrSection[] = [];
   let current: AdrSection | null = null;
-  let fence: Fence | undefined;
-  for (const line of body.slice(3)) {
-    // A heading inside a fenced code block is example text, not structure:
-    // without this guard, a documented code sample can create a duplicate
-    // section and fail validation for the wrong reason.
-    if (fence !== undefined) {
-      if (closesFence(line, fence)) fence = undefined;
-      if (current !== null) current.body += `${line}\n`;
-      continue;
-    }
-    const opener = openingFence(line);
-    if (opener !== undefined) {
-      fence = opener;
-      if (current !== null) current.body += `${line}\n`;
-      continue;
-    }
-    if (line.startsWith('## ')) {
+  for (const scanned of markdownLines(body.slice(3).join('\n'))) {
+    const line = scanned.raw;
+    if (!scanned.code && scanned.visible.startsWith('## ')) {
       if (current !== null) sections.push(current);
       const heading = line.slice(3).trim();
       if (heading.length === 0) {

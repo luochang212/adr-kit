@@ -74,11 +74,17 @@ export function citationIssues(root: string, records: readonly AdrRecord[]): Val
     if (record.number !== undefined) byNumber.set(record.number, record);
   }
 
-  const files = [...scannedFiles(root)].sort((a, b) =>
-    relative(root, a).localeCompare(relative(root, b)));
   const issues: ValidationIssue[] = [];
+  const files = [...scannedFiles(root, issues)].sort((a, b) =>
+    relative(root, a).localeCompare(relative(root, b)));
   for (const file of files) {
-    const text = readText(file);
+    let text: string | undefined;
+    try {
+      text = readText(file);
+    } catch (error) {
+      issues.push({ path: relative(root, file), message: `cannot read file for ADR citations: ${error instanceof Error ? error.message : String(error)}` });
+      continue;
+    }
     if (text === undefined) continue;
     const citations = findCitations(text);
     if (citations.length === 0) continue;
@@ -118,14 +124,15 @@ function citationProblem(record: AdrRecord | undefined, number: number, file: st
   return undefined;
 }
 
-function* scannedFiles(root: string): Generator<string> {
+function* scannedFiles(root: string, issues: ValidationIssue[]): Generator<string> {
   const queue = [root];
   for (let index = 0; index < queue.length; index += 1) {
     const dir = queue[index]!;
     let entries;
     try {
       entries = readdirSync(dir, { withFileTypes: true });
-    } catch {
+    } catch (error) {
+      issues.push({ path: relative(root, dir) || '.', message: `cannot read directory for ADR citations: ${error instanceof Error ? error.message : String(error)}` });
       continue;
     }
     for (const entry of entries) {
@@ -145,13 +152,9 @@ function* scannedFiles(root: string): Generator<string> {
 }
 
 function readText(file: string): string | undefined {
-  try {
-    if (statSync(file).size > MAX_FILE_BYTES) return undefined;
-    const bytes = readFileSync(file);
-    // A NUL byte marks binary content that cannot hold a citation.
-    if (bytes.includes(0)) return undefined;
-    return bytes.toString('utf8');
-  } catch {
-    return undefined;
-  }
+  if (statSync(file).size > MAX_FILE_BYTES) return undefined;
+  const bytes = readFileSync(file);
+  // A NUL byte marks binary content that cannot hold a citation.
+  if (bytes.includes(0)) return undefined;
+  return bytes.toString('utf8');
 }

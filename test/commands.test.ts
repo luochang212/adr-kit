@@ -1067,3 +1067,18 @@ ${reason}${scope}---
     expect(shipped).toContain('paths:\n  - src/storage/**');
   });
 });
+
+
+describe('commented proposal sections', () => {
+  it('refuses to promote an invisible proposal and preserves its source', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const path = fillDraft(root);
+    const hidden = readFileSync(path, 'utf8').replace('## Problem', '<!--\n## Problem') + '-->\n';
+    writeFileSync(path, hidden);
+    expect(validateCommand(root).output).toContain('missing required section "## Problem"');
+    expect(() => implementCommand('Use SQLite', root, 'agent', 'human')).toThrow('proposal is not ready');
+    expect(readFileSync(path, 'utf8')).toBe(hidden);
+    expect(listRecords(root)).toHaveLength(0);
+  });
+});

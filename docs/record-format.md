@@ -33,7 +33,10 @@ not read by default. A rejected proposal keeps its problem, proposal, and
 alternatives and adds a non-empty `reason` field naming the tempting mistake
 it blocks; the record is durable and is removed only when another record owns
 that warning. New templates intentionally fail validation until substantive
-sections are written outside HTML comments.
+sections are written outside HTML comments. Headings inside comments or
+fenced examples do not create sections. Comment markers inside fenced examples
+are literal text. Before removing a proposal, `implement` validates the generated
+decision and refuses collisions with its canonical sections.
 
 `raised-by` and `decided-by` are required on numbered decisions and
 forbidden on unnumbered proposals and rejections. Each is `human` or
@@ -68,8 +71,9 @@ by default, and a record without `paths` never matches — scope retrieval is
 not full-text search. The field survives every lifecycle move and the
 proposal-to-decision promotion. `adrkit validate` rejects an empty or
 duplicate entry, an absolute path, a `..` segment, a backslash, and an
-entry whose static prefix (the literal part before the first wildcard) does
-not exist in the repository — the drift check that fails a scope stranded by
+entry whose static directory anchor does not exist in the repository
+(the complete directory components before the first wildcard, or the full
+literal path when there is no wildcard; `src/cli*.ts` checks `src`) — the drift check that fails a scope stranded by
 a rename. Archived records are exempt from the drift check: sealed bytes
 must not start failing because the live tree moved on after they froze.
 

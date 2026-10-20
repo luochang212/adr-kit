@@ -23,6 +23,19 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { syncBuiltinESMExports } from 'node:module';
 const [root, action, title, pause] = process.argv.slice(2);
+const read = fs.readFileSync;
+fs.readFileSync = function(path, ...args) {
+  const result = read.call(this, path, ...args);
+  if (action === 'note' && pause === 'yes' && String(path) === join(root, 'adr/notes.md')) {
+    process.send('paused');
+    const deadline = Date.now() + 10000;
+    while (!fs.existsSync(join(root, 'release'))) {
+      if (Date.now() > deadline) throw new Error('note barrier timed out');
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5);
+    }
+  }
+  return result;
+};
 const original = fs.writeFileSync;
 fs.writeFileSync = function(path, ...args) {
   if (pause === 'yes' && String(path).endsWith('.md') && String(path).includes('implemented')) {
@@ -39,9 +52,10 @@ syncBuiltinESMExports();
 try {
   const { recordCommand } = await import('./dist/commands/record.js');
   const { implementCommand } = await import('./dist/commands/implement.js');
+  const { noteCommand } = await import('./dist/commands/note.js');
   console.log(action === 'record'
     ? recordCommand(title, root, 'agent', 'agent')
-    : implementCommand(title, root, 'agent', 'agent'));
+    : action === 'note' ? noteCommand(title, root) : implementCommand(title, root, 'agent', 'agent'));
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;
@@ -141,5 +155,28 @@ It costs time.
     expect(() => writeRecord(root, 'implemented', '1-new.md', 'new')).toThrow('already taken by adr/archived/1-old.md');
     expect(existsSync(join(root, 'adr/.write-1.lock'))).toBe(false);
     expect(() => writeRecord(root, 'implemented', '2-new.md', 'new')).not.toThrow();
+  });
+});
+
+
+describe('concurrent note writes', () => {
+  it('preserves both notes when another writer appends after the first read', async () => {
+    const root = mkdtempSync(join(fixtures, 'repo-'));
+    initCommand(root);
+    const path = join(root, 'adr/notes.md');
+    writeFileSync(path, 'handwritten note without trailing newline');
+    const first = writer(root, 'note', 'first writer', true);
+    try {
+      await first.paused;
+      expect((await writer(root, 'note', 'second writer').done).code).toBe(0);
+    } finally {
+      writeFileSync(join(root, 'release'), '');
+      expect((await first.done).code).toBe(0);
+    }
+    const notes = readFileSync(path, 'utf8').split('\n').filter((line) => line.trim());
+    expect(notes).toHaveLength(3);
+    expect(notes[0]).toBe('handwritten note without trailing newline');
+    expect(notes.some((line) => line.endsWith('first writer'))).toBe(true);
+    expect(notes.some((line) => line.endsWith('second writer'))).toBe(true);
   });
 });

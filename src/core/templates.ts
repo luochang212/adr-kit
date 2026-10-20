@@ -164,6 +164,8 @@ ${contextBlock(context)}## Problem
  * rewrite the format requires: Proposal becomes Decision, and the
  * acceptance criteria and risks are folded into Consequences. `commit` anchors
  * the decision to the code state it was recorded against.
+ * Callers validate the generated record before mutating files: preserved
+ * custom sections can collide with the canonical Decision or Consequences.
  *
  * `decidedBy` is the declaration made for the promoted decision, not the
  * proposal's: the front matter below is rebuilt from a fixed field map, so a

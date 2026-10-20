@@ -61,8 +61,9 @@ surfaces, in one change:
   skipping `.git` and `node_modules`). Records without `paths:` never match:
   `relevant` is scope retrieval, not full-text search, and must not pretend
   to be one.
-- **`adrkit validate` drift check** — every `paths:` entry's static prefix
-  (the part before the first wildcard) must exist in the repository, and
+- **`adrkit validate` drift check** — every `paths:` entry's static directory anchor
+  (complete directory components before the first wildcard, or the full path
+  without wildcards) must exist in the repository, and
   entries must be relative and forward-slashed. A record scoped to a renamed
   directory fails validation instead of silently stranding its citations,
   giving the AGENTS.md realization-facts duty its first mechanical backstop.
@@ -107,7 +108,7 @@ the file axis it deferred; ADR 20 stays active and links here.
   Proposed / Rejected with the matched glob per record, excludes archived,
   and states plainly when nothing matches.
 - `adrkit validate` fails a record whose `paths:` entry has a nonexistent
-  static prefix, an absolute path, or a `..` segment, and passes valid ones.
+  static directory anchor, an absolute path, or a `..` segment, and passes valid ones.
 - Glob matching supports `**`, `*`, `?` with those exact crossing semantics,
   covered by unit tests; no new runtime dependency is added.
 - Lifecycle moves and proposal promotion carry `paths` through; the

@@ -427,6 +427,8 @@ rules:
     expect(propose?.body).toContain('search the active records');
     expect(propose?.body).toContain('Full replacement');
     expect(propose?.body).toContain('Partial replacement');
+    expect(propose?.body).toContain('keep the implemented decision active until the replacement ships');
+    expect(propose?.body).toContain('After shipping, use `adrkit implement`');
     expect(propose?.body).toContain('adrkit supersede --by');
   });
 

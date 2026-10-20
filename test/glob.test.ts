@@ -52,6 +52,13 @@ describe('staticPrefix', () => {
     expect(staticPrefix('src/?.ts')).toBe('src');
   });
 
+  it('uses complete directory components before filename or directory wildcards', () => {
+    expect(staticPrefix('src/cli*.ts')).toBe('src');
+    expect(staticPrefix('src/cl?.ts')).toBe('src');
+    expect(staticPrefix('src/co*/file.ts')).toBe('src');
+    expect(staticPrefix('cli*.ts')).toBe('');
+  });
+
   it('returns the whole pattern when it is literal', () => {
     expect(staticPrefix('src/core/adr.ts')).toBe('src/core/adr.ts');
   });

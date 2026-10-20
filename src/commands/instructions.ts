@@ -1,6 +1,6 @@
 import { ADR_DIR, CONFIG_FILE, findRoot, installedWithNotice, joinNotices, readConfigSafe, withNotice } from '../core/config.js';
 import { listRecords } from '../core/repository.js';
-import { formatIssues, validateRecord, validateRepository } from '../core/validate.js';
+import { formatIssues, validateRecord, validateRecordReferences, validateRepository } from '../core/validate.js';
 import { unshapedNotesLine } from '../core/notes.js';
 import { standingOrdersDriftNote } from '../core/tool-integrations.js';
 import { VERSION } from '../version.js';
@@ -44,17 +44,18 @@ export function instructionsCommand(cwd: string): string {
     ];
     const ready: string[] = [];
     for (const record of proposed) {
-      const recordIssues = validateRecord(root, record);
+      const recordIssues = [...validateRecord(root, record), ...validateRecordReferences(root, record, records)];
       if (recordIssues.length === 0) ready.push(record.fileName);
       lines.push(`  ${recordIssues.length === 0 ? '✓' : '✗'} ${record.fileName}   ${recordIssues.length === 0 ? 'validated - ready after shipping' : recordIssues[0]!.message}`);
     }
     if (notes.length > 0) lines.push('', notes);
+    if (issues.length > 0) lines.push('', 'Repository validation issues:', formatIssues(issues));
     lines.push('', 'Next:');
     for (const name of ready) {
       lines.push(`  adrkit implement ${name} --raised-by <human|agent> --decided-by <human|agent>   # after shipping`);
       lines.push(`  adrkit reject ${name} --reason <reason>   # if declined`);
     }
-    if (ready.length < proposed.length) lines.push('  adrkit validate   # fix incomplete proposals first');
+    if (issues.length > 0) lines.push('  adrkit validate   # resolve the reported repository issues');
     return withNotice(lines.join('\n'), notice);
   }
   if (issues.length > 0) {

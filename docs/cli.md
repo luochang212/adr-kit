@@ -59,11 +59,13 @@ Per record, in every mode:
   (when present) a git hash.
 - `tags` (when present): non-empty, lowercase kebab-case, no duplicates.
 - `paths` (when present): non-empty, repository-relative, forward slashes,
-  no `..`, no duplicates, and every static prefix still exists in the
-  repository. Archived records are exempt from the drift check: their sealed
-  bytes do not depend on the live tree.
-- Sections: the required set per status, each with written content, no
-  duplicates; `Alternatives considered` lists at least one alternative.
+  no `..`, no duplicates, and every static directory anchor (or full literal
+  path) still exists in the repository. Archived records are exempt from the
+  drift check: their sealed bytes do not depend on the live tree.
+- Sections: the required headings per status exist without duplicates.
+  `Problem`, `Decision`/`Proposal`, and `Alternatives considered` require
+  written content; `Consequences`, `Acceptance criteria`, and `Risks` require
+  headings but may have empty bodies.
 - Folder consistency: implemented records are `N-slug.md` with title
   `# ADR: N <title>`, matching numbers, `raised-by` and `decided-by`, and no
   proposal-era sections; proposals are dated `YYYY-MM-DD-slug.md`, unnumbered,
@@ -73,7 +75,8 @@ Per record, in every mode:
   forward references to numbers not yet assigned to proposals fail too.
 - Supersession chains resolve without cycles to an implemented decision;
   no backlink from the successor is required.
-- An archived record has a matching seal in `adr/archived/MANIFEST.json`.
+- An archived record has a matching seal in `adr/archived/MANIFEST.json`;
+  the manifest must resolve to a regular file before it is read.
 
 Repository-wide (`--all`), additionally:
 
@@ -81,7 +84,8 @@ Repository-wide (`--all`), additionally:
   records at the `adr/` root, and nested folders fail. `adr/config.yaml`
   exists and its known fields are well-typed.
 - Decision numbers are unique across `implemented/` and `archived/`.
-- `@adr <number>` citations in code and configuration (details above).
+- `@adr <number>` citations in code and configuration (details above);
+  unreadable source files or directories fail with a scan diagnostic.
 - The archive manifest covers exactly the archived records, with no missing,
   duplicate, or extra entries, and all archived bytes match their seals.
 
@@ -161,3 +165,8 @@ The lock is removed on success or a handled error. If a process is forcibly
 terminated, confirm no writer for that number is running before deleting its
 leftover lock file and re-running. This protects decision-number writes, not
 the entire archive manifest transaction; run lifecycle commands one at a time.
+
+Archive manifest updates write a temporary file beside the manifest and rename
+it only after the write succeeds. A partial write or failed rename leaves the
+previous manifest intact and rolls back the staged archive record. This does
+not provide power-loss durability or serialize concurrent archive transactions.

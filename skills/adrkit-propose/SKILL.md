@@ -10,7 +10,7 @@ A proposal is drift insurance: the cheapest durable home for a choice future tas
 Before writing, run `adrkit list` and search the active records — read relevant implemented records in full, and check proposed records for intent and rejected ones for the bad cases they warn against — for anything covering the same choice, mechanism, or rejected alternative. Read `adr/notes.md` too — its unshaped lines are the likeliest raw material for this record. Judge overlap from record content, not titles or tags; the CLI cannot infer it. Classify what you find:
 
 - **Duplicate**: extend the existing record instead of opening a new one.
-- **Full replacement**: write the new record, then resolve the old one in the same change with `adrkit supersede --by`; never leave duplicate active authority.
+- **Full replacement**: create a proposal linking the decision it will replace; keep the implemented decision active until the replacement ships. After shipping, use `adrkit implement` and resolve the old decision with `adrkit supersede --by` in the same delivery change. A proposal is intent, not duplicate active authority.
 - **Partial replacement**: write the new record, keep the older one active, refresh the facts that remain current in it, and link the two records in prose.
 - **Independent**: proceed without touching unrelated records.
 

@@ -597,8 +597,17 @@ describe('written content and comment handling', () => {
 
   it('counts text outside a comment as written content', () => {
     const root = makeRepo();
-    withProblemBody(root, 'Chose Postgres over SQLite.\n<!--');
+    withProblemBody(root, 'Chose Postgres over SQLite.\n<!-- closed -->');
     expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('does not let visible text before an unclosed comment expose later sections', () => {
+    const root = makeRepo();
+    withProblemBody(root, 'Chose Postgres over SQLite.\n<!--');
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('missing required section "## Decision"');
+    expect(result.output).not.toContain('section "## Problem" must contain written content');
   });
 
   it('does not report a duplicate section for a heading inside a fence', () => {

@@ -203,3 +203,20 @@ describe('four-folder lifecycle', () => {
     expect(validateRepository(root)).toEqual([]);
   });
 });
+
+
+describe('proposed full replacement', () => {
+  it('keeps the old authority active until the replacement ships and is promoted', () => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    fillProposal(root, 'Use Postgres');
+    expect(() => supersedeCommand('1', 'Use Postgres', root)).toThrow('must be an implemented decision');
+    expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('implemented');
+    implementCommand('Use Postgres', root, 'agent', 'human');
+    supersedeCommand('1', '2', root);
+    expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('archived');
+    expect(listRecords(root).find((record) => record.number === 2)?.folder).toBe('implemented');
+    expect(validateRepository(root)).toEqual([]);
+  });
+});

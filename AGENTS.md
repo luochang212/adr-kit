@@ -31,8 +31,9 @@ reference material: read it only when that decision is in play, not on every
 task.
 
 Before creating any record, compare it with the active records covering the
-same choice or mechanism: extend a duplicate, fully replace through
-`adrkit supersede --by` in the same change, or link a partial overlap while
+same choice or mechanism: extend a duplicate; for an unshipped full replacement, link its intent and
+keep the old authority active, then use `adrkit supersede --by` in the same
+change that ships and records the replacement; link a partial overlap while
 the older record stays active. When shipping or reviewing, keep each active
 record's realization facts — paths, names, defaults — aligned with shipped
 code; a changed choice is a new record with an explicit relationship, not a
@@ -61,7 +62,7 @@ recording one they made earlier — `agent` when it came from the agent's own
 judgment, including when a person only let it through. The CLI neither infers
 nor verifies it.
 
-<!-- adrkit: standing-orders fb81d001 -->
+<!-- adrkit: standing-orders 103d6e15 -->
 
 ## Commands
 

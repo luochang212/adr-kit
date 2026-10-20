@@ -71,7 +71,9 @@ export function candidatePaths(root: string, input: string, cwd: string): {
       const child = join(dir, entry.name);
       if (entry.isDirectory()) {
         if (!SKIPPED_DIRS.has(entry.name)) queue.push(child);
-      } else if (entry.isFile()) {
+      } else if (entry.isFile() || entry.isSymbolicLink()) {
+        // The scope names the link itself. Include it as a leaf without
+        // following directory targets outside the walk or back into a loop.
         if (fileCount === WALK_LIMIT) {
           diagnostics.push({ path: input, message: `directory search truncated after ${WALK_LIMIT} files; pass narrower paths` });
           return { paths, diagnostics };

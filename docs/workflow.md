@@ -51,8 +51,10 @@ Creating, shipping, and reviewing are one governance loop:
 
 - **Before creating** a proposal or record, search the active records for the
   same choice or mechanism. Judge overlap from content, not titles or tags.
-  Extend a duplicate; fully replace through `adrkit supersede --by` in the
-  same change; link a partial overlap while the older record stays active.
+  Extend a duplicate; link an unshipped full replacement as intent and keep
+  the old decision active until the replacement ships, then resolve it through
+  `adrkit supersede --by` in that delivery change; link a partial overlap
+  while the older record stays active.
 - **When shipping**, compare the record's claimed paths, names, defaults, and
   mechanisms with the current code and tests, and state shipped facts rather
   than proposal-era intent. If a code change alters only the realization of

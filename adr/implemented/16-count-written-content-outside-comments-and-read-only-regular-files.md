@@ -7,6 +7,7 @@ created: 2026-09-23
 commit: 6ec0049
 paths:
   - src/core/adr.ts
+  - src/core/files.ts
   - src/core/validate.ts
   - src/core/repository.ts
   - docs/record-format.md
@@ -41,15 +42,17 @@ and a file can wedge is neither.
   (`hasMeaningfulBody`) and applies to every "must contain written content"
   check and to the mandatory-alternative rule, on drafts and durable records
   alike.
-- **The strip is a single linear scan**, `indexOf` from each `<!--` to the next
-  `-->`, so reading and validating a record cost work bounded by its size. A
+- **The scan is linear**, shared by heading and content checks, with
+  `indexOf` to close comments outside fenced and inline code examples. Reading
+  and validating a record cost work bounded by its size. A
   crafted body is reported like any other validation failure instead of
   consuming the machine.
 - **A path read as a record must resolve to a regular file.** A directory,
   FIFO, socket, or device is refused with the kind named in the message, before
   any read. The check follows symbolic links — a link to a regular file stays a
-  record — and lives in `parseAdrFile`, the single chokepoint every reader
-  parses through (`listRecords`, `listProposals`, `resolveRecord`, `resolveProposed`).
+  record — and lives in `readRegularText` in `src/core/files.ts`, used by
+  `parseAdrFile` and the archive manifest reader. All record readers go through
+  `parseAdrFile` (`listRecords`, `listProposals`, `resolveRecord`, `resolveProposed`).
 - **No size cap on records, and no race check.** A large committed regular file
   is a slow but bounded read, and an arbitrary limit would refuse legitimate
   records; git and review are the control there. A path swapped between the

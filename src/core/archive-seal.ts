@@ -1,8 +1,9 @@
-import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { accessSync, constants, existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NUMBERED_FILE_NAME_PATTERN } from './adr.js';
 import { ADR_DIR } from './config.js';
+import { readRegularText } from './files.js';
 
 /**
  * The archive seal. A committed manifest of every numbered record in
@@ -117,13 +118,23 @@ export function readArchiveManifest(root: string): ArchiveManifest | undefined {
   const path = archivedManifestPath(root);
   if (!existsSync(path)) return undefined;
   return parseArchiveManifest(
-    readFileSync(path, 'utf8'),
+    readRegularText(path, 'archive manifest'),
     `${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`,
   );
 }
 
 export function writeArchiveManifest(root: string, manifest: ArchiveManifest): void {
-  writeFileSync(archivedManifestPath(root), `${JSON.stringify(manifest, null, 2)}\n`);
+  const path = archivedManifestPath(root);
+  // Respect an explicitly read-only manifest even though rename could replace
+  // its directory entry on POSIX. Failed writes must leave prior seals intact.
+  if (existsSync(path)) accessSync(path, constants.W_OK);
+  const temporary = join(root, ADR_DIR, ARCHIVED_DIR, `.${MANIFEST_FILE}.${randomUUID()}.tmp`);
+  try {
+    writeFileSync(temporary, `${JSON.stringify(manifest, null, 2)}\n`, { flag: 'wx' });
+    renameSync(temporary, path);
+  } finally {
+    rmSync(temporary, { force: true });
+  }
 }
 
 /**

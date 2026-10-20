@@ -53,13 +53,14 @@ export function globMatches(pattern: string, path: string): boolean {
 }
 
 /**
- * The literal part of a glob: everything before the first wildcard, with a
- * trailing separator stripped. `src/core/**` yields `src/core`, the path
- * `validate` requires to exist; a pattern with no literal head yields the
- * empty string, which cannot be checked and is skipped.
+ * The existing-path anchor for drift checking: the full path for a literal
+ * pattern, or complete directory components before the first wildcard.
+ * `src/core/**` yields `src/core`; `src/cli*.ts` yields `src`, not the partial
+ * filename `src/cli`. No anchored directory yields the empty string.
  */
 export function staticPrefix(pattern: string): string {
   const wildcard = pattern.search(/[*?]/);
-  const head = wildcard === -1 ? pattern : pattern.slice(0, wildcard);
-  return head.replace(/\/+$/, '');
+  if (wildcard === -1) return pattern.replace(/\/+$/, '');
+  const separator = pattern.lastIndexOf('/', wildcard);
+  return separator === -1 ? '' : pattern.slice(0, separator).replace(/\/+$/, '');
 }
