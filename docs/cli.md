@@ -45,6 +45,46 @@ fails and names the line and, for a superseded decision, its successor. Markdown
 and the root `site/` documentation copy are not scanned, and citations are
 optional: only the ones that exist are checked.
 
+## Validation coverage
+
+`adrkit validate <name>` checks one record. `--all` adds the corpus checks
+below. `--all --base <git-ref>` additionally proves the archive only grew
+since that ref. Validation is supposed to fail on fresh records until their
+required sections are filled in.
+
+Per record, in every mode:
+
+- Front matter: parseable canonical layout, no unknown fields; `created`
+  present, a real calendar date, and not after the status date; `commit`
+  (when present) a git hash.
+- `tags` (when present): non-empty, lowercase kebab-case, no duplicates.
+- `paths` (when present): non-empty, repository-relative, forward slashes,
+  no `..`, no duplicates, and every static prefix still exists in the
+  repository. Archived records are exempt from the drift check: their sealed
+  bytes do not depend on the live tree.
+- Sections: the required set per status, each with written content, no
+  duplicates; `Alternatives considered` lists at least one alternative.
+- Folder consistency: implemented records are `N-slug.md` with title
+  `# ADR: N <title>`, matching numbers, `raised-by` and `decided-by`, and no
+  proposal-era sections; proposals are dated `YYYY-MM-DD-slug.md`, unnumbered,
+  with no provenance fields; `superseded` names another decision; archive
+  metadata appears only in `archived/`.
+- Body references (`ADR-12`, `ADR 4`, or `ADR12`) resolve to existing decisions;
+  forward references to numbers not yet assigned to proposals fail too.
+- Supersession chains resolve without cycles to an implemented decision;
+  no backlink from the successor is required.
+- An archived record has a matching seal in `adr/archived/MANIFEST.json`.
+
+Repository-wide (`--all`), additionally:
+
+- The four lifecycle folders are the whole inventory: unknown folders,
+  records at the `adr/` root, and nested folders fail. `adr/config.yaml`
+  exists and its known fields are well-typed.
+- Decision numbers are unique across `implemented/` and `archived/`.
+- `@adr <number>` citations in code and configuration (details above).
+- The archive manifest covers exactly the archived records, with no missing,
+  duplicate, or extra entries, and all archived bytes match their seals.
+
 ## Configuration type errors
 
 Repository-wide validation checks known fields in `adr/config.yaml`: `context`
@@ -110,3 +150,14 @@ archived records are not read. A count of active records without `paths:` is
 advisory even when other records match: use `adrkit list` to judge their relevance.
 Successful retrieval is a scope shortlist, not evidence that code complies or
 that all architectural constraints were found. Read relevant records in full.
+
+## Concurrent decision writes
+
+Numbered writes claim `adr/.write-N.lock` exclusively before checking both
+`implemented/` and `archived/` and writing. Competing writers fail and can
+re-run to allocate the next available number. New implemented records never
+overwrite an existing file; archive staging retains its same-name write behavior.
+The lock is removed on success or a handled error. If a process is forcibly
+terminated, confirm no writer for that number is running before deleting its
+leftover lock file and re-running. This protects decision-number writes, not
+the entire archive manifest transaction; run lifecycle commands one at a time.

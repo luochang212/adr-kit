@@ -51,7 +51,9 @@ Archived records retain stable numbers. Optional `tags` are non-empty,
 unique lowercase kebab-case keywords; optional `## Deliberation` preserves
 the design tree. `adrkit validate` checks all four directories and rejects
 duplicate numbers, malformed dates, mismatched folder/status pairs, records
-outside the four folders, and dangling ADR references.
+outside the four folders, and dangling ADR references: a record body may
+reference decisions as `ADR-12`, `ADR 4`, or `ADR12`, and a reference to a
+number that does not exist fails repository-wide validation.
 
 Optional `paths` scope a record to the files it governs — a different axis
 from `tags`: tags classify by theme, `paths` answer "which decisions govern

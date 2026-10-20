@@ -1,5 +1,7 @@
 import {
+  closeSync,
   existsSync,
+  openSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -271,10 +273,56 @@ export function nextDecisionNumber(root: string): number {
 
 export function writeRecord(root: string, folder: AdrFolder, fileName: string, content: string): string {
   const path = join(folderPath(root, folder), fileName);
-  // A removed lifecycle folder is recreated on write.
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, content);
-  return path;
+  const numberMatch = (folder === 'implemented' || folder === 'archived')
+    ? fileName.match(/^(\d+)-/)
+    : null;
+  if (numberMatch === null) {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, content);
+    return path;
+  }
+
+  const number = Number(numberMatch[1]);
+  const lockPath = join(adrRoot(root), `.write-${number}.lock`);
+  let lock: number;
+  try {
+    // Exclusive creation arbitrates across processes before either the scan
+    // or write. Lock by number across both lifecycle folders: an allocation
+    // can become stale while another command archives that number.
+    lock = openSync(lockPath, 'wx');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+    throw new Error(
+      `decision number ${number} is being written; re-run after the other writer finishes. ` +
+      `If it was interrupted, confirm no writer is running before removing ${ADR_DIR}/.write-${number}.lock`,
+    );
+  }
+  try {
+    for (const candidateFolder of ['implemented', 'archived'] as const) {
+      const dir = folderPath(root, candidateFolder);
+      const collision = existsSync(dir)
+        ? readdirSync(dir).find((entry) => {
+            if (!entry.endsWith('.md') || Number(entry.match(/^(\d+)-/)?.[1]) !== number) return false;
+            // Retirement stages the archive alongside the same source name.
+            // Keep archived re-writes available to the retirement boundary;
+            // new implemented decisions must never overwrite existing bytes.
+            return !(folder === 'archived' && entry === fileName);
+          })
+        : undefined;
+      if (collision !== undefined) {
+        throw new Error(
+          `decision number ${number} is already taken by ${ADR_DIR}/${candidateFolder}/${collision}; re-run to allocate the next number`,
+        );
+      }
+    }
+    // A removed lifecycle folder is recreated on write.
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, content, folder === 'implemented' ? { flag: 'wx' } : undefined);
+    return path;
+  } finally {
+    closeSync(lock);
+    rmSync(lockPath);
+  }
 }
 
 export function removeRecord(record: AdrRecord): void {

@@ -42,7 +42,7 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 implemented 决策写 `archived` 和 `archive-reason`；原 `status` 保留
 implemented，表示历史上的交付状态。编号始终稳定。可选 `tags` 必须为不重复
 的小写 kebab-case；可选 `## Deliberation` 保留思辨树。`adrkit validate`
-检查四个目录，拒绝编号重复、日期错误、目录与状态不匹配、四个目录之外的记录，以及悬空引用。
+检查四个目录，拒绝编号重复、日期错误、目录与状态不匹配、四个目录之外的记录，以及悬空引用：记录正文可以用 `ADR-12`、`ADR 4` 或 `ADR12` 引用决策，指向不存在的编号会让整仓校验失败。
 
 可选 `paths` 把记录限定到它管辖的文件——与 `tags` 是不同的轴：tags 按
 主题分类，`paths` 回答「哪些决策管辖这个文件？」。条目为不重复的仓库相对

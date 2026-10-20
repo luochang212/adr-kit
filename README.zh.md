@@ -155,7 +155,10 @@ export function scope() { /* ... */ }
 `adrkit validate` 会扫描代码与配置文件（不扫描 Markdown）中的
 `@adr <编号>`：记录不存在、已被替代（会报出替代者）、已归档，或引用文件不在该
 记录的 `paths` 内时校验失败。引用是可选的，只检查已经写下的那些；报错会给出
-行号，因此失效引用会让 CI 直接指出取代它的决策。
+行号，因此失效引用会让 CI 直接指出取代它的决策。记录正文之间用 `ADR-12`、
+`ADR 4` 或 `ADR12` 互相引用；指向不存在编号的正文引用会让
+`adrkit validate --all` 失败。逐条与整仓的完整检查清单见
+[CLI 参考](docs/zh/cli.md#校验覆盖面)。
 
 详见[记录格式](docs/zh/record-format.md)、[工作流](docs/zh/workflow.md)与[CLI 参考](docs/zh/cli.md)。
 

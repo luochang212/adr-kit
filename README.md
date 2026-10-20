@@ -159,7 +159,11 @@ export function scope() { /* ... */ }
 was superseded (naming the successor), or one that is archived, and when the
 citing file sits outside that decision's `paths`. Citations are optional and
 only the ones that exist are checked; the message names the line, so a stale
-reference fails CI with the decision that replaced it.
+reference fails CI with the decision that replaced it. Record bodies
+cross-reference decisions as `ADR-12`, `ADR 4`, or `ADR12`; a body reference
+to a number that does not exist fails `adrkit validate --all`. The full
+per-record and repository-wide check lists live in the
+[CLI reference](docs/cli.md#validation-coverage).
 
 See [record format](docs/record-format.md), [workflow](docs/workflow.md), and [CLI reference](docs/cli.md).
 

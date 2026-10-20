@@ -11,7 +11,7 @@ import { listCommand } from '../src/commands/list.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { showCommand } from '../src/commands/show.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { folderPath, listProposals, listRecords, relativePath } from '../src/core/repository.js';
+import { folderPath, listProposals, listRecords, relativePath, writeRecord } from '../src/core/repository.js';
 
 const tempDirs: string[] = [];
 
@@ -462,5 +462,28 @@ describe('cli option surface', () => {
     const result = runCli(['graph', '--html', '--out', join(root, 'map.html')], root);
     expect(result.errors.join('\n')).not.toContain('does not take');
     expect(existsSync(join(root, 'map.html'))).toBe(true);
+  });
+
+  it('refuses a second record file with an existing decision number', () => {
+    const root = makeRepo();
+    writeFileSync(join(folderPath(root, 'implemented'), '1-use-sqlite.md'), 'implemented 1');
+    // A concurrent record/implement writer that allocated the same number
+    // must fail at the write instead of leaving a duplicate for validate.
+    expect(() => writeRecord(root, 'implemented', '1-other-decision.md', 'implemented 1'))
+      .toThrow('decision number 1 is already taken by adr/implemented/1-use-sqlite.md');
+    // A different number in the same folder still writes.
+    expect(() => writeRecord(root, 'implemented', '2-other-decision.md', 'implemented 2')).not.toThrow();
+    // A new decision must not overwrite even an identical destination name.
+    expect(() => writeRecord(root, 'implemented', '1-use-sqlite.md', 'implemented 1 revised'))
+      .toThrow('decision number 1 is already taken');
+    // Retirement may stage and re-write the same name in archived/.
+    expect(() => writeRecord(root, 'archived', '1-use-sqlite.md', 'archived 1')).not.toThrow();
+    expect(() => writeRecord(root, 'archived', '1-use-sqlite.md', 'archived 1 revised')).not.toThrow();
+    expect(() => writeRecord(root, 'implemented', '1-reused.md', 'reused 1'))
+      .toThrow('decision number 1 is already taken');
+    // The guard covers archived/ too, where the same race lands on supersede.
+    writeFileSync(join(folderPath(root, 'archived'), '3-old-choice.md'), 'archived 3');
+    expect(() => writeRecord(root, 'archived', '3-old-choice-renamed.md', 'archived 3'))
+      .toThrow('decision number 3 is already taken by adr/archived/3-old-choice.md');
   });
 });
