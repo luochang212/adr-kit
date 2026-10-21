@@ -134,6 +134,59 @@ describe('initCommand tool integrations', () => {
     expect(existsSync(join(root, '.agents/skills/adrkit-propose/SKILL.md'))).toBe(true);
   });
 
+  it('installs the optional visualization example and resolves command links to it', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude', 'visualize');
+    const source = readFileSync(fileURLToPath(new URL(
+      '../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url,
+    )), 'utf8');
+    for (const target of ['.agents', '.claude']) {
+      const skillDir = join(root, target, 'skills/adrkit-visualize');
+      expect(readFileSync(join(skillDir, 'examples/decision-atlas.html'), 'utf8')).toBe(source);
+      const commandDir = join(root, target, 'commands');
+      const command = readFileSync(join(commandDir, 'adrkit-visualize.md'), 'utf8');
+      const link = command.match(/\[the archive-page example\]\(([^)]+)\)/)?.[1];
+      expect(link).toBeDefined();
+      expect(readFileSync(join(commandDir, link!), 'utf8')).toBe(source);
+    }
+  });
+
+  it('refreshes and restores the visualization example on update', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude', 'visualize');
+    const example = join(root, '.agents/skills/adrkit-visualize/examples/decision-atlas.html');
+    const claudeExample = join(root, '.claude/skills/adrkit-visualize/examples/decision-atlas.html');
+    const expected = readFileSync(example, 'utf8');
+    writeFileSync(example, 'outdated example');
+    rmSync(claudeExample);
+    const output = updateCommand(root);
+    expect(readFileSync(example, 'utf8')).toBe(expected);
+    expect(readFileSync(claudeExample, 'utf8')).toBe(expected);
+    expect(output).toContain('rewrote .agents/skills/adrkit-visualize/examples/decision-atlas.html');
+    expect(output).toContain('created .claude/skills/adrkit-visualize/examples/decision-atlas.html');
+    expect(updateCommand(root)).toContain('unchanged .agents/skills/adrkit-visualize/examples/decision-atlas.html');
+  });
+
+  it('removes deselected workflow resources while preserving the user\'s neighboring files', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude', 'visualize');
+    const userFile = join(root, '.agents/skills/adrkit-visualize/examples/user.html');
+    writeFileSync(userFile, 'user-owned');
+    updateCommand(root, undefined, 'propose');
+    for (const target of ['.agents', '.claude']) {
+      expect(existsSync(join(root, target, 'skills/adrkit-visualize/examples/decision-atlas.html'))).toBe(false);
+      expect(existsSync(join(root, target, 'skills/adrkit-visualize/SKILL.md'))).toBe(false);
+    }
+    expect(readFileSync(userFile, 'utf8')).toBe('user-owned');
+    expect(existsSync(join(root, '.claude/skills/adrkit-visualize'))).toBe(false);
+  });
+
+  it('does not install visualization resources when another workflow is selected', () => {
+    const root = makeTarget();
+    initCommand(root, 'agents', 'propose');
+    expect(existsSync(join(root, '.agents/skills/adrkit-visualize'))).toBe(false);
+  });
+
   it('rejects unknown and retired tool ids', () => {
     const root = makeTarget();
     expect(() => initCommand(root, 'not-a-tool')).toThrow(/unknown tool/);

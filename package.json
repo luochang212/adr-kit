@@ -22,6 +22,7 @@
   "files": [
     "bin",
     "dist",
+    "skills/adrkit-visualize/examples/decision-atlas.html",
     "README.md",
     "LICENSE"
   ],
