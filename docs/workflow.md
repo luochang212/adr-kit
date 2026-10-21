@@ -45,6 +45,12 @@ settles. Do not confuse a settled choice with shipped work.
    `adrkit graph --html` visualizes numbered decisions and their history;
    `adrkit tree <name> --html` renders an optional `## Deliberation` appendix.
 
+The `adrkit-visualize` skill also carries an optional archive-page example at
+`examples/decision-atlas.html` inside the installed skill. Consult it for a
+richer browsing request and adapt only the useful sections to the target
+repository; small sets can stay a list or the built-in map. It is a reference
+snapshot, not a new CLI format or a mandatory layout.
+
 ## Keep records and shipped code aligned
 
 Creating, shipping, and reviewing are one governance loop:

@@ -36,6 +36,11 @@
    `adrkit graph --html` 绘制编号决策及历史，`adrkit tree <name> --html`
    绘制可选 `## Deliberation` 思辨树。
 
+`adrkit-visualize` 技能还附有可选的档案页示例，位于安装后的技能目录内
+`examples/decision-atlas.html`。需要更完整的浏览体验时才参考它，按目标仓库
+实际数据裁剪章节；少量记录仍可用列表或内置关系图。示例是参考快照，不是新的
+CLI 输出格式，也不是必用布局。
+
 ## 让记录与已交付代码保持一致
 
 创建、交付、审查构成同一个治理闭环：
