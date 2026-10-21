@@ -142,7 +142,7 @@ describe('decision atlas rendering', () => {
   it('recomputes statistics and prose when records change', () => {
     const first = render(live);
     const second = render(live.slice(0, 1));
-    expect(first).toContain('已封存 1 条历史记录');
+    expect(first).toContain('已归档 1 条历史记录');
     expect(second).toContain('还没有归档记录');
     expect(second).toContain('<strong>1</strong><span>生效决策</span>');
     expect(second).toContain('1 条记录都立在 2026-10-01。');

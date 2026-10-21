@@ -23,16 +23,13 @@
    提案但已交付的选择，用相同来源声明运行 `adrkit record <title>`。
 3. `adrkit reject <name> --reason "<它挡住的诱惑性错误>"` 把否决提案记为
    `rejected/` 的稳定反例终态，不分配 ADR 编号。保留它；只有当另一条记录
-   接管了它挡住的错误时才移除，绝不因「看起来过时」而删——否决记录无编号、
-   不入封存。
+   接管了它挡住的错误时才移除，绝不因「看起来过时」而删——否决记录无编号。
 4. 完整替代用 `adrkit supersede <old> --by <new>`：旧编号记录带
    `superseded-by` 进入 `archived/`。部分替代仍保留有效的现行指导。
    其他低未来价值记录，仅当现状另有权威来源时，才用 `adrkit archive <N>
-   --reason "<现状来源>"` 归档；绝不按年龄归档。两条命令都会把归档文件
-   的最终内容封存进 `adr/archived/MANIFEST.json`；封存后的记录不再修改。
-5. `adrkit validate` 检查四个目录和归档封存清单。`adrkit validate --base
-   <git-ref>` 还会证明归档自该引用以来只增不改，CI 会针对 PR base 或推送
-   前一提交运行它。新模板必填章节未填时会失败。
+   --reason "<现状来源>"` 归档；绝不按年龄归档。两条命令都把最终记录移入
+   `archived/`，后续变化由 Git 记录。
+5. `adrkit validate` 检查四个目录，包括归档记录。新模板必填章节未填时会失败。
    `adrkit graph --html` 绘制编号决策及历史，`adrkit tree <name> --html`
    绘制可选 `## Deliberation` 思辨树。
 

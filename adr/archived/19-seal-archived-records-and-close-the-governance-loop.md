@@ -1,14 +1,19 @@
 ---
-status: implemented
-date: 2026-09-25
+status: superseded
+date: 2026-10-22
 raised-by: human
 decided-by: human
 created: 2026-09-25
-commit: 5bb940e
-tags: [archive-integrity, agent-integration, governance]
+commit: "7679402"
+superseded-by: 30
+archived: 2026-10-22
+archive-reason: superseded by ADR 30
+tags:
+  - archive-integrity
+  - agent-integration
+  - governance
 paths:
   - adr/archived/**
-  - src/core/archive-seal.ts
   - src/core/retire.ts
   - src/commands/archive.ts
   - src/commands/supersede.ts

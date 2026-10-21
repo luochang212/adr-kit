@@ -16,7 +16,7 @@ paths:
 
 `AGENTS.md` justified the no-shims stance with a factual claim: "the maintainer
 is the only current user." That premise no longer holds. The package is
-published, adoption is visible, and ADR 27 already shipped instructions for
+published, adoption is visible, and ADR 30 now carries instructions for
 agents to upgrade and migrate other people's records. A stance argued from
 "nobody else uses this" quietly prices breaking changes at zero and invites
 exactly the silent break the migration path exists to prevent. The real
@@ -36,9 +36,9 @@ say plainly what is not — stayed implicit while the premise did the arguing.
   `adrkit validate` names the exact fix.
 - **Upgrading is the supported path, not compatibility.** Agents upgrade the
   package, migrate active records where the change is mechanical, and report a
-  record that cannot be carried over instead of forcing a rewrite (ADR 27). A
-  migration is never assumed to exist. Sealed archive bytes are never rewritten;
-  the seal, not the new rules, is their contract.
+  record that cannot be carried over instead of forcing a rewrite (ADR 30). A
+  migration is never assumed to exist. Archived records are ordinary Git-tracked
+  history: change them only in deliberate, explained commits; there is no seal.
 - **`AGENTS.md` stops asserting a single user** and stops gating the stance on
   a hypothetical future adopter. The stance holds because the product is
   pre-stable, not because nobody is watching.
@@ -54,7 +54,7 @@ say plainly what is not — stayed implicit while the premise did the arguing.
   temporary courtesy.
 - **Let the README carry the whole stance.** Rejected: the reader who meets the
   failure is the agent, and the standing orders are the only surface it reads
-  every task (ADR 27).
+  every task (ADR 30).
 - **Promise a major-version compatibility boundary.** Rejected: versions are
   pre-1.0, and nothing in the release flow enforces format compatibility; a
   promise would need machinery this project does not carry and would be broken
@@ -72,8 +72,8 @@ say plainly what is not — stayed implicit while the premise did the arguing.
 ### Verification
 
 - `README.md` and `README.zh.md` state that no release promises forward
-  compatibility, that upgrading is the supported path, and that sealed archive
-  bytes are never rewritten.
+  compatibility, that upgrading is the supported path, and that archived records
+  change only in deliberate, explained commits.
 - `AGENTS.md` states the stance without a user-count premise and without the
   "revisit if an adopter appears" gate.
 - `npm run typecheck`, `npm test`, and `adrkit validate --all` pass.

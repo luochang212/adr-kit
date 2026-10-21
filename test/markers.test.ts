@@ -4,7 +4,6 @@ import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { initCommand } from '../src/commands/init.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { sealBytes, writeArchiveManifest } from '../src/core/archive-seal.js';
 import { findCitations } from '../src/core/markers.js';
 import { folderPath } from '../src/core/repository.js';
 import { validateRepository } from '../src/core/validate.js';
@@ -31,18 +30,6 @@ afterEach(() => {
  */
 function cite(numbers: string | number, sigil = 'adr'): string {
   return `@${sigil} ${numbers}`;
-}
-
-/** Every archived file must carry a seal, so fixtures seal after writing. */
-function sealArchive(root: string): void {
-  const dir = folderPath(root, 'archived');
-  const entries = existsSync(dir)
-    ? readdirSync(dir)
-        .filter((file) => file.endsWith('.md'))
-        .sort()
-        .map((file) => ({ path: file, sha256: sealBytes(readFileSync(join(dir, file))) }))
-    : [];
-  writeArchiveManifest(root, { version: 1, entries });
 }
 
 const ACCEPTED = { status: 'implemented', date: '2026-08-19' };
@@ -140,7 +127,6 @@ describe('citation validation', () => {
     const root = makeRepo();
     writeRecord(root, 'implemented', '2-live.md', decision('2 Live', ACCEPTED));
     writeRecord(root, 'archived', '1-old.md', supersededDecision('1 Old', 2));
-    sealArchive(root);
     writeSource(root, 'src/a.ts', `${cite(1)}\n`);
     const messages = citationMessages(root);
     expect(messages).toHaveLength(1);
@@ -154,7 +140,6 @@ describe('citation validation', () => {
       archived: '2026-08-19',
       'archive-reason': 'no longer guides future work',
     }));
-    sealArchive(root);
     writeSource(root, 'src/a.ts', `${cite(1)}\n`);
     expect(citationMessages(root)).toEqual([
       expect.stringContaining('cites ADR 1, which is archived'),

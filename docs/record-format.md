@@ -21,9 +21,9 @@ The header is followed by a blank line and `# ADR: <title>` (or
 Proposals require `Problem`, `Proposal`, `Alternatives considered`,
 `Acceptance criteria`, and `Risks`. Implemented decisions require `Problem`,
 `Decision`, `Alternatives considered`, and `Consequences`; proposal-era
-sections must not remain. Archived decisions keep the shape they were sealed
-with: `archive` validates a record before freezing it, and `validate` judges
-sealed bytes by their seal rather than by rules written later. Promotion folds a
+sections must not remain. Archived decisions keep the same decision shape and
+are checked by the current format like any other record; a later format change
+is a normal migration commit. Promotion folds a
 proposal's `## Acceptance criteria` and `## Risks` into `### Verification`
 and `### Trade-offs` under `## Consequences`; an implemented record must not
 carry the old H3 names directly under Consequences. That check ignores fenced
@@ -76,33 +76,17 @@ duplicate entry, an absolute path, a `..` segment, a backslash, and an
 entry whose static directory anchor does not exist in the repository
 (the complete directory components before the first wildcard, or the full
 literal path when there is no wildcard; `src/cli*.ts` checks `src`) — the drift check that fails a scope stranded by
-a rename. Archived records are exempt from the drift check: sealed bytes
-must not start failing because the live tree moved on after they froze.
+a rename. Archived records are checked the same way; a stale path is a
+normal migration fix.
 
 Code may cite a record with `@adr <number>` in a comment; `adrkit validate`
 fails when the citation names a missing, archived, or superseded decision, or a
 file outside the record's `paths`.
 
-## Archive manifest
+## Archived history
 
-`adr/archived/MANIFEST.json` seals the archive. It is a versioned JSON file
-(`{"version": 1, "entries": [...]}`) with one entry per archived record,
-appended in archival order:
-
-```json
-{ "path": "5-adopt-the-annotated-deliberation-grammar.md", "sha256": "<64 hex characters>" }
-```
-
-`sha256` is the hash of the archived file's complete bytes. `adrkit archive`
-and `adrkit supersede` append the seal; a path is never sealed twice, and an
-existing seal is never rewritten. `adrkit init` writes the manifest, and it
-must exist even when the archive is empty, so `adrkit validate` reports a
-missing manifest as an error. Validation also fails on a missing, malformed,
-duplicate, or extra entry, a missing archived file, and archived bytes that no
-longer match their seal — restore the sealed bytes rather than re-sealing
-edited content. `adrkit validate --base <git-ref>` reads the manifest and
-sealed files from Git and requires every entry sealed at the base to survive
-unchanged as a prefix of the current manifest, so a coordinated edit of an
-archived file and its hash still fails; the base must carry the manifest, and
-naming a base whose manifest is missing or unreadable fails rather than
-skipping the history check.
+`archived/` is ordinary Git-tracked history. `adrkit archive` and
+`adrkit supersede` move the record and stamp its lifecycle fields; there is no
+separate manifest or seal. `adrkit validate` checks an archived record like any
+other record, and Git history is the audit for later changes. A format
+migration is a normal commit with a stated reason.

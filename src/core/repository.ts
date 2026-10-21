@@ -10,7 +10,6 @@ import {
 } from 'node:fs';
 import { basename, dirname, join, posix, relative, resolve } from 'node:path';
 import { ADR_DIR, CONFIG_FILE, configPath } from './config.js';
-import { emptyArchiveManifest, writeArchiveManifest } from './archive-seal.js';
 import { parseAdrFile, type AdrFolder, type AdrRecord } from './adr.js';
 
 /** Lifecycle folders are the repository inventory. */
@@ -71,11 +70,10 @@ A proposal is unshipped even when its direction has been settled. Implemented
 records describe shipped decisions and receive stable ADR numbers. A rejection
 is a durable terminal record of a declined proposal: it is removed only when
 another record owns the warning it blocks, never for appearing stale —
-rejections are unnumbered and unsealed, so removing a redundant one cannot
-reuse a number or break the archive. Archived records
-are frozen history, not current authority. Each one is
-sealed in adr/archived/MANIFEST.json; adrkit validate checks the seal, and
-adrkit validate --base <git-ref> proves the archive only grows.
+rejections are unnumbered, so removing a redundant one cannot reuse a number.
+Archived records are frozen history, not current authority. They are ordinary
+Git-tracked records: adrkit validate checks them like the rest of the
+inventory, and Git history shows any later change.
 
 Never delete a numbered decision: its stable N may be referenced elsewhere.
 Implemented records may refresh factual paths, symbols, and defaults, but a
@@ -124,11 +122,6 @@ export function initRepository(targetDir: string, tools: string[] = [], workflow
   const config = configPath(root);
   writeFileSync(config, initConfig(tools, workflows));
   created.push(`${ADR_DIR}/${CONFIG_FILE}`);
-
-  // The archive seal starts empty: archive and supersede append entries as
-  // records retire, and validate checks the manifest against archived bytes.
-  writeArchiveManifest(root, emptyArchiveManifest());
-  created.push(`${ADR_DIR}/archived/MANIFEST.json`);
 
   const readme = join(adrRoot, 'README.md');
   writeFileSync(readme, INIT_README);
@@ -270,16 +263,10 @@ export function resolveRecordFromInventory<T extends Pick<AdrRecord, 'path' | 'f
 }
 
 export function nextDecisionNumber(root: string): number {
-  // Numbers live in the filename, so allocating one must not parse the archive:
-  // a sealed record written by an older format may no longer satisfy today's
-  // parser, but its number still occupies its slot (ADR 27).
   let max = 0;
-  for (const folder of ['implemented', 'archived'] as const) {
-    const dir = folderPath(root, folder);
-    if (!existsSync(dir)) continue;
-    for (const entry of readdirSync(dir)) {
-      const match = entry.match(/^([1-9]\d*)-/);
-      if (match !== null) max = Math.max(max, Number(match[1]));
+  for (const record of listRecords(root)) {
+    if ((record.folder === 'implemented' || record.folder === 'archived') && (record.number ?? 0) > max) {
+      max = record.number ?? 0;
     }
   }
   return max + 1;

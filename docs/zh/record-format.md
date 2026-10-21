@@ -24,8 +24,8 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 提案需要 `Problem`、`Proposal`、`Alternatives considered`、
 `Acceptance criteria`、`Risks`。已实施决策需要 `Problem`、
 `Decision`、`Alternatives considered`、`Consequences`，不得保留提案期
-章节。归档决策保留封存时的形状：`archive` 在冻结前已校验记录，`validate`
-只按封存判定这些无法更改的字节，不再套用后来写下的规则。晋升时，提案的
+章节。归档决策保留同样的决策形状，和其他记录一样按当前格式校验；之后的
+格式变化就是一次普通迁移提交。晋升时，提案的
 `## Acceptance criteria` 与 `## Risks` 会折叠为
 `## Consequences` 下的 `### Verification` 与 `### Trade-offs`；implemented
 记录不得在 Consequences 下直接保留旧的 `### Acceptance criteria` 或
@@ -57,28 +57,15 @@ YAML flow 写法中需要引号（`paths: ["**/*.ts"]`）。`adrkit relevant
 默认不检索，没有 `paths` 的记录永不匹配——范围检索不是全文搜索。该字段
 在每次生命周期转移和提案晋升时保留。`adrkit validate` 拒绝空条目、重复
 条目、绝对路径、含 `..` 的条目、反斜杠，以及静态目录锚点在仓库中不存在的条目（第一个通配符之前的完整目录组件；
-无通配符时为完整路径，`src/cli*.ts` 检查 `src`）——即重命名后范围悬空的漂移检查。归档记录
-豁免漂移检查：封存字节不应因冻结之后文件树变化而开始失败。
+无通配符时为完整路径，`src/cli*.ts` 检查 `src`）——即重命名后范围悬空的漂移检查。归档记录也按同样规则检查；失效路径是一次
+普通的迁移修复。
 
 代码可用 `@adr <编号>` 在注释中引用记录；指向不存在、已归档或已替代的
 决策，或引用文件不在该记录的 `paths` 内时，`adrkit validate` 会失败。
 
-## 归档封存清单
+## 归档历史
 
-`adr/archived/MANIFEST.json` 封存归档目录。它是带版本号的 JSON 文件
-（`{"version": 1, "entries": [...]}`），每条归档记录一个条目，按归档顺序
-追加：
-
-```json
-{ "path": "5-adopt-the-annotated-deliberation-grammar.md", "sha256": "<64 位十六进制>" }
-```
-
-`sha256` 是归档文件完整字节的哈希。`adrkit archive` 和 `adrkit supersede`
-负责追加封存；同一路径永不二次封存，已有封存永不改写。`adrkit init` 会写入
-该清单，且即使归档为空也必须存在，因此 `adrkit validate` 会把缺失的清单
-报为错误。校验还会对缺失、格式错误、重复或多余的条目、缺失的归档文件、
-以及与封存不符的归档字节报错——应恢复被封存的字节，而不是给改过的内容
-重新封存。`adrkit validate --base <git-ref>` 从 Git 读取 base 的清单与归档
-文件，要求 base 已封存的每个条目原样保留为当前清单的前缀，因此同时改写
-归档文件与其哈希仍会失败；base 必须携带清单，清单缺失或无法读取时会失败，
-而不是跳过历史校验。
+`archived/` 是普通的 Git 跟踪历史。`adrkit archive` 与 `adrkit supersede`
+移动记录并写入生命周期字段；没有单独的清单或封存。`adrkit validate` 像检查
+其他记录一样检查归档记录，后续修改由 Git 历史审计。格式迁移就是一次附带
+原因的普通提交。

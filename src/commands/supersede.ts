@@ -2,20 +2,14 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
-import { formatIssues, listValidationRecords, validateRecord } from '../core/validate.js';
+import { formatIssues, validateRecord } from '../core/validate.js';
 import { gitHead } from '../core/git.js';
-import { sealAndRetire } from '../core/retire.js';
-import { folderPath, resolveRecord, resolveRecordFromInventory } from '../core/repository.js';
+import { retireRecord } from '../core/retire.js';
+import { folderPath, resolveRecord } from '../core/repository.js';
 
 export function supersedeCommand(query: string, byQuery: string, cwd: string): string {
   const root = requireRoot(cwd);
-  const records = (() => {
-    try { return listValidationRecords(root); } catch { return undefined; }
-  })();
-  const resolve = (value: string) => records === undefined
-    ? resolveRecord(root, value)
-    : resolveRecordFromInventory(root, value, records);
-  const record = resolve(query);
+  const record = resolveRecord(root, query);
   if (record.status === 'superseded') {
     const current = record.supersededBy ?? 0;
     throw new Error(
@@ -23,7 +17,7 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     );
   }
 
-  const replacement = resolve(byQuery);
+  const replacement = resolveRecord(root, byQuery);
   if (replacement.path === record.path) {
     throw new Error('a decision cannot supersede itself');
   }
@@ -50,7 +44,6 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
         `fix them with "adrkit validate ${record.number ?? query}" before superseding`,
     );
   }
-  // The retiring record is about to be sealed, so it must validate first.
   const recordIssues = validateRecord(root, record);
   if (recordIssues.length > 0) {
     throw new Error(`"${query}" is not valid; fix it before superseding:\n${formatIssues(recordIssues)}`);
@@ -64,6 +57,6 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   };
   const commit = gitHead(root);
   if (commit !== undefined) patch.commit = commit;
-  sealAndRetire(root, record, patch, 'superseding');
-  return `superseded adr/implemented/${record.fileName} by adr/implemented/${replacement.fileName}; archived old record with a manifest seal`;
+  retireRecord(root, record, patch);
+  return `superseded adr/implemented/${record.fileName} by adr/implemented/${replacement.fileName}; archived the old record`;
 }

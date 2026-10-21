@@ -5,7 +5,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 
 | Command | Purpose |
 | --- | --- |
-| `adrkit init [path] [--tools <list>] [--workflows <list>]` | Create four lifecycle directories, config, archive manifest, README, and integrations |
+| `adrkit init [path] [--tools <list>] [--workflows <list>]` | Create four lifecycle directories, config, README, and integrations |
 | `adrkit propose <title>` | Create dated, unnumbered unshipped proposal |
 | `adrkit note <text>` | Append a timestamped one-line decision note to `adr/notes.md`; outside the lifecycle, ignored by validation, counted by `list` and `instructions` |
 | `adrkit implement <name> --raised-by <human\|agent> --decided-by <human\|agent>` | Promote a shipped proposal; assign stable ADR number |
@@ -18,7 +18,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | `adrkit show <name>` | Show a record by title, filename, slug, or ADR number |
 | `adrkit status` | Count lifecycle folders and report validity |
 | `adrkit instructions` | Show pending proposals and the next valid action |
-| `adrkit validate [name] [--all] [--base <git-ref>]` | Validate one record, the whole repository (including its closed lifecycle inventory), or the archive's append-only history |
+| `adrkit validate [name] [--all]` | Validate one record or the whole repository, including its closed lifecycle inventory |
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
 | `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | Visualize numbered decision history |
@@ -33,10 +33,7 @@ a shipped choice; `--decided-by` says whose judgment settled it. Both are
 declarations, not CLI inferences. `--reason` is required for rejection and
 archival. The CLI cannot verify that code shipped or another authoritative
 owner exists. `--tools claude` adds `.claude/` copies alongside the default
-`.agents/`; `--tools none` installs no integrations. `validate --base`
-requires repository-wide validation — it is refused together with a
-single-record query — and fails with an actionable error when the base ref or
-its manifest is missing or cannot be read.
+`.agents/`; `--tools none` installs no integrations.
 
 Repository-wide validation also checks `@adr <number>` citations in code and
 configuration files. A citation must name an implemented decision whose `paths`
@@ -48,13 +45,10 @@ optional: only the ones that exist are checked.
 ## Validation coverage
 
 `adrkit validate <name>` checks one record. `--all` adds the corpus checks
-below. `--all --base <git-ref>` additionally proves the archive only grew
-since that ref. Validation is supposed to fail on fresh records until their
-required sections are filled in.
+below. Validation is supposed to fail on fresh records until their required
+sections are filled in.
 
-Per record, in every mode. Archived records are the exception: they are
-judged by their seal alone, because the archive command validated them before
-they froze and later format rules must not re-open bytes that cannot change.
+Per record, in every mode, including archived records.
 
 - Front matter: parseable canonical layout, no unknown fields; `created`
   present, a real calendar date, and not after the status date; `commit`
@@ -62,8 +56,7 @@ they froze and later format rules must not re-open bytes that cannot change.
 - `tags` (when present): non-empty, lowercase kebab-case, no duplicates.
 - `paths` (when present): non-empty, repository-relative, forward slashes,
   no `..`, no duplicates, and every static directory anchor (or full literal
-  path) still exists in the repository. Archived records are exempt from the
-  drift check: their sealed bytes do not depend on the live tree.
+  path) still exists in the repository.
 - Sections: the required headings per status exist without duplicates.
   `Problem`, `Decision`/`Proposal`, and `Alternatives considered` require
   written content; `Consequences`, `Acceptance criteria`, and `Risks` require
@@ -77,9 +70,6 @@ they froze and later format rules must not re-open bytes that cannot change.
   forward references to numbers not yet assigned to proposals fail too.
 - Supersession chains resolve without cycles to an implemented decision;
   no backlink from the successor is required.
-- An archived record has a matching seal in `adr/archived/MANIFEST.json`;
-  the manifest must resolve to a regular file before it is read.
-
 Repository-wide (`--all`), additionally:
 
 - The four lifecycle folders are the whole inventory: unknown folders,
@@ -88,8 +78,8 @@ Repository-wide (`--all`), additionally:
 - Decision numbers are unique across `implemented/` and `archived/`.
 - `@adr <number>` citations in code and configuration (details above);
   unreadable source files or directories fail with a scan diagnostic.
-- The archive manifest covers exactly the archived records, with no missing,
-  duplicate, or extra entries, and all archived bytes match their seals.
+- Archived records satisfy the same format, path, and reference checks as the
+  rest of the inventory.
 
 ## Configuration type errors
 
@@ -114,21 +104,13 @@ Quote the whole item as `- "max: 500"` to make it a string. `list` still discove
 records when config fields are mistyped; `status` and `instructions` report the
 repository's validation issues, including when proposals are pending.
 
-## Source removal after sealing
+## Source removal after archiving
 
-`archive` and `supersede` write the archived file and its manifest seal before
-removing the implemented source. If source removal fails, the command exits
-non-zero and reports that sealing completed but source removal failed, with
-both file paths and the underlying error. Both copies remain; the operation
-has not fully completed or rolled back. For supersession, the replacement stays
-active.
-
-Inspect both copies and verify the archived file against its manifest seal.
-Preserve any unique source content outside the sealed archive before repairing
-permissions and removing only the redundant implemented source. Do not edit the
-archived file or manifest seal. Retrying by decision number is ambiguous while
-both copies exist. After removing the confirmed duplicate, run
-`adrkit validate --all` to verify recovery.
+`archive` and `supersede` write the archived file before removing the
+implemented source. If source removal fails, the command removes the staged
+archived copy again, exits non-zero, and reports both paths and the underlying
+error. The implemented source survives; the move is not half-completed. Fix the
+filesystem error and retry; the replacement in a supersession stays active.
 
 ## Scope retrieval for changes
 
@@ -165,10 +147,5 @@ re-run to allocate the next available number. New implemented records never
 overwrite an existing file; archive staging retains its same-name write behavior.
 The lock is removed on success or a handled error. If a process is forcibly
 terminated, confirm no writer for that number is running before deleting its
-leftover lock file and re-running. This protects decision-number writes, not
-the entire archive manifest transaction; run lifecycle commands one at a time.
-
-Archive manifest updates write a temporary file beside the manifest and rename
-it only after the write succeeds. A partial write or failed rename leaves the
-previous manifest intact and rolls back the staged archive record. This does
-not provide power-loss durability or serialize concurrent archive transactions.
+leftover lock file and re-running. This protects decision-number writes only;
+run lifecycle commands one at a time.

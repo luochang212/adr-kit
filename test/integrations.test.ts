@@ -245,17 +245,16 @@ describe('initCommand tool integrations', () => {
     );
   });
 
-  it('tells agents to self-heal format drift instead of hand-editing sealed records', () => {
+  it('tells agents to migrate format drift instead of hand-editing archived records', () => {
     // A record written by an older adr-kit fails the current shape rules, and
     // the agent is the one holding the error. The standing orders must name the
-    // remedy and the boundary in the same breath, or an agent "fixes" the
-    // archive and breaks its seal.
+    // migration remedy and the archived-history boundary in the same breath.
     const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
     const agents = readFileSync(fileURLToPath(new URL('../AGENTS.md', import.meta.url)), 'utf8');
     for (const text of [initBody, agents]) {
       const flat = text.replace(/\s+/g, ' ');
       expect(flat).toContain('upgrade the `adr-kit` package to the latest stable release');
-      expect(flat).toContain('their seal, not the current rules, is their contract');
+      expect(flat).toContain('a later format change is a normal migration commit');
     }
   });
 

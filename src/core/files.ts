@@ -10,7 +10,7 @@ function pathKind(info: Stats): string {
 }
 
 /** Follow links to regular files, but reject devices and FIFOs before reading. */
-export function readRegularBytes(path: string, label: string): Buffer {
+export function readRegularText(path: string, label: string): string {
   let info: Stats;
   try {
     info = statSync(path);
@@ -20,9 +20,5 @@ export function readRegularBytes(path: string, label: string): Buffer {
   if (!info.isFile()) {
     throw new Error(`${label} path is not a regular file (${pathKind(info)})`);
   }
-  return readFileSync(path);
-}
-
-export function readRegularText(path: string, label: string): string {
-  return readRegularBytes(path, label).toString('utf8');
+  return readFileSync(path, 'utf8');
 }

@@ -41,12 +41,10 @@ records that no longer guide work.
   and `archived/` hold stable numbered files.
 - A settled but unshipped direction remains proposed. There is no separate
   local draft folder; Git distinguishes uncommitted work from shared proposals.
-- `adrkit validate` checks all four folders and the `adr/archived/MANIFEST.json`
-  content seal. Archived records are judged by their seal alone, because the
-  archive validated them before freezing. `adrkit validate --base <git-ref>`
-  proves the archive only grew.
-  Fresh templates intentionally fail until required sections contain real
-  content.
+- `adrkit validate` checks all four folders, including archived records.
+  Archived history is ordinary Git-tracked history; a format migration is a
+  normal commit with a reason. Fresh templates intentionally fail until required
+  sections contain real content.
 - Code and configuration may cite a decision with `@adr <number>` in a comment.
   `adrkit validate --all` fails when the citation names a missing, archived, or
   superseded decision, or a file outside that decision's `paths`; Markdown is

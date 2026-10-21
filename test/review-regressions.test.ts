@@ -3,9 +3,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { initRepository } from '../src/core/repository.js';
-import { readArchiveManifest } from '../src/core/archive-seal.js';
 import { writtenHeadings } from '../src/core/adr.js';
-import { archiveCommand } from '../src/commands/archive.js';
 import { implementCommand } from '../src/commands/implement.js';
 import { instructionsCommand } from '../src/commands/instructions.js';
 import { relevantCommand } from '../src/commands/relevant.js';
@@ -38,44 +36,6 @@ afterEach(() => {
   vi.mocked(fs.renameSync).mockReset().mockImplementation(actualFs.renameSync);
   vi.mocked(fs.readdirSync).mockReset().mockImplementation(actualFs.readdirSync);
   for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true });
-});
-
-describe('archive failure boundaries', () => {
-  it.each(['partial write', 'rename'])('preserves existing seals on a %s failure', (failure) => {
-    const root = repo(); putDecision(root, 1); archiveCommand('1', 'Retired', root);
-    const source = putDecision(root, 2);
-    const sourceBytes = fs.readFileSync(source, 'utf8');
-    const manifest = join(root, 'adr/archived/MANIFEST.json');
-    const original = fs.readFileSync(manifest, 'utf8');
-    if (failure === 'partial write') {
-      vi.mocked(fs.writeFileSync).mockImplementation((path, data, ...args) => {
-        if (String(path).includes('MANIFEST')) {
-          actualFs.writeFileSync(path, String(data).slice(0, 30));
-          throw new Error('ENOSPC after partial write');
-        }
-        return actualFs.writeFileSync(path, data, ...args);
-      });
-    } else {
-      vi.mocked(fs.renameSync).mockImplementation(() => { throw new Error('rename denied'); });
-    }
-    expect(() => archiveCommand('2', 'Retired', root)).toThrow();
-    expect(fs.readFileSync(manifest, 'utf8')).toBe(original);
-    expect(fs.readFileSync(source, 'utf8')).toBe(sourceBytes);
-    expect(fs.readdirSync(join(root, 'adr/archived')).sort()).toEqual(['.gitkeep', '1-choice.md', 'MANIFEST.json']);
-    expect(readArchiveManifest(root)?.entries).toHaveLength(1);
-  });
-
-  it.skipIf(process.platform === 'win32')('refuses a device manifest before reading its bytes', () => {
-    const root = repo(); const manifest = join(root, 'adr/archived/MANIFEST.json');
-    fs.rmSync(manifest); fs.symlinkSync('/dev/zero', manifest);
-    vi.mocked(fs.readFileSync).mockImplementation((path, ...args) => {
-      if (String(path) === manifest) throw new Error('unsafe device read attempted');
-      return actualFs.readFileSync(path, ...args);
-    });
-    expect(() => readArchiveManifest(root)).toThrow(/not a regular file.*character device/);
-    expect(validateCommand(root).output).toMatch(/not a regular file.*character device/);
-    expect(fs.readFileSync).not.toHaveBeenCalledWith(manifest, 'utf8');
-  });
 });
 
 describe('visible Markdown and promotion', () => {

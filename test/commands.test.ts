@@ -16,7 +16,6 @@ import { rejectCommand } from '../src/commands/reject.js';
 import { showCommand } from '../src/commands/show.js';
 import { updateCommand } from '../src/commands/update.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { sealBytes, writeArchiveManifest } from '../src/core/archive-seal.js';
 import { todayStamp } from '../src/core/adr.js';
 import { installedWithNotice, readConfig } from '../src/core/config.js';
 import { standingOrdersSection } from '../src/core/tool-integrations.js';
@@ -86,20 +85,6 @@ afterEach(() => {
   }
 });
 
-describe('validation of frozen history', () => {
-  it('checks the seal even when the archived format cannot be parsed', () => {
-    const root = makeRepo();
-    const bytes = 'A record sealed before the current front matter format.\n';
-    const path = join(root, 'adr', 'archived', '1-storage.md');
-    writeFileSync(path, bytes);
-    writeArchiveManifest(root, { version: 1, entries: [{ path: '1-storage.md', sha256: sealBytes(bytes) }] });
-    expect(validateCommand(root).valid).toBe(true);
-    expect(validateCommand(root, '1').valid).toBe(true);
-    writeFileSync(path, bytes + 'An unsealed edit.\n');
-    expect(validateCommand(root, '1').output).toContain('archived bytes no longer match');
-  });
-});
-
 describe('initCommand', () => {
   it('creates the ADR Kit directory layout', () => {
     const root = makeRepo();
@@ -109,12 +94,6 @@ describe('initCommand', () => {
     expect(existsSync(join(root, 'adr', 'rejected'))).toBe(true);
     expect(existsSync(join(root, 'adr', 'archived'))).toBe(true);
     expect(existsSync(join(root, 'adr', '.gitignore'))).toBe(false);
-  });
-
-  it('writes an empty archive manifest', () => {
-    const root = makeRepo();
-    const manifest = JSON.parse(readFileSync(join(root, 'adr', 'archived', 'MANIFEST.json'), 'utf8'));
-    expect(manifest).toEqual({ version: 1, entries: [] });
   });
 
   it('keeps the dogfooded adr/README.md identical to the generated one', () => {

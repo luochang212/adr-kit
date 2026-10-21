@@ -34,7 +34,7 @@ record format itself is the product contract for — is cited by zero records.
 Full-text grep, the only workaround, both over-matches (mentions in
 alternatives, archived history) and under-matches (that same zero). The AGENTS.md
 duty to keep realization facts aligned with shipped code likewise has no
-mechanical backstop: `validate` checks dates, sections, seals, and references,
+mechanical backstop: `validate` checks dates, sections, and references,
 never whether a cited path still exists, so a rename silently strands every
 prose citation.
 

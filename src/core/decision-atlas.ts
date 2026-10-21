@@ -122,7 +122,7 @@ function inboundNote(graph: DecisionGraph, implemented: Set<number>): string {
 function replacementsNote(archived: AdrRecord[]): string {
   if (archived.length === 0) return '还没有归档记录；当前约束以生效记录为准。';
   const superseded = archived.filter((record) => record.supersededBy !== undefined).length;
-  return `已封存 ${archived.length} 条历史记录，其中 ${superseded} 条标注了接棒的继任者；当前约束以生效记录为准。`;
+  return `已归档 ${archived.length} 条历史记录，其中 ${superseded} 条标注了接棒的继任者；当前约束以生效记录为准。`;
 }
 
 /**

@@ -52,7 +52,7 @@ export interface OptionSpec {
  */
 export const OPTION_SPECS = [
   { name: 'all', type: 'boolean', commands: ['validate'] },
-  { name: 'base', type: 'string', takesValue: true, commands: ['relevant', 'validate'] },
+  { name: 'base', type: 'string', takesValue: true, commands: ['relevant'] },
   { name: 'staged', type: 'boolean', commands: ['relevant'] },
   { name: 'raised-by', type: 'string', commands: ['record', 'implement'] },
   { name: 'decided-by', type: 'string', commands: ['record', 'implement'] },

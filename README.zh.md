@@ -60,11 +60,11 @@ adr/
 └── archived/       # 保留编号，冻结历史
 ```
 
-未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号、不入封存）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都会把归档文件封存进 `adr/archived/MANIFEST.json`；`adrkit validate` 检查封存，`adrkit validate --base <git-ref>` 证明归档只增不改。
+未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都把归档记录当作普通的 Git 跟踪历史；没有单独的封存清单。`adrkit validate` 像检查其他记录一样检查它，后续修改由 Git 记录。
 
 ## 升级
 
-ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容——旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；已封存的归档字节绝不重写。`AGENTS.md` 中的该段归你所有，当它粘贴自与当前 CLI 不同的模板时 `adrkit list` 会提示。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。
+ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容——旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；归档记录只通过有意且说明原因的提交修改。`AGENTS.md` 中的该段归你所有，当它粘贴自与当前 CLI 不同的模板时 `adrkit list` 会提示。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。
 
 ## 告诉 Agent
 
@@ -107,7 +107,7 @@ adrkit relevant [<path>... | --base <git-ref> | --staged]
 adrkit show <name>
 adrkit status
 adrkit instructions
-adrkit validate [name] [--all] [--base <git-ref>]
+adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
@@ -152,7 +152,7 @@ tags: [storage]
 ...
 ```
 
-提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`tags` 提供主题分类，不额外引入类别目录。可选 `paths: [src/core/**]` 把记录限定到它管辖的文件：仓库相对路径 glob，`**` 跨目录、`*` 不跨目录、`?` 匹配单字符。`adrkit relevant <path>...` 按阅读姿态列出管辖某文件或目录的记录；没有 `paths` 的记录永不匹配——范围检索不是全文搜索。`adrkit validate` 检查全部四个目录、拒绝目录之外的记录，并要求每个条目的静态目录锚点（无通配符时为完整路径）存在——重命名后校验失败而不是范围悄悄悬空。归档记录只由封存判定：`archive` 在冻结前已校验过它，之后的格式规则不再重新审判无法更改的字节。新模板未填完时按预期失败。
+提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`tags` 提供主题分类，不额外引入类别目录。可选 `paths: [src/core/**]` 把记录限定到它管辖的文件：仓库相对路径 glob，`**` 跨目录、`*` 不跨目录、`?` 匹配单字符。`adrkit relevant <path>...` 按阅读姿态列出管辖某文件或目录的记录；没有 `paths` 的记录永不匹配——范围检索不是全文搜索。`adrkit validate` 检查全部四个目录、拒绝目录之外的记录，并要求每个条目的静态目录锚点（无通配符时为完整路径）存在——重命名后校验失败而不是范围悄悄悬空。归档记录也是普通记录：同样适用格式、路径与引用校验，之后的格式迁移就是一次普通的 Git 提交。新模板未填完时按预期失败。
 
 `adrkit implement` 会把提案的 `## Acceptance criteria` 与 `## Risks` 折叠为 `## Consequences` 下的现在时 `### Verification` 与 `### Trade-offs`；implemented 记录不得在 Consequences 下保留旧 H3 标题。CLI 不能改写正文，因此折叠时会输出提醒。
 

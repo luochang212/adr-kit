@@ -29,18 +29,16 @@ settles. Do not confuse a settled choice with shipped work.
 3. `adrkit reject <name> --reason "<the tempting mistake this blocks>"`
    records a durable anti-pattern in `rejected/`, without an ADR number. Keep
    it; remove it only when another record owns the warning it blocks, never for
-   appearing stale — rejections are unnumbered and unsealed, so removing a
-   redundant one cannot reuse a number or break the archive.
+   appearing stale — rejections are unnumbered, so removing a redundant one
+   cannot reuse a number.
 4. Full replacement uses `adrkit supersede <old> --by <new>`; the old
    numbered record moves to `archived/` with `superseded-by`. Partial
    replacement leaves still-relevant guidance active. `adrkit archive <N>
    --reason "<current authority>"` retires other low-guidance implemented
    records when current behavior has another owner. Never archive by age.
-   Both commands seal the final archived file in `adr/archived/MANIFEST.json`;
-   a sealed record is never edited again.
-5. `adrkit validate` checks all four directories and the archive seal.
-   `adrkit validate --base <git-ref>` additionally proves the archive only
-   grew since that ref, which CI runs against the PR base or push head.
+   Both commands move the final record into `archived/`; Git records later
+   changes.
+5. `adrkit validate` checks all four directories, including archived records.
    Fresh templates fail until required sections are filled.
    `adrkit graph --html` visualizes numbered decisions and their history;
    `adrkit tree <name> --html` renders an optional `## Deliberation` appendix.

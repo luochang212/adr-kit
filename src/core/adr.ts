@@ -130,10 +130,6 @@ export interface AdrRecord {
   frontMatterExtras?: string[];
 }
 
-/** Metadata needed to check links to a decision, including frozen archives. */
-export type AdrReference = Pick<AdrRecord, 'folder' | 'number' | 'paths' | 'supersededBy'>
-  & Partial<Pick<AdrRecord, 'status'>>;
-
 export class AdrFormatError extends Error {
   constructor(
     message: string,
@@ -165,7 +161,7 @@ export function hasMeaningfulBody(body: string | undefined): boolean {
   return false;
 }
 
-/** Keep record-format errors contextual while sharing the safe reader with the manifest. */
+/** Keep record-format errors contextual around the shared safe reader. */
 function readRecordFile(filePath: string): string {
   try {
     return readRegularText(filePath, 'record');

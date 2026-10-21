@@ -58,9 +58,9 @@ it blocks. The only exit is replacement: when another record owns that warning
 and may be removed, with the owner preserving any unique rationale first. That
 is a deliberate, reviewed edit, not automatic pruning.
 
-Keep `archived/` exactly as ADR 19 built it — frozen, sealed, never edited —
+Keep `archived/` as ADR 19 built it — frozen, never edited silently —
 and only make its reading posture explicit. Keep the stable numbers, the
-`superseded` status, the archive seal, and the `tags` classification unchanged.
+`superseded` status and the `tags` classification unchanged.
 This is a definition and reading-policy change, not a structure change: no new
 folder, no new field, no new status, no code behavior change.
 
@@ -83,9 +83,9 @@ link to this one.
   folder's role, not of an individual record; a field would need to be kept in
   sync with the folder and would add vocabulary without changing behavior.
 - **Adopt DSH's deletion of fully superseded implemented notes**: rejected.
-  Implemented records carry stable numbers and are sealed on archive; deleting
-  one breaks number stability and the append-only manifest. Only unnumbered,
-  unsealed rejections can be removed, and only when another record owns them.
+  Implemented records carry stable numbers and are archived; deleting one
+  breaks number stability. Only unnumbered rejections can be removed, and only
+  when another record owns them.
 - **Make `archived/` deletable or re-readable**: rejected. ADR 19 freezes
   archived bytes and `validate --base` proves the archive only grows; the right
   posture is "do not read by default", not "delete".
@@ -106,10 +106,10 @@ link to this one.
   appearing stale.
 - `archived/` is described as lowest-value frozen history and "not read by
   default" everywhere it is mentioned.
-- No code behavior changes: `adrkit reject`, `adrkit validate`, the archive seal,
-  and the `superseded` status are unchanged; `npm test` and
+- No code behavior changes: `adrkit reject`, `adrkit validate`, and the
+  `superseded` status are unchanged; `npm test` and
   `node bin/adrkit.js validate --all` pass.
-- ADR 18 and ADR 19 stay active and each links to this record.
+- ADR 18 stays active and links to this record; ADR 19 was later superseded by ADR 30.
 
 ### Trade-offs
 
@@ -123,3 +123,7 @@ link to this one.
   lives in the folder contract (AGENTS.md, `adr/README.md`, the skills).
 - **Giving up DSH's pruning.** Mitigation: this is a deliberate divergence, like
   never deleting a numbered decision; Git still records a removed rejection.
+
+ADR 30 later superseded ADR 19 and ADR 27 and removed the archive manifest and
+`validate --base`. The four-folder contract and the reading policy above are
+unchanged; statements in this record that describe the seal are historical.

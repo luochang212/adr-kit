@@ -37,9 +37,8 @@ change that ships and records the replacement; link a partial overlap while
 the older record stays active. When shipping or reviewing, keep each active
 record's realization facts — paths, names, defaults — aligned with shipped
 code; a changed choice is a new record with an explicit relationship, not a
-rewrite of old rationale. Archived records are sealed in
-`adr/archived/MANIFEST.json` and never edited; `adrkit validate --base
-<git-ref>` proves the archive only grows.
+rewrite of old rationale. Archived records are ordinary Git-tracked history,
+never edited silently; `adrkit validate` checks them like any record.
 
 Records cost time to write, read, and maintain, and stale records can mislead; record only when preserving the rationale is worth that cost. For example, routing all writes through one boundary to preserve validation and auditing can merit an ADR: a later direct write may look locally correct while bypassing those guarantees. Routine fixes and local renames usually need none when code and tests adequately explain them.
 
@@ -68,15 +67,15 @@ wrote, treat it as format drift rather than damage: upgrade the `adr-kit`
 package to the latest stable release, migrate the active records to the current
 format where the change is mechanical, and report any record that cannot be
 carried over instead of forcing a rewrite; then re-run `adrkit validate --all`.
-Archived records are sealed history: never rewrite their bytes; their seal, not
-the current rules, is their contract.
+Archived records are ordinary Git-tracked history: validate checks them by the
+current rules; a later format change is a normal migration commit.
 
 When the user wants to review or share the project's history, use the
 `adrkit-visualize` skill; generate a browsable atlas from `adr/implemented/`
 and `adr/archived/` only, leave archived bodies out, and pin the page to the
 commit it was built from.
 
-<!-- adrkit: standing-orders acac7a72 -->
+<!-- adrkit: standing-orders 5a4faf4e -->
 
 ## Commands
 
@@ -148,8 +147,8 @@ over a patch rather than share the working tree.
   adopters exist, so a break is a user-facing decision: say so where users meet
   it (the record format, the README upgrade section, the standing orders),
   migrate active records where the change is mechanical, state plainly when a
-  record cannot be carried over, and never rewrite sealed archive bytes
-  (ADR 27).
+  record cannot be carried over, and never rewrite archived records silently
+  (ADR 30).
 
 ## Project website
 

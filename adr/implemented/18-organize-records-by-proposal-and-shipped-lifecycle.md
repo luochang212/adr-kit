@@ -111,7 +111,7 @@ ADR Kit's provenance, deliberation, stable decision numbers, and graph.
   formally rejected proposal gets an explicit, durable outcome. Scratch
   thoughts and losing options within a decision are not formal proposals.
 - **Require supersession before archival**: rejected. A shipped record can
-  lose forward guidance without being replaced; it may be sealed when current
+  lose forward guidance without being replaced; it may be archived when current
   authority exists elsewhere. Conversely, a partial replacement does not
   justify removing remaining active constraints.
 - **Read every implemented record at every task start**: rejected. The
@@ -131,7 +131,7 @@ The file layout, status validation, repository readers, command surface,
 numbering, graph paths, lifecycle skills, standing orders, bilingual docs,
 website examples, and tests must change as one contract. The new inventory
 distinguishes work in progress, shipped guidance, rejected proposals, and
-sealed history without treating approval as delivery. Git records proposal
+archived history without treating approval as delivery. Git records proposal
 collaboration; the CLI records declared lifecycle moves but cannot prove code
 was shipped or that an archive has no remaining forward value. The
 maintainer raised the direction, chose the four-directory lifecycle, kept

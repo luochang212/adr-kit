@@ -171,10 +171,9 @@ describe('four-folder lifecycle', () => {
     expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('implemented');
   });
 
-  it('judges a sealed record by its seal rather than by the current format rules', () => {
-    // The record was validated before it was sealed, so a later format change
-    // must not re-open it: its bytes are frozen, and only the seal can testify
-    // about them. Editing the file is caught as a seal mismatch.
+  it('validates an archived record by the current format', () => {
+    // Archives are ordinary Git-tracked records now: a later format change
+    // reaches them as a normal validation issue, and Git records the edit.
     const root = repo();
     recordCommand('Use SQLite', root, 'human', 'human');
     fillDecision(root, 1);
@@ -182,8 +181,8 @@ describe('four-folder lifecycle', () => {
     const archived = listRecords(root).find((record) => record.number === 1)!;
     writeFileSync(archived.path, readFileSync(archived.path, 'utf8').replace('archived: ' + todayStamp(), 'archived: 2020-01-01'));
     const messages = validateRepository(root).map((issue) => issue.message);
-    expect(messages).toContain('archived bytes no longer match the seal recorded in the manifest');
-    expect(messages).not.toContain('archived date must match the latest lifecycle date');
+    expect(messages).toContain('archived date must match the latest lifecycle date');
+    expect(messages.some((message) => message.includes('seal'))).toBe(false);
   });
 
   it('rejects a superseded status left in the active implemented folder', () => {

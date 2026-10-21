@@ -6,7 +6,6 @@ import { initCommand } from '../src/commands/init.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { implementCommand } from '../src/commands/implement.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { sealBytes, writeArchiveManifest } from '../src/core/archive-seal.js';
 import { folderPath, listProposals } from '../src/core/repository.js';
 import { formatIssues, validateRecord } from '../src/core/validate.js';
 
@@ -17,22 +16,6 @@ function makeRepo(): string {
   tempDirs.push(dir);
   initCommand(dir);
   return dir;
-}
-
-/**
- * Seal every archived record currently on disk. Fixtures hand-write archived
- * files, but the contract requires each one to carry a manifest seal, so a
- * test asserting valid output seals its archive first.
- */
-function sealArchive(root: string): void {
-  const dir = folderPath(root, 'archived');
-  const entries = existsSync(dir)
-    ? readdirSync(dir)
-        .filter((file) => file.endsWith('.md'))
-        .sort()
-        .map((file) => ({ path: file, sha256: sealBytes(readFileSync(join(dir, file))) }))
-    : [];
-  writeArchiveManifest(root, { version: 1, entries });
 }
 
 function decision(title: string, fields: Record<string, string | number>): string {
@@ -237,7 +220,6 @@ Body.
       archivedDecision('2 Second', 3),
     );
     writeFileSync(join(folderPath(root, 'implemented'), '3-third.md'), decision('3 Third', ACCEPTED));
-    sealArchive(root);
     const result = validateCommand(root, '1');
     expect(result.valid).toBe(true);
   });
@@ -252,7 +234,6 @@ Body.
       join(folderPath(root, 'implemented'), '2-second.md'),
       decision('2 Second', ACCEPTED),
     );
-    sealArchive(root);
     expect(validateCommand(root, '1').valid).toBe(true);
   });
 
@@ -563,7 +544,6 @@ Native dependency.
       '## Consequences\n\n### Risks\n\nOld risk.',
     );
     writeFileSync(join(folderPath(root, 'archived'), '1-frozen.md'), frozen);
-    sealArchive(root);
 
     expect(validateCommand(root).valid).toBe(true);
   });
@@ -930,7 +910,6 @@ describe('supersession chain integrity', () => {
           decision(`${n} Record`, fields));
       }
     }
-    sealArchive(root);
     expect(validateCommand(root).valid).toBe(true);
     expect(validateCommand(root, '1').valid).toBe(true);
     expect(validateCommand(root, '2').valid).toBe(true);
@@ -993,18 +972,18 @@ describe('paths scope validation', () => {
     expect(validateCommand(root).output).toContain('paths must not be empty');
   });
 
-  it('exempts archived records from the drift check', () => {
+  it('checks archived records for path drift like active records', () => {
     const root = makeRepo();
     writeFileSync(
       join(folderPath(root, 'implemented'), '2-current.md'),
       decision('2 Current', ACCEPTED),
     );
-    const frozen = archivedDecision('1 Frozen', 2).replace(
+    const archived = archivedDecision('1 Archived', 2).replace(
       'archive-reason: superseded by ADR 2',
       'archive-reason: superseded by ADR 2\npaths: [gone/long-ago/**]',
     );
-    writeFileSync(join(folderPath(root, 'archived'), '1-frozen.md'), frozen);
-    sealArchive(root);
-    expect(validateCommand(root).valid).toBe(true);
+    writeFileSync(join(folderPath(root, 'archived'), '1-archived.md'), archived);
+    expect(validateCommand(root).valid).toBe(false);
+    expect(validateCommand(root).output).toContain('gone/long-ago/**');
   });
 });
