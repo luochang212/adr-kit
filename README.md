@@ -79,6 +79,20 @@ directory searches print diagnostics and exit non-zero. Scope coverage is never
 exhaustive: active records without `paths` are counted, and `list` plus full
 reading still apply. See the [retrieval contract](docs/cli.md#scope-retrieval-for-changes).
 
+## Decision atlas
+
+One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current record in a local-search directory. The atlas is a single self-contained HTML file that works offline — no server and no CDN.
+
+[Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit.
+
+[![ADR Kit decision atlas](./assets/decision-atlas.png)](https://luochang212.github.io/adr-kit/decisions/)
+
+To generate one for your repository, ask your agent:
+
+> Use the `adrkit-visualize` skill to build a browsable decision atlas from `adr/implemented/` and `adr/archived/`. Keep archived bodies out, and pin the page to the current commit.
+
+The lighter routes stay available: `adrkit graph --html` for the map and `adrkit tree <N> --html` for one decision's design tree.
+
 ## Commands
 
 ```text

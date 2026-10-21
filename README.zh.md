@@ -77,6 +77,20 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 范围命中不等于完整上下文：没有 `paths` 的现行记录会提示数量，仍需 `list`
 与完整阅读。详见[检索合同](docs/zh/cli.md#按变更检索决策)。
 
+## 决策档案
+
+一个页面就能承载整个归档：按创建日期分组的决策地图、编号时间线、引用与替代关系链，以及可本地搜索的全部生效记录。档案是单个自包含的 HTML 文件，离线可用——不需要服务器，也不依赖 CDN。
+
+[打开 ADR Kit 自己的决策档案](https://luochang212.github.io/adr-kit/decisions/)。它在每次站点构建时从本仓库的 `adr/` 重新生成，并固定到构建提交。
+
+[![ADR Kit 决策档案](./assets/decision-atlas.png)](https://luochang212.github.io/adr-kit/decisions/)
+
+为自己的仓库生成一份，把这句话交给 agent：
+
+> 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的决策档案。不要包含归档正文，并把页面固定到当前提交。
+
+轻量入口仍然保留：`adrkit graph --html` 看决策地图，`adrkit tree <N> --html` 看单条决策的推敲树。
+
 ## 命令
 
 ```text

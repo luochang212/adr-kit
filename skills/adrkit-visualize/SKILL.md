@@ -21,6 +21,8 @@ When a user wants a richer, browsable history, open [the archive-page example](e
 
 Generate a fresh artifact from the target repository's records and the CLI's relationship output; replace all sample records, counts, dates, titles, paths, and links. Do not invent relationships, infer provenance, or copy another repository's contents. Keep archived history distinct from current authority, and do not read sealed bodies merely to fill a richer page. Resolve record links for the delivered file's location, as `graph --out` does. Preserve the separate `tree` route; the example does not supply missing deliberations.
 
+The example marks its replaceable regions with `atlas:` comments — HTML around the title, hero, statistics, section notes, map, and footer, and a JavaScript comment around the records array. Replace what is inside a marker; keep the markers only when the page should stay regenerable from the same example.
+
 To build one from the example, follow these steps in order:
 
 1. Read only `adr/implemented/` and `adr/archived/` records — the same scope as `adrkit graph`. Build one records entry per file: the front matter fields in order, then `number` and `title` from the `# ADR:` line, the raw Markdown body (archived bodies stay empty), `path`, and `lifecycle`. Determine `lifecycle` from the containing directory: `implemented` for `adr/implemented/`, `archived` for `adr/archived/`, regardless of `status`. Ordinary archives retain `status: implemented`; only records with `superseded-by` have a successor.

@@ -60,3 +60,37 @@ describe('visualization example archive cards', () => {
     expect(result.summaries[0]).toContain('已由 ADR 2 替代');
   });
 });
+
+
+describe('range index date labels', () => {
+  it.each([[320, 11], [1024, 40]])('keeps endpoint dates and readable spacing at %i px with %i columns', (width, count) => {
+    const segments = Array.from({ length: count }, () => {
+      const state = { hidden: false, shift: 0 };
+      return {
+        state,
+        classList: { toggle(name: string, value: boolean) {
+          if (name === 'label-hidden') state.hidden = value;
+        } },
+        style: { setProperty(_name: string, value: string) { state.shift = parseFloat(value); } },
+      };
+    });
+    const columns = Array.from({ length: count }, (_, i) => ({ x: i * 280 }));
+    const viewbox = { x: 0, width: count * 280 };
+    const layout = example.match(/function syncRailLabels\(\) \{[\s\S]*?\n\}/)![0];
+    runInNewContext(`${layout}\nsyncRailLabels();`, {
+      track: { clientWidth: width, querySelectorAll: () => segments }, columns, viewbox,
+    });
+    expect(segments[0]!.state.hidden).toBe(false);
+    expect(segments.at(-1)!.state.hidden).toBe(false);
+    const visible = segments.flatMap((segment, i) => segment.state.hidden ? [] : [
+      (columns[i]!.x + 124) / viewbox.width * width + segment.state.shift,
+    ]);
+    expect(visible.length).toBeGreaterThan(2);
+    expect(visible.length).toBeLessThan(count);
+    visible.forEach((x, i) => {
+      expect(x).toBeGreaterThanOrEqual(24);
+      expect(x).toBeLessThanOrEqual(width - 24);
+      if (i) expect(x - visible[i - 1]!).toBeGreaterThanOrEqual(52);
+    });
+  });
+});

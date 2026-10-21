@@ -23,6 +23,8 @@ Record an ADR when an architectural choice constrains future work and its lastin
 
 Records outlive the format that wrote them. When `adrkit validate` reports unknown fields, missing sections, or parse errors on records an older release wrote, treat it as format drift rather than damage: upgrade the `adr-kit` package to the latest stable release, migrate the active records to the current format where the change is mechanical, and report any record that cannot be carried over instead of forcing a rewrite; then re-run `adrkit validate --all`. Archived records are sealed history: never rewrite their bytes; their seal, not the current rules, is their contract.
 
-<!-- adrkit: standing-orders b78169d7 -->
+When the user wants to review or share the project's history, use the `adrkit-visualize` skill; generate a browsable atlas from `adr/implemented/` and `adr/archived/` only, leave archived bodies out, and pin the page to the commit it was built from.
+
+<!-- adrkit: standing-orders acac7a72 -->
 
 After installation, continue the original task; initializing ADR Kit is not itself a reason to create a record.

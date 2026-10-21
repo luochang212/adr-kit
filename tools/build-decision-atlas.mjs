@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+// Regenerate the published decision atlas from the repository's current
+// records. Run by the site build (site/package.json predev/prebuild); the
+// generated page stays out of Git and is pinned to the checkout's commit.
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const root = resolve(here, '..');
+const templatePath = join(root, 'skills/adrkit-visualize/examples/decision-atlas.html');
+const target = join(root, 'site/public/decisions/index.html');
+const projectName = 'ADR Kit';
+
+function repositoryUrl() {
+  const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+  return String(manifest.repository?.url ?? '')
+    .replace(/^git\+/, '')
+    .replace(/\.git$/, '')
+    .replace(/\/$/, '');
+}
+
+function commit() {
+  try {
+    return execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  } catch {
+    return process.env.GITHUB_SHA?.slice(0, 7) ?? 'unknown';
+  }
+}
+
+let core;
+try {
+  core = {
+    ...(await import('../dist/core/repository.js')),
+    ...(await import('../dist/core/graph.js')),
+    ...(await import('../dist/core/decision-atlas.js')),
+  };
+} catch (error) {
+  console.error('build-decision-atlas: the CLI is not built; run "npm run build" at the repository root first.');
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}
+
+const records = core.listRecords(root, ['implemented', 'archived']);
+const graph = core.buildDecisionGraph(records);
+const html = core.renderDecisionAtlas({
+  template: readFileSync(templatePath, 'utf8'),
+  records,
+  graph,
+  commit: commit(),
+  repositoryUrl: repositoryUrl(),
+  projectName,
+});
+
+mkdirSync(dirname(target), { recursive: true });
+writeFileSync(target, html);
+console.log(
+  `wrote ${target.slice(root.length + 1)}: ${records.length} records, ${graph.referenceEdges.length} references`,
+);

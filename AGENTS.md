@@ -71,7 +71,12 @@ carried over instead of forcing a rewrite; then re-run `adrkit validate --all`.
 Archived records are sealed history: never rewrite their bytes; their seal, not
 the current rules, is their contract.
 
-<!-- adrkit: standing-orders b78169d7 -->
+When the user wants to review or share the project's history, use the
+`adrkit-visualize` skill; generate a browsable atlas from `adr/implemented/`
+and `adr/archived/` only, leave archived bodies out, and pin the page to the
+commit it was built from.
+
+<!-- adrkit: standing-orders acac7a72 -->
 
 ## Commands
 
@@ -150,15 +155,19 @@ over a patch rather than share the working tree.
 
 `site/` is the bilingual (en/zh) project homepage, an Astro app deployed to
 GitHub Pages by `.github/workflows/site.yml`. It has its own
-`package.json` and build (`cd site && npm run build`); the CLI's build does
-not cover it. Copy lives in `site/src/i18n/ui.ts`: edit both languages in
+`package.json` and build (`cd site && npm run build`), which regenerates the
+atlas through the compiled CLI and therefore needs the root `npm run build`
+first. Copy lives in `site/src/i18n/ui.ts`: edit both languages in
 the same change. The integration story in
 `site/src/components/GetStarted.astro` (default `.agents/` target plus the
 Claude Code exception) mirrors the targets in `src/core/tool-integrations.ts`;
 update both when they change. The terminal demo transcript in
 `site/src/components/TerminalDemo.astro` and the graph example in
 `site/src/components/Graph.astro` mirror real CLI output; refresh them
-when command output changes.
+when command output changes. `tools/build-decision-atlas.mjs` regenerates
+`site/public/decisions/index.html` from the current `adr/` records before
+every site build; that page is generated, ignored by Git, and pinned to the
+build commit. The homepage's atlas link lives in `Graph.astro`.
 
 ## Record format is the product
 

@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node ../tools/build-decision-atlas.mjs",
     "dev": "astro dev",
+    "prebuild": "node ../tools/build-decision-atlas.mjs",
     "build": "astro build",
     "preview": "astro preview"
   },

@@ -68,7 +68,9 @@ Records cost time to write, read, and maintain, and stale records can mislead; r
 
 Record an ADR when an architectural choice constrains future work and its lasting rationale or genuine trade-offs are not adequately explained by code, tests, and existing documentation. A behavior change alone does not qualify. Record genuine alternatives and trade-offs, not invented template filler. A grilling session records every choice it settles, but unshipped outcomes remain proposals. Use \`adrkit propose\` for unshipped work, \`adrkit implement\` after it ships, and \`adrkit record\` for an already-shipped decision. \`raised-by\` declares who introduced the choice; \`decided-by\` declares whose judgment settled it. The CLI neither infers nor verifies shipping or provenance.
 
-Records outlive the format that wrote them. When \`adrkit validate\` reports unknown fields, missing sections, or parse errors on records an older release wrote, treat it as format drift rather than damage: upgrade the \`adr-kit\` package to the latest stable release, migrate the active records to the current format where the change is mechanical, and report any record that cannot be carried over instead of forcing a rewrite; then re-run \`adrkit validate --all\`. Archived records are sealed history: never rewrite their bytes; their seal, not the current rules, is their contract.`;
+Records outlive the format that wrote them. When \`adrkit validate\` reports unknown fields, missing sections, or parse errors on records an older release wrote, treat it as format drift rather than damage: upgrade the \`adr-kit\` package to the latest stable release, migrate the active records to the current format where the change is mechanical, and report any record that cannot be carried over instead of forcing a rewrite; then re-run \`adrkit validate --all\`. Archived records are sealed history: never rewrite their bytes; their seal, not the current rules, is their contract.
+
+When the user wants to review or share the project's history, use the \`adrkit-visualize\` skill; generate a browsable atlas from \`adr/implemented/\` and \`adr/archived/\` only, leave archived bodies out, and pin the page to the commit it was built from.`;
 
 /**
  * Fingerprint of the canonical section body. The marker is derived, never
@@ -159,6 +161,8 @@ Choose the view by the user's question, record count, and relationship density. 
 When a user wants a richer, browsable history, open [the archive-page example](examples/decision-atlas.html). It is an offline reference snapshot of ADR Kit's own public records, not a template that must be followed. Inspect only the layout or interaction code needed; the embedded sample data is not instruction context. Reuse the useful parts; sections, chapter-bar entries, and legend or timeline keys whose data is absent hide themselves at runtime, the chapter bar renumbers, so no empty block survives. A timeline, relationship map, local-search directory, reference counts, and replacement chains are options, not a required checklist.
 
 Generate a fresh artifact from the target repository's records and the CLI's relationship output; replace all sample records, counts, dates, titles, paths, and links. Do not invent relationships, infer provenance, or copy another repository's contents. Keep archived history distinct from current authority, and do not read sealed bodies merely to fill a richer page. Resolve record links for the delivered file's location, as \`graph --out\` does. Preserve the separate \`tree\` route; the example does not supply missing deliberations.
+
+The example marks its replaceable regions with \`atlas:\` comments — HTML around the title, hero, statistics, section notes, map, and footer, and a JavaScript comment around the records array. Replace what is inside a marker; keep the markers only when the page should stay regenerable from the same example.
 
 To build one from the example, follow these steps in order:
 

@@ -3,7 +3,17 @@ name: site
 on:
   push:
     branches: [main]
-    paths: ['site/**', '.github/workflows/site.yml']
+    paths:
+      - 'site/**'
+      - '.github/workflows/site.yml'
+      - 'adr/**'
+      - 'skills/adrkit-visualize/**'
+      - 'tools/build-decision-atlas.mjs'
+      - 'src/**'
+      - 'bin/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
   workflow_dispatch:
 
 permissions:
@@ -24,7 +34,13 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: site/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            site/package-lock.json
+      # The atlas page is generated from the current records, so the site
+      # build needs the CLI's own dependencies and compiled dist.
+      - run: npm ci
+      - run: npm run build
       - run: npm ci
         working-directory: site
       - run: npm run build

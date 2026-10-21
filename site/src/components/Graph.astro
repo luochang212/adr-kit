@@ -175,6 +175,14 @@ const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
       </div>
       <p class="graph__caption">{t('graph.caption')}</p>
     </div>
+    <a class="graph__atlas reveal" href={`${import.meta.env.BASE_URL}/decisions/`}>
+      <span class="graph__atlas-copy">
+        <span class="graph__atlas-eyebrow">{t('graph.atlas.eyebrow')}</span>
+        <span class="graph__atlas-title">{t('graph.atlas.title')}</span>
+        <span class="graph__atlas-lead">{t('graph.atlas.lead')}</span>
+      </span>
+      <span class="graph__atlas-arrow" aria-hidden="true">→</span>
+    </a>
   </div>
 </section>
 
@@ -229,6 +237,57 @@ const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
     font-size: 11.5px;
     color: var(--fg-30);
     text-align: right;
+  }
+  .graph__atlas {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 18px;
+    padding: 22px 24px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: linear-gradient(120deg, #ffffff08, #ffffff02 60%);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .graph__atlas:hover {
+    border-color: var(--border-strong);
+    background: linear-gradient(120deg, #ffffff0d, #ffffff03 60%);
+  }
+  .graph__atlas-copy { display: grid; gap: 6px; }
+  .graph__atlas-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .graph__atlas-title {
+    font-size: 19px;
+    font-weight: 650;
+    color: var(--fg);
+  }
+  .graph__atlas-lead {
+    max-width: 72ch;
+    font-size: 14px;
+    color: var(--fg-50);
+  }
+  .graph__atlas-arrow {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 24px;
+    color: var(--fg-50);
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .graph__atlas:hover .graph__atlas-arrow {
+    color: var(--cyan);
+    transform: translateX(4px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .graph__atlas, .graph__atlas-arrow { transition: none; }
+  }
+  @media (max-width: 640px) {
+    .graph__atlas { gap: 12px; padding: 18px; }
+    .graph__atlas-title { font-size: 17px; }
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -185,7 +185,12 @@ function fitTagRun(tags: string[], maxWidth: number): string {
   return (kept === '' ? run.slice(0, 1) : kept) + '…';
 }
 
-function nodeMarkup(placed: Placed, colors: Map<string, string>, recordHref: (recordPath: string) => string): string {
+function nodeMarkup(
+  placed: Placed,
+  colors: Map<string, string>,
+  recordHref: (recordPath: string) => string,
+  nodeId?: (number: number) => string,
+): string {
   const { node, x, y, height, lines } = placed;
   const classes = ['node'];
   if (node.archived) classes.push('superseded');
@@ -198,7 +203,8 @@ function nodeMarkup(placed: Placed, colors: Map<string, string>, recordHref: (re
   const titleY = y + PAD_Y + META_H + GAP + TITLE_H - 6;
   const parts: string[] = [];
   parts.push('<a href="' + escapeHtml(recordHref(node.path)) + '">');
-  parts.push('<g class="' + classes.join(' ') + '" data-adr="' + node.number + '" data-has-deliberation="' + String(node.hasDeliberation) + '">');
+  const id = nodeId?.(node.number);
+  parts.push('<g' + (id === undefined ? '' : ' id="' + escapeHtml(id) + '"') + ' class="' + classes.join(' ') + '" data-adr="' + node.number + '" data-has-deliberation="' + String(node.hasDeliberation) + '">');
   parts.push('<rect x="' + x + '" y="' + y + '" width="' + CARD_W + '" height="' + height + '" rx="12" stroke="' + stroke + '"/>');
   parts.push('<text class="num" x="' + (x + PAD_X) + '" y="' + metaY + '">#' + node.number + '</text>');
   const meta = node.archived
@@ -221,16 +227,32 @@ function nodeMarkup(placed: Placed, colors: Map<string, string>, recordHref: (re
   return parts.join('');
 }
 
+export interface DecisionMapSvgOptions {
+  /** Resolve a record path to the link its node points at. */
+  recordHref?: (recordPath: string) => string;
+  /** Text appended to a creation-date column, usually its record count. */
+  dateCount?: (count: number) => string;
+  /** Optional DOM id for a node group, so an in-page link can target it. */
+  nodeId?: (number: number) => string;
+}
+
+export interface DecisionMapDrawing {
+  /** The standalone `<svg>` element; an empty graph still returns a frame. */
+  svg: string;
+  /** Counts the page header reports, in display order. */
+  stats: Array<[string, number]>;
+}
+
 /**
- * Render a decision graph as one self-contained, offline HTML map. The layout
- * is computed here, at generation time, so the page needs no network, no CDN,
- * and no runtime; every node links to its record file.
+ * Draw the map once, for callers that embed it in a larger page as well as for
+ * the standalone HTML below. The layout is computed here, at generation time,
+ * so the drawing needs no network and no runtime.
  */
-export function renderDecisionMapHtml(
+export function renderDecisionMapSvg(
   graph: DecisionGraph,
-  title = 'Decision map',
-  recordHref: (recordPath: string) => string = (recordPath) => recordPath,
-): string {
+  options: DecisionMapSvgOptions = {},
+): DecisionMapDrawing {
+  const recordHref = options.recordHref ?? ((recordPath) => recordPath);
   const { placed, columns, width, height } = layout(graph);
   const colors = tagColors(placed.map((entry) => entry.node));
   const byNumber = new Map(placed.map((entry) => [entry.node.number, entry]));
@@ -278,13 +300,6 @@ export function renderDecisionMapHtml(
       + '" data-to="' + edge.to + '" marker-end="url(#arrow-' + kind + ')"/>');
   }
 
-  const deliberated = graph.nodes.filter((node) => node.hasDeliberation).length;
-  const stats: Array<[string, number]> = [
-    ['decisions', graph.nodes.length],
-    ['supersessions', graph.supersedeEdges.length],
-    ['references', graph.referenceEdges.length],
-    ['deliberation trees', deliberated],
-  ];
   const viewX = Math.round(box.minX - MAP_MARGIN);
   const viewY = Math.round(box.minY - MAP_MARGIN);
   const viewW = Math.round(box.maxX - box.minX) + MAP_MARGIN * 2;
@@ -298,11 +313,37 @@ export function renderDecisionMapHtml(
   ];
   for (const column of columns) {
     svg.push('<text class="date-label" x="' + column.x + '" y="' + (TOP - 30) + '">' + escapeHtml(column.date) + ' (' + column.count + ')</text>');
+    if (options.dateCount !== undefined) {
+      svg.push('<text class="date-count" x="' + (column.x + CARD_W) + '" y="' + (TOP - 30) + '" text-anchor="end">' + escapeHtml(options.dateCount(column.count)) + '</text>');
+    }
   }
   svg.push(...edges);
-  for (const entry of placed) svg.push(nodeMarkup(entry, colors, recordHref));
+  for (const entry of placed) svg.push(nodeMarkup(entry, colors, recordHref, options.nodeId));
   svg.push('</svg>');
-  const body = graph.nodes.length === 0 ? '<p class="empty">No decisions yet.</p>' : svg.join('');
+
+  const deliberated = graph.nodes.filter((node) => node.hasDeliberation).length;
+  const stats: Array<[string, number]> = [
+    ['decisions', graph.nodes.length],
+    ['supersessions', graph.supersedeEdges.length],
+    ['references', graph.referenceEdges.length],
+    ['deliberation trees', deliberated],
+  ];
+  return { svg: svg.join(''), stats };
+}
+
+/**
+ * Render a decision graph as one self-contained, offline HTML map. The layout
+ * is computed at generation time, so the page needs no network, no CDN, and no
+ * runtime; every node links to its record file.
+ */
+export function renderDecisionMapHtml(
+  graph: DecisionGraph,
+  title = 'Decision map',
+  recordHref: (recordPath: string) => string = (recordPath) => recordPath,
+): string {
+  const { svg, stats } = renderDecisionMapSvg(graph, { recordHref });
+  const deliberated = stats.find(([label]) => label === 'deliberation trees')?.[1] ?? 0;
+  const body = graph.nodes.length === 0 ? '<p class="empty">No decisions yet.</p>' : svg;
 
   const html: string[] = [
     '<!doctype html>',
