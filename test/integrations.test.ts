@@ -254,6 +254,11 @@ describe('initCommand tool integrations', () => {
     expect(existsSync(join(root, '.agents/commands/adrkit-propose.md'))).toBe(false);
     expect(existsSync(join(root, '.claude/commands/adrkit-propose.md'))).toBe(false);
     expect(existsSync(join(root, '.claude/skills/adrkit-propose/SKILL.md'))).toBe(false);
+    for (const target of ['.agents', '.claude']) {
+      expect(existsSync(join(
+        root, target, 'skills/adrkit-visualize/examples/decision-atlas.html',
+      ))).toBe(false);
+    }
   });
 
   it('cleans up integration roots when they empty out', () => {
