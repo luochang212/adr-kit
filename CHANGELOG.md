@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.24.0
+
+### Minor Changes
+
+- 38a658d: Raise the supported Node.js floor to 22.22. Node 20 is end-of-life, and the test and site toolchains already require 22.12 and 22.22; the runtime declaration now matches what CI verifies.
+- 4d0504f: Remove the archive seal and manifest. `archived/` is ordinary Git-tracked history, validated by the current format; `archive` and `supersede` just move the record. `adrkit validate --base` is removed, and an existing `adr/archived/MANIFEST.json` is no longer read.
+
+### Patch Changes
+
+- cd847de: Improve the archive-page example's range rail, mark its replaceable regions so a generated atlas and the installed resource stay one frontend, and route history-sharing requests to the visualization skill from the standing orders.
+- 7679402: Widen the archive-page reader to a capped 45% and render ordered lists, italics, code nested inside bold, and a source link in the atlas adapter contract; keep the fixed close tab aligned with the drawer.
+- 6d00f6b: Reflow hard-wrapped prose and keep wrapped list items inside their bullets in the archive-page reader, so the record body is readable at any panel width.
+- 51cb9c6: Render record H3 subheadings instead of literal hash marks and use pretty text wrapping for reader prose and lists.
+
 ## 0.23.0
 
 ### Minor Changes
