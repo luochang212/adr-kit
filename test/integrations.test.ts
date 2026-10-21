@@ -582,6 +582,23 @@ describe('skills/ stays in sync with the tool integration templates', () => {
   });
 });
 
+describe('npm package resources', () => {
+  it('lists every declared workflow resource in the package files', () => {
+    // Resources are read at runtime from skills/; a missing files entry keeps
+    // the source-tree tests green but breaks init/update in the published package.
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
+      files: string[];
+    };
+    for (const workflow of WORKFLOWS) {
+      for (const resource of workflow.resources ?? []) {
+        expect(pkg.files, `${workflow.name}: ${resource}`).toContain(
+          `skills/${workflow.name}/${resource}`,
+        );
+      }
+    }
+  });
+});
+
 describe('completionCommand', () => {
   it('prints bash completion', () => {
     expect(completionCommand('bash')).toContain('complete -F _adrkit_completion adrkit');
