@@ -154,17 +154,19 @@ describe('initCommand tool integrations', () => {
   it('refreshes and restores the visualization example on update', () => {
     const root = makeTarget();
     initCommand(root, 'claude', 'visualize');
-    const example = join(root, '.agents/skills/adrkit-visualize/examples/decision-atlas.html');
-    const claudeExample = join(root, '.claude/skills/adrkit-visualize/examples/decision-atlas.html');
+    const agentsRelative = join('.agents', 'skills', 'adrkit-visualize', 'examples', 'decision-atlas.html');
+    const claudeRelative = join('.claude', 'skills', 'adrkit-visualize', 'examples', 'decision-atlas.html');
+    const example = join(root, agentsRelative);
+    const claudeExample = join(root, claudeRelative);
     const expected = readFileSync(example, 'utf8');
     writeFileSync(example, 'outdated example');
     rmSync(claudeExample);
     const output = updateCommand(root);
     expect(readFileSync(example, 'utf8')).toBe(expected);
     expect(readFileSync(claudeExample, 'utf8')).toBe(expected);
-    expect(output).toContain('rewrote .agents/skills/adrkit-visualize/examples/decision-atlas.html');
-    expect(output).toContain('created .claude/skills/adrkit-visualize/examples/decision-atlas.html');
-    expect(updateCommand(root)).toContain('unchanged .agents/skills/adrkit-visualize/examples/decision-atlas.html');
+    expect(output).toContain(`rewrote ${agentsRelative}`);
+    expect(output).toContain(`created ${claudeRelative}`);
+    expect(updateCommand(root)).toContain(`unchanged ${agentsRelative}`);
   });
 
   it('removes deselected workflow resources while preserving the user\'s neighboring files', () => {
