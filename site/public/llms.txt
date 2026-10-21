@@ -41,7 +41,9 @@ records that no longer guide work.
 - A settled but unshipped direction remains proposed. There is no separate
   local draft folder; Git distinguishes uncommitted work from shared proposals.
 - `adrkit validate` checks all four folders and the `adr/archived/MANIFEST.json`
-  content seal; `adrkit validate --base <git-ref>` proves the archive only grew.
+  content seal. Archived records are judged by their seal alone, because the
+  archive validated them before freezing. `adrkit validate --base <git-ref>`
+  proves the archive only grew.
   Fresh templates intentionally fail until required sections contain real
   content.
 - Code and configuration may cite a decision with `@adr <number>` in a comment.

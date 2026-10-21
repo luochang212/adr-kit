@@ -21,6 +21,8 @@ Records cost time to write, read, and maintain, and stale records can mislead; r
 
 Record an ADR when an architectural choice constrains future work and its lasting rationale or genuine trade-offs are not adequately explained by code, tests, and existing documentation. A behavior change alone does not qualify. Record genuine alternatives and trade-offs, not invented template filler. A grilling session records every choice it settles, but unshipped outcomes remain proposals. Use `adrkit propose` for unshipped work, `adrkit implement` after it ships, and `adrkit record` for an already-shipped decision. `raised-by` declares who introduced the choice; `decided-by` declares whose judgment settled it. The CLI neither infers nor verifies shipping or provenance.
 
-<!-- adrkit: standing-orders 103d6e15 -->
+Records outlive the format that wrote them. When `adrkit validate` reports unknown fields, missing sections, or parse errors on records an older release wrote, treat it as format drift rather than damage: upgrade the `adr-kit` package to the latest stable release, migrate the active records to the current format where the change is mechanical, and report any record that cannot be carried over instead of forcing a rewrite; then re-run `adrkit validate --all`. Archived records are sealed history: never rewrite their bytes; their seal, not the current rules, is their contract.
+
+<!-- adrkit: standing-orders b78169d7 -->
 
 After installation, continue the original task; initializing ADR Kit is not itself a reason to create a record.

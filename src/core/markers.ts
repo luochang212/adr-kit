@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
-import type { AdrRecord } from './adr.js';
+import type { AdrReference } from './adr.js';
 import { ADR_DIR } from './config.js';
 import { globMatches } from './glob.js';
 import type { ValidationIssue } from './validate.js';
@@ -68,8 +68,8 @@ export function findCitations(text: string): Citation[] {
  * exist, is no longer current, or does not govern the citing file. The message
  * names the line so the caller can jump straight to it.
  */
-export function citationIssues(root: string, records: readonly AdrRecord[]): ValidationIssue[] {
-  const byNumber = new Map<number, AdrRecord>();
+export function citationIssues(root: string, records: readonly AdrReference[]): ValidationIssue[] {
+  const byNumber = new Map<number, AdrReference>();
   for (const record of records) {
     if (record.number !== undefined) byNumber.set(record.number, record);
   }
@@ -102,7 +102,7 @@ export function citationIssues(root: string, records: readonly AdrRecord[]): Val
   return issues;
 }
 
-function citationProblem(record: AdrRecord | undefined, number: number, file: string): string | undefined {
+function citationProblem(record: AdrReference | undefined, number: number, file: string): string | undefined {
   if (record === undefined) {
     return `cites ADR ${number}, which does not exist`;
   }

@@ -1,7 +1,9 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import {
   DATE_PATTERN,
+  parseAdrText,
+  type AdrReference,
   hasMeaningfulBody,
   NUMBERED_FILE_NAME_PATTERN,
   PROPOSAL_ERA_HEADINGS,
@@ -22,9 +24,43 @@ import {
 } from './archive-seal.js';
 import { ADR_DIR, CONFIG_FILE, inspectConfig } from './config.js';
 import { gitRefExists, gitShow } from './git.js';
+import { readRegularBytes, readRegularText } from './files.js';
 import { staticPrefix } from './glob.js';
 import { citationIssues } from './markers.js';
-import { FOLDERS, listRecords } from './repository.js';
+import { FOLDERS, folderPath, listRecords } from './repository.js';
+
+type ArchivedIdentity = Pick<AdrRecord, 'path' | 'fileName' | 'title' | 'number'>
+  & AdrReference & { folder: 'archived' };
+export type ValidationRecord = AdrRecord | ArchivedIdentity;
+
+/**
+ * Archives participate in identity checks, but their bytes belong to the seal,
+ * not today's parser. Read current metadata when available for query matching
+ * and successor diagnostics; an older shape falls back to its stable filename.
+ */
+export function listValidationRecords(root: string): ValidationRecord[] {
+  const records: ValidationRecord[] = listRecords(root, FOLDERS.filter((folder) => folder !== 'archived'));
+  const dir = folderPath(root, 'archived');
+  if (!existsSync(dir)) return records;
+  for (const fileName of readdirSync(dir).sort()) {
+    if (!fileName.endsWith('.md')) continue;
+    const path = join(dir, fileName);
+    const bytes = readRegularText(path, 'record');
+    const identity: ArchivedIdentity = { folder: 'archived', path, fileName, title: fileName.replace(/\.md$/, '') };
+    const number = fileName.match(/^([1-9]\d*)-/);
+    if (number !== null) identity.number = Number(number[1]);
+    try {
+      const parsed = parseAdrText(bytes, path);
+      identity.title = parsed.title;
+      identity.status = parsed.status;
+      if (parsed.supersededBy !== undefined) identity.supersededBy = parsed.supersededBy;
+    } catch {
+      // A sealed record may predate any of the current parser's requirements.
+    }
+    records.push(identity);
+  }
+  return records;
+}
 
 export interface ValidationIssue {
   path: string;
@@ -186,6 +222,10 @@ function alternativesIssue(path: string, sections: AdrSection[]): ValidationIssu
 }
 
 export function validateRecord(root: string, record: AdrRecord): ValidationIssue[] {
+  // Sealed bytes cannot change, so re-applying evolved format rules would
+  // report errors no one can fix: the seal, not the current rules, is an
+  // archived record's contract. recordSealIssues owns that half.
+  if (record.folder === 'archived') return [];
   const issues: ValidationIssue[] = [];
   const path = relative(root, record.path);
 
@@ -201,7 +241,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   if (record.tags !== undefined) issues.push(...tagsIssues(path, record.tags));
   issues.push(...pathsIssues(root, path, record));
 
-  const numbered = record.folder === 'implemented' || record.folder === 'archived';
+  const numbered = record.folder === 'implemented';
   if (numbered) {
     if (!NUMBERED_FILE_NAME_PATTERN.test(record.fileName)) {
       issues.push({ path, message: 'implemented file name must be "N-slug.md"' });
@@ -217,10 +257,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
     if (record.decidedBy === undefined) {
       issues.push({ path, message: 'front matter must include "decided-by"' });
     }
-    if (
-      (record.folder === 'implemented' && record.status !== 'implemented') ||
-      (record.folder === 'archived' && record.status !== 'implemented' && record.status !== 'superseded')
-    ) {
+    if (record.status !== 'implemented') {
       issues.push({ path, message: `status "${record.status}" is not valid in ${record.folder}/` });
     }
     issues.push(...sectionIssues(path, record.sections, DECISION_REQUIRED, ['Problem', 'Decision']));
@@ -275,26 +312,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
       issues.push({ path, message: 'a decision cannot supersede itself' });
     }
   }
-  if (record.folder === 'archived') {
-    if (record.archived === undefined) {
-      issues.push({ path, message: 'archived record must include "archived"' });
-    }
-    if (record.archiveReason === undefined) {
-      issues.push({ path, message: 'archived record must include "archive-reason"' });
-    }
-    if (record.archived !== undefined) {
-      const match = record.archived.match(DATE_PATTERN);
-      if (match !== null && !calendarDateIsValid(Number(match[1]), Number(match[2]), Number(match[3]))) {
-        issues.push({ path, message: 'archived contains an invalid calendar date' });
-      }
-      if (record.archived !== record.date) {
-        issues.push({ path, message: 'archived date must match the latest lifecycle date' });
-      }
-      if (record.archived < record.date || (record.created !== undefined && record.archived < record.created)) {
-        issues.push({ path, message: 'archived date must not precede creation or lifecycle date' });
-      }
-    }
-  } else if (record.archived !== undefined || record.archiveReason !== undefined) {
+  if (record.archived !== undefined || record.archiveReason !== undefined) {
     issues.push({ path, message: 'archive metadata is only allowed in archived/' });
   }
 
@@ -376,9 +394,12 @@ export function validateRepository(root: string): ValidationIssue[] {
 
   issues.push(...inventoryIssues(root));
 
-  let records: AdrRecord[];
+  // Check seals even if an active record cannot be parsed.
+  issues.push(...archiveSealIssues(root));
+
+  let records: ValidationRecord[];
   try {
-    records = listRecords(root);
+    records = listValidationRecords(root);
   } catch (error) {
     issues.push({
       path: ADR_DIR,
@@ -387,9 +408,9 @@ export function validateRepository(root: string): ValidationIssue[] {
     return issues;
   }
 
-  const decisionRecords = new Map<number, AdrRecord>();
+  const decisionRecords = new Map<number, AdrReference>();
   for (const record of records) {
-    issues.push(...validateRecord(root, record));
+    if ('sections' in record) issues.push(...validateRecord(root, record));
     if (record.number !== undefined) {
       if (decisionRecords.has(record.number)) {
         issues.push({
@@ -402,6 +423,7 @@ export function validateRepository(root: string): ValidationIssue[] {
   }
 
   for (const record of records) {
+    if (!('sections' in record)) continue;
     issues.push(...supersedeReferenceIssues(root, record, decisionRecords));
     issues.push(...danglingReferenceIssues(relative(root, record.path), record, decisionRecords));
   }
@@ -409,8 +431,6 @@ export function validateRepository(root: string): ValidationIssue[] {
   // Code citations cross file and record boundaries, so they are a corpus
   // property checked once here rather than inside one record's validation.
   issues.push(...citationIssues(root, records));
-
-  issues.push(...archiveSealIssues(root));
 
   return issues;
 }
@@ -459,10 +479,16 @@ export function archiveSealIssues(root: string): ValidationIssue[] {
 
   const sealed = new Set(entries.map((entry) => entry.path));
   for (const entry of entries) {
-    const problem = sealProblem(entry, (fileName) => {
-      const filePath = archivedRecordPath(root, fileName);
-      return existsSync(filePath) ? readFileSync(filePath) : undefined;
-    });
+    let problem;
+    try {
+      problem = sealProblem(entry, (fileName) => {
+        const filePath = archivedRecordPath(root, fileName);
+        return existsSync(filePath) ? readRegularBytes(filePath, 'record') : undefined;
+      });
+    } catch (error) {
+      issues.push({ path: sealedDisplayPath(entry.path), message: error instanceof Error ? error.message : String(error) });
+      continue;
+    }
     if (problem === 'missing') {
       issues.push({
         path: sealedDisplayPath(entry.path),
@@ -491,7 +517,7 @@ export function archiveSealIssues(root: string): ValidationIssue[] {
  * exist and match its bytes. Corpus properties (extra or missing entries for
  * other files) stay with the repository-wide check.
  */
-export function recordSealIssues(root: string, record: AdrRecord): ValidationIssue[] {
+export function recordSealIssues(root: string, record: Pick<AdrRecord, 'folder' | 'path' | 'fileName'>): ValidationIssue[] {
   if (record.folder !== 'archived') return [];
   const manifestFile = `${ADR_DIR}/${ARCHIVED_DIR}/${MANIFEST_FILE}`;
   if (!existsSync(archivedManifestPath(root))) {
@@ -522,7 +548,7 @@ export function recordSealIssues(root: string, record: AdrRecord): ValidationIss
       },
     ];
   }
-  if (sealProblem(seal, () => readFileSync(record.path)) === 'mismatch') {
+  if (sealProblem(seal, () => readRegularBytes(record.path, 'record')) === 'mismatch') {
     return [
       {
         path: relative(root, record.path),
@@ -628,7 +654,7 @@ export function validateRepositoryWithBase(root: string, baseRef: string): Valid
 function supersedeReferenceIssues(
   root: string,
   record: AdrRecord,
-  decisions: Map<number, AdrRecord>,
+  decisions: Map<number, AdrReference>,
 ): ValidationIssue[] {
   if (record.supersededBy === undefined) return [];
   const path = relative(root, record.path);
@@ -644,6 +670,7 @@ function supersedeReferenceIssues(
     if (target === undefined) {
       return [{ path, message: `"superseded-by: ${next}" references a missing decision` }];
     }
+    if (target.folder === 'archived' && target.status !== 'superseded') return [];
     if (target.status === 'implemented') return [];
     if (target.status !== 'superseded') {
       return [{ path, message: `supersession chain must end at an implemented decision; decision ${next} has status "${target.status}"` }];
@@ -666,10 +693,11 @@ function supersedeReferenceIssues(
  */
 export function validateRecordReferences(
   root: string,
-  record: AdrRecord,
-  records: AdrRecord[],
+  record: ValidationRecord,
+  records: readonly ValidationRecord[],
 ): ValidationIssue[] {
-  const decisions = new Map<number, AdrRecord>();
+  if (record.folder === 'archived' || !('sections' in record)) return [];
+  const decisions = new Map<number, AdrReference>();
   for (const candidate of records) {
     if (candidate.number !== undefined) {
       decisions.set(candidate.number, candidate);
@@ -691,7 +719,7 @@ export function validateRecordReferences(
 function danglingReferenceIssues(
   path: string,
   record: AdrRecord,
-  decisions: Map<number, AdrRecord>,
+  decisions: Map<number, AdrReference>,
 ): ValidationIssue[] {
   // The same prose vocabulary `adrkit graph` mines: `ADR-12`, `ADR 4`, `ADR12`.
   const pattern = /ADR-?\s*([1-9]\d*)/g;

@@ -130,6 +130,10 @@ export interface AdrRecord {
   frontMatterExtras?: string[];
 }
 
+/** Metadata needed to check links to a decision, including frozen archives. */
+export type AdrReference = Pick<AdrRecord, 'folder' | 'number' | 'paths' | 'supersededBy'>
+  & Partial<Pick<AdrRecord, 'status'>>;
+
 export class AdrFormatError extends Error {
   constructor(
     message: string,

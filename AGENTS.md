@@ -62,7 +62,16 @@ recording one they made earlier — `agent` when it came from the agent's own
 judgment, including when a person only let it through. The CLI neither infers
 nor verifies it.
 
-<!-- adrkit: standing-orders 103d6e15 -->
+Records outlive the format that wrote them. When `adrkit validate` reports
+unknown fields, missing sections, or parse errors on records an older release
+wrote, treat it as format drift rather than damage: upgrade the `adr-kit`
+package to the latest stable release, migrate the active records to the current
+format where the change is mechanical, and report any record that cannot be
+carried over instead of forcing a rewrite; then re-run `adrkit validate --all`.
+Archived records are sealed history: never rewrite their bytes; their seal, not
+the current rules, is their contract.
+
+<!-- adrkit: standing-orders b78169d7 -->
 
 ## Commands
 
@@ -127,12 +136,15 @@ over a patch rather than share the working tree.
   is irreducibly dependency-shaped.
 - Every behavior change gets a test in `test/`. Command tests create real
   repositories in a temp directory and assert on files and command output.
-- Design for the future, not for compatibility: breaking changes are allowed,
-  and forward-compatibility shims, deprecation windows, grandfather markers,
-  and migration commands are not carried. The maintainer is the only current
-  user (ADR 18, ADR 3); when a change breaks existing records or integrations,
-  fix them rather than preserving the old shape. Revisit only if a real
-  external adopter appears.
+- Design for the future, not for compatibility: ADR Kit is pre-stable and ships
+  breaking changes deliberately — forward-compatibility shims, deprecation
+  windows, grandfather markers, and migration commands are not carried, and no
+  release promises that old records or integrations keep working. External
+  adopters exist, so a break is a user-facing decision: say so where users meet
+  it (the record format, the README upgrade section, the standing orders),
+  migrate active records where the change is mechanical, state plainly when a
+  record cannot be carried over, and never rewrite sealed archive bytes
+  (ADR 27).
 
 ## Project website
 

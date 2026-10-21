@@ -215,6 +215,60 @@ describe('archive and supersede append seals', () => {
     expect(validateRepository(root)).toEqual([]);
   });
 
+  it('judges a sealed record by its seal, not by the format that happens to ship today', () => {
+    // A format change must not make sealed bytes unfixable: editing the file
+    // breaks the seal, and rewriting the seal breaks the append-only history.
+    // The record was valid when it froze, so only the seal can still speak for it.
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    archiveCommand('1', 'Current behavior lives elsewhere', root);
+    const archived = join(root, 'adr', 'archived', '1-use-sqlite.md');
+    const drifted = readFileSync(archived, 'utf8').replace('---\n', '---\nfuture-field: from-a-later-format\n');
+    writeFileSync(archived, drifted);
+    const manifest = readArchiveManifest(root)!;
+    manifest.entries[0]!.sha256 = sealBytes(drifted);
+    writeArchiveManifest(root, manifest);
+
+    expect(validateRepository(root)).toEqual([]);
+  });
+
+  it.each([
+    ['a former status', (text: string) => text.replace('status: implemented', 'status: accepted')],
+    ['a former title layout', (text: string) => text.replace('# ADR: 1 Use SQLite', '# Decision: SQLite')],
+    ['a historical reference', (text: string) => text + '\n## Historical notes\nADR 999 was considered.\n'],
+  ])('validates sealed bytes with %s without applying current record rules', (_name, drift) => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    archiveCommand('1', 'Current behavior lives elsewhere', root);
+    recordCommand('Use Postgres', root, 'human', 'human');
+    fillDecision(root, 2);
+    const archived = join(root, 'adr', 'archived', '1-use-sqlite.md');
+    // Model bytes sealed by another format, as in the unknown-field fixture.
+    const bytes = drift(readFileSync(archived, 'utf8'));
+    writeFileSync(archived, bytes);
+    const manifest = readArchiveManifest(root)!;
+    manifest.entries[0]!.sha256 = sealBytes(bytes);
+    writeArchiveManifest(root, manifest);
+
+    const active = join(root, 'adr', 'implemented', '2-use-postgres.md');
+    writeFileSync(active, readFileSync(active, 'utf8') + '\n## Related\nADR 1.\n');
+    expect(validateCommand(root).valid).toBe(true);
+    for (const query of ['1', 'use-sqlite', '1-use-sqlite.md', '2']) {
+      expect(validateCommand(root, query).valid).toBe(true);
+    }
+
+    const citation = join(root, 'probe.ts');
+    writeFileSync(citation, '// @' + 'adr 1\n');
+    expect(validateCommand(root).output).toContain('cites ADR 1, which is archived');
+    rmSync(citation);
+
+    writeFileSync(archived, bytes + '\nChanged after sealing.\n');
+    expect(validateCommand(root).output).toContain('archived bytes no longer match');
+    expect(validateCommand(root, '1').output).toContain('archived bytes no longer match');
+  });
+
   it('refuses to archive without a manifest and leaves the source in place', () => {
     const root = repo();
     recordCommand('Use SQLite', root, 'human', 'human');

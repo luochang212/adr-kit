@@ -19,9 +19,11 @@ The header is followed by a blank line and `# ADR: <title>` (or
 `# ADR: N <title>` for numbered decisions).
 
 Proposals require `Problem`, `Proposal`, `Alternatives considered`,
-`Acceptance criteria`, and `Risks`. Implemented and archived decisions
-require `Problem`, `Decision`, `Alternatives considered`, and
-`Consequences`; proposal-era sections must not remain. Promotion folds a
+`Acceptance criteria`, and `Risks`. Implemented decisions require `Problem`,
+`Decision`, `Alternatives considered`, and `Consequences`; proposal-era
+sections must not remain. Archived decisions keep the shape they were sealed
+with: `archive` validates a record before freezing it, and `validate` judges
+sealed bytes by their seal rather than by rules written later. Promotion folds a
 proposal's `## Acceptance criteria` and `## Risks` into `### Verification`
 and `### Trade-offs` under `## Consequences`; an implemented record must not
 carry the old H3 names directly under Consequences. That check ignores fenced

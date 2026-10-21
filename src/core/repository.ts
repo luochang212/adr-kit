@@ -222,7 +222,7 @@ function listRecordsForResolve(root: string, needle: string): AdrRecord[] {
  * candidates name the label that has none, several name every match so the
  * caller can disambiguate.
  */
-function exactlyOne(root: string, query: string, candidates: AdrRecord[], label: string): AdrRecord {
+function exactlyOne<T extends Pick<AdrRecord, 'path'>>(root: string, query: string, candidates: T[], label: string): T {
   if (candidates.length === 0) {
     throw new Error(`no ${label} matches "${query}"`);
   }
@@ -241,6 +241,14 @@ export function resolveRecord(root: string, query: string): AdrRecord {
   } catch {
     records = listRecordsForResolve(root, needle);
   }
+  return resolveRecordFromInventory(root, query, records);
+}
+
+/** Resolve the same CLI queries against an inventory already read by a caller. */
+export function resolveRecordFromInventory<T extends Pick<AdrRecord, 'path' | 'fileName' | 'title' | 'folder' | 'number'>>(
+  root: string, query: string, records: readonly T[],
+): T {
+  const needle = query.trim();
   const candidates = records.filter((record) => {
     if (fileNameMatchesQuery(record.fileName, needle)) return true;
     if (record.title === needle || `# ADR: ${record.title}` === needle) {
@@ -357,7 +365,7 @@ export function displayName(record: AdrRecord): string {
   return record.title;
 }
 
-export function relativePath(record: AdrRecord): string {
+export function relativePath(record: Pick<AdrRecord, 'path' | 'folder'>): string {
   // CLI output is user-visible text: paths stay POSIX-style on every host.
   return posix.join(ADR_DIR, record.folder, basename(record.path));
 }

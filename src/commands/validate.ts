@@ -1,7 +1,8 @@
 import { ADR_DIR, requireRoot } from '../core/config.js';
-import { listRecords, relativePath, resolveRecord } from '../core/repository.js';
+import { relativePath, resolveRecord, resolveRecordFromInventory } from '../core/repository.js';
 import {
   formatIssues,
+  listValidationRecords,
   recordSealIssues,
   validateRecord,
   validateRecordReferences,
@@ -24,17 +25,22 @@ export function validateCommand(cwd: string, query?: string, base?: string): Val
     );
   }
   if (query !== undefined && query.trim().length > 0) {
-    const record = resolveRecord(root, query);
-    const issues = validateRecord(root, record);
+    let records;
+    let inventoryError;
     try {
-      issues.push(...validateRecordReferences(root, record, listRecords(root)));
+      records = listValidationRecords(root);
     } catch (error) {
-      // An unparseable sibling must not crash single-record validation;
-      // report it like the repository-wide check does.
-      issues.push({
-        path: ADR_DIR,
-        message: error instanceof Error ? error.message : String(error),
-      });
+      inventoryError = error instanceof Error ? error.message : String(error);
+    }
+    const record = records === undefined
+      ? resolveRecord(root, query)
+      : resolveRecordFromInventory(root, query, records);
+    const issues = 'sections' in record ? validateRecord(root, record) : [];
+    if (inventoryError !== undefined) {
+      // An unparseable active sibling must not hide the requested record.
+      issues.push({ path: ADR_DIR, message: inventoryError });
+    } else {
+      issues.push(...validateRecordReferences(root, record, records ?? []));
     }
     issues.push(...recordSealIssues(root, record));
     return {

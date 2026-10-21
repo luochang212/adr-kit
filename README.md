@@ -64,7 +64,7 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 ## Upgrades
 
-ADR Kit is pre-stable and breaks on purpose: an upgrade may change the record format or the command surface with no compatibility path. After upgrading, run `adrkit update` to refresh the installed integrations, then `adrkit validate --all` in your repositories — validation errors name the exact fix. The standing-orders section in `AGENTS.md` is yours; `adrkit list` prints a note when it was pasted from a different template than the CLI ships. The npm package is `adr-kit` and the CLI is `adrkit` (there is no `adrkit` package on npm).
+ADR Kit is pre-stable and breaks on purpose: a release may change the record format or the command surface, and nothing promises forward compatibility — records written by an older release are not guaranteed to keep passing validation, and not every break has a mechanical migration. Upgrading is the supported path: run `adrkit update` to refresh the installed integrations, then `adrkit validate --all` in your repositories, where validation errors name what changed. The standing orders tell your agent to upgrade the package, migrate active records where the change is mechanical, and report a record it cannot carry over instead of forcing a rewrite; sealed archive bytes are never rewritten. That section in `AGENTS.md` is yours, and `adrkit list` prints a note when it was pasted from a different template than the CLI ships. The npm package is `adr-kit` and the CLI is `adrkit` (there is no `adrkit` package on npm).
 
 ## Tell your agent
 
@@ -102,6 +102,7 @@ adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--ou
 adrkit tree <name> [--mermaid|--text|--html]
 adrkit completion <bash|zsh|fish>
 adrkit version
+adrkit help
 ```
 
 By default, integrations install into `.agents/`. Pass `--tools claude` for additional `.claude/` copies, or `--tools none` to install none. `--workflows` selects a subset such as `init,propose,implement,validate`.
@@ -139,7 +140,7 @@ tags: [storage]
 ...
 ```
 
-Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `tags` remain the thematic classification; no class directory is needed. Optional `paths: [src/core/**]` scopes a record to the files it governs: repository-relative globs where `**` crosses directories, `*` stays within one segment, and `?` matches one character. `adrkit relevant <path>...` lists the records whose scopes govern a file or directory, grouped by lifecycle posture; records without `paths` never match, because scope retrieval is not full-text search. `adrkit validate` checks all four folders, rejects records outside them, and requires each entry's static directory anchor (or full literal path) to exist — a rename fails validation instead of silently stranding the scope, except on archived records, whose frozen bytes do not depend on the live tree; fresh templates intentionally fail until filled.
+Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `tags` remain the thematic classification; no class directory is needed. Optional `paths: [src/core/**]` scopes a record to the files it governs: repository-relative globs where `**` crosses directories, `*` stays within one segment, and `?` matches one character. `adrkit relevant <path>...` lists the records whose scopes govern a file or directory, grouped by lifecycle posture; records without `paths` never match, because scope retrieval is not full-text search. `adrkit validate` checks all four folders, rejects records outside them, and requires each entry's static directory anchor (or full literal path) to exist — a rename fails validation instead of silently stranding the scope. Archived records are judged by their seal alone: the archive validated them before freezing, so later format rules never re-open bytes that cannot change. Fresh templates intentionally fail until filled.
 
 `adrkit implement` folds a proposal's `## Acceptance criteria` and `## Risks` into present-tense `### Verification` and `### Trade-offs` under `## Consequences`; implemented records must not keep the old H3 names under Consequences. The command warns when it folds content because the CLI cannot rewrite prose.
 

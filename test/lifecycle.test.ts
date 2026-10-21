@@ -171,14 +171,19 @@ describe('four-folder lifecycle', () => {
     expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('implemented');
   });
 
-  it('detects archive metadata that disagrees with the lifecycle date', () => {
+  it('judges a sealed record by its seal rather than by the current format rules', () => {
+    // The record was validated before it was sealed, so a later format change
+    // must not re-open it: its bytes are frozen, and only the seal can testify
+    // about them. Editing the file is caught as a seal mismatch.
     const root = repo();
     recordCommand('Use SQLite', root, 'human', 'human');
     fillDecision(root, 1);
     archiveCommand('1', 'Current behavior is owned by storage/config.ts', root);
     const archived = listRecords(root).find((record) => record.number === 1)!;
     writeFileSync(archived.path, readFileSync(archived.path, 'utf8').replace('archived: ' + todayStamp(), 'archived: 2020-01-01'));
-    expect(validateRepository(root).map((issue) => issue.message)).toContain('archived date must match the latest lifecycle date');
+    const messages = validateRepository(root).map((issue) => issue.message);
+    expect(messages).toContain('archived bytes no longer match the seal recorded in the manifest');
+    expect(messages).not.toContain('archived date must match the latest lifecycle date');
   });
 
   it('rejects a superseded status left in the active implemented folder', () => {

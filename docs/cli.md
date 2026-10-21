@@ -52,7 +52,9 @@ below. `--all --base <git-ref>` additionally proves the archive only grew
 since that ref. Validation is supposed to fail on fresh records until their
 required sections are filled in.
 
-Per record, in every mode:
+Per record, in every mode. Archived records are the exception: they are
+judged by their seal alone, because the archive command validated them before
+they froze and later format rules must not re-open bytes that cannot change.
 
 - Front matter: parseable canonical layout, no unknown fields; `created`
   present, a real calendar date, and not after the status date; `commit`

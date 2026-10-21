@@ -22,9 +22,11 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 是最低价值的冻结历史、默认不读。
 
 提案需要 `Problem`、`Proposal`、`Alternatives considered`、
-`Acceptance criteria`、`Risks`。已实施和归档决策需要 `Problem`、
+`Acceptance criteria`、`Risks`。已实施决策需要 `Problem`、
 `Decision`、`Alternatives considered`、`Consequences`，不得保留提案期
-章节。晋升时，提案的 `## Acceptance criteria` 与 `## Risks` 会折叠为
+章节。归档决策保留封存时的形状：`archive` 在冻结前已校验记录，`validate`
+只按封存判定这些无法更改的字节，不再套用后来写下的规则。晋升时，提案的
+`## Acceptance criteria` 与 `## Risks` 会折叠为
 `## Consequences` 下的 `### Verification` 与 `### Trade-offs`；implemented
 记录不得在 Consequences 下直接保留旧的 `### Acceptance criteria` 或
 `### Risks`。该检查忽略围栏代码与 HTML 注释，且只作用于 implemented 记录。
