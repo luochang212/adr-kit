@@ -114,6 +114,11 @@ describe('reader typography', () => {
     }
   });
 
+  it('keeps the fixed close tab aligned with the reader width', () => {
+    expect(example).toContain('width:clamp(460px,45vw,720px)');
+    expect(example).toContain('right:calc(clamp(460px,45vw,720px) - 17px)');
+  });
+
   it('keeps a hard-wrapped list item inside its bullet', () => {
     const lookup = renderReader('## Decision\n\n- first line\n  continued here\n- second item');
     const list = lookup('#reader-body').children.find((child) => child.tag === 'ul')!;
