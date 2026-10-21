@@ -46,7 +46,6 @@ paths:
   - skills/adrkit-review/SKILL.md
   - skills/adrkit-reject/SKILL.md
   - site/public/llms.txt
-  - .changeset/remove-archive-seal.md
 ---
 
 # ADR: 30 Replace the archive seal with Git history for archived decisions
