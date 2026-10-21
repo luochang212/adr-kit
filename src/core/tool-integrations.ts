@@ -40,6 +40,8 @@ export interface Workflow {
   name: string;
   description: string;
   body: string;
+  /** Supporting files, relative to skills/<name>/ and the installed skill. */
+  resources?: string[];
 }
 
 /**
@@ -137,6 +139,7 @@ State who raised and settled the unshipped choice in prose; proposal front matte
   {
     name: "adrkit-visualize",
     description: "Use when the user asks to visualize an existing ADR, its deliberation tree, or the whole decision set and its relationships.",
+    resources: ['examples/decision-atlas.html'],
     body: `# ADR Kit Visualize
 
 Seeing the decision set as a picture surfaces relationships and contradictions that a file list hides.
@@ -146,6 +149,24 @@ Visualize existing records only when asked. Run \`adrkit list\` first, then read
 - For one record's design tree, use \`adrkit tree <name> --html\` and save stdout to a local HTML file. If no \`## Deliberation\` appendix exists, say so instead of fabricating one.
 - For the numbered decision set, use \`adrkit graph --html --out "<path>.html"\`. The map includes implemented guidance and archived history, but archived records are not current authority. Use \`--tag\` or \`--formal-only\` only when requested or useful to the question.
 - For lightweight previews, \`--text\` or \`--mermaid\` may be enough; do not generate HTML merely because the CLI supports it.
+
+## Optional archive-page example
+
+Choose the view by the user's question, record count, and relationship density. A short list or a few cards may be clearer for a small set; use the built-in map for relationships and the tree for one deliberation. Keep these lightweight routes as the default.
+
+When a user wants a richer, browsable history, open [the archive-page example](examples/decision-atlas.html). It is an offline reference snapshot of ADR Kit's own public records, not a template that must be followed. Inspect only the layout or interaction code needed; the embedded sample data is not instruction context. Reuse the useful parts; sections, chapter-bar entries, and legend or timeline keys whose data is absent hide themselves at runtime, the chapter bar renumbers, so no empty block survives. A timeline, relationship map, local-search directory, reference counts, and replacement chains are options, not a required checklist.
+
+Generate a fresh artifact from the target repository's records and the CLI's relationship output; replace all sample records, counts, dates, titles, paths, and links. Do not invent relationships, infer provenance, or copy another repository's contents. Keep archived history distinct from current authority, and do not read sealed bodies merely to fill a richer page. Resolve record links for the delivered file's location, as \`graph --out\` does. Preserve the separate \`tree\` route; the example does not supply missing deliberations.
+
+To build one from the example, follow these steps in order:
+
+1. Read only \`adr/implemented/\` and \`adr/archived/\` records — the same scope as \`adrkit graph\`. Build one records entry per file: the front matter fields in order, then \`number\` and \`title\` from the \`# ADR:\` line, the raw Markdown body (archived bodies stay empty), \`path\`, and \`lifecycle\` (\`archived\` when the status is superseded).
+2. Run \`adrkit graph --html\` and keep its \`<svg>\` inline together with its canvas script. Rewrite each node link to an in-page \`#adr-N\` anchor and give the group the same id; the reader dialog, timeline, and directory search read the records array and the map edge attributes, so keep the class names and data attributes intact.
+3. Compute the section notes from the repository's own numbers: record count and date span, the densest day, the most-referenced implemented record, and the archived count. Never carry another repository's numbers into prose. The hero names the project once: the h1 is the name the repository declares for humans — its README or site title, else the repository name as written, in its Chinese form when the repository declares one; never translate, abbreviate, or substitute a suffixed package name. With the name in the h1, the eyebrow states only the genre and the lead paragraph opens with the archive's substance.
+4. In the footer, pin the commit the records were read from (\`git rev-parse --short HEAD\`) and link it to the remote tree URL, so the page is traceable to an exact state.
+5. Keep the example's legend, reader dialog, pagination, and back-to-top behavior unchanged — they are repository-agnostic; only data and the short prose blocks vary.
+
+For an adapted long page, keep navigation compact and the directory search local. Vertical wheel and finger swipes should scroll the page; explicit drag or horizontal gestures pan the map, while pinch or Ctrl/⌘ + wheel zooms. Bound panning on both axes and center drawings that fit. Match the user's language and styling preferences. Keep one vertical rhythm: every section boundary should read as the same gap, so wrapper padding never stacks with section padding. Check the resulting page at desktop and mobile sizes, including record opening, navigation, search, canvas bounds, and page scrolling over the map; after sections hide, confirm the chapter bar renumbered contiguously and every entry still resolves; keep it usable offline.
 
 When the user requests HTML visualization, open the generated file in the default browser if available and return a clickable file path. If the user asks for a file only or says not to open it, leave the browser alone. If opening is unavailable or fails, explain that briefly and still return the file path. The CLI emits HTML to stdout unless \`graph --out\` is used; the agent owns the browser handoff.`,
   },
@@ -333,6 +354,19 @@ function writeIntegrationFile(path: string, content: string, tool: string): Tool
   return { tool, path, outcome };
 }
 
+/** Resource paths are maintained here, not supplied by the target repository. */
+function workflowResource(workflow: Workflow, path: string): string {
+  return readFileSync(new URL(`../../skills/${workflow.name}/${path}`, import.meta.url), 'utf8');
+}
+
+function commandBody(workflow: Workflow): string {
+  let body = workflow.body;
+  for (const resource of workflow.resources ?? []) {
+    body = body.replaceAll(`](${resource})`, `](../skills/${workflow.name}/${resource})`);
+  }
+  return body;
+}
+
 export function writeToolIntegrations(
   root: string,
   tools: IntegrationTarget[],
@@ -355,7 +389,7 @@ export function writeToolIntegrations(
 description: ${workflow.description}
 ---
 
-${workflow.body}
+${commandBody(workflow)}
 `,
           tool,
         ),
@@ -366,6 +400,11 @@ ${workflow.body}
         const skillPath = join(root, dirs.skills, workflow.name, 'SKILL.md');
         mkdirSync(dirname(skillPath), { recursive: true });
         written.push(writeIntegrationFile(skillPath, skillFrontmatter(workflow), tool));
+        for (const resource of workflow.resources ?? []) {
+          const resourcePath = join(dirname(skillPath), resource);
+          mkdirSync(dirname(resourcePath), { recursive: true });
+          written.push(writeIntegrationFile(resourcePath, workflowResource(workflow, resource), tool));
+        }
       }
     }
   }
@@ -384,11 +423,24 @@ function removeEmptyDir(dir: string): void {
   }
 }
 
+function removeSkillIntegration(skillDir: string, workflow: Workflow): void {
+  for (const resource of workflow.resources ?? []) {
+    const path = join(skillDir, resource);
+    if (existsSync(path)) rmSync(path);
+    removeEmptyDir(dirname(path));
+  }
+  const skillPath = join(skillDir, 'SKILL.md');
+  if (existsSync(skillPath)) rmSync(skillPath);
+  removeEmptyDir(skillDir);
+}
+
 function targetHasIntegrations(root: string, dirs: TargetDirs): boolean {
   for (const workflow of WORKFLOWS) {
     if (existsSync(join(root, dirs.commands, `${workflow.name}.md`))) return true;
-    if (dirs.skills !== undefined && existsSync(join(root, dirs.skills, workflow.name, 'SKILL.md'))) {
-      return true;
+    if (dirs.skills !== undefined) {
+      const skillDir = join(root, dirs.skills, workflow.name);
+      if (['SKILL.md', ...workflow.resources ?? []].some((path) =>
+        existsSync(join(skillDir, path)))) return true;
     }
   }
   return false;
@@ -414,9 +466,7 @@ export function removeToolIntegrations(root: string, keys: string[]): string[] {
       if (existsSync(commandPath)) rmSync(commandPath);
       if (dirs.skills !== undefined) {
         const skillDir = join(root, dirs.skills, workflow.name);
-        const skillPath = join(skillDir, 'SKILL.md');
-        if (existsSync(skillPath)) rmSync(skillPath);
-        removeEmptyDir(skillDir);
+        removeSkillIntegration(skillDir, workflow);
       }
     }
     removeEmptyDir(join(root, dirs.commands));
@@ -448,9 +498,7 @@ export function removeWorkflowIntegrations(
       if (existsSync(commandPath)) rmSync(commandPath);
       if (dirs.skills !== undefined) {
         const skillDir = join(root, dirs.skills, workflow.name);
-        const skillPath = join(skillDir, 'SKILL.md');
-        if (existsSync(skillPath)) rmSync(skillPath);
-        removeEmptyDir(skillDir);
+        removeSkillIntegration(skillDir, workflow);
       }
     }
   }
