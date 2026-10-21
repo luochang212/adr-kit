@@ -115,8 +115,8 @@ describe('reader typography', () => {
   });
 
   it('keeps the fixed close tab aligned with the reader width', () => {
-    expect(example).toContain('width:clamp(460px,45vw,720px)');
-    expect(example).toContain('right:calc(clamp(460px,45vw,720px) - 17px)');
+    expect(example).toContain('width:clamp(460px,45vw,1024px)');
+    expect(example).toContain('right:calc(clamp(460px,45vw,1024px) - 17px)');
   });
 
   it('keeps a hard-wrapped list item inside its bullet', () => {
@@ -126,6 +126,36 @@ describe('reader typography', () => {
       'first line continued here',
       'second item',
     ]);
+  });
+
+  it('renders code and emphasis nested in bold', () => {
+    interface TextNode { text: string }
+    interface Node { tag: string; textContent: string; className: string; children: Array<Node | TextNode>; append(...children: Array<Node | TextNode>): void; replaceChildren(): void }
+    const element = (tag = 'div'): Node => ({
+      tag, textContent: '', className: '', children: [],
+      append(...children) { this.children.push(...children); },
+      replaceChildren() { this.children = []; },
+    });
+    const document = { createElement: (tag: string) => element(tag), createTextNode: (text: string) => ({ text }) };
+    const make = example.match(/const make = \(tag, cls, text\) => \{[\s\S]*?\n\};/)![0];
+    const start = example.indexOf('function inlineInto');
+    const inline = example.slice(start, example.indexOf('function showContext', start));
+    const root = element();
+    root.textContent = '**Require `paths`** and *key*';
+    runInNewContext(`${make}\n${inline}\ninlineText(root);`, { document, root });
+    const strong = root.children.find((child): child is Node => 'tag' in child && child.tag === 'strong')!;
+    expect(strong.children).toEqual([
+      { text: 'Require ' },
+      expect.objectContaining({ tag: 'code', textContent: 'paths' }),
+    ]);
+    const em = root.children.find((child): child is Node => 'tag' in child && child.tag === 'em')!;
+    expect(em.children).toEqual([{ text: 'key' }]);
+  });
+
+  it('renders ordered lists and keeps their continuation lines', () => {
+    const lookup = renderReader('## Consequences\n\n### Trade-offs\n\n1. first\n   continued\n2. second');
+    const list = lookup('#reader-body').children.find((child) => child.tag === 'ol')!;
+    expect(list.children.map((item) => item.textContent)).toEqual(['first continued', 'second']);
   });
 
   it('renders record subheadings instead of literal hash marks', () => {

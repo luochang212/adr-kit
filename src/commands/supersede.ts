@@ -2,14 +2,20 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
-import { formatIssues, validateRecord } from '../core/validate.js';
+import { formatIssues, listValidationRecords, validateRecord } from '../core/validate.js';
 import { gitHead } from '../core/git.js';
 import { sealAndRetire } from '../core/retire.js';
-import { folderPath, resolveRecord } from '../core/repository.js';
+import { folderPath, resolveRecord, resolveRecordFromInventory } from '../core/repository.js';
 
 export function supersedeCommand(query: string, byQuery: string, cwd: string): string {
   const root = requireRoot(cwd);
-  const record = resolveRecord(root, query);
+  const records = (() => {
+    try { return listValidationRecords(root); } catch { return undefined; }
+  })();
+  const resolve = (value: string) => records === undefined
+    ? resolveRecord(root, value)
+    : resolveRecordFromInventory(root, value, records);
+  const record = resolve(query);
   if (record.status === 'superseded') {
     const current = record.supersededBy ?? 0;
     throw new Error(
@@ -17,7 +23,7 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     );
   }
 
-  const replacement = resolveRecord(root, byQuery);
+  const replacement = resolve(byQuery);
   if (replacement.path === record.path) {
     throw new Error('a decision cannot supersede itself');
   }

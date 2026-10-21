@@ -45,12 +45,12 @@ export function listValidationRecords(root: string): ValidationRecord[] {
   for (const fileName of readdirSync(dir).sort()) {
     if (!fileName.endsWith('.md')) continue;
     const path = join(dir, fileName);
-    const bytes = readRegularText(path, 'record');
+    const text = readRegularText(path, 'record');
     const identity: ArchivedIdentity = { folder: 'archived', path, fileName, title: fileName.replace(/\.md$/, '') };
     const number = fileName.match(/^([1-9]\d*)-/);
     if (number !== null) identity.number = Number(number[1]);
     try {
-      const parsed = parseAdrText(bytes, path);
+      const parsed = parseAdrText(text, path);
       identity.title = parsed.title;
       identity.status = parsed.status;
       if (parsed.supersededBy !== undefined) identity.supersededBy = parsed.supersededBy;
@@ -548,7 +548,16 @@ export function recordSealIssues(root: string, record: Pick<AdrRecord, 'folder' 
       },
     ];
   }
-  if (sealProblem(seal, () => readRegularBytes(record.path, 'record')) === 'mismatch') {
+  let problem;
+  try {
+    problem = sealProblem(seal, () => readRegularBytes(record.path, 'record'));
+  } catch (error) {
+    return [{
+      path: relative(root, record.path),
+      message: error instanceof Error ? error.message : String(error),
+    }];
+  }
+  if (problem === 'mismatch') {
     return [
       {
         path: relative(root, record.path),

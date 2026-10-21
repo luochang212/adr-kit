@@ -4,7 +4,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { archiveCommand } from '../src/commands/archive.js';
+import { listCommand } from '../src/commands/list.js';
 import { recordCommand } from '../src/commands/record.js';
+import { showCommand } from '../src/commands/show.js';
 import { supersedeCommand } from '../src/commands/supersede.js';
 import { validateCommand } from '../src/commands/validate.js';
 import {
@@ -35,7 +37,7 @@ function manifestPath(root: string): string {
 }
 
 function fillDecision(root: string, number: number): void {
-  const record = listRecords(root).find((candidate) => candidate.number === number);
+  const record = listRecords(root, ['implemented']).find((candidate) => candidate.number === number);
   if (record === undefined) throw new Error('decision missing');
   const content = readFileSync(record.path, 'utf8')
     .replace('<!-- What problem or opportunity does this decision address? -->', 'Storage must survive restarts.')
@@ -267,6 +269,48 @@ describe('archive and supersede append seals', () => {
     writeFileSync(archived, bytes + '\nChanged after sealing.\n');
     expect(validateCommand(root).output).toContain('archived bytes no longer match');
     expect(validateCommand(root, '1').output).toContain('archived bytes no longer match');
+  });
+
+  it('allocates the next number without parsing a sealed old-format archive', () => {
+    const root = repo();
+    const bytes = 'A record sealed before the current front matter format.\n';
+    writeFileSync(join(root, 'adr', 'archived', '1-storage.md'), bytes);
+    writeArchiveManifest(root, {
+      version: 1,
+      entries: [{ path: '1-storage.md', sha256: sealBytes(bytes) }],
+    });
+    expect(recordCommand('Use Postgres', root, 'human', 'human'))
+      .toContain('adr/implemented/2-use-postgres.md');
+  });
+
+  it('lists and shows a sealed record whose format predates the parser', () => {
+    const root = repo();
+    const bytes = 'A record sealed before the current front matter format.\n';
+    writeFileSync(join(root, 'adr', 'archived', '1-storage.md'), bytes);
+    writeArchiveManifest(root, {
+      version: 1,
+      entries: [{ path: '1-storage.md', sha256: sealBytes(bytes) }],
+    });
+    const listing = listCommand(root);
+    expect(listing).toContain('Archived');
+    expect(listing).toContain('[1] 1-storage');
+    expect(showCommand('1', root)).toContain('A record sealed before the current front matter format.');
+  });
+
+  it('archives an implemented record when a legacy sealed record exists', () => {
+    const root = repo();
+    const bytes = 'A record sealed before the current front matter format.\n';
+    writeFileSync(join(root, 'adr', 'archived', '1-storage.md'), bytes);
+    writeArchiveManifest(root, {
+      version: 1,
+      entries: [{ path: '1-storage.md', sha256: sealBytes(bytes) }],
+    });
+    recordCommand('Use Postgres', root, 'human', 'human');
+    fillDecision(root, 2);
+    expect(archiveCommand('2', 'Current behavior lives elsewhere', root))
+      .toContain('archived adr/implemented/2-use-postgres.md');
+    expect(readArchiveManifest(root)!.entries.map((entry) => entry.path))
+      .toEqual(['1-storage.md', '2-use-postgres.md']);
   });
 
   it('refuses to archive without a manifest and leaves the source in place', () => {

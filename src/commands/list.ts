@@ -1,5 +1,6 @@
 import { installedWithNotice, joinNotices, readConfigSafe, requireRoot, withNotice } from '../core/config.js';
-import { displayName, listRecords, relativePath } from '../core/repository.js';
+import { displayName, relativePath } from '../core/repository.js';
+import { listValidationRecords } from '../core/validate.js';
 import { unshapedNotesLine } from '../core/notes.js';
 import { standingOrdersDriftNote } from '../core/tool-integrations.js';
 import { VERSION } from '../version.js';
@@ -11,7 +12,7 @@ export function listCommand(cwd: string): string {
     config === undefined ? undefined : installedWithNotice(config, VERSION),
     standingOrdersDriftNote(root),
   ]);
-  const records = listRecords(root);
+  const records = listValidationRecords(root);
   const notes = unshapedNotesLine(root);
   if (records.length === 0) {
     return withNotice(

@@ -312,7 +312,10 @@ export function renderDecisionMapSvg(
     '</defs>',
   ];
   for (const column of columns) {
-    svg.push('<text class="date-label" x="' + column.x + '" y="' + (TOP - 30) + '">' + escapeHtml(column.date) + ' (' + column.count + ')</text>');
+    // The count lives in the date label by default; a caller that draws its
+    // own count column gets the bare date instead of the same number twice.
+    const label = options.dateCount === undefined ? column.date + ' (' + column.count + ')' : column.date;
+    svg.push('<text class="date-label" x="' + column.x + '" y="' + (TOP - 30) + '">' + escapeHtml(label) + '</text>');
     if (options.dateCount !== undefined) {
       svg.push('<text class="date-count" x="' + (column.x + CARD_W) + '" y="' + (TOP - 30) + '" text-anchor="end">' + escapeHtml(options.dateCount(column.count)) + '</text>');
     }
@@ -342,7 +345,7 @@ export function renderDecisionMapHtml(
   recordHref: (recordPath: string) => string = (recordPath) => recordPath,
 ): string {
   const { svg, stats } = renderDecisionMapSvg(graph, { recordHref });
-  const deliberated = stats.find(([label]) => label === 'deliberation trees')?.[1] ?? 0;
+  const deliberated = graph.nodes.filter((node) => node.hasDeliberation).length;
   const body = graph.nodes.length === 0 ? '<p class="empty">No decisions yet.</p>' : svg;
 
   const html: string[] = [

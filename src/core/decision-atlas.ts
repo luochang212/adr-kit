@@ -57,9 +57,7 @@ interface AtlasRecord {
   source: string;
 }
 
-function replaceHtmlSlot(template: string, name: string, value: string): string {
-  const open = `<!-- atlas:${name} -->`;
-  const close = `<!-- /atlas:${name} -->`;
+function replaceSlot(template: string, open: string, close: string, value: string, name: string): string {
   const start = template.indexOf(open);
   const end = template.indexOf(close, start + open.length);
   if (start === -1 || end === -1) {
@@ -68,15 +66,12 @@ function replaceHtmlSlot(template: string, name: string, value: string): string 
   return template.slice(0, start + open.length) + value + template.slice(end);
 }
 
+function replaceHtmlSlot(template: string, name: string, value: string): string {
+  return replaceSlot(template, `<!-- atlas:${name} -->`, `<!-- /atlas:${name} -->`, value, name);
+}
+
 function replaceRecordsSlot(template: string, value: string): string {
-  const open = '/* atlas:records */';
-  const close = '/* /atlas:records */';
-  const start = template.indexOf(open);
-  const end = template.indexOf(close, start + open.length);
-  if (start === -1 || end === -1) {
-    throw new Error('decision atlas template is missing the records slot');
-  }
-  return template.slice(0, start + open.length) + value + template.slice(end);
+  return replaceSlot(template, '/* atlas:records */', '/* /atlas:records */', value, 'records');
 }
 
 /** Rebuild the readable body from the parsed sections, without front matter. */

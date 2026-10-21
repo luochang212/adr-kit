@@ -3,13 +3,18 @@ import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { ADR_DIR, requireRoot } from '../core/config.js';
 import { ARCHIVED_DIR, MANIFEST_FILE } from '../core/archive-seal.js';
-import { formatIssues, validateRecord } from '../core/validate.js';
+import { formatIssues, listValidationRecords, validateRecord } from '../core/validate.js';
 import { sealAndRetire } from '../core/retire.js';
-import { folderPath, resolveRecord } from '../core/repository.js';
+import { folderPath, resolveRecord, resolveRecordFromInventory } from '../core/repository.js';
 
 export function archiveCommand(query: string, reason: string, cwd: string): string {
   const root = requireRoot(cwd);
-  const record = resolveRecord(root, query);
+  const records = (() => {
+    try { return listValidationRecords(root); } catch { return undefined; }
+  })();
+  const record = records === undefined
+    ? resolveRecord(root, query)
+    : resolveRecordFromInventory(root, query, records);
   if (record.folder !== 'implemented' || record.status !== 'implemented') {
     throw new Error(`"${query}" must be an implemented decision`);
   }

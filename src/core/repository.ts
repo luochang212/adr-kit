@@ -270,10 +270,16 @@ export function resolveRecordFromInventory<T extends Pick<AdrRecord, 'path' | 'f
 }
 
 export function nextDecisionNumber(root: string): number {
+  // Numbers live in the filename, so allocating one must not parse the archive:
+  // a sealed record written by an older format may no longer satisfy today's
+  // parser, but its number still occupies its slot (ADR 27).
   let max = 0;
-  for (const record of listRecords(root)) {
-    if ((record.folder === 'implemented' || record.folder === 'archived') && (record.number ?? 0) > max) {
-      max = record.number ?? 0;
+  for (const folder of ['implemented', 'archived'] as const) {
+    const dir = folderPath(root, folder);
+    if (!existsSync(dir)) continue;
+    for (const entry of readdirSync(dir)) {
+      const match = entry.match(/^([1-9]\d*)-/);
+      if (match !== null) max = Math.max(max, Number(match[1]));
     }
   }
   return max + 1;
@@ -357,7 +363,7 @@ export function readRecord(record: AdrRecord): string {
   return readFileSync(record.path, 'utf8');
 }
 
-export function displayName(record: AdrRecord): string {
+export function displayName(record: Pick<AdrRecord, 'folder' | 'number' | 'title'>): string {
   if ((record.folder === 'implemented' || record.folder === 'archived') && Number.isInteger(record.number)) {
     const titleWithoutNumber = record.title.replace(/^\d+\s+/, '');
     return `[${record.number}] ${titleWithoutNumber}`;

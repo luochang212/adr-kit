@@ -167,7 +167,9 @@ update both when they change. The terminal demo transcript in
 when command output changes. `tools/build-decision-atlas.mjs` regenerates
 `site/public/decisions/index.html` from the current `adr/` records before
 every site build; that page is generated, ignored by Git, and pinned to the
-build commit. The homepage's atlas link lives in `Graph.astro`.
+build commit. The atlas is intentionally a Chinese-language showcase of this
+repository's own records, not a bilingual site page, so it is not part of the
+`ui.ts` copy rule. The homepage's atlas link lives in `Graph.astro`.
 
 ## Record format is the product
 

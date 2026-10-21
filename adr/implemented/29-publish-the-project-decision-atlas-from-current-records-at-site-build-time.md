@@ -23,6 +23,7 @@ paths:
   - AGENTS.md
   - assets/decision-atlas.png
   - test/decision-atlas.test.ts
+  - test/visualization-example.test.ts
 ---
 
 # ADR: 29 Publish the project decision atlas from current records at site build time
@@ -110,4 +111,7 @@ regeneration; the agent chose the build-time renderer and shared slot mechanism.
   when the workflow runs; it is not a runtime API over `adr/`.
 - Metadata in the atlas is public repository content. Archived bodies stay out,
   but implemented bodies and provenance declarations are published in full.
+- The atlas chrome is Chinese, matching the archive-page example. It is a
+  showcase of this repository's own records, not a localized site page, so both
+  homepage languages link to it as-is without a bilingual promise.
 

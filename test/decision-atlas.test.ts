@@ -94,8 +94,10 @@ describe('decision atlas rendering', () => {
     expect(page).toContain('<strong>2</strong><span>生效决策</span>');
     expect(page).toContain('<strong>1</strong><span>归档历史</span>');
     expect(page).toContain('<strong>1</strong><span>引用关系</span>');
-    expect(page).toContain('2026-10-01 (2)');
-    expect(page).toContain('2 条');
+    // The atlas draws its own count column, so the date label stays bare.
+    expect(page).toContain('>2026-10-01</text>');
+    expect(page).toContain('>2 条</text>');
+    expect(page).not.toContain('2026-10-01 (2)');
     expect(page).not.toContain('old hero');
     expect(page).not.toContain('old stats');
   });

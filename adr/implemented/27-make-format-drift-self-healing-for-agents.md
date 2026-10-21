@@ -12,6 +12,10 @@ paths:
   - src/core/repository.ts
   - src/core/markers.ts
   - src/commands/validate.ts
+  - src/commands/list.ts
+  - src/commands/show.ts
+  - src/commands/archive.ts
+  - src/commands/supersede.ts
   - test/commands.test.ts
   - skills/adrkit-init/SKILL.md
   - AGENTS.md
@@ -88,6 +92,11 @@ could leave a repository with errors no legal move could clear.
   the seal check, active references resolve, and code citations remain rejected.
 - `test/commands.test.ts` proves even an archive without current front matter
   validates by its seal and detects subsequent edits.
+- The archive-tolerant inventory backs `list` and `show`, number allocation
+  reads decision filenames, and lifecycle commands resolve implemented records
+  only. A sealed archive written by an older format therefore does not block
+  discovery, a new `adrkit record`, or `adrkit archive`/`adrkit supersede`;
+  `test/archive-seal.test.ts` covers each path.
 - `test/lifecycle.test.ts` edits a sealed record and expects the seal mismatch,
   not a format rule, to be the failure.
 - `test/integrations.test.ts` holds the shipped init template and this
@@ -104,3 +113,7 @@ could leave a repository with errors no legal move could clear.
 3. The upgrade clause adds a fifth paragraph to the standing orders every
    agent reads at task start. Accepted because the alternative is an agent
    silently preserving a format the CLI already rejects.
+4. `adrkit graph` and `adrkit tree` still parse the current format and can
+   fail on a legacy sealed archive. That is accepted under the
+   no-forward-compatibility stance: migrate before graphing; the tolerant
+   inventory above keeps discovery and lifecycle work usable.
