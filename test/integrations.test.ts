@@ -143,6 +143,11 @@ describe('initCommand tool integrations', () => {
     for (const target of ['.agents', '.claude']) {
       const skillDir = join(root, target, 'skills/adrkit-visualize');
       expect(readFileSync(join(skillDir, 'examples/decision-atlas.html'), 'utf8')).toBe(source);
+      // ADR 18: ordinary archives keep status: implemented, so status alone
+      // cannot tell the agent whether a record is current authority.
+      const skill = readFileSync(join(skillDir, 'SKILL.md'), 'utf8');
+      expect(skill).toContain('Determine `lifecycle` from the containing directory');
+      expect(skill).toContain('Ordinary archives retain `status: implemented`');
       const commandDir = join(root, target, 'commands');
       const command = readFileSync(join(commandDir, 'adrkit-visualize.md'), 'utf8');
       const link = command.match(/\[the archive-page example\]\(([^)]+)\)/)?.[1];

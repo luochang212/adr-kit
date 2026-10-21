@@ -957,7 +957,11 @@ function renderCards(visible) {
   document.querySelector('#cards-count').textContent = visible.length + ' / ' + records.length + ' 条记录 · 生效 ' + visible.filter(r => r.lifecycle === 'implemented').length + ' · 归档 ' + visible.filter(r => r.lifecycle === 'archived').length;
   for (const r of visible) {
     const b = make('button', 'decision-card' + (r.lifecycle === 'archived' ? ' archived-card' : '')); b.dataset.record = r.number;
-    const first = r.lifecycle === 'archived' ? '归档历史，已由 ADR ' + r['superseded-by'] + ' 替代。这里保留元信息和原文件入口；当前约束请查看生效记录。' : r.body.split(/^## Problem\s*$/m)[1]?.split(/^## /m)[0]?.trim().replace(/\n/g, ' ') || '';
+    const first = r.lifecycle === 'archived'
+      ? (r['superseded-by'] != null
+        ? '归档历史，已由 ADR ' + r['superseded-by'] + ' 替代；当前约束请查看生效记录。'
+        : '归档历史。' + (r['archive-reason'] || '当前约束请查看生效记录。'))
+      : r.body.split(/^## Problem\s*$/m)[1]?.split(/^## /m)[0]?.trim().replace(/\n/g, ' ') || '';
     b.append(make('small', 'card-num', 'ADR ' + String(r.number).padStart(2, '0') + ' / ' + r.created + ' / ' + statusName[r.lifecycle]), make('h3', '', r.title), make('p', '', first), make('small', 'card-tags', (r.tags || []).slice(0, 3).map(t => '#' + t).join(' ')));
     b.addEventListener('click', () => read(r.number)); container.append(b);
   }

@@ -156,6 +156,8 @@ describe('four-folder lifecycle', () => {
     expect(old?.date).toBe(todayStamp());
     expect(old?.archived).toBe(todayStamp());
     expect(old?.archiveReason).toContain('storage/config.ts');
+    expect(old?.status).toBe('implemented');
+    expect(old?.supersededBy).toBeUndefined();
     recordCommand('Use Postgres', root, 'human', 'human');
     expect(listRecords(root).some((record) => record.number === 2)).toBe(true);
   });
