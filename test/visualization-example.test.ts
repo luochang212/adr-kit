@@ -63,26 +63,19 @@ describe('visualization example archive cards', () => {
 
 
 describe('reader typography', () => {
-  it('reflows hard-wrapped prose instead of preserving source line breaks', () => {
-    // Records are hard-wrapped at ~80 columns. Pre-serving those newlines
-    // fragments a paragraph into ragged lines; only pre must stay verbatim.
-    expect(example).toContain('#reader-body p{white-space:normal;margin:10px 0}');
-    expect(example).toContain('#reader-body li{white-space:normal;margin:7px 0}');
-    expect(example).not.toContain('#reader-body p{white-space:pre-wrap');
-    expect(example).not.toContain('#reader-body li{white-space:pre-wrap');
-  });
+  interface Element {
+    tag: string;
+    textContent: string;
+    className: string;
+    children: Element[];
+    style: Record<string, string>;
+    readonly lastElementChild: Element | null;
+    append(...children: Element[]): void;
+    replaceChildren(): void;
+  }
 
-  it('keeps a hard-wrapped list item inside its bullet', () => {
-    interface Element {
-      tag: string;
-      textContent: string;
-      className: string;
-      children: Element[];
-      style: Record<string, string>;
-      readonly lastElementChild: Element | null;
-      append(...children: Element[]): void;
-      replaceChildren(): void;
-    }
+  // Run the shipped read() against a minimal DOM and return the body lookup.
+  function renderReader(body: string): (selector: string) => Element {
     const element = (tag = 'div'): Element => ({
       tag, textContent: '', className: '', children: [], style: {},
       get lastElementChild() { return this.children.at(-1) ?? null; },
@@ -99,19 +92,45 @@ describe('reader typography', () => {
     const make = example.match(/const make = \(tag, cls, text\) => \{[\s\S]*?\n\};/)![0];
     const start = example.indexOf('function read(number){');
     const read = example.slice(start, example.indexOf('world.addEventListener', start));
-    const records = [{
-      number: 1, title: 'List', lifecycle: 'implemented', tags: [], source: '',
-      body: '## Decision\n\n- first line\n  continued here\n- second item',
-    }];
+    const records = [{ number: 1, title: 'Record', lifecycle: 'implemented', tags: [], source: '', body }];
     runInNewContext(`${make}\n${read}\nread(1);`, {
       document, records, statusName: { implemented: '生效' }, nodes: [],
       showContext() {},
       reader: { open: false, showModal() {}, scrollTop: 0, classList: { add() {}, remove() {} } },
     });
+    return lookup;
+  }
+
+  it('reflows hard-wrapped prose instead of preserving source line breaks', () => {
+    // Records are hard-wrapped at ~80 columns. Preserving those newlines
+    // fragments a paragraph into ragged lines; only pre stays verbatim.
+    const rule = (selector: string) => example.match(
+      new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{([^}]*)\\}'),
+    )?.[1] ?? '';
+    for (const selector of ['#reader-body p', '#reader-body li']) {
+      expect(rule(selector), selector).toContain('white-space:normal');
+      expect(rule(selector), selector).toContain('text-wrap:pretty');
+      expect(rule(selector), selector).not.toContain('pre-wrap');
+    }
+  });
+
+  it('keeps a hard-wrapped list item inside its bullet', () => {
+    const lookup = renderReader('## Decision\n\n- first line\n  continued here\n- second item');
     const list = lookup('#reader-body').children.find((child) => child.tag === 'ul')!;
     expect(list.children.map((item) => item.textContent)).toEqual([
       'first line continued here',
       'second item',
+    ]);
+  });
+
+  it('renders record subheadings instead of literal hash marks', () => {
+    const lookup = renderReader('## Consequences\n\n### Verification\n\nA fact.\n\n### Trade-offs\n\nA cost.');
+    expect(lookup('#reader-body').children.map((child) => [child.tag, child.textContent])).toEqual([
+      ['h3', 'Consequences'],
+      ['h4', 'Verification'],
+      ['p', 'A fact.'],
+      ['h4', 'Trade-offs'],
+      ['p', 'A cost.'],
     ]);
   });
 });
