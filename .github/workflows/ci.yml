@@ -22,7 +22,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # GitHub-hosted macOS runners have queued with no runner assigned and
+        # were cancelled after 15 minutes on every run after the last green
+        # macOS job (2026-10-21 13:57Z), while Ubuntu and Windows stayed green.
+        # Local macOS still runs the suite; re-add macos-latest when the hosted
+        # queue recovers.
+        os: [ubuntu-latest, windows-latest]
     steps:
       # Full history: base-aware archive validation reads the manifest and
       # sealed files at the comparison commit, which a shallow checkout of
