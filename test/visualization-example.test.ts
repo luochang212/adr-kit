@@ -62,6 +62,60 @@ describe('visualization example archive cards', () => {
 });
 
 
+describe('reader typography', () => {
+  it('reflows hard-wrapped prose instead of preserving source line breaks', () => {
+    // Records are hard-wrapped at ~80 columns. Pre-serving those newlines
+    // fragments a paragraph into ragged lines; only pre must stay verbatim.
+    expect(example).toContain('#reader-body p{white-space:normal;margin:10px 0}');
+    expect(example).toContain('#reader-body li{white-space:normal;margin:7px 0}');
+    expect(example).not.toContain('#reader-body p{white-space:pre-wrap');
+    expect(example).not.toContain('#reader-body li{white-space:pre-wrap');
+  });
+
+  it('keeps a hard-wrapped list item inside its bullet', () => {
+    interface Element {
+      tag: string;
+      textContent: string;
+      className: string;
+      children: Element[];
+      style: Record<string, string>;
+      readonly lastElementChild: Element | null;
+      append(...children: Element[]): void;
+      replaceChildren(): void;
+    }
+    const element = (tag = 'div'): Element => ({
+      tag, textContent: '', className: '', children: [], style: {},
+      get lastElementChild() { return this.children.at(-1) ?? null; },
+      append(...children) { this.children.push(...children); },
+      replaceChildren() { this.children = []; },
+    });
+    const nodes = new Map<string, Element>();
+    const lookup = (selector: string): Element => {
+      let node = nodes.get(selector);
+      if (!node) { node = element(); nodes.set(selector, node); }
+      return node;
+    };
+    const document = { createElement: (tag: string) => element(tag), querySelector: lookup };
+    const make = example.match(/const make = \(tag, cls, text\) => \{[\s\S]*?\n\};/)![0];
+    const start = example.indexOf('function read(number){');
+    const read = example.slice(start, example.indexOf('world.addEventListener', start));
+    const records = [{
+      number: 1, title: 'List', lifecycle: 'implemented', tags: [], source: '',
+      body: '## Decision\n\n- first line\n  continued here\n- second item',
+    }];
+    runInNewContext(`${make}\n${read}\nread(1);`, {
+      document, records, statusName: { implemented: '生效' }, nodes: [],
+      showContext() {},
+      reader: { open: false, showModal() {}, scrollTop: 0, classList: { add() {}, remove() {} } },
+    });
+    const list = lookup('#reader-body').children.find((child) => child.tag === 'ul')!;
+    expect(list.children.map((item) => item.textContent)).toEqual([
+      'first line continued here',
+      'second item',
+    ]);
+  });
+});
+
 describe('range index date labels', () => {
   it.each([[320, 11], [1024, 40]])('keeps endpoint dates and readable spacing at %i px with %i columns', (width, count) => {
     const segments = Array.from({ length: count }, () => {

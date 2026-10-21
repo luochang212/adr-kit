@@ -95,8 +95,8 @@ regeneration; the agent chose the build-time renderer and shared slot mechanism.
   prose, in-page anchors, safe `</script>` handling, archived bodies, and a
   missing slot; it also holds the shipped example to every slot the build
   expects.
-- `npm test` passes 537 tests with 1 skipped; `npm run typecheck`, `npm run
-  build`, the site build, and `adrkit validate --all` pass.
+- `npm test` passes with 1 skipped; `npm run typecheck`, `npm run build`, the
+  site build, and `adrkit validate --all` pass.
 
 ### Trade-offs
 
