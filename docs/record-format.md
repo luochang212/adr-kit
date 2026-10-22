@@ -35,7 +35,8 @@ further paragraphs, and closes with what above is unchanged. `adrkit validate`
 enforces the form on implemented records: a trailing-prose block that opens
 `ADR N later` fails with a pointer to the subsection, and a block that starts
 like an amendment but loses its bold opening fails too. A paragraph that
-continues the entry above it is not a separate entry and passes. The folders
+continues the entry above it is not a separate entry and passes; ordinary text
+before the first valid entry fails. The folders
 are also a context budget: `implemented/` is current authority and is read
 in full; `proposed/` is intent and is checked; `rejected/` is anti-pattern
 memory that is checked; `archived/` is lowest-value frozen history that is

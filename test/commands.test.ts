@@ -433,6 +433,25 @@ describe('propose and implement', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 
+  it('allows amendment continuations only after a valid entry', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    const path = listRecords(root)[0]!.path;
+    const content = readFileSync(path, 'utf8');
+    const amendment = '**Amended by ADR 1:** the terminal command changed.\n\nThe decision above is unchanged.\n';
+    writeFileSync(path, `${content}\n### Later changes\n\n${amendment}`);
+    expect(validateCommand(root).valid).toBe(true);
+
+    // A later valid entry must not disguise an unmarked first amendment as
+    // a continuation: there is no preceding entry for it to continue.
+    writeFileSync(path, `${content}\n### Later changes\n\nThe first amendment lost its opening.\n\n${amendment}`);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('must open "**Amended by ADR N:**"');
+  });
+
   it('carries implementation sections through accept instead of dropping them', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);

@@ -328,14 +328,11 @@ function laterChangesIssues(path: string, body: string): ValidationIssue[] {
     for (const block of blocks) {
       if (AMENDED_BY_PATTERN.test(block)) {
         entries += 1;
-      } else if (LOST_ENTRY_PATTERN.test(block)) {
+      } else if (entries === 0 || LOST_ENTRY_PATTERN.test(block)) {
         issues.push({ path, message: 'a "### Later changes" entry must open "**Amended by ADR N:**"' });
       }
-      // Any other block continues the entry above it: an amendment may run
-      // over several paragraphs.
-    }
-    if (blocks.length > 0 && entries === 0 && !blocks.some((block) => LOST_ENTRY_PATTERN.test(block))) {
-      issues.push({ path, message: '"### Later changes" must contain at least one entry' });
+      // After a valid opening, an ordinary block continues that entry: an
+      // amendment may run over several paragraphs.
     }
   }
   const outside = [
