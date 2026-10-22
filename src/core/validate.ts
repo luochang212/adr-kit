@@ -466,7 +466,7 @@ function danglingReferenceIssues(
   record: AdrRecord,
   decisions: Map<number, AdrRecord>,
 ): ValidationIssue[] {
-  // The same prose vocabulary `adrkit graph` mines: `ADR-12`, `ADR 4`, `ADR12`.
+  // The same prose vocabulary the decision map mines: `ADR-12`, `ADR 4`, `ADR12`.
   const pattern = /ADR-?\s*([1-9]\d*)/g;
   const numbers = new Set<number>();
   for (const section of record.sections) {
