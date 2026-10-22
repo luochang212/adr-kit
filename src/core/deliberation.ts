@@ -131,7 +131,7 @@ export function hasDeliberationTree(body: string | undefined): boolean {
 }
 
 /** Explicit Q:/A:, else children decide. */
-function typeOf(node: DeliberationNode): DeliberationType {
+export function typeOf(node: DeliberationNode): DeliberationType {
   if (node.type !== undefined) return node.type;
   return node.children.length > 0 ? 'question' : 'option';
 }
@@ -140,7 +140,7 @@ function typeOf(node: DeliberationNode): DeliberationType {
  * Whether the node that raised a follow-up question unlocked it. In the outline
  * a question nests under the node it depends on, so that parent is the node
  * that raised it: a settled parent that is not the tree root turns the edge
- * into frontier progress. The card tree, the drawn edges, and Mermaid all ask
+ * into frontier progress. The deliberation tree, the drawn edges, and Mermaid all ask
  * this one question rather than each deciding for itself.
  */
 export function isUnlockedQuestion(

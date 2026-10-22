@@ -445,9 +445,9 @@ describe('cli option surface', () => {
     expect(list.exitCode).toBe(1);
     expect(list.errors.join('\n')).toContain('does not take --tag');
 
-    const tree = runCli(['tree', '1', '--out', 'out.html'], root);
-    expect(tree.exitCode).toBe(1);
-    expect(tree.errors.join('\n')).toContain('does not take --out');
+    const validate = runCli(['validate', '--out', 'out.html'], root);
+    expect(validate.exitCode).toBe(1);
+    expect(validate.errors.join('\n')).toContain('does not take --out');
 
     const decide = runCli(
       ['record', 'x', '--raised-by', 'human', '--decided-by', 'human', '--tools', 'claude'],
@@ -457,11 +457,11 @@ describe('cli option surface', () => {
     expect(decide.errors.join('\n')).toContain('does not take --tools');
   });
 
-  it('still accepts --out on graph', () => {
+  it('still accepts --out on atlas', () => {
     const root = makeRepo();
-    const result = runCli(['graph', '--html', '--out', join(root, 'map.html')], root);
+    const result = runCli(['atlas', '--out', join(root, 'atlas.html')], root);
     expect(result.errors.join('\n')).not.toContain('does not take');
-    expect(existsSync(join(root, 'map.html'))).toBe(true);
+    expect(existsSync(join(root, 'atlas.html'))).toBe(true);
   });
 
   it('refuses a second record file with an existing decision number', () => {

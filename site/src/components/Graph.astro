@@ -10,7 +10,7 @@ const t = useTranslations(lang);
 // edge, mined ADR-N reference edges, per-tag node tinting). Titles here are
 // generalized one-liners, not the private repo's actual wording. Geometry is
 // computed at build time below — regenerate the edge list with
-// `adrkit graph --mermaid` in that repo when the example ages.
+// `adrkit atlas --format mermaid` in that repo when the example ages.
 const titles: Record<number, string> = lang === 'zh' ? {
   1: '1 记录架构决策（ADR）',
   2: '2 选定 agent 底座',
@@ -131,7 +131,7 @@ const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
           class="graph__svg"
           viewBox={`0 0 ${svgW} ${svgH}`}
           role="img"
-          aria-label="Decision graph from a real repository: fifteen decisions in four creation-date groups, one formal supersede edge, and dashed arrows for the references between decisions"
+          aria-label="Decision map from a real repository: fifteen decisions in four creation-date groups, one formal supersede edge, and dashed arrows for the references between decisions"
         >
           <defs>
             <marker id="g-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">

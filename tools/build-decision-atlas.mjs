@@ -51,6 +51,7 @@ const html = core.renderDecisionAtlas({
   commit: commit(),
   repositoryUrl: repositoryUrl(),
   projectName,
+  homeHref: '../',
 });
 
 mkdirSync(dirname(target), { recursive: true });

@@ -264,8 +264,8 @@ r
   });
 });
 
-describe('cli graph surface', () => {
-  it('runs through main and exits non-zero on conflicting format flags', () => {
+describe('cli atlas surface', () => {
+  it('runs through main and rejects an unknown format', () => {
     const root = makeRepo();
     const previousCwd = process.cwd();
     const previousExitCode = process.exitCode;
@@ -274,10 +274,10 @@ describe('cli graph surface', () => {
     try {
       process.chdir(root);
       process.exitCode = undefined;
-      main(['graph', '--mermaid', '--dot']);
+      main(['atlas', '--format', 'bogus']);
       expect(process.exitCode).toBe(1);
-      expect(errorSpy.mock.calls[0]?.[0]).toContain('mutually exclusive');
-      main(['graph']);
+      expect(errorSpy.mock.calls[0]?.[0]).toContain('expects');
+      main(['atlas', '--format', 'mermaid']);
       expect((logSpy.mock.calls[0]?.[0] as string).startsWith('flowchart LR')).toBe(true);
     } finally {
       process.chdir(previousCwd);
@@ -751,9 +751,9 @@ describe('graph HTML map', () => {
     expect(treeCommand('2', root, { html: true })).toContain('<!doctype html>');
   });
 
-  it('exposes --html through main and rejects it beside another format', () => {
+  it('exposes the map page and the record diagram through main', () => {
     const root = makeRepo();
-    writeDecision(root, 1, 'One', { date: '2026-08-17' });
+    writeDecision(root, 1, 'One', { date: '2026-08-17', deliberation: '- Q: Which store? [settled]\n  - A: SQLite [settled]' });
     const previousCwd = process.cwd();
     const previousExitCode = process.exitCode;
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -761,9 +761,9 @@ describe('graph HTML map', () => {
     try {
       process.chdir(root);
       process.exitCode = undefined;
-      main(['graph', '--html']);
+      main(['atlas', '--format', 'html']);
       expect(String(logSpy.mock.calls[0]?.[0]).startsWith('<!doctype html>')).toBe(true);
-      main(['graph', '--html', '--mermaid']);
+      main(['atlas', '--record', '1', '--diagram', '--format', 'mermaid']);
       expect(process.exitCode).toBe(1);
       expect(errorSpy.mock.calls[0]?.[0]).toContain('mutually exclusive');
     } finally {
@@ -774,7 +774,7 @@ describe('graph HTML map', () => {
     }
   });
 
-  it('rejects two format flags on tree instead of silently picking one', () => {
+  it('rejects a tree format that has no dot output', () => {
     const root = makeRepo();
     writeDecision(root, 1, 'One', {
       date: '2026-08-17',
@@ -787,9 +787,9 @@ describe('graph HTML map', () => {
     try {
       process.chdir(root);
       process.exitCode = undefined;
-      main(['tree', '1', '--html', '--mermaid']);
+      main(['atlas', '--record', '1', '--format', 'dot']);
       expect(process.exitCode).toBe(1);
-      expect(errorSpy.mock.calls[0]?.[0]).toContain('mutually exclusive');
+      expect(errorSpy.mock.calls[0]?.[0]).toContain('only mermaid or text');
       expect(logSpy).not.toHaveBeenCalled();
     } finally {
       process.chdir(previousCwd);

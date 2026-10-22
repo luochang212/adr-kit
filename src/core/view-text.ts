@@ -1,12 +1,12 @@
 /**
  * Text helpers and the shared canvas ground for the rendered views: the SVG
- * decision map, the card tree, and Mermaid labels. One implementation keeps
+ * decision map, the deliberation tree, and Mermaid labels. One implementation keeps
  * escaping, wrapping, and the ground identical wherever record text or the
  * canvas reaches a view.
  */
 
 /**
- * The one canvas ground: the map and the card tree draw it as CSS, and the
+ * The one canvas ground: the map and the deliberation tree draw it as CSS, and the
  * share export paints it onto the image. ADR 11 makes this a single contract,
  * so the dot colour, radius, and spacing live here and every consumer derives
  * from them. A second literal is how the map once sat on flat paper while the

@@ -118,7 +118,7 @@ describe('initCommand tool integrations', () => {
     for (const target of ['.agents', '.claude']) {
       expect(readdirSync(join(root, target, 'skills'))).toEqual(['adrkit-visualize']);
       expect(readFileSync(join(root, target, 'commands/adrkit-visualize.md'), 'utf8'))
-        .toContain('adrkit graph --html');
+        .toContain('adrkit atlas');
     }
     updateCommand(root);
     expect(readConfig(root).workflows).toEqual(['visualize']);
@@ -155,7 +155,7 @@ describe('initCommand tool integrations', () => {
       expect(skill).toContain('Ordinary archives retain `status: implemented`');
       const commandDir = join(root, target, 'commands');
       const command = readFileSync(join(commandDir, 'adrkit-visualize.md'), 'utf8');
-      const link = command.match(/\[the archive-page example\]\(([^)]+)\)/)?.[1];
+      const link = command.match(/\[the decision-atlas example\]\(([^)]+)\)/)?.[1];
       expect(link).toBeDefined();
       expect(readFileSync(join(commandDir, link!), 'utf8')).toBe(source);
     }
@@ -547,8 +547,8 @@ rules:
   it('visualize owns rendering and browser delivery', () => {
     const visualize = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-visualize');
     expect(visualize?.description).toContain('visualize an existing ADR');
-    expect(visualize?.body).toContain('adrkit tree <name> --html');
-    expect(visualize?.body).toContain('adrkit graph --html');
+    expect(visualize?.body).toContain('adrkit atlas --out');
+    expect(visualize?.body).toContain('adrkit atlas --record <name> --diagram');
     expect(visualize?.body).toContain('open the generated file in the default browser');
   });
 });
@@ -699,8 +699,8 @@ describe('completionCommand', () => {
       expect(answer(`(adrkit val)`, 1)).toBe('validate');
       // A value option consumes the next word, so the option list must not
       // come back where the CLI is waiting for a value.
-      expect(answer(`(adrkit graph '')`, 2)).toContain('--tag');
-      expect(answer(`(adrkit graph --tag '')`, 3)).toBe('');
+      expect(answer(`(adrkit atlas '')`, 2)).toContain('--tag');
+      expect(answer(`(adrkit atlas --tag '')`, 3)).toBe('');
       expect(answer(`(adrkit init --tools '')`, 3)).toBe('');
     },
   );
@@ -723,7 +723,7 @@ describe('completionCommand', () => {
         // and leaves the buffer alone instead of repeating the option list.
         // (Valueless options are pinned by the string assertions above: this
         // harness only observes insertion for options that take an argument.)
-        ['adrkit graph --tag ', 'adrkit graph --tag'],
+        ['adrkit atlas --tag ', 'adrkit atlas --tag'],
         ['adrkit init --tools ', 'adrkit init --tools'],
       ];
       // zpty provides the real ZLE context required by _arguments. Ctrl-X
@@ -771,7 +771,7 @@ describe('completionCommand', () => {
       expect(answer('adrkit propose SQLite --decided-by ')).not.toContain('human');
       // `-x` on a value option suppresses both the option list and file
       // candidates, since the CLI expects a value the shell cannot enumerate.
-      expect(answer('adrkit graph --tag ')).not.toContain('--dot');
+      expect(answer('adrkit atlas --tag ')).not.toContain('--dot');
       expect(answer('adrkit init --tools ')).not.toContain('--workflows');
     },
   );

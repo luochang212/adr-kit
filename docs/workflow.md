@@ -40,10 +40,10 @@ settles. Do not confuse a settled choice with shipped work.
    changes.
 5. `adrkit validate` checks all four directories, including archived records.
    Fresh templates fail until required sections are filled.
-   `adrkit graph --html` visualizes numbered decisions and their history;
-   `adrkit tree <name> --html` renders an optional `## Deliberation` appendix.
+   `adrkit atlas` writes the browsable decision atlas;
+   `adrkit atlas --record <name> --diagram` renders an optional `## Deliberation` appendix.
 
-The `adrkit-visualize` skill also carries an optional archive-page example at
+The `adrkit-visualize` skill also carries an optional decision-atlas example at
 `examples/decision-atlas.html` inside the installed skill. Consult it for a
 richer browsing request and adapt only the useful sections to the target
 repository; small sets can stay a list or the built-in map. It is a reference

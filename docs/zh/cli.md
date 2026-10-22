@@ -22,8 +22,7 @@
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
 | `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错则失败，否则列出管辖这些改动的生效决策 |
-| `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | 可视化编号决策及历史 |
-| `adrkit tree <name> [--mermaid\|--text\|--html]` | 渲染思辨树 |
+| `adrkit atlas [--out <path>] [--record <name> [--diagram\|--format <mermaid\|text>]] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | 写出决策档案；无参数是完整档案页，`--record --diagram` 是单条决策的卡片图，`--format` 导出决策地图（带 `--record` 时导出该树的源码） |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |
 | `adrkit version` | 输出版本 |
 | `adrkit help` | 输出帮助 |

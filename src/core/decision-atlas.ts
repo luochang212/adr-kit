@@ -1,4 +1,5 @@
-import type { AdrRecord } from './adr.js';
+import { section, type AdrRecord } from './adr.js';
+import { isOverride, parseDeliberation, typeOf, type DeliberationNode } from './deliberation.js';
 import type { DecisionGraph } from './graph.js';
 import { renderDecisionMapSvg } from './graph-html.js';
 import { relativePath } from './repository.js';
@@ -6,7 +7,7 @@ import { escapeHtml } from './view-text.js';
 
 // @adr 29, 31 — the build-time atlas and its full archived bodies.
 /**
- * The replaceable regions in the shipped archive-page example. The example is
+ * The replaceable regions in the shipped decision-atlas example. The example is
  * a snapshot an agent can adapt by hand; this repository's site build uses the
  * same markers so the published atlas and the installed resource cannot drift
  * into two frontends.
@@ -23,7 +24,7 @@ export const ATLAS_SLOTS = [
 ] as const;
 
 export interface DecisionAtlasOptions {
-  /** The archive-page example, with its `atlas:` slot markers intact. */
+  /** The decision-atlas example, with its `atlas:` slot markers intact. */
   template: string;
   /** Records to publish; only `implemented/` and `archived/` are rendered. */
   records: AdrRecord[];
@@ -36,6 +37,18 @@ export interface DecisionAtlasOptions {
   projectName: string;
   /** Link from the published page back to the project home. */
   homeHref?: string;
+}
+
+/** One deliberation node as the example's client script reads it. */
+export interface AtlasDeliberationNode {
+  text: string;
+  type: 'question' | 'option';
+  status?: 'settled' | 'rejected' | 'open';
+  recommended?: boolean;
+  reason?: string;
+  /** The question took an option other than the recommended one (ADR 5). */
+  overridden?: boolean;
+  children: AtlasDeliberationNode[];
 }
 
 /** One record as the example's client script reads it. */
@@ -53,6 +66,7 @@ interface AtlasRecord {
   number: number;
   title: string;
   body: string;
+  deliberation: AtlasDeliberationNode[];
   path: string;
   lifecycle: string;
   source: string;
@@ -75,13 +89,35 @@ function replaceRecordsSlot(template: string, value: string): string {
   return replaceSlot(template, '/* atlas:records */', '/* /atlas:records */', value, 'records');
 }
 
-/** Rebuild the readable body from the parsed sections, without front matter. */
+/**
+ * Rebuild the readable body from the parsed sections, without front matter.
+ * The deliberation appendix is carried separately as a tree, so the reader
+ * does not show it twice.
+ */
 function markdownBody(record: AdrRecord): string {
   const heading = `\n# ADR: ${record.number} ${record.title}\n`;
   const sections = record.sections
+    .filter((entry) => entry.heading !== 'Deliberation')
     .map((entry) => `\n## ${entry.heading}\n\n${entry.body.trim()}\n`)
     .join('');
   return `${heading}${sections}`;
+}
+
+/** Strip a parsed node to the fields the atlas reader draws; the grammar stays in one place. */
+function deliberationPayload(nodes: DeliberationNode[]): AtlasDeliberationNode[] {
+  return nodes.map((node) => {
+    const type = typeOf(node);
+    const payload: AtlasDeliberationNode = {
+      text: node.text,
+      type,
+      children: deliberationPayload(node.children),
+    };
+    if (node.status !== undefined) payload.status = node.status;
+    if (node.recommended === true) payload.recommended = true;
+    if (node.reason !== undefined) payload.reason = node.reason;
+    if (type === 'question' && isOverride(node)) payload.overridden = true;
+    return payload;
+  });
 }
 
 function shortDate(date: string | undefined): string {
@@ -116,7 +152,7 @@ function inboundNote(graph: DecisionGraph, implemented: Set<number>): string {
   const top = [...inbound.entries()]
     .filter(([number]) => implemented.has(number))
     .sort(([aNumber, aCount], [bNumber, bCount]) => bCount - aCount || aNumber - bNumber)[0];
-  if (top === undefined) return '记录之间还没有引用关系；图谱只呈现已经写下的关系。';
+  if (top === undefined) return '记录之间还没有引用关系；决策地图只呈现已经写下的关系。';
   return `被引最多的决策是后续工作的支点：#${top[0]} 被引 ${top[1]} 次；计数描述关系，不代表重要性。`;
 }
 
@@ -130,14 +166,14 @@ function replacementsNote(archived: AdrRecord[]): string {
  * Render the published decision atlas from the repository's current records.
  *
  * The page is self-contained and regenerated at site build time: records,
- * relationship map, statistics, prose, and source links all come from the same
+ * decision map, statistics, prose, and source links all come from the same
  * commit. Archived bodies ship in the payload with their metadata; the
  * lifecycle field keeps them distinct from current authority.
  */
 export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   const { template, graph, commit, projectName } = options;
   const repositoryUrl = options.repositoryUrl.replace(/\/$/, '');
-  const homeHref = options.homeHref ?? '../';
+  const homeHref = options.homeHref;
   const records = options.records.filter(
     (record) => record.folder === 'implemented' || record.folder === 'archived',
   );
@@ -171,9 +207,12 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     number: record.number!,
     title: record.title,
     body: markdownBody(record),
+    deliberation: deliberationPayload(parseDeliberation(section(record, 'Deliberation'))),
     path: relativePath(record),
     lifecycle: record.folder,
-    source: `${repositoryUrl}/blob/${commit}/${relativePath(record)}`,
+    source: repositoryUrl.length > 0
+      ? `${repositoryUrl}/blob/${commit}/${relativePath(record)}`
+      : '',
   }));
   // The records live in a <script> block: escaping "<" keeps a record title or
   // body from closing the element; line separators are invalid in JS strings.
@@ -186,19 +225,23 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     + `<div><strong>${implemented.length}</strong><span>生效决策</span></div>`
     + `<div><strong>${archived.length}</strong><span>归档历史</span></div>`
     + `<div><strong>${graph.referenceEdges.length}</strong><span>引用关系</span></div>`
-    + `<div><strong>${graph.nodes.filter((node) => node.hasDeliberation).length}</strong><span>含推敲过程</span></div>`
+    + `<div><strong>${graph.nodes.filter((node) => node.hasDeliberation).length}</strong><span>deliberation tree</span></div>`
     + `</div></section>`;
 
   const hero = `<section id="top" class="page-hero"><div class="hero-content">`
     + `<p class="eyebrow">DECISION ATLAS / LIVE ARCHIVE</p>`
     + `<h1>${escapeHtml(projectName)}</h1>`
-    + `<p class="hero-description">从本仓库 adr/ 的 ${implemented.length} 条生效决策与 ${archived.length} 条归档历史生成。<br>每次站点构建重新读取记录，不保留手工快照。</p>`
+    + `<p class="hero-description">从本仓库 adr/ 的 ${implemented.length} 条生效决策与 ${archived.length} 条归档历史生成。<br>由 adrkit 从当前记录生成，不保留手工快照。</p>`
     + `</div></section>`;
 
+  const commitLabel = repositoryUrl.length > 0
+    ? `<a class="footer-commit" href="${escapeHtml(`${repositoryUrl}/tree/${commit}`)}" target="_blank" rel="noopener noreferrer">${escapeHtml(commit)}</a>`
+    : `<span class="footer-commit">${escapeHtml(commit)}</span>`;
+  const homeLink = homeHref === undefined
+    ? ''
+    : ` · <a class="footer-home" href="${escapeHtml(homeHref)}">项目主页</a>`;
   const footer = `<footer class="page-footer"><span class="page-brand">${escapeHtml(projectName)} / ADR</span>`
-    + `<div class="footer-meta">由 adrkit 在站点构建时生成 · 记录定格于 `
-    + `<a class="footer-commit" href="${escapeHtml(`${repositoryUrl}/tree/${commit}`)}" target="_blank" rel="noopener noreferrer">${escapeHtml(commit)}</a>`
-    + ` · <a class="footer-home" href="${escapeHtml(homeHref)}">项目主页</a></div></footer>`;
+    + `<div class="footer-meta">由 adrkit 从当前记录生成 · 记录定格于 ${commitLabel}${homeLink}</div></footer>`;
 
   let page = template;
   page = replaceHtmlSlot(page, 'title', `<title>${escapeHtml(projectName)} · 决策档案</title>`);

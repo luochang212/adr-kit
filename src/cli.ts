@@ -5,12 +5,12 @@ import type { DecidedBy, RaisedBy } from './core/adr.js';
 import { isDecidedBy, isRaisedBy } from './core/adr.js';
 import { parseArgsOptions, unsupportedOptions } from './core/cli-options.js';
 import { archiveCommand } from './commands/archive.js';
+import { atlasCommand } from './commands/atlas.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
 import { hookInstallCommand, hookRunCommand, hookUninstallCommand } from './commands/hook.js';
 import { recordCommand } from './commands/record.js';
 import { implementCommand } from './commands/implement.js';
-import { graphCommand } from './commands/graph.js';
 import { initCommand } from './commands/init.js';
 import { instructionsCommand } from './commands/instructions.js';
 import { listCommand } from './commands/list.js';
@@ -21,7 +21,6 @@ import { relevantCommand } from './commands/relevant.js';
 import { showCommand } from './commands/show.js';
 import { statusCommand } from './commands/status.js';
 import { supersedeCommand } from './commands/supersede.js';
-import { treeCommand } from './commands/tree.js';
 import { updateCommand } from './commands/update.js';
 import { validateCommand } from './commands/validate.js';
 
@@ -61,24 +60,23 @@ Usage:
   adrkit config                              Print the current configuration
   adrkit hook <install|uninstall|run>
                                            Manage the pre-commit decision check
-  adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
-                                           Emit the decision relationship graph
-  adrkit tree <name> [--mermaid|--text|--html] Render the record's deliberation tree
+  adrkit atlas [--out <path>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+                                           Write the decision atlas; --record renders one deliberation tree, --format exports the decision map
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
   adrkit help                                Print this help
   adrkit -h, --help                          Print this help
   adrkit -V, --version                       Print the version
 
-adrkit graph visualizes the decision history: solid edges are formal
-superseded-by links, dashed edges are ADR-N references mined from record
-bodies, and nodes group by their created date. --mermaid pastes into any
-Markdown and renders natively on GitHub (nodes are tinted by their tags),
---dot feeds Graphviz (dot -Tpng), --text prints a terminal-friendly tree,
---html emits an offline self-contained decision map; --tag <tag> filters to
-one theme, --formal-only drops the mined edges. --out <path> writes the output
-to a file instead of stdout: the map resolves its record links from that
-location, so a map written outside the repository still opens its records.
+adrkit atlas writes the decision atlas from the current records: a single
+self-contained HTML page with the decision map, a browsable directory, and
+every record's text. --out <path> writes it to a file instead of stdout.
+--format exports the decision map instead: mermaid pastes into any Markdown and renders
+natively on GitHub (nodes are tinted by their tags), dot feeds Graphviz
+(dot -Tpng), text prints a terminal-friendly tree, and html emits the
+standalone map page; --tag <tag> filters to one theme and --formal-only drops
+the mined edges. With --record <name>, --diagram renders that decision's
+deliberation tree and --format <mermaid|text> exports its source.
 
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
@@ -249,27 +247,15 @@ export function main(argv: string[]): void {
         }
         throw new Error('hook requires install, uninstall, or run');
       }
-      case 'graph': {
+      case 'atlas': {
         console.log(
-          graphCommand(process.cwd(), {
-            mermaid: values.mermaid,
-            dot: values.dot,
-            text: values.text,
-            html: values.html,
+          atlasCommand(process.cwd(), {
+            out: values.out,
+            record: values.record,
+            diagram: values.diagram,
+            format: values.format,
             formalOnly: values['formal-only'],
             tag: values.tag,
-            out: values.out,
-          }),
-        );
-        return;
-      }
-      case 'tree': {
-        requireTitle(rest, 'tree');
-        console.log(
-          treeCommand(rest[0]!, process.cwd(), {
-            mermaid: values.mermaid,
-            text: values.text,
-            html: values.html,
           }),
         );
         return;

@@ -1,4 +1,5 @@
 import { RELATION_STYLE, RELATION_SCRIPT } from './relation-focus.js';
+import { FAVICON_DATA_URI } from './brand.js';
 import type { DecisionGraph, GraphNode } from './graph.js';
 import { TAG_COLORS } from './graph.js';
 import { MAP_STYLE } from './graph-view.js';
@@ -337,7 +338,7 @@ export function renderDecisionMapSvg(
 }
 
 /**
- * Render a decision graph as one self-contained, offline HTML map. The layout
+ * Render the decision map as one self-contained, offline HTML page. The layout
  * is computed at generation time, so the page needs no network, no CDN, and no
  * runtime; every node links to its record file.
  */
@@ -354,7 +355,7 @@ export function renderDecisionMapHtml(
     '<!doctype html>',
     '<html lang="en">',
     '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
-    '<title>' + escapeHtml(title) + ' — decision map</title><style>' + MAP_STYLE + CANVAS_STYLE + SHARE_STYLE + RELATION_STYLE + '</style></head>',
+    '<title>' + escapeHtml(title) + ' — decision map</title><link rel="icon" type="image/svg+xml" href="' + FAVICON_DATA_URI + '"><style>' + MAP_STYLE + CANVAS_STYLE + SHARE_STYLE + RELATION_STYLE + '</style></head>',
     '<body>',
     canvasHeaderHTML(title, stats,
       'Solid edges supersede; dashed edges are record references. Grouped by creation date. Hover or focus a decision to trace its direct relationships; Escape clears the highlight.'),

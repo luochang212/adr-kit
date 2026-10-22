@@ -49,15 +49,15 @@ const ui = {
     'lifecycle.rejected': "A formally declined proposal, kept as a durable anti-pattern to avoid, removed only when another record owns its warning, with no ADR number.",
     'lifecycle.archived': "Frozen numbered history, lowest value and not read by default; full supersession or retirement moves the old record here.",
 
-    'graph.eyebrow': 'Decision graph',
+    'graph.eyebrow': 'Decision map',
     'graph.title': 'A history you can look at',
     'graph.lead':
-      'One command turns the adr/ directory into a live map of your decisions: grouped by date, tinted by tag, linked by the references between them. The map is one self-contained HTML file with a pan-and-zoom canvas, and any view — the map, or one decision\u2019s deliberation card tree — saves as a shareable image.',
+      'One command turns the adr/ directory into a live map of your decisions: grouped by date, tinted by tag, linked by the references between them. The map is one self-contained HTML file with a pan-and-zoom canvas, and any view — the map, or one decision\u2019s deliberation tree — saves as a shareable image.',
     'graph.caption': 'Real graph topology from a production repository; titles generalized',
     'graph.atlas.eyebrow': 'Live decision atlas',
     'graph.atlas.title': 'See how ADR Kit itself evolved',
     'graph.atlas.lead':
-      'The project\u2019s own decision atlas, regenerated from adr/ on every site build: a timeline, a relationship map, and every record in one browsable page.',
+      'The project\u2019s own decision atlas, regenerated from adr/ on every site build: a timeline, a decision map, and every record in one browsable page.',
 
     'start.eyebrow': 'Get started',
     'start.title': 'Two ways in',
@@ -87,7 +87,7 @@ const ui = {
       "It adds one adr/ directory with config, README, and four lifecycle folders: proposed, implemented, rejected, archived. By default it writes agent skills and commands to .agents/; --tools claude adds .claude/ copies, and --tools none installs nothing. Records remain plain Markdown.",
     'faq.2.q': 'How do I use ADR Kit day to day?',
     'faq.2.a':
-      "Use adrkit propose for unshipped work, then adrkit implement after delivery. Use adrkit record for an already-shipped choice. Formal rejection requires adrkit reject --reason; retired guidance uses archive or supersede. Fill required sections and run adrkit validate. Visualize with adrkit tree or adrkit graph --html.",
+      "Use adrkit propose for unshipped work, then adrkit implement after delivery. Use adrkit record for an already-shipped choice. Formal rejection requires adrkit reject --reason; retired guidance uses archive or supersede. Fill required sections and run adrkit validate. Visualize with adrkit atlas.",
     'faq.3.q': 'Can I use ADR Kit alongside tools like OpenSpec?',
     'faq.3.a':
       'Yes. ADR Kit is an independent decision-record product with its own lifecycle. It can coexist with specification tools because its records live in adr/ and its agent workflows are namespaced; no other tool is required.',
@@ -133,14 +133,14 @@ const ui = {
     'lifecycle.rejected': "正式否决的提案，作为稳定的反例保留，只有当另一条记录接管其警示时才移除，不分配 ADR 编号。",
     'lifecycle.archived': "冻结的编号历史，价值最低、默认不读；完整替代或退役会把旧记录移到这里。",
 
-    'graph.eyebrow': '决策图谱',
+    'graph.eyebrow': '决策地图',
     'graph.title': '看得见的历史',
-    'graph.lead': '一条命令，把 adr/ 目录变成全部决策的地图：按日期分组、按标签着色、引用连成线。地图是单个自包含的 HTML 文件，画布可拖拽缩放；无论决策地图还是单条决策的卡片树，任意视图都能一键存成图片。',
+    'graph.lead': '一条命令，把 adr/ 目录变成全部决策的地图：按日期分组、按标签着色、引用连成线。地图是单个自包含的 HTML 文件，画布可拖拽缩放；无论决策地图还是单条决策的 deliberation tree，任意视图都能一键存成图片。',
     'graph.caption': '结构取自真实仓库，标题已做泛化',
     'graph.atlas.eyebrow': '在线决策档案',
     'graph.atlas.title': '看看 ADR Kit 自己如何演进',
     'graph.atlas.lead':
-      '本项目的决策档案，每次站点构建都从 adr/ 重新生成：时间轴、关系图与每条记录都在同一个可浏览的页面里。',
+      '本项目的决策档案，每次站点构建都从 adr/ 重新生成：时间轴、决策地图与每条记录都在同一个可浏览的页面里。',
 
     'start.eyebrow': '开始使用',
     'start.title': '两种接入方式',
@@ -170,7 +170,7 @@ const ui = {
       "只添加一个 adr/ 目录，内有配置、README 与 proposed、implemented、rejected、archived 四个目录。默认还将 agent 技能和命令写入 .agents/；--tools claude 另装 .claude/，--tools none 则不安装。记录仍是纯 Markdown。",
     'faq.2.q': '日常如何在项目中使用 ADR Kit？',
     'faq.2.a':
-      "未交付工作先用 adrkit propose，交付后运行 adrkit implement；已交付但未记录的选择用 adrkit record。正式否决用 adrkit reject --reason（稳定保留，只在另一条记录接管其警示时移除）；过时指导用 archive 或 supersede。填写必填章节并运行 adrkit validate。用 adrkit tree 或 adrkit graph --html 可视化。",
+      "未交付工作先用 adrkit propose，交付后运行 adrkit implement；已交付但未记录的选择用 adrkit record。正式否决用 adrkit reject --reason（稳定保留，只在另一条记录接管其警示时移除）；过时指导用 archive 或 supersede。填写必填章节并运行 adrkit validate。用 adrkit atlas 可视化。",
     'faq.3.q': 'ADR Kit 能与 OpenSpec 这类工具同时使用吗？',
     'faq.3.a':
       '可以。ADR Kit 是独立的决策记录产品，自有完整生命周期。它的记录位于 adr/，agent 工作流也有命名空间，因此可以与规约工具共存，但不依赖任何其他工具。',

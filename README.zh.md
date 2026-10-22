@@ -64,7 +64,7 @@ adr/
 
 ## 升级
 
-ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容——旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；归档记录只通过有意且说明原因的提交修改。0.23.0 及更早版本写下的 `adr/archived/MANIFEST.json` 已不再读取，直接删除即可。`AGENTS.md` 中的该段归你所有，当它粘贴自与当前 CLI 不同的模板时 `adrkit list` 会提示。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。
+ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容——旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；归档记录只通过有意且说明原因的提交修改。0.23.0 及更早版本写下的 `adr/archived/MANIFEST.json` 已不再读取，直接删除即可。`AGENTS.md` 中的该段归你所有，当它粘贴自与当前 CLI 不同的模板时 `adrkit list` 会提示。可视化命令已收敛为一个：`adrkit atlas`（地图用 `--format html`，单条决策的树用 `--record <N> --diagram`）；`adrkit graph` 与 `adrkit tree` 已移除。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。
 
 ## 告诉 Agent
 
@@ -89,7 +89,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 > 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的决策档案。归档正文全文展示，并把页面固定到当前提交。
 
-轻量入口仍然保留：`adrkit graph --html` 看决策地图，`adrkit tree <N> --html` 看单条决策的推敲树。
+档案是默认可视化：`adrkit atlas --out decisions.html`。轻量入口仍然保留：`adrkit atlas --format html` 出独立的地图页，`adrkit atlas --record <N> --diagram` 看单条决策的 deliberation tree。
 
 ## 命令
 
@@ -111,8 +111,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
-adrkit tree <name> [--mermaid|--text|--html]
+adrkit atlas [--out <path>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help
@@ -157,7 +156,7 @@ tags: [storage]
 
 `adrkit implement` 会把提案的 `## Acceptance criteria` 与 `## Risks` 折叠为 `## Consequences` 下的现在时 `### Verification` 与 `### Trade-offs`；implemented 记录不得在 Consequences 下保留旧 H3 标题。CLI 不能改写正文，因此折叠时会输出提醒。
 
-implemented 记录可以更新路径、符号、默认值等已交付事实，但不可悄悄重写选择或理由。选择改变应新建记录并建立关系。完整替代写入 `superseded-by: N`，旧记录移入 `archived/`；归档记录保持编号，只作历史参考。图谱包含编号历史，可选 `## Deliberation` 附录保留思辨树。
+implemented 记录可以更新路径、符号、默认值等已交付事实，但不可悄悄重写选择或理由。选择改变应新建记录并建立关系。完整替代写入 `superseded-by: N`，旧记录移入 `archived/`；归档记录保持编号，只作历史参考。决策地图包含编号历史，可选 `## Deliberation` 附录保留 deliberation tree。
 
 ### 在代码中引用决策
 
@@ -180,7 +179,7 @@ export function scope() { /* ... */ }
 
 ## 灵感来源
 
-[DeepSeek Harness Agent Notes](https://github.com/deepseek-ai/deepseek-harness) 启发了生命周期目录及 proposed、implemented、rejected、archived 的语义。ADR Kit 保留自身的来源声明、稳定编号、校验、思辨树和关系图。OpenSpec 不是运行时或治理依赖。
+[DeepSeek Harness Agent Notes](https://github.com/deepseek-ai/deepseek-harness) 启发了生命周期目录及 proposed、implemented、rejected、archived 的语义。ADR Kit 保留自身的来源声明、稳定编号、校验、deliberation tree 和决策地图。OpenSpec 不是运行时或治理依赖。
 
 ## 开发
 

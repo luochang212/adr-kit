@@ -54,3 +54,7 @@ both skills; users with explicit subsets add `visualize` or select `all` when
 updating. No CLI command or runtime dependency is added. The maintainer raised
 the naming problem and explicitly requested the split after the agent proposed
 it; both provenance fields record that direction as human.
+
+ADR 33 later consolidated the CLI under `adrkit atlas`: the skill routes a
+whole-set request to `atlas` and one record's tree to
+`atlas --record <name> --diagram`. The skill separation above is unchanged.

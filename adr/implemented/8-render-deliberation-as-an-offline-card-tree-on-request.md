@@ -67,6 +67,10 @@ ADR 12 later made browser opening the default for a visualization request, and
 ADR 13 moved this routing from `adrkit-grill` to `adrkit-visualize`; on-request
 generation, the file link, and the no-open opt-out are unchanged.
 
+ADR 33 later consolidated the CLI under `adrkit atlas`: this record's card tree
+now runs as `atlas --record <name> --diagram`. The rendering, the annotated
+grammar, and the on-request rule above are unchanged.
+
 ## Deliberation
 
 - Make grilling decisions readable as a tree [settled]

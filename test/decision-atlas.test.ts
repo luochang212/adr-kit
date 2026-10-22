@@ -122,6 +122,62 @@ describe('decision atlas rendering', () => {
     expect(recordsFrom(page)[2]).toMatchObject({ 'archive-reason': 'Single-tenant deployment shipped' });
   });
 
+  it('carries the deliberation appendix as a tree and leaves it out of the body', () => {
+    const grilled = record({
+      number: 1,
+      title: 'Grilled decision',
+      sections: [
+        { heading: 'Problem', body: '\nHard.\n' },
+        { heading: 'Decision', body: '\nChosen.\n' },
+        { heading: 'Alternatives considered', body: '\nOther.\n' },
+        { heading: 'Consequences', body: '\nCost.\n' },
+        {
+          heading: 'Deliberation',
+          body: [
+            '',
+            '- Q: Where do sessions live? [settled]',
+            '  - A: SQLite [settled] (recommended)',
+            '  - A: Files [rejected] — slower to query',
+            '    - Q: What about rotation? [open]',
+            '- Q: Which store? [settled]',
+            '  - A: SQLite [rejected] (recommended)',
+            '  - A: Postgres [settled]',
+            '',
+          ].join('\n'),
+        },
+      ],
+    });
+    const payload = recordsFrom(render([grilled]))[0] as { body: string; deliberation: unknown };
+    expect(payload.body).not.toContain('Where do sessions live?');
+    expect(payload.deliberation).toEqual([
+      {
+        text: 'Where do sessions live?',
+        type: 'question',
+        status: 'settled',
+        children: [
+          { text: 'SQLite', type: 'option', status: 'settled', recommended: true, children: [] },
+          {
+            text: 'Files',
+            type: 'option',
+            status: 'rejected',
+            reason: 'slower to query',
+            children: [{ text: 'What about rotation?', type: 'question', status: 'open', children: [] }],
+          },
+        ],
+      },
+      {
+        text: 'Which store?',
+        type: 'question',
+        status: 'settled',
+        overridden: true,
+        children: [
+          { text: 'SQLite', type: 'option', status: 'rejected', recommended: true, children: [] },
+          { text: 'Postgres', type: 'option', status: 'settled', children: [] },
+        ],
+      },
+    ]);
+  });
+
   it('escapes record content so titles and script-closing text stay data', () => {
     const attack = [
       record({

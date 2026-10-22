@@ -64,7 +64,7 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 ## Upgrades
 
-ADR Kit is pre-stable and breaks on purpose: a release may change the record format or the command surface, and nothing promises forward compatibility — records written by an older release are not guaranteed to keep passing validation, and not every break has a mechanical migration. Upgrading is the supported path: run `adrkit update` to refresh the installed integrations, then `adrkit validate --all` in your repositories, where validation errors name what changed. The standing orders tell your agent to upgrade the package, migrate active records where the change is mechanical, and report a record it cannot carry over instead of forcing a rewrite; archived records change only through a deliberate, explained commit. An `adr/archived/MANIFEST.json` written by 0.23.0 or earlier is no longer read; delete it. That section in `AGENTS.md` is yours, and `adrkit list` prints a note when it was pasted from a different template than the CLI ships. The npm package is `adr-kit` and the CLI is `adrkit` (there is no `adrkit` package on npm). The CLI requires Node.js 22.22 or later; earlier Node.js lines are no longer supported.
+ADR Kit is pre-stable and breaks on purpose: a release may change the record format or the command surface, and nothing promises forward compatibility — records written by an older release are not guaranteed to keep passing validation, and not every break has a mechanical migration. Upgrading is the supported path: run `adrkit update` to refresh the installed integrations, then `adrkit validate --all` in your repositories, where validation errors name what changed. The standing orders tell your agent to upgrade the package, migrate active records where the change is mechanical, and report a record it cannot carry over instead of forcing a rewrite; archived records change only through a deliberate, explained commit. An `adr/archived/MANIFEST.json` written by 0.23.0 or earlier is no longer read; delete it. That section in `AGENTS.md` is yours, and `adrkit list` prints a note when it was pasted from a different template than the CLI ships. The visualization commands are now one: `adrkit atlas` (the map is `--format html`, one decision's tree is `--record <N> --diagram`); `adrkit graph` and `adrkit tree` are gone. The npm package is `adr-kit` and the CLI is `adrkit` (there is no `adrkit` package on npm). The CLI requires Node.js 22.22 or later; earlier Node.js lines are no longer supported.
 
 ## Tell your agent
 
@@ -91,7 +91,7 @@ To generate one for your repository, ask your agent:
 
 > Use the `adrkit-visualize` skill to build a browsable decision atlas from `adr/implemented/` and `adr/archived/`. Publish archived bodies in full, and pin the page to the current commit.
 
-The lighter routes stay available: `adrkit graph --html` for the map and `adrkit tree <N> --html` for one decision's design tree.
+The atlas is the default visualization: `adrkit atlas --out decisions.html`. The lighter routes stay available: `adrkit atlas --format html` for the standalone map page, and `adrkit atlas --record <N> --diagram` for one decision's deliberation tree.
 
 ## Commands
 
@@ -113,8 +113,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
-adrkit tree <name> [--mermaid|--text|--html]
+adrkit atlas [--out <path>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help

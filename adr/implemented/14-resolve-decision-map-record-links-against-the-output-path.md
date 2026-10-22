@@ -84,3 +84,6 @@ rule missing.
   working, and asked for the delivery contract to be settled in the tool; the
   mechanism — write with `--out`, relative inside the repository, absolute
   outside — is the agent's proposal, recorded here so the provenance is plain.
+
+ADR 33 later consolidated the CLI under `adrkit atlas`: `graph --out` is now
+`atlas --format html --out`. The link-resolution rule above is unchanged.

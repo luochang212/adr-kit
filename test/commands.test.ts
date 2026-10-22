@@ -701,7 +701,7 @@ describe('CLI deliberation HTML export', () => {
     const cwd = vi.spyOn(process, 'cwd').mockReturnValue(root);
     const output = vi.spyOn(console, 'log').mockImplementation(() => {});
     try {
-      main(['tree', '1', '--html']);
+      main(['atlas', '--record', '1', '--diagram']);
       expect(output).toHaveBeenCalledTimes(1);
       const html = String(output.mock.calls[0]![0]);
       expect(html).toContain('<!doctype html>');

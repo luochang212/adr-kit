@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it } from 'vitest';
+import { FAVICON_DATA_URI } from '../src/core/brand.js';
 
 const example = readFileSync(new URL(
   '../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url,
@@ -75,7 +76,7 @@ describe('reader typography', () => {
   }
 
   // Run the shipped read() against a minimal DOM and return the body lookup.
-  function renderReader(body: string): (selector: string) => Element {
+  function renderReader(body: string, deliberation: unknown[] = []): (selector: string) => Element {
     const element = (tag = 'div'): Element => ({
       tag, textContent: '', className: '', children: [], style: {},
       get lastElementChild() { return this.children.at(-1) ?? null; },
@@ -92,14 +93,48 @@ describe('reader typography', () => {
     const make = example.match(/const make = \(tag, cls, text\) => \{[\s\S]*?\n\};/)![0];
     const start = example.indexOf('function read(number){');
     const read = example.slice(start, example.indexOf('world.addEventListener', start));
-    const records = [{ number: 1, title: 'Record', lifecycle: 'implemented', tags: [], source: '', body }];
-    runInNewContext(`${make}\n${read}\nread(1);`, {
+    const delibStart = example.indexOf('function renderDeliberation');
+    const delib = example.slice(delibStart, example.indexOf('\n', delibStart));
+    const records = [{ number: 1, title: 'Record', lifecycle: 'implemented', tags: [], source: '', body, deliberation }];
+    runInNewContext(`${make}\n${delib}\n${read}\nread(1);`, {
       document, records, statusName: { implemented: '生效' }, nodes: [],
       showContext() {},
+      inlineText() {},
       reader: { open: false, showModal() {}, scrollTop: 0, classList: { add() {}, remove() {} } },
     });
     return lookup;
   }
+
+  it('renders the deliberation tree as nested nodes, not flattened text', () => {
+    const lookup = renderReader('## Decision\n\nChosen.', [{
+      text: 'Where do sessions live?', type: 'question', status: 'settled',
+      children: [
+        { text: 'SQLite', type: 'option', status: 'settled', recommended: true, children: [] },
+        { text: 'Files', type: 'option', status: 'rejected', reason: 'slow to query', children: [
+          { text: 'What about rotation?', type: 'question', status: 'open', children: [] },
+        ] },
+      ],
+    }]);
+    const body = lookup('#reader-body');
+    const heading = body.children.find((child) => child.tag === 'h3' && child.textContent === 'Deliberation tree')!;
+    expect(heading).toBeDefined();
+    const root = body.children.find((child) => child.className === 'dl-tree')!;
+    expect(root.children).toHaveLength(1);
+    const question = root.children[0]!;
+    expect(question.className).toContain('dl-question');
+    expect(question.children[0]!.textContent).toBe('Where do sessions live?');
+    const nested = question.children.find((child) => child.className === 'dl-tree')!;
+    expect(nested.children.map((child) => child.children[0]!.textContent)).toEqual(['SQLite', 'Files']);
+    expect(nested.children[0]!.children.some((child) => child.className.includes('dl-rec'))).toBe(true);
+    expect(nested.children[1]!.children.some((child) => child.className.includes('dl-rejected'))).toBe(true);
+    expect(nested.children[1]!.children.some((child) => child.className.includes('dl-reason'))).toBe(true);
+  });
+
+  it('renders the tree after showContext, which flattens nested text', () => {
+    const start = example.indexOf('function read(number){');
+    const source = example.slice(start, example.indexOf('world.addEventListener', start));
+    expect(source.indexOf('showContext(r)')).toBeLessThan(source.indexOf('renderDeliberation(body'));
+  });
 
   it('reflows hard-wrapped prose instead of preserving source line breaks', () => {
     // Records are hard-wrapped at ~80 columns. Preserving those newlines
@@ -167,6 +202,24 @@ describe('reader typography', () => {
       ['h4', 'Trade-offs'],
       ['p', 'A cost.'],
     ]);
+  });
+});
+
+describe('archive page shell', () => {
+  it('anchors the canvas dock to the viewport, not the page', () => {
+    // The dock is absolutely positioned; without a positioned viewport it
+    // anchors to the initial containing block and drifts into the canvas
+    // whenever a deep link scrolls the page.
+    const rule = example.match(/#viewport\{([^}]*)\}/)?.[1] ?? '';
+    expect(rule).toContain('position:relative');
+  });
+
+  it('carries a self-contained favicon', () => {
+    expect(example).toContain('rel="icon"');
+    expect(example).toContain('data:image/svg+xml;base64,');
+    // One mark for every page: the static example and the generated pages
+    // share the constant the CLI inlines.
+    expect(example).toContain(FAVICON_DATA_URI);
   });
 });
 
