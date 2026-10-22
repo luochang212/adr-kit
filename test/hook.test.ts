@@ -81,7 +81,10 @@ describe('pre-commit hook management', () => {
     expect(existsSync(file)).toBe(false);
   });
 
-  it('fails closed with a named remedy when the pinned checker is gone', () => {
+  // Executing the raw script needs a POSIX shell; on Windows Git runs hooks
+  // through its own sh, which this test cannot reach from Node's PATH.
+  const itRunsScript = process.platform === 'win32' ? it.skip : it;
+  itRunsScript('fails closed with a named remedy when the pinned checker is gone', () => {
     const root = makeRepo();
     const entry = join(root, 'bin', 'adrkit.js');
     hookInstallCommand(root, entry);
