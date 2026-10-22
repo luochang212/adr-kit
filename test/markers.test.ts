@@ -215,7 +215,8 @@ describe('citation validation', () => {
     expect(validateCommand(root, '1').valid).toBe(true);
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
-    expect(result.output).toContain(`${join('src', 'a.ts')}: line 1: cites ADR 99, which does not exist`);
+    // Reports speak the repository's forward-slash convention on every platform.
+    expect(result.output).toContain('src/a.ts: line 1: cites ADR 99, which does not exist');
   });
 
   it('this repository keeps its own citations live', () => {
