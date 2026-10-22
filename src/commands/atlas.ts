@@ -81,7 +81,11 @@ function repositoryUrl(root: string): string {
   }
 }
 
-/** The name the page gives the project: package name, else the directory name. */
+/**
+ * The name the page gives the project: package name, else the repository
+ * folder name. A nested `adr/` root would otherwise name the page after the
+ * subdirectory that holds it.
+ */
 function projectName(root: string): string {
   const manifest = join(root, 'package.json');
   if (existsSync(manifest)) {
@@ -89,8 +93,16 @@ function projectName(root: string): string {
       const name = (JSON.parse(readFileSync(manifest, 'utf8')) as { name?: unknown }).name;
       if (typeof name === 'string' && name.length > 0) return name;
     } catch {
-      // Fall through to the directory name.
+      // Fall through to the repository name.
     }
+  }
+  try {
+    const top = execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (top.length > 0) return basename(top);
+  } catch {
+    // Not a Git repository: the ADR root is the best name available.
   }
   return basename(root);
 }
@@ -109,6 +121,9 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
   }
   if (options.lang !== undefined && options.lang !== 'en' && options.lang !== 'zh') {
     throw new Error(`--lang expects en or zh, not "${options.lang}"`);
+  }
+  if (options.lang !== undefined && (options.record !== undefined || format !== undefined)) {
+    throw new Error('--lang applies to the decision atlas page, not --record or --format');
   }
   if (options.diagram === true && options.record === undefined) {
     throw new Error('--diagram requires --record <name>');

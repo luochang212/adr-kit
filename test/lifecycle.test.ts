@@ -63,7 +63,7 @@ function fillDecision(root: string, number: number): void {
     .replace('<!-- What problem or opportunity does this decision address? -->', 'Storage must survive restarts.')
     .replace(/<!-- The decision that shipped[\s\S]*?-->/, 'Use SQLite.')
     .replace(/<!-- Each genuine alternative and why it lost\. Keep this section: it is the\n     part of a decision record that prevents re-litigating old choices\. -->/, 'JSON files complicate queries.')
-    .replace('<!-- What the trade-off cost and bought. -->', 'Local persistence requires packaging SQLite.');
+    .replace(/<!-- What the trade-off cost and bought\.[\s\S]*?-->/, 'Local persistence requires packaging SQLite.');
   writeFileSync(record.path, content);
 }
 

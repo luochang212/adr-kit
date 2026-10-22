@@ -83,9 +83,9 @@ reading still apply. See the [retrieval contract](docs/cli.md#scope-retrieval-fo
 
 One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current record in a local-search directory. The atlas is a single self-contained HTML file that works offline — no server and no CDN.
 
-[Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit.
+[Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/en.html). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit.
 
-[![ADR Kit decision atlas](./assets/decision-atlas.png)](https://luochang212.github.io/adr-kit/decisions/)
+[![ADR Kit decision atlas](./assets/decision-atlas.png)](https://luochang212.github.io/adr-kit/decisions/en.html)
 
 To generate one for your repository, ask your agent:
 
@@ -120,6 +120,8 @@ adrkit help
 ```
 
 By default, integrations install into `.agents/`. Pass `--tools claude` for additional `.claude/` copies, or `--tools none` to install none. `--workflows` selects a subset such as `init,propose,implement,validate`.
+
+`adrkit hook install` opts a clone into a pre-commit check: it blocks a staged record or `@adr` citation that is objectively invalid, then names the active decisions governing the staged files and asks for a record when the change settles one. `adrkit hook uninstall` removes only the hook adr-kit wrote; `git commit --no-verify` bypasses it once.
 
 ## Record format
 
@@ -158,7 +160,7 @@ Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considere
 
 `adrkit implement` folds a proposal's `## Acceptance criteria` and `## Risks` into present-tense `### Verification` and `### Trade-offs` under `## Consequences`; implemented records must not keep the old H3 names under Consequences. The command warns when it folds content because the CLI cannot rewrite prose. Amendments from later decisions collect in a `### Later changes` subsection at the end of Consequences, each entry opening `**Amended by ADR N:**`; `adrkit validate` enforces the form.
 
-An implemented record may refresh factual paths, symbols, or defaults, but not rewrite the choice or rationale into another decision. A changed choice needs a new record and relationship. Full supersession stamps `superseded-by: N` and moves the old record to `archived/`. Archived records keep their numbers and are historical, not current authority. The graph includes numbered history; `## Deliberation` optionally preserves the design tree.
+An implemented record may refresh factual paths, symbols, or defaults, but not rewrite the choice or rationale into another decision. A changed choice needs a new record and relationship. Full supersession stamps `superseded-by: N` and moves the old record to `archived/`. Archived records keep their numbers and are historical, not current authority. The decision map includes numbered history; `## Deliberation` optionally preserves the deliberation tree.
 
 ### Code cites the decision it follows
 
@@ -184,7 +186,7 @@ See [record format](docs/record-format.md), [workflow](docs/workflow.md), and [C
 
 ## Sources of inspiration
 
-[DeepSeek Harness Agent Notes](https://github.com/deepseek-ai/deepseek-harness) inspired the lifecycle directories and the distinction between proposed, implemented, rejected, and archived. ADR Kit keeps its own provenance fields, numbered decisions, validation, deliberation tree, and graph. OpenSpec is not part of ADR Kit's runtime or governance model.
+[DeepSeek Harness Agent Notes](https://github.com/deepseek-ai/deepseek-harness) inspired the lifecycle directories and the distinction between proposed, implemented, rejected, and archived. ADR Kit keeps its own provenance fields, numbered decisions, validation, deliberation tree, and decision map. OpenSpec is not part of ADR Kit's runtime or governance model.
 
 ## Development
 

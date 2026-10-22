@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -98,6 +98,47 @@ describe('pre-commit hook management', () => {
     expect(failure?.status).toBe(1);
     expect(failure?.stderr).toContain('adrkit hook uninstall');
     expect(failure?.stderr).toContain('git commit --no-verify');
+  });
+
+  itRunsScript('runs the check from a nested ADR root, not the repository root', () => {
+    const parent = mkdtempSync(join(tmpdir(), 'adrkit-hook-nested-'));
+    tempDirs.push(parent);
+    const repo = join(parent, 'repo');
+    mkdirSync(repo);
+    execFileSync('git', ['init', '-q'], { cwd: repo });
+    const adrRoot = join(repo, 'docs');
+    mkdirSync(adrRoot);
+    initCommand(adrRoot);
+    // A stub stands in for the CLI: it reports the directory the hook runs in.
+    const stub = join(repo, 'stub.mjs');
+    writeFileSync(stub, 'process.stdout.write(process.cwd());\n');
+    hookInstallCommand(adrRoot, stub);
+    // Git runs a hook from the repository root, where adr/ is not visible.
+    const output = execFileSync('sh', [join(repo, '.git', 'hooks', 'pre-commit')], {
+      cwd: repo,
+      encoding: 'utf8',
+    });
+    expect(output.trim()).toBe(realpathSync(adrRoot));
+  });
+
+  it('reads staged records under a nested ADR root', () => {
+    const parent = mkdtempSync(join(tmpdir(), 'adrkit-hook-nested-record-'));
+    tempDirs.push(parent);
+    const repo = join(parent, 'repo');
+    mkdirSync(repo);
+    execFileSync('git', ['init', '-q'], { cwd: repo });
+    const adrRoot = join(repo, 'docs');
+    mkdirSync(adrRoot);
+    initCommand(adrRoot);
+    write(
+      join(adrRoot, 'adr', 'implemented', '1-test.md'),
+      decision(['src/a.ts']).replace('Something leaked.', '<!-- scratch -->'),
+    );
+    execFileSync('git', ['add', '-A'], { cwd: repo });
+    const result = hookRunCommand(adrRoot);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('must contain written content');
+    expect(result.output).toContain('adr/implemented/1-test.md');
   });
 
   it('refuses to replace or remove a hook it does not manage', () => {

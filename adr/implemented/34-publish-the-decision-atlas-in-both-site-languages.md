@@ -8,6 +8,7 @@ commit: 309204c
 tags: [visualization, website]
 paths:
   - tools/build-decision-atlas.mjs
+  - src/core/atlas-i18n.ts
   - src/core/decision-atlas.ts
   - test/decision-atlas.test.ts
   - AGENTS.md

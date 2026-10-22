@@ -290,6 +290,12 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
 }
 
 const AMENDED_BY_PATTERN = /^\*\*Amended by ADR \d+(?: and ADR \d+)*:\*\*/;
+/**
+ * A block that reads like an amendment opener. A continuation paragraph that
+ * happens to begin this way is treated as a lost opening too: the alternative
+ * is accepting an entry whose bold marker was dropped.
+ */
+const LOST_ENTRY_PATTERN = /^(?:- )?(?:(?:\*\*)?Amended by\s+ADR\s+\d+|ADR\s+\d+\s+later)\b/i;
 const OLD_NOTE_PATTERN = /^(?:- )?ADR \d+ later\b/;
 
 /**
@@ -314,14 +320,22 @@ function laterChangesIssues(path: string, body: string): ValidationIssue[] {
     }
   }
   if (entriesStart !== -1) {
-    const entries = textBlocks(lines.slice(entriesStart + 1, entriesEnd));
-    if (entries.length === 0) {
+    const blocks = textBlocks(lines.slice(entriesStart + 1, entriesEnd));
+    if (blocks.length === 0) {
       issues.push({ path, message: '"### Later changes" must contain at least one entry' });
     }
-    for (const block of entries) {
-      if (!AMENDED_BY_PATTERN.test(block)) {
+    let entries = 0;
+    for (const block of blocks) {
+      if (AMENDED_BY_PATTERN.test(block)) {
+        entries += 1;
+      } else if (LOST_ENTRY_PATTERN.test(block)) {
         issues.push({ path, message: 'a "### Later changes" entry must open "**Amended by ADR N:**"' });
       }
+      // Any other block continues the entry above it: an amendment may run
+      // over several paragraphs.
+    }
+    if (blocks.length > 0 && entries === 0 && !blocks.some((block) => LOST_ENTRY_PATTERN.test(block))) {
+      issues.push({ path, message: '"### Later changes" must contain at least one entry' });
     }
   }
   const outside = [
@@ -527,7 +541,7 @@ export function validateRecordReferences(
 }
 
 /**
- * A record body may name other decisions. `adrkit graph` mines those
+ * A record body may name other decisions. The decision map mines those
  * references but silently drops the ones that resolve to nothing, so this
  * reports a reference to a decision number that does not exist. The record's
  * own number is not a reference, and the title line is not scanned because it

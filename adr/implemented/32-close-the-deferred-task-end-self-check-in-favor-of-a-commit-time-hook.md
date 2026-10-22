@@ -52,7 +52,9 @@ prose carries no enforcement.
   opt-in pre-commit hook. It hard-fails only on objective defects in the staged
   set: an invalid staged record, or an `@adr` citation naming a missing,
   archived, or superseded decision or sitting outside that decision's `paths`.
-  It reads the staged blob, not the working tree. Otherwise it reports which
+  It reads the staged record and citation text from the index, while the
+  record inventory it resolves citations against comes from the working tree.
+  Otherwise it reports which
   active decisions govern the staged files and prompts the committer to update
   those records or to record or park a choice the change settles. It never
   fails because no record was written.

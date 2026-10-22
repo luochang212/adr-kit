@@ -245,6 +245,55 @@ changed.
     expect(validateCommand(root).output).toContain('must contain at least one entry');
   });
 
+  it('accepts an entry continued in a second paragraph', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      `## Consequences
+
+Body.
+
+### Later changes
+
+**Amended by ADR 2:** the terminal command is now \`adrkit record\`.
+
+The session shape above is unchanged; the continuation paragraph belongs to
+the same entry and is part of the note.
+`,
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '2-second.md'),
+      decision('2 Second', { ...ACCEPTED, date: '2026-08-20', created: '2026-08-20' }),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('flags an entry that lost its opening after a valid entry', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      `## Consequences
+
+Body.
+
+### Later changes
+
+**Amended by ADR 2:** the terminal command is now \`adrkit record\`.
+
+Amended by ADR 2: the second entry lost its opening.
+`,
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '2-second.md'),
+      decision('2 Second', { ...ACCEPTED, date: '2026-08-20', created: '2026-08-20' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('must open "**Amended by ADR N:**"');
+  });
+
   it('ignores the old form inside fenced examples', () => {
     const root = makeRepo();
     const content = decision('1 First', ACCEPTED).replace(

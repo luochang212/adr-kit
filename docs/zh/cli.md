@@ -22,7 +22,7 @@
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
 | `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错则失败，否则列出管辖这些改动的生效决策 |
-| `adrkit atlas [--out <path>] [--lang <en\|zh>] [--record <name> [--diagram\|--format <mermaid\|text>]] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record --diagram` 是单条决策的卡片图，`--format` 导出决策地图（带 `--record` 时导出该树的源码） |
+| `adrkit atlas [--out <path>] [--lang <en\|zh>] [--record <name> [--diagram\|--format <mermaid\|text>]] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record --diagram` 是单条决策的 deliberation tree（卡片视图），`--format` 导出决策地图（带 `--record` 时导出该树的源码） |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |
 | `adrkit version` | 输出版本 |
 | `adrkit help` | 输出帮助 |
@@ -59,6 +59,9 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
   归档元数据只出现在 `archived/`。
 - 正文引用（`ADR-12`、`ADR 4`、`ADR12`）指向存在的决策；对提案尚未
   取得编号的前向引用也会失败。
+- implemented 记录的 `### Later changes` 条目以 `**Amended by ADR N:**`
+  开头；以 `ADR N later` 开头的尾注段落或丢失开头的条目会失败，承接上一条的
+  普通段落不受影响。
 - 替代链无环且最终指向 implemented 决策；后继无需反向引用。
 整仓（`--all`）额外检查：
 

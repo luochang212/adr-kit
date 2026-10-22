@@ -6,11 +6,10 @@ import { ADR_DIR, findRoot, requireRoot } from './config.js';
 import { gitChangedPaths } from './git.js';
 import { citationProblem, findCitations, isCitationScanPath } from './markers.js';
 import { relevantRecords } from './relevant.js';
-import { displayName, listRecords } from './repository.js';
+import { displayName, FOLDERS, listRecords } from './repository.js';
 import { formatIssues, validateRecord, validateRecordReferences, type ValidationIssue } from './validate.js';
 
 const HOOK_MARKER = '# adrkit: managed pre-commit hook';
-const FOLDERS = ['proposed', 'implemented', 'rejected', 'archived'] as const;
 
 export interface HookCheckResult {
   ok: boolean;
@@ -69,6 +68,8 @@ export function hookCheck(cwd: string): HookCheckResult {
   let prefix: string;
   try {
     staged = gitChangedPaths(root, { staged: true });
+    // The index spells paths from the repository root, while the staged list
+    // is relative to the ADR root; the prefix bridges a nested adr/ directory.
     prefix = git(root, ['rev-parse', '--show-prefix']).trim();
   } catch {
     return { ok: true, output: '' };
@@ -170,9 +171,14 @@ export function hookInstall(cwd: string, entry?: string): string {
       + `  echo 'adrkit pre-commit: the checker this hook points at is gone.' >&2\n`
       + `  echo 'Reinstall it ("adrkit hook install"), remove the hook ("adrkit hook uninstall"), or bypass once with "git commit --no-verify".' >&2\n`
       + `  exit 1\nfi\n`;
+  // Git runs a hook from the top of the working tree, which for a repository
+  // whose adr/ sits below the root is not the ADR root. Change into the root
+  // the hook was installed for, so discovery finds the records. Resolve the
+  // top level at commit time so a linked worktree checks its own tree.
+  const prefix = git(root, ['rev-parse', '--show-prefix']).trim();
   writeFileSync(
     file,
-    `#!/bin/sh\n${HOOK_MARKER}\n# Installed by \`adrkit hook install\`; remove with \`adrkit hook uninstall\`.\n${guard}exec ${command} hook run\n`,
+    `#!/bin/sh\n${HOOK_MARKER}\n# Installed by \`adrkit hook install\`; remove with \`adrkit hook uninstall\`.\ncd "$(git rev-parse --show-toplevel)"/${shellQuote(prefix)} || exit 1\n${guard}exec ${command} hook run\n`,
     { mode: 0o755 },
   );
   chmodSync(file, 0o755);

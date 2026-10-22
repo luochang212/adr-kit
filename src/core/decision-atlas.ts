@@ -107,9 +107,12 @@ function densityNote(records: AdrRecord[], language: AtlasLanguage): string {
   const first = dates[0]!;
   const last = dates.at(-1)!;
   if (first === last) {
-    return en
-      ? `${dated.length} record${dated.length === 1 ? '' : 's'} all date to ${first}.`
-      : `${dated.length} 条记录都立在 ${first}。`;
+    if (en) {
+      return dated.length === 1
+        ? `1 record dates to ${first}.`
+        : `${dated.length} records date to ${first}.`;
+    }
+    return `${dated.length} 条记录都立在 ${first}。`;
   }
   const [busiest, count] = [...days.entries()].sort(
     ([aDate, aCount], [bDate, bCount]) => bCount - aCount || aDate.localeCompare(bDate),
@@ -117,7 +120,8 @@ function densityNote(records: AdrRecord[], language: AtlasLanguage): string {
   if (en) {
     const burst = count > 1 ? `; ${shortDate(busiest)} alone produced ${count}` : '';
     const close = count >= 3 ? ', decisions arrive in batches.' : '.';
-    return `${dated.length} records run from ${shortDate(first)} to ${shortDate(last)} across ${dates.length} distinct days${burst}${close}`;
+    const verb = dated.length === 1 ? 'runs' : 'run';
+    return `${dated.length} record${dated.length === 1 ? '' : 's'} ${verb} from ${shortDate(first)} to ${shortDate(last)} across ${dates.length} distinct days${burst}${close}`;
   }
   const burst = count > 1 ? `；${shortDate(busiest)} 一天就立下 ${count} 条` : '';
   const close = count >= 3 ? '，决策总在同一批工作里成串出现。' : '。';
@@ -138,7 +142,7 @@ function inboundNote(graph: DecisionGraph, implemented: Set<number>, language: A
       : '记录之间还没有引用关系；决策地图只呈现已经写下的关系。';
   }
   return language === 'en'
-    ? `The most-referenced decision anchors later work: #${top[0]} is referenced ${top[1]} times; the count describes relations, not importance.`
+    ? `The most-referenced decision anchors later work: #${top[0]} is referenced ${top[1]} time${top[1] === 1 ? '' : 's'}; the count describes relations, not importance.`
     : `被引最多的决策是后续工作的支点：#${top[0]} 被引 ${top[1]} 次；计数描述关系，不代表重要性。`;
 }
 
@@ -154,7 +158,7 @@ function replacementsNote(archived: AdrRecord[], language: AtlasLanguage): strin
   // only the partial case needs the two counts.
   if (superseded === archived.length) {
     return en
-      ? `Replaced choices do not disappear: ${archived.length} archived record${archived.length === 1 ? '' : 's'}, each pointing to its successor; current constraints come from active records.`
+      ? `Replaced choices do not disappear: ${archived.length} archived record${archived.length === 1 ? '' : 's'}${archived.length === 1 ? ' pointing to its successor' : ', each pointing to its successor'}; current constraints come from active records.`
       : `被替代的选择并不消失：${archived.length} 条记录已归档，每条都指向接棒的继任者；当前约束以生效记录为准。`;
   }
   return en
@@ -227,7 +231,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     + `<div><strong>${implemented.length}</strong><span>${en ? 'Active decisions' : '生效决策'}</span></div>`
     + `<div><strong>${archived.length}</strong><span>${en ? 'Archived history' : '归档历史'}</span></div>`
     + `<div><strong>${graph.referenceEdges.length}</strong><span>${en ? 'References' : '引用关系'}</span></div>`
-    + `<div><strong>${graph.nodes.filter((node) => node.hasDeliberation).length}</strong><span>${en ? 'Deliberation trees' : 'deliberation tree'}</span></div>`
+    + `<div><strong>${graph.nodes.filter((node) => node.hasDeliberation).length}</strong><span>${en ? 'Deliberation trees' : '含 deliberation tree'}</span></div>`
     + `</div></section>`;
 
   const hero = `<section id="top" class="page-hero"><div class="hero-content">`

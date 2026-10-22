@@ -68,6 +68,9 @@ Per record, in every mode, including archived records.
   metadata appears only in `archived/`.
 - Body references (`ADR-12`, `ADR 4`, or `ADR12`) resolve to existing decisions;
   forward references to numbers not yet assigned to proposals fail too.
+- `### Later changes` entries in implemented records open with
+  `**Amended by ADR N:**`; a trailing `ADR N later` block or a block that
+  loses the opening fails, while a paragraph continuing an entry does not.
 - Supersession chains resolve without cycles to an implemented decision;
   no backlink from the successor is required.
 Repository-wide (`--all`), additionally:

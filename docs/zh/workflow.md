@@ -31,7 +31,7 @@
    `archived/`，后续变化由 Git 记录。
 5. `adrkit validate` 检查四个目录，包括归档记录。新模板必填章节未填时会失败。
    `adrkit atlas` 写出可浏览的决策档案，`adrkit atlas --record <name> --diagram`
-   绘制可选 `## Deliberation` 附录的卡片图。
+   绘制可选 `## Deliberation` 附录的 deliberation tree。
 
 `adrkit-visualize` 技能还附有可选的档案页示例，位于安装后的技能目录内
 `examples/decision-atlas.html`。需要更完整的浏览体验时才参考它，按目标仓库

@@ -1,5 +1,6 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -280,6 +281,49 @@ describe('cli atlas surface', () => {
       process.chdir(previousCwd);
       process.exitCode = previousExitCode;
       errorSpy.mockRestore();
+    }
+  });
+
+  it('rejects --lang where no atlas page is rendered', () => {
+    const root = makeRepo();
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      process.chdir(root);
+      process.exitCode = undefined;
+      main(['atlas', '--format', 'mermaid', '--lang', 'zh']);
+      expect(process.exitCode).toBe(1);
+      expect(errorSpy.mock.calls[0]?.[0]).toContain('--lang applies to the decision atlas page');
+      process.exitCode = undefined;
+      main(['atlas', '--record', '1', '--diagram', '--lang', 'zh']);
+      expect(process.exitCode).toBe(1);
+      expect(errorSpy.mock.calls[1]?.[0]).toContain('--lang applies to the decision atlas page');
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('names the page from the repository when adr/ is nested', () => {
+    const parent = mkdtempSync(join(tmpdir(), 'adrkit-atlas-nested-'));
+    tempDirs.push(parent);
+    const repo = join(parent, 'repo');
+    mkdirSync(repo);
+    execFileSync('git', ['init', '-q'], { cwd: repo });
+    const adrRoot = join(repo, 'docs');
+    mkdirSync(adrRoot);
+    initCommand(adrRoot);
+    const previousCwd = process.cwd();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      process.chdir(adrRoot);
+      main(['atlas']);
+      expect(String(logSpy.mock.calls[0]?.[0])).toContain(`<h1>${basename(repo)}</h1>`);
+    } finally {
+      process.chdir(previousCwd);
+      logSpy.mockRestore();
     }
   });
 

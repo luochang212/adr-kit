@@ -96,6 +96,9 @@ describe('decision atlas rendering', () => {
     expect(page).toContain('<strong>2</strong><span>生效决策</span>');
     expect(page).toContain('<strong>1</strong><span>归档历史</span>');
     expect(page).toContain('<strong>1</strong><span>引用关系</span>');
+    // ADR 33 fixes the tree's term as "deliberation tree"; the label keeps it
+    // as written and marks what the count covers.
+    expect(page).toContain('<span>含 deliberation tree</span>');
     // The generator's name links to the tool, while the commit link points at
     // the repository being documented.
     expect(page).toContain('<a class="footer-repo" href="https://github.com/luochang212/adr-kit"');
@@ -143,6 +146,41 @@ describe('decision atlas rendering', () => {
     }
     expect(page).toContain('Decision density');
     expect(page).not.toMatch(/[\u4e00-\u9fff]/);
+  });
+
+  it('writes singular English prose instead of plural templates', () => {
+    const one = [record({ number: 1, title: 'Only one', created: '2026-10-01' })];
+    const page = render(one, template, 'en');
+    expect(page).toContain('1 record dates to 2026-10-01.');
+    const twoDays = [
+      record({ number: 1, title: 'First', created: '2026-10-01' }),
+      record({ number: 2, title: 'Second', created: '2026-10-02' }),
+    ];
+    expect(render(twoDays, template, 'en')).toContain('2 records run from 10-01 to 10-02 across 2 distinct days');
+  });
+
+  it('writes a singular replacement note when one archived record has a successor', () => {
+    const page = render([live[0]!, record({
+      number: 3,
+      title: 'One database per tenant',
+      folder: 'archived',
+      created: '2026-10-02',
+      supersededBy: 1,
+      archiveReason: 'Single-tenant deployment shipped',
+    })], template, 'en');
+    expect(page).toContain('1 archived record pointing to its successor');
+  });
+
+  it('writes a singular reference count', () => {
+    const cited = [
+      record({
+        number: 1,
+        title: 'Cited',
+        sections: [{ heading: 'Problem', body: '\nA problem.\n' }, { heading: 'Decision', body: '\nSee ADR-2.\n' }],
+      }),
+      record({ number: 2, title: 'Citing' }),
+    ];
+    expect(render(cited, template, 'en')).toContain('is referenced 1 time;');
   });
 
   it('links the sibling language in the footer when langHref is set', () => {

@@ -30,10 +30,12 @@ carry the old H3 names directly under Consequences. That check ignores fenced
 code and HTML comments and applies to implemented records only. A decision
 amended by a later decision keeps its original text and carries an optional
 `### Later changes` subsection at the end of `## Consequences`: each entry
-opens with `**Amended by ADR N:**`, states what now runs, and closes with what
-above is unchanged. `adrkit validate` enforces the form on implemented records:
-the old trailing-prose form fails with a pointer to the subsection, and every
-entry must keep the opening. The folders
+opens with `**Amended by ADR N:**`, states what now runs, may continue over
+further paragraphs, and closes with what above is unchanged. `adrkit validate`
+enforces the form on implemented records: a trailing-prose block that opens
+`ADR N later` fails with a pointer to the subsection, and a block that starts
+like an amendment but loses its bold opening fails too. A paragraph that
+continues the entry above it is not a separate entry and passes. The folders
 are also a context budget: `implemented/` is current authority and is read
 in full; `proposed/` is intent and is checked; `rejected/` is anti-pattern
 memory that is checked; `archived/` is lowest-value frozen history that is
@@ -60,7 +62,7 @@ must end at an implemented decision without missing targets or cycles.
 `archive-reason`, leaving its status implemented as historical state.
 Archived records retain stable numbers. Optional `tags` are non-empty,
 unique lowercase kebab-case keywords; optional `## Deliberation` preserves
-the design tree. `adrkit validate` checks all four directories and rejects
+the deliberation tree. `adrkit validate` checks all four directories and rejects
 duplicate numbers, malformed dates, mismatched folder/status pairs, records
 outside the four folders, and dangling ADR references: a record body may
 reference decisions as `ADR-12`, `ADR 4`, or `ADR12`, and a reference to a

@@ -119,6 +119,8 @@ adrkit help
 
 默认把集成安装到 `.agents/`；`--tools claude` 另装 `.claude/`，`--tools none` 不安装。可用 `--workflows init,propose,implement,validate` 选子集。
 
+`adrkit hook install` 让当前克隆选择启用 pre-commit 检查：暂存记录或 `@adr` 引用存在客观错误时拦下提交，否则列出管辖这些改动的生效决策，并在改动定下选择时提醒写记录。`adrkit hook uninstall` 只移除 adr-kit 写入的钩子；`git commit --no-verify` 可单次绕过。
+
 ## 记录格式
 
 已交付决策在 `adr/implemented/N-slug.md`：

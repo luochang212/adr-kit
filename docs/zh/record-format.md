@@ -32,8 +32,10 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 `### Risks`。该检查忽略围栏代码与 HTML 注释，且只作用于 implemented 记录。
 被后续决策修订的记录保留原文，并在 `## Consequences` 末尾携带可选的
 `### Later changes` 小节：每条以 `**Amended by ADR N:**` 开头，写明现在的
-运行方式，并说明上文哪些保持不变。`adrkit validate` 会在 implemented 记录上
-校验该形式：旧的尾注散文形式报错并指向小节，每条都必须保留开头。否决提案保留问题、方案和备选，并写入非空 `reason`，标明它挡住的
+运行方式，可续写多段，并说明上文哪些保持不变。`adrkit validate` 会在
+implemented 记录上校验该形式：以 `ADR N later` 开头的尾注段落报错并指向
+小节，开头像修订但丢了粗体标记的段落也会报错；承接上一条的普通段落不算新条目，
+不会失败。否决提案保留问题、方案和备选，并写入非空 `reason`，标明它挡住的
 诱惑性错误；该记录是稳定终态，只有当另一条记录接管了这个错误时才移除。新模板未填实质内容时，`validate`
 按预期失败；HTML 注释不算正文。注释或围栏示例中的标题不构成章节，
 围栏示例里的注释标记是字面文本。`implement` 在删除提案之前先校验生成的
@@ -48,7 +50,7 @@ front matter 的规范顺序是 `status`、`date`、`raised-by`、
 必须无缺失、无环，终点是 implemented 决策。`archive` 为不再指导工作的
 implemented 决策写 `archived` 和 `archive-reason`；原 `status` 保留
 implemented，表示历史上的交付状态。编号始终稳定。可选 `tags` 必须为不重复
-的小写 kebab-case；可选 `## Deliberation` 保留思辨树。`adrkit validate`
+的小写 kebab-case；可选 `## Deliberation` 保留 deliberation tree。`adrkit validate`
 检查四个目录，拒绝编号重复、日期错误、目录与状态不匹配、四个目录之外的记录，以及悬空引用：记录正文可以用 `ADR-12`、`ADR 4` 或 `ADR12` 引用决策，指向不存在的编号会让整仓校验失败。
 
 可选 `paths` 把记录限定到它管辖的文件——与 `tags` 是不同的轴：tags 按

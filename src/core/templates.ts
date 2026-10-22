@@ -155,7 +155,8 @@ ${contextBlock(context)}## Problem
 
 ## Consequences
 
-<!-- What the trade-off cost and bought. -->
+<!-- What the trade-off cost and bought. Later decisions amend this record
+     under "### Later changes", one "**Amended by ADR N:**" entry each. -->
 `;
 }
 
