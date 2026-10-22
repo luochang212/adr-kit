@@ -44,19 +44,27 @@ try {
 
 const records = core.listRecords(root, ['implemented', 'archived']);
 const graph = core.buildDecisionGraph(records);
-const html = core.renderDecisionAtlas({
-  template: readFileSync(templatePath, 'utf8'),
-  records,
-  graph,
-  commit: commit(),
-  repositoryUrl: repositoryUrl(),
-  projectName,
-  homeHref: '../',
-  language: 'zh',
-});
+const targetDir = dirname(target);
+const pages = [
+  { file: 'index.html', language: 'zh', sibling: 'en.html' },
+  { file: 'en.html', language: 'en', sibling: 'index.html' },
+];
 
-mkdirSync(dirname(target), { recursive: true });
-writeFileSync(target, html);
+mkdirSync(targetDir, { recursive: true });
+for (const { file, language, sibling } of pages) {
+  const html = core.renderDecisionAtlas({
+    template: readFileSync(templatePath, 'utf8'),
+    records,
+    graph,
+    commit: commit(),
+    repositoryUrl: repositoryUrl(),
+    projectName,
+    homeHref: '../',
+    language,
+    langHref: sibling,
+  });
+  writeFileSync(join(targetDir, file), html);
+}
 console.log(
-  `wrote ${target.slice(root.length + 1)}: ${records.length} records, ${graph.referenceEdges.length} references`,
+  `wrote ${targetDir.slice(root.length + 1)}/index.html (zh) and en.html (en): ${records.length} records, ${graph.referenceEdges.length} references`,
 );

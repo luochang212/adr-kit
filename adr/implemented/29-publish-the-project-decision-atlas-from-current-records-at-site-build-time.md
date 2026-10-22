@@ -122,3 +122,8 @@ and the example now publish archived bodies in full, keeping the
 archived/current distinction visible; the metadata-only rule and the
 empty-body verification above are historical.
 
+**Amended by ADR 34:** the atlas is published in both site languages —
+`index.html` in Chinese and `en.html` in English, cross-linked in the
+footer — replacing the Chinese-only showcase above; the `ui.ts` copy rule
+stays inapplicable.
+

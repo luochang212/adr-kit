@@ -39,7 +39,7 @@ function record(
   } as AdrRecord;
 }
 
-function render(records: AdrRecord[], page = template, language?: 'en' | 'zh'): string {
+function render(records: AdrRecord[], page = template, language?: 'en' | 'zh', langHref?: string): string {
   return renderDecisionAtlas({
     template: page,
     records,
@@ -48,6 +48,7 @@ function render(records: AdrRecord[], page = template, language?: 'en' | 'zh'): 
     repositoryUrl: 'https://github.com/example/repo/',
     projectName: 'Example',
     language,
+    langHref,
   });
 }
 
@@ -142,6 +143,14 @@ describe('decision atlas rendering', () => {
     }
     expect(page).toContain('Decision density');
     expect(page).not.toMatch(/[\u4e00-\u9fff]/);
+  });
+
+  it('links the sibling language in the footer when langHref is set', () => {
+    const zh = render(live, template, 'zh', 'en.html');
+    expect(zh).toContain('<a class="footer-lang" href="en.html">English</a>');
+    const en = render(live, template, 'en', 'index.html');
+    expect(en).toContain('<a class="footer-lang" href="index.html">中文</a>');
+    expect(render(live)).not.toContain('footer-lang');
   });
 
   it('keeps the shipped template Chinese by default', () => {

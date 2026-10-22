@@ -166,11 +166,11 @@ update both when they change. The terminal demo transcript in
 `site/src/components/TerminalDemo.astro` and the graph example in
 `site/src/components/Graph.astro` mirror real CLI output; refresh them
 when command output changes. `tools/build-decision-atlas.mjs` regenerates
-`site/public/decisions/index.html` from the current `adr/` records before
-every site build; that page is generated, ignored by Git, and pinned to the
-build commit. The atlas is intentionally a Chinese-language showcase of this
-repository's own records, not a bilingual site page, so it is not part of the
-`ui.ts` copy rule. The homepage's atlas link lives in `Graph.astro`.
+`site/public/decisions/index.html` and `en.html` from the current `adr/` records before
+every site build; those pages are generated, ignored by Git, and pinned to the
+build commit. They are published in Chinese and English from one template and
+its translation table (ADR 34), so they stay outside the `ui.ts` copy rule.
+The homepage's atlas link lives in `Graph.astro`.
 
 ## Record format is the product
 
