@@ -150,9 +150,16 @@ function replacementsNote(archived: AdrRecord[], language: AtlasLanguage): strin
       : '还没有归档记录；当前约束以生效记录为准。';
   }
   const superseded = archived.filter((record) => record.supersededBy !== undefined).length;
+  // "5 条……其中 5 条" stutters when every archived record has a successor;
+  // only the partial case needs the two counts.
+  if (superseded === archived.length) {
+    return en
+      ? `Replaced choices do not disappear: ${archived.length} archived record${archived.length === 1 ? '' : 's'}, each pointing to its successor; current constraints come from active records.`
+      : `被替代的选择并不消失：${archived.length} 条记录已归档，每条都指向接棒的继任者；当前约束以生效记录为准。`;
+  }
   return en
-    ? `${archived.length} archived record${archived.length === 1 ? '' : 's'}, ${superseded} naming a successor; current constraints come from active records.`
-    : `已归档 ${archived.length} 条历史记录，其中 ${superseded} 条标注了接棒的继任者；当前约束以生效记录为准。`;
+    ? `${archived.length} archived record${archived.length === 1 ? '' : 's'}, ${superseded} of them naming a successor; current constraints come from active records.`
+    : `${archived.length} 条记录已归档，其中 ${superseded} 条标注了接棒的继任者；当前约束以生效记录为准。`;
 }
 
 /**

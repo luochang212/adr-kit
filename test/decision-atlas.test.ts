@@ -204,10 +204,27 @@ describe('decision atlas rendering', () => {
   it('recomputes statistics and prose when records change', () => {
     const first = render(live);
     const second = render(live.slice(0, 1));
-    expect(first).toContain('已归档 1 条历史记录');
+    expect(first).toContain('被替代的选择并不消失：1 条记录已归档，每条都指向接棒的继任者');
     expect(second).toContain('还没有归档记录');
     expect(second).toContain('<strong>1</strong><span>生效决策</span>');
     expect(second).toContain('1 条记录都立在 2026-10-01。');
+  });
+
+  it('keeps both counts when only some archived records name a successor', () => {
+    const partial = [
+      live[0]!,
+      live[2]!,
+      record({
+        number: 4,
+        title: 'Retired experiment',
+        folder: 'archived',
+        archiveReason: 'No successor needed',
+        sections: [{ heading: 'Problem', body: '\nArchived body.\n' }],
+      }),
+    ];
+    const page = render(partial);
+    expect(page).toContain('2 条记录已归档，其中 1 条标注了接棒的继任者');
+    expect(render(partial, template, 'en')).toContain('2 archived records, 1 of them naming a successor');
   });
 
   it('ships the slot markers the site build depends on', () => {
