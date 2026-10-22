@@ -131,7 +131,7 @@ export function hasDeliberationTree(body: string | undefined): boolean {
 }
 
 /** Explicit Q:/A:, else children decide. */
-export function typeOf(node: DeliberationNode): DeliberationType {
+function typeOf(node: DeliberationNode): DeliberationType {
   if (node.type !== undefined) return node.type;
   return node.children.length > 0 ? 'question' : 'option';
 }

@@ -89,7 +89,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 > 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的决策档案。归档正文全文展示，并把页面固定到当前提交。
 
-档案是默认可视化：`adrkit atlas --out decisions.html`。轻量入口仍然保留：`adrkit atlas --format html` 出独立的地图页，`adrkit atlas --record <N> --diagram` 看单条决策的 deliberation tree。
+档案是默认可视化：`adrkit atlas --out decisions.html`。界面默认英文，中文用 `--lang zh`。轻量入口仍然保留：`adrkit atlas --format html` 出独立的地图页，`adrkit atlas --record <N> --diagram` 看单条决策的 deliberation tree。
 
 ## 命令
 
@@ -111,7 +111,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+adrkit atlas [--out <path>] [--lang <en|zh>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help

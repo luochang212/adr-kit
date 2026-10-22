@@ -66,6 +66,7 @@ export const OPTION_SPECS = [
   { name: 'tools', type: 'string', takesValue: true, commands: ['init', 'update'] },
   { name: 'workflows', type: 'string', takesValue: true, commands: ['init', 'update'] },
   { name: 'out', type: 'string', takesValue: true, commands: ['atlas'] },
+  { name: 'lang', type: 'string', takesValue: true, commands: ['atlas'] },
   { name: 'help', type: 'boolean', short: 'h', commands: 'all' },
   { name: 'version', type: 'boolean', short: 'V', commands: 'none' },
 ] as const satisfies readonly OptionSpec[];

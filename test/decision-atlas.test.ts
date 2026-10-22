@@ -39,7 +39,7 @@ function record(
   } as AdrRecord;
 }
 
-function render(records: AdrRecord[], page = template): string {
+function render(records: AdrRecord[], page = template, language?: 'en' | 'zh'): string {
   return renderDecisionAtlas({
     template: page,
     records,
@@ -47,6 +47,7 @@ function render(records: AdrRecord[], page = template): string {
     commit: 'abc1234',
     repositoryUrl: 'https://github.com/example/repo/',
     projectName: 'Example',
+    language,
   });
 }
 
@@ -94,6 +95,8 @@ describe('decision atlas rendering', () => {
     expect(page).toContain('<strong>2</strong><span>生效决策</span>');
     expect(page).toContain('<strong>1</strong><span>归档历史</span>');
     expect(page).toContain('<strong>1</strong><span>引用关系</span>');
+    // The generator's name links to the repository it was built from.
+    expect(page).toContain('<a class="footer-repo" href="https://github.com/example/repo"');
     // The atlas draws its own count column, so the date label stays bare.
     expect(page).toContain('>2026-10-01</text>');
     expect(page).toContain('>2 条</text>');
@@ -122,7 +125,33 @@ describe('decision atlas rendering', () => {
     expect(recordsFrom(page)[2]).toMatchObject({ 'archive-reason': 'Single-tenant deployment shipped' });
   });
 
-  it('carries the deliberation appendix as a tree and leaves it out of the body', () => {
+  it('renders the shipped template in English without Chinese chrome', () => {
+    const shipped = readFileSync(new URL(
+      '../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url,
+    ), 'utf8');
+    const page = render(live, shipped, 'en');
+    expect(page).toContain('Example · Decision atlas');
+    expect(page).toContain('Active decisions');
+    expect(page).toContain('<html lang="en">');
+    // The six chapter tabs stay one word each; their section headings keep the
+    // full label.
+    for (const tab of ['Density', 'Timeline', 'Relations', 'Map', 'Provenance', 'Records']) {
+      expect(page).toContain(`</span>${tab}</a>`);
+    }
+    expect(page).toContain('Decision density');
+    expect(page).not.toMatch(/[\u4e00-\u9fff]/);
+  });
+
+  it('keeps the shipped template Chinese by default', () => {
+    const shipped = readFileSync(new URL(
+      '../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url,
+    ), 'utf8');
+    const page = render(live, shipped);
+    expect(page).toContain('Example · 决策档案');
+    expect(page).toContain('<html lang="zh-CN">');
+  });
+
+  it('keeps the deliberation appendix in the record body', () => {
     const grilled = record({
       number: 1,
       title: 'Grilled decision',
@@ -133,49 +162,15 @@ describe('decision atlas rendering', () => {
         { heading: 'Consequences', body: '\nCost.\n' },
         {
           heading: 'Deliberation',
-          body: [
-            '',
-            '- Q: Where do sessions live? [settled]',
-            '  - A: SQLite [settled] (recommended)',
-            '  - A: Files [rejected] — slower to query',
-            '    - Q: What about rotation? [open]',
-            '- Q: Which store? [settled]',
-            '  - A: SQLite [rejected] (recommended)',
-            '  - A: Postgres [settled]',
-            '',
-          ].join('\n'),
+          body: '\n- Q: Where do sessions live? [settled]\n  - A: SQLite [settled] (recommended)\n',
         },
       ],
     });
-    const payload = recordsFrom(render([grilled]))[0] as { body: string; deliberation: unknown };
-    expect(payload.body).not.toContain('Where do sessions live?');
-    expect(payload.deliberation).toEqual([
-      {
-        text: 'Where do sessions live?',
-        type: 'question',
-        status: 'settled',
-        children: [
-          { text: 'SQLite', type: 'option', status: 'settled', recommended: true, children: [] },
-          {
-            text: 'Files',
-            type: 'option',
-            status: 'rejected',
-            reason: 'slower to query',
-            children: [{ text: 'What about rotation?', type: 'question', status: 'open', children: [] }],
-          },
-        ],
-      },
-      {
-        text: 'Which store?',
-        type: 'question',
-        status: 'settled',
-        overridden: true,
-        children: [
-          { text: 'SQLite', type: 'option', status: 'rejected', recommended: true, children: [] },
-          { text: 'Postgres', type: 'option', status: 'settled', children: [] },
-        ],
-      },
-    ]);
+    const payload = recordsFrom(render([grilled]))[0] as { body: string };
+    // The appendix is part of the record, prose included; the reader renders
+    // the whole body and does not replace the section with a special view.
+    expect(payload.body).toContain('## Deliberation');
+    expect(payload.body).toContain('Where do sessions live?');
   });
 
   it('escapes record content so titles and script-closing text stay data', () => {

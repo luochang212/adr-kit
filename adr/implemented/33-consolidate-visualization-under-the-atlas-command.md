@@ -36,7 +36,7 @@ Three visualization surfaces had accumulated with three entry points:
 `adrkit graph` (the relationship map as HTML, Mermaid, DOT, or text),
 `adrkit tree` (one record's deliberation card tree or its source), and the
 decision atlas (a browsable page generated at site build time and shipped as
-the visualize skill's example). The atlas already embeds the map, and it now
+the visualize skill's example). The atlas already embeds the map, and it then
 renders the `## Deliberation` appendix as a tree in its reader, so the other
 two commands had become alternate doors into regions of the same object.
 
@@ -115,3 +115,7 @@ single command was the product.
 - `src/commands/graph.ts` and `src/commands/tree.ts` keep the name "command"
   although only `atlas` is dispatched; moving them to `src/core/` is a naming
   cleanup, not a second surface.
+
+The embedded outline described in the Problem was later removed after a
+worth-fix review: the reader renders the appendix as part of the record body,
+and the card tree remains `atlas --record --diagram`.

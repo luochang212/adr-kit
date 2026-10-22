@@ -8,6 +8,7 @@ import {
 } from '../core/deliberation.js';
 import { resolveRecord } from '../core/repository.js';
 
+/** Internal renderer for `atlas --record`; not a CLI command. */
 export interface TreeFormatFlags {
   mermaid?: boolean;
   text?: boolean;

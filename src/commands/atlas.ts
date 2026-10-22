@@ -32,6 +32,8 @@ export interface AtlasOptions {
   format?: string;
   formalOnly?: boolean;
   tag?: string;
+  /** Page copy language: `en` (default) or `zh`. */
+  lang?: string;
 }
 
 function isFormat(value: string): value is AtlasFormat {
@@ -105,6 +107,9 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
   if (format !== undefined && !isFormat(format)) {
     throw new Error(`--format expects ${FORMATS.join(', ')}, not "${format}"`);
   }
+  if (options.lang !== undefined && options.lang !== 'en' && options.lang !== 'zh') {
+    throw new Error(`--lang expects en or zh, not "${options.lang}"`);
+  }
   if (options.diagram === true && options.record === undefined) {
     throw new Error('--diagram requires --record <name>');
   }
@@ -150,6 +155,7 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
     commit: gitHead(root) ?? 'HEAD',
     repositoryUrl: repositoryUrl(root),
     projectName: projectName(root),
+    language: options.lang === 'zh' ? 'zh' : 'en',
   });
   return writeTarget(page, cwd, options.out);
 }

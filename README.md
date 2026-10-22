@@ -91,7 +91,7 @@ To generate one for your repository, ask your agent:
 
 > Use the `adrkit-visualize` skill to build a browsable decision atlas from `adr/implemented/` and `adr/archived/`. Publish archived bodies in full, and pin the page to the current commit.
 
-The atlas is the default visualization: `adrkit atlas --out decisions.html`. The lighter routes stay available: `adrkit atlas --format html` for the standalone map page, and `adrkit atlas --record <N> --diagram` for one decision's deliberation tree.
+The atlas is the default visualization: `adrkit atlas --out decisions.html`. Its chrome is English by default; pass `--lang zh` for Chinese. The lighter routes stay available: `adrkit atlas --format html` for the standalone map page, and `adrkit atlas --record <N> --diagram` for one decision's deliberation tree.
 
 ## Commands
 
@@ -113,7 +113,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+adrkit atlas [--out <path>] [--lang <en|zh>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help

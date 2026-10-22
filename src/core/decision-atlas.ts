@@ -1,5 +1,5 @@
-import { section, type AdrRecord } from './adr.js';
-import { isOverride, parseDeliberation, typeOf, type DeliberationNode } from './deliberation.js';
+import type { AdrRecord } from './adr.js';
+import { translateAtlasMarkup, type AtlasLanguage } from './atlas-i18n.js';
 import type { DecisionGraph } from './graph.js';
 import { renderDecisionMapSvg } from './graph-html.js';
 import { relativePath } from './repository.js';
@@ -35,20 +35,10 @@ export interface DecisionAtlasOptions {
   repositoryUrl: string;
   /** Name the page gives the project. */
   projectName: string;
+  /** Page copy language; generated slot values and the static chrome follow it. */
+  language?: AtlasLanguage;
   /** Link from the published page back to the project home. */
   homeHref?: string;
-}
-
-/** One deliberation node as the example's client script reads it. */
-export interface AtlasDeliberationNode {
-  text: string;
-  type: 'question' | 'option';
-  status?: 'settled' | 'rejected' | 'open';
-  recommended?: boolean;
-  reason?: string;
-  /** The question took an option other than the recommended one (ADR 5). */
-  overridden?: boolean;
-  children: AtlasDeliberationNode[];
 }
 
 /** One record as the example's client script reads it. */
@@ -66,7 +56,6 @@ interface AtlasRecord {
   number: number;
   title: string;
   body: string;
-  deliberation: AtlasDeliberationNode[];
   path: string;
   lifecycle: string;
   source: string;
@@ -89,44 +78,23 @@ function replaceRecordsSlot(template: string, value: string): string {
   return replaceSlot(template, '/* atlas:records */', '/* /atlas:records */', value, 'records');
 }
 
-/**
- * Rebuild the readable body from the parsed sections, without front matter.
- * The deliberation appendix is carried separately as a tree, so the reader
- * does not show it twice.
- */
+/** Rebuild the readable body from the parsed sections, without front matter. */
 function markdownBody(record: AdrRecord): string {
   const heading = `\n# ADR: ${record.number} ${record.title}\n`;
   const sections = record.sections
-    .filter((entry) => entry.heading !== 'Deliberation')
     .map((entry) => `\n## ${entry.heading}\n\n${entry.body.trim()}\n`)
     .join('');
   return `${heading}${sections}`;
-}
-
-/** Strip a parsed node to the fields the atlas reader draws; the grammar stays in one place. */
-function deliberationPayload(nodes: DeliberationNode[]): AtlasDeliberationNode[] {
-  return nodes.map((node) => {
-    const type = typeOf(node);
-    const payload: AtlasDeliberationNode = {
-      text: node.text,
-      type,
-      children: deliberationPayload(node.children),
-    };
-    if (node.status !== undefined) payload.status = node.status;
-    if (node.recommended === true) payload.recommended = true;
-    if (node.reason !== undefined) payload.reason = node.reason;
-    if (type === 'question' && isOverride(node)) payload.overridden = true;
-    return payload;
-  });
 }
 
 function shortDate(date: string | undefined): string {
   return date === undefined ? '' : date.slice(5);
 }
 
-function densityNote(records: AdrRecord[]): string {
+function densityNote(records: AdrRecord[], language: AtlasLanguage): string {
+  const en = language === 'en';
   const dated = records.filter((record) => record.created !== undefined);
-  if (dated.length === 0) return '还没有记录创建日期。';
+  if (dated.length === 0) return en ? 'No record carries a created date yet.' : '还没有记录创建日期。';
   const days = new Map<string, number>();
   for (const record of dated) {
     const day = record.created!;
@@ -135,16 +103,25 @@ function densityNote(records: AdrRecord[]): string {
   const dates = [...days.keys()].sort();
   const first = dates[0]!;
   const last = dates.at(-1)!;
-  if (first === last) return `${dated.length} 条记录都立在 ${first}。`;
+  if (first === last) {
+    return en
+      ? `${dated.length} record${dated.length === 1 ? '' : 's'} all date to ${first}.`
+      : `${dated.length} 条记录都立在 ${first}。`;
+  }
   const [busiest, count] = [...days.entries()].sort(
     ([aDate, aCount], [bDate, bCount]) => bCount - aCount || aDate.localeCompare(bDate),
   )[0]!;
+  if (en) {
+    const burst = count > 1 ? `; ${shortDate(busiest)} alone produced ${count}` : '';
+    const close = count >= 3 ? ', decisions arrive in batches.' : '.';
+    return `${dated.length} records run from ${shortDate(first)} to ${shortDate(last)} across ${dates.length} distinct days${burst}${close}`;
+  }
   const burst = count > 1 ? `；${shortDate(busiest)} 一天就立下 ${count} 条` : '';
   const close = count >= 3 ? '，决策总在同一批工作里成串出现。' : '。';
   return `${dated.length} 条记录从 ${shortDate(first)} 写到 ${shortDate(last)}，落在 ${dates.length} 个不同的日子${burst}${close}`;
 }
 
-function inboundNote(graph: DecisionGraph, implemented: Set<number>): string {
+function inboundNote(graph: DecisionGraph, implemented: Set<number>, language: AtlasLanguage): string {
   const inbound = new Map<number, number>();
   for (const edge of graph.referenceEdges) {
     inbound.set(edge.to, (inbound.get(edge.to) ?? 0) + 1);
@@ -152,14 +129,27 @@ function inboundNote(graph: DecisionGraph, implemented: Set<number>): string {
   const top = [...inbound.entries()]
     .filter(([number]) => implemented.has(number))
     .sort(([aNumber, aCount], [bNumber, bCount]) => bCount - aCount || aNumber - bNumber)[0];
-  if (top === undefined) return '记录之间还没有引用关系；决策地图只呈现已经写下的关系。';
-  return `被引最多的决策是后续工作的支点：#${top[0]} 被引 ${top[1]} 次；计数描述关系，不代表重要性。`;
+  if (top === undefined) {
+    return language === 'en'
+      ? 'No references between records yet; the map shows only relations that were written down.'
+      : '记录之间还没有引用关系；决策地图只呈现已经写下的关系。';
+  }
+  return language === 'en'
+    ? `The most-referenced decision anchors later work: #${top[0]} is referenced ${top[1]} times; the count describes relations, not importance.`
+    : `被引最多的决策是后续工作的支点：#${top[0]} 被引 ${top[1]} 次；计数描述关系，不代表重要性。`;
 }
 
-function replacementsNote(archived: AdrRecord[]): string {
-  if (archived.length === 0) return '还没有归档记录；当前约束以生效记录为准。';
+function replacementsNote(archived: AdrRecord[], language: AtlasLanguage): string {
+  const en = language === 'en';
+  if (archived.length === 0) {
+    return en
+      ? 'No archived records yet; current constraints come from active records.'
+      : '还没有归档记录；当前约束以生效记录为准。';
+  }
   const superseded = archived.filter((record) => record.supersededBy !== undefined).length;
-  return `已归档 ${archived.length} 条历史记录，其中 ${superseded} 条标注了接棒的继任者；当前约束以生效记录为准。`;
+  return en
+    ? `${archived.length} archived record${archived.length === 1 ? '' : 's'}, ${superseded} naming a successor; current constraints come from active records.`
+    : `已归档 ${archived.length} 条历史记录，其中 ${superseded} 条标注了接棒的继任者；当前约束以生效记录为准。`;
 }
 
 /**
@@ -172,6 +162,8 @@ function replacementsNote(archived: AdrRecord[]): string {
  */
 export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   const { template, graph, commit, projectName } = options;
+  const language = options.language ?? 'zh';
+  const en = language === 'en';
   const repositoryUrl = options.repositoryUrl.replace(/\/$/, '');
   const homeHref = options.homeHref;
   const records = options.records.filter(
@@ -190,7 +182,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   const drawing = renderDecisionMapSvg(graph, {
     recordHref: (recordPath) => `#adr-${numberByPath.get(recordPath)}`,
     nodeId: (number) => `adr-${number}`,
-    dateCount: (count) => `${count} 条`,
+    dateCount: (count) => (en ? `${count} record${count === 1 ? '' : 's'}` : `${count} 条`),
   });
 
   const payload: AtlasRecord[] = records.map((record) => ({
@@ -207,7 +199,6 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     number: record.number!,
     title: record.title,
     body: markdownBody(record),
-    deliberation: deliberationPayload(parseDeliberation(section(record, 'Deliberation'))),
     path: relativePath(record),
     lifecycle: record.folder,
     source: repositoryUrl.length > 0
@@ -221,17 +212,19 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     .replaceAll('\u2028', '\\u2028')
     .replaceAll('\u2029', '\\u2029');
 
-  const stats = `<section class="stats-band" aria-label="决策统计"><div class="stats-inner">`
-    + `<div><strong>${implemented.length}</strong><span>生效决策</span></div>`
-    + `<div><strong>${archived.length}</strong><span>归档历史</span></div>`
-    + `<div><strong>${graph.referenceEdges.length}</strong><span>引用关系</span></div>`
-    + `<div><strong>${graph.nodes.filter((node) => node.hasDeliberation).length}</strong><span>deliberation tree</span></div>`
+  const stats = `<section class="stats-band" aria-label="${en ? 'Decision statistics' : '决策统计'}"><div class="stats-inner">`
+    + `<div><strong>${implemented.length}</strong><span>${en ? 'Active decisions' : '生效决策'}</span></div>`
+    + `<div><strong>${archived.length}</strong><span>${en ? 'Archived history' : '归档历史'}</span></div>`
+    + `<div><strong>${graph.referenceEdges.length}</strong><span>${en ? 'References' : '引用关系'}</span></div>`
+    + `<div><strong>${graph.nodes.filter((node) => node.hasDeliberation).length}</strong><span>${en ? 'Deliberation trees' : 'deliberation tree'}</span></div>`
     + `</div></section>`;
 
   const hero = `<section id="top" class="page-hero"><div class="hero-content">`
     + `<p class="eyebrow">DECISION ATLAS / LIVE ARCHIVE</p>`
     + `<h1>${escapeHtml(projectName)}</h1>`
-    + `<p class="hero-description">从本仓库 adr/ 的 ${implemented.length} 条生效决策与 ${archived.length} 条归档历史生成。<br>由 adrkit 从当前记录生成，不保留手工快照。</p>`
+    + (en
+      ? `<p class="hero-description">Generated from ${implemented.length} active decisions and ${archived.length} archived records in adr/.<br>Generated by adrkit from the current records; no manual snapshot.</p>`
+      : `<p class="hero-description">从本仓库 adr/ 的 ${implemented.length} 条生效决策与 ${archived.length} 条归档历史生成。<br>由 adrkit 从当前记录生成，不保留手工快照。</p>`)
     + `</div></section>`;
 
   const commitLabel = repositoryUrl.length > 0
@@ -239,21 +232,24 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     : `<span class="footer-commit">${escapeHtml(commit)}</span>`;
   const homeLink = homeHref === undefined
     ? ''
-    : ` · <a class="footer-home" href="${escapeHtml(homeHref)}">项目主页</a>`;
+    : ` · <a class="footer-home" href="${escapeHtml(homeHref)}">${en ? 'Project home' : '项目主页'}</a>`;
+  const generator = repositoryUrl.length > 0
+    ? `<a class="footer-repo" href="${escapeHtml(repositoryUrl)}" target="_blank" rel="noopener noreferrer">adr-kit</a>`
+    : 'adr-kit';
   const footer = `<footer class="page-footer"><span class="page-brand">${escapeHtml(projectName)} / ADR</span>`
-    + `<div class="footer-meta">由 adrkit 从当前记录生成 · 记录定格于 ${commitLabel}${homeLink}</div></footer>`;
+    + `<div class="footer-meta">${en ? `Generated by ${generator} from the current records` : `由 ${generator} 从当前记录生成`} · ${en ? 'Records pinned at' : '记录定格于'} ${commitLabel}${homeLink}</div></footer>`;
 
-  let page = template;
-  page = replaceHtmlSlot(page, 'title', `<title>${escapeHtml(projectName)} · 决策档案</title>`);
+  let page = en ? translateAtlasMarkup(template) : template;
+  page = replaceHtmlSlot(page, 'title', `<title>${escapeHtml(projectName)} · ${en ? 'Decision atlas' : '决策档案'}</title>`);
   page = replaceHtmlSlot(page, 'hero', hero);
   page = replaceHtmlSlot(page, 'stats', stats);
-  page = replaceHtmlSlot(page, 'density-note', `<p class="section-note">${escapeHtml(densityNote(records))}</p>`);
+  page = replaceHtmlSlot(page, 'density-note', `<p class="section-note">${escapeHtml(densityNote(records, language))}</p>`);
   page = replaceHtmlSlot(
     page,
     'inbound-note',
-    `<p class="section-note">${escapeHtml(inboundNote(graph, new Set(implemented.map((record) => record.number!))))}</p>`,
+    `<p class="section-note">${escapeHtml(inboundNote(graph, new Set(implemented.map((record) => record.number!)), language))}</p>`,
   );
-  page = replaceHtmlSlot(page, 'replacements-note', `<p class="section-note">${escapeHtml(replacementsNote(archived))}</p>`);
+  page = replaceHtmlSlot(page, 'replacements-note', `<p class="section-note">${escapeHtml(replacementsNote(archived, language))}</p>`);
   page = replaceHtmlSlot(page, 'map', drawing.svg);
   page = replaceHtmlSlot(page, 'footer', footer);
   page = replaceRecordsSlot(page, `\nconst records = ${recordsJson};\n`);

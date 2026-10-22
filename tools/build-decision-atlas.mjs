@@ -52,6 +52,7 @@ const html = core.renderDecisionAtlas({
   repositoryUrl: repositoryUrl(),
   projectName,
   homeHref: '../',
+  language: 'zh',
 });
 
 mkdirSync(dirname(target), { recursive: true });

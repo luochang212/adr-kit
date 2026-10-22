@@ -6,6 +6,7 @@ import { listRecords } from '../core/repository.js';
 import { buildDecisionGraph, dotGraph, mermaidGraph, textTree } from '../core/graph.js';
 import { renderDecisionMapHtml } from '../core/graph-html.js';
 
+/** Internal renderer for `atlas --format`; not a CLI command. */
 export interface GraphFormatFlags {
   mermaid?: boolean;
   dot?: boolean;

@@ -9,7 +9,7 @@ Seeing the decision set as a picture surfaces relationships and contradictions t
 
 Visualize existing records only when asked. Run `adrkit list` first, then read the record or relationships relevant to the requested view. Do not create a decision or invent a deliberation tree to make a picture.
 
-- The default visualization is the decision atlas: `adrkit atlas --out "<path>.html"`. It includes implemented guidance and archived history, with archived records kept visually distinct and their bodies published in full. This is the answer to "visualize this repository's ADRs" with no further qualifier.
+- The default visualization is the decision atlas: `adrkit atlas --out "<path>.html"`. It includes implemented guidance and archived history, with archived records kept visually distinct and their bodies published in full. This is the answer to "visualize this repository's ADRs" with no further qualifier. The page chrome is English by default; pass `--lang zh` when the reader uses Chinese.
 - For one record's deliberation tree, use `adrkit atlas --record <name> --diagram` and save stdout to a local HTML file. If no `## Deliberation` appendix exists, say so instead of fabricating one.
 - For the decision map alone, use `adrkit atlas --format html --out "<path>.html"`; for source exports, `adrkit atlas --format mermaid|dot|text` (with `--record <name>`, the tree's `mermaid` or `text`). Use `--tag` or `--formal-only` only when requested or useful to the question.
 - Text and Mermaid may be enough for docs; do not generate HTML merely because the CLI supports it.

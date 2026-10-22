@@ -60,7 +60,7 @@ Usage:
   adrkit config                              Print the current configuration
   adrkit hook <install|uninstall|run>
                                            Manage the pre-commit decision check
-  adrkit atlas [--out <path>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+  adrkit atlas [--out <path>] [--lang <en|zh>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
                                            Write the decision atlas; --record renders one deliberation tree, --format exports the decision map
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
@@ -76,7 +76,8 @@ natively on GitHub (nodes are tinted by their tags), dot feeds Graphviz
 (dot -Tpng), text prints a terminal-friendly tree, and html emits the
 standalone map page; --tag <tag> filters to one theme and --formal-only drops
 the mined edges. With --record <name>, --diagram renders that decision's
-deliberation tree and --format <mermaid|text> exports its source.
+deliberation tree and --format <mermaid|text> exports its source. The page
+chrome is English by default; --lang zh renders it in Chinese.
 
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
@@ -254,6 +255,7 @@ export function main(argv: string[]): void {
             record: values.record,
             diagram: values.diagram,
             format: values.format,
+            lang: values.lang,
             formalOnly: values['formal-only'],
             tag: values.tag,
           }),

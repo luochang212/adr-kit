@@ -265,6 +265,24 @@ r
 });
 
 describe('cli atlas surface', () => {
+  it('rejects a language other than en or zh', () => {
+    const root = makeRepo();
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      process.chdir(root);
+      process.exitCode = undefined;
+      main(['atlas', '--lang', 'fr']);
+      expect(process.exitCode).toBe(1);
+      expect(errorSpy.mock.calls[0]?.[0]).toContain('expects en or zh');
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      errorSpy.mockRestore();
+    }
+  });
+
   it('runs through main and rejects an unknown format', () => {
     const root = makeRepo();
     const previousCwd = process.cwd();

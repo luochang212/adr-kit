@@ -22,7 +22,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
 | `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, then show which active decisions govern the staged files |
-| `adrkit atlas [--out <path>] [--record <name> [--diagram\|--format <mermaid\|text>]] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | Write the decision atlas; no flags writes the full atlas, `--record --diagram` is one deliberation tree, and `--format` exports the decision map (or the tree's source with `--record`) |
+| `adrkit atlas [--out <path>] [--lang <en\|zh>] [--record <name> [--diagram\|--format <mermaid\|text>]] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | Write the decision atlas; no flags writes the full atlas (English chrome by default, `--lang zh` for Chinese), `--record --diagram` is one deliberation tree, and `--format` exports the decision map (or the tree's source with `--record`) |
 | `adrkit completion <bash\|zsh\|fish>` | Print shell completion |
 | `adrkit version` | Print version |
 | `adrkit help` | Print help |
