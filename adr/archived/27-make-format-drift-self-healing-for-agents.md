@@ -4,7 +4,6 @@ date: 2026-10-22
 raised-by: human
 decided-by: human
 created: 2026-10-21
-commit: "7679402"
 superseded-by: 30
 archived: 2026-10-22
 archive-reason: superseded by ADR 30

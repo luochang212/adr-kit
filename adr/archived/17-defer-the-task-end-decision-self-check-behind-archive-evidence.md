@@ -4,7 +4,7 @@ date: 2026-10-22
 raised-by: agent
 decided-by: human
 created: 2026-09-24
-commit: 147b36a
+commit: e999c3a
 superseded-by: 32
 archived: 2026-10-22
 archive-reason: superseded by ADR 32

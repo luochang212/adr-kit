@@ -95,6 +95,25 @@ describe('supersedeCommand', () => {
     expect(result.valid).toBe(true);
   });
 
+  it('preserves the recording commit instead of stamping the retirement', () => {
+    const root = makeRepo();
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
+    const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
+    const source = readFileSync(path, 'utf8').replace(
+      'created: 2026-08-19',
+      'created: 2026-08-19\ncommit: abc1234',
+    );
+    writeFileSync(path, source);
+
+    supersedeCommand('1', '2', root);
+
+    const old = readFileSync(join(root, 'adr', 'archived', '1-use-sqlite.md'), 'utf8');
+    // The field anchors the decision to the code it was recorded against;
+    // retirement has its own date and is visible in Git history.
+    expect(old).toContain('commit: abc1234');
+  });
+
   it('counts archived records separately in status', () => {
     const root = makeRepo();
     implementDecision(root, 'Use SQLite');

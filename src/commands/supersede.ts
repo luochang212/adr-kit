@@ -3,7 +3,6 @@ import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { formatIssues, validateRecord } from '../core/validate.js';
-import { gitHead } from '../core/git.js';
 import { retireRecord } from '../core/retire.js';
 import { folderPath, resolveRecord } from '../core/repository.js';
 
@@ -55,8 +54,6 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     archived: todayStamp(),
     'archive-reason': `superseded by ADR ${replacement.number}`,
   };
-  const commit = gitHead(root);
-  if (commit !== undefined) patch.commit = commit;
   retireRecord(root, record, patch);
   return `superseded adr/implemented/${record.fileName} by adr/implemented/${replacement.fileName}; archived the old record`;
 }
