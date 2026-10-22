@@ -54,5 +54,8 @@ already governs; the two are complementary, not exclusive.
 - `adr/implemented/1-…md` and `2-…md` become committed history; CI and every
   clone see the same decisions the maintainer sees.
 - `adrkit validate` is now a real gate on this repository's own changes.
-- ADR 18 later moved the committed decisions to `adr/implemented/` and
-  replaced the ephemeral `.drafts/` with `adr/proposed/`.
+
+### Later changes
+
+**Amended by ADR 18:** the committed decisions moved to `adr/implemented/`,
+replacing the ephemeral `.drafts/` with `adr/proposed/`.

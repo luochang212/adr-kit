@@ -82,8 +82,12 @@ could silently rot.
   and CI wiring in `.github/workflows/ci.yml`.
 - The check distinguishes drift (exit 1) from an unreachable upstream (exit 2),
   so a flaky fetch is never mistaken for "no change".
-- ADR 18 later changed the unconditional terminal command from `adrkit decide`
-  to `adrkit record` (`adrkit propose` while an outcome is unshipped), and
-  replaced the universal full read noted above with inventory-first, scoped
-  reading. ADR 20 later fixed the per-folder context budget. The always-record
-  rule and the upstream pin above are unchanged.
+### Later changes
+
+**Amended by ADR 18:** the unconditional terminal command changed from
+`adrkit decide` to `adrkit record` (`adrkit propose` while an outcome is
+unshipped), and the universal full read noted above was replaced with
+inventory-first, scoped reading.
+
+**Amended by ADR 20:** the per-folder context budget was fixed. The
+always-record rule and the upstream pin above are unchanged.

@@ -27,7 +27,11 @@ is a normal migration commit. Promotion folds a
 proposal's `## Acceptance criteria` and `## Risks` into `### Verification`
 and `### Trade-offs` under `## Consequences`; an implemented record must not
 carry the old H3 names directly under Consequences. That check ignores fenced
-code and HTML comments and applies to implemented records only. The folders
+code and HTML comments and applies to implemented records only. A decision
+amended by a later decision keeps its original text and carries an optional
+`### Later changes` subsection at the end of `## Consequences`: each entry
+opens with `**Amended by ADR N:**`, states what now runs, and closes with what
+above is unchanged. The folders
 are also a context budget: `implemented/` is current authority and is read
 in full; `proposed/` is intent and is checked; `rejected/` is anti-pattern
 memory that is checked; `archived/` is lowest-value frozen history that is

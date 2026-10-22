@@ -70,6 +70,13 @@ structured record type so a view could filter, or accept the derived signal.
   consumer ever needs it, it requires a declared field and its own decision;
   absent that, the derived predicate is the whole story.
 
+### Later changes
+
+**Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`; the map
+badge and the renderable-tree check serve `atlas` and
+`atlas --record <name> --diagram`, still on the same predicate. The
+derive-from-the-appendix rule above is unchanged.
+
 ## Deliberation
 
 - Classify records for the decision views [settled]

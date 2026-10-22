@@ -62,6 +62,14 @@ integration template, installed local skill, bilingual documentation, and
 workflow specification carry the new default. Existing installations receive
 it through `adrkit update` after the updated package is installed. Both
 provenance fields are human because the maintainer raised and chose this change.
-ADR 13 later moved visualization routing from `adrkit-grill` to
+
+### Later changes
+
+**Amended by ADR 13:** visualization routing moved from `adrkit-grill` to
 `adrkit-visualize`; the browser-open default, file link, opt-out, and fallback
 above are unchanged.
+
+**Amended by ADR 33:** the CLI is consolidated under `adrkit atlas` — one
+decision's card tree runs as `atlas --record <name> --diagram` and the
+whole-set map as `atlas --format html`. The browser-open default, file link,
+opt-out, and fallback above are unchanged.

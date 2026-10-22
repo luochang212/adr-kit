@@ -92,9 +92,11 @@ opening the default on request, and ADR 13 moved this routing from
 `adrkit-grill` to `adrkit-visualize`; the map, its grouping, and the two-level
 model are unchanged.
 
-ADR 33 later consolidated the CLI under `adrkit atlas`: the map now runs as
-`atlas --format html`, and it is embedded in the atlas page by default. The
-map, its grouping, and the two-level model above are unchanged.
+### Later changes
+
+**Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`; the map
+runs as `atlas --format html` and is embedded in the atlas page by default.
+The map, its grouping, and the two-level model above are unchanged.
 
 ## Deliberation
 

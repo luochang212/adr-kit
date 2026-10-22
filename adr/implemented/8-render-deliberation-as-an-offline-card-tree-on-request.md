@@ -63,13 +63,16 @@ requires no frontend service. Users receive the workflow via `adrkit init` or
 `adrkit update`. The agent proposed the card layout and built-in renderer;
 the maintainer approved the prototype and changed the proposed automatic export
 policy to on-demand generation, then selected default file-link delivery.
-ADR 12 later made browser opening the default for a visualization request, and
-ADR 13 moved this routing from `adrkit-grill` to `adrkit-visualize`; on-request
-generation, the file link, and the no-open opt-out are unchanged.
+### Later changes
 
-ADR 33 later consolidated the CLI under `adrkit atlas`: this record's card tree
-now runs as `atlas --record <name> --diagram`. The rendering, the annotated
-grammar, and the on-request rule above are unchanged.
+**Amended by ADR 12 and ADR 13:** browser opening became the default for a
+visualization request, and routing moved from `adrkit-grill` to
+`adrkit-visualize`; on-request generation, the file link, and the no-open
+opt-out are unchanged.
+
+**Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`, and this
+record's card tree runs as `atlas --record <name> --diagram`. The rendering,
+the annotated grammar, and the on-request rule above are unchanged.
 
 ## Deliberation
 

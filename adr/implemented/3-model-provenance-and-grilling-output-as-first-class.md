@@ -95,13 +95,20 @@ a decision the session settled.
 - This is a breaking change to a 0.x package. Per ADR 2's dogfooding and the
   project's 0-star, self-only use, compatibility is not a constraint; it ships
   as a minor changeset rather than a migration shim.
-- ADR 18 later replaced the terminal route this record chose: a settled choice
-  is now recorded with `adrkit record`, or stays a proposal with `adrkit
-  propose` while it is unshipped. The product surfaces changed with it: the
-  `adrkit instructions` and `init` hints now present `propose` first with
-  `record` alongside, and the website demo leads with `record`, so no single
-  path is "the default". The provenance, deliberation, and tree rules above are
-  unchanged.
+### Later changes
+
+**Amended by ADR 18:** the terminal route this record chose was replaced: a
+settled choice is now recorded with `adrkit record`, or stays a proposal with
+`adrkit propose` while it is unshipped. The product surfaces changed with it:
+the `adrkit instructions` and `init` hints now present `propose` first with
+`record` alongside, and the website demo leads with `record`, so no single
+path is "the default". The provenance, deliberation, and tree rules above are
+unchanged.
+
+**Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`, and the
+appendix outline renders on demand as
+`atlas --record <N> --format mermaid|text`. The one-ADR default and the
+appendix-as-reference rule above are unchanged.
 
 ## Deliberation
 

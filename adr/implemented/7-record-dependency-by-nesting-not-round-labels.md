@@ -65,6 +65,12 @@ five questions were independent when they were not.
   records each follow-up question under the node that raised it while the
   session runs.
 
+### Later changes
+
+**Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`, and the
+nested tree renders as `atlas --record <name> --diagram`. The nesting rule
+above is unchanged.
+
 ## Deliberation
 
 - Record dependency as nesting, not round labels [settled]

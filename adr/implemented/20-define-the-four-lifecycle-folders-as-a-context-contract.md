@@ -124,6 +124,9 @@ link to this one.
 - **Giving up DSH's pruning.** Mitigation: this is a deliberate divergence, like
   never deleting a numbered decision; Git still records a removed rejection.
 
-ADR 30 later superseded ADR 19 and ADR 27 and removed the archive manifest and
-`validate --base`. The four-folder contract and the reading policy above are
-unchanged; statements in this record that describe the seal are historical.
+### Later changes
+
+**Amended by ADR 30:** ADR 19 and ADR 27 were superseded, and the archive
+manifest and `validate --base` were removed. The four-folder contract and the
+reading policy above are unchanged; statements in this record that describe
+the seal are historical.
