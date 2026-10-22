@@ -96,7 +96,8 @@ prose carries no enforcement.
   staged citation to a missing decision fails, and a citation fixed in the
   working tree but still staged fails; a valid set passes and names the
   governing decision and the prompt; a CLI run sets a failing exit code;
-  outside an ADR repository or with nothing staged the hook stays silent.
+  outside an ADR repository or with nothing staged the hook stays silent; and
+  a hook whose pinned checker is gone exits 1 with the remedy in its message.
 - The installed script was exercised end-to-end in a throwaway repository: a
   bad record blocked `git commit`, and the corrected record committed with the
   advisory output.
@@ -113,4 +114,7 @@ prose carries no enforcement.
   decisions that actually govern the staged files.
 - `git commit --no-verify` bypasses the objective checks. That is deliberate: a
   gate people cannot escape gets disabled wholesale.
+- A vanished CLI install also blocks commits: the hook fails closed, and its
+  message names the remedy — reinstall, uninstall, or `git commit --no-verify`
+  — instead of surfacing a bare module-loader error.
 - Windows relies on Git for Windows' POSIX shell; the script is plain `sh`.

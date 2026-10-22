@@ -162,9 +162,17 @@ export function hookInstall(cwd: string, entry?: string): string {
     ? undefined
     : (existsSync(entry) ? realpathSync(entry) : resolve(cwd, entry));
   const command = resolved === undefined ? 'adrkit' : `node ${shellQuote(resolved)}`;
+  // Letting exec fail alone surfaces a bare module-loader trace; fail closed
+  // with the remedy instead.
+  const guard = resolved === undefined
+    ? ''
+    : `if [ ! -f ${shellQuote(resolved)} ]; then\n`
+      + `  echo 'adrkit pre-commit: the checker this hook points at is gone.' >&2\n`
+      + `  echo 'Reinstall it ("adrkit hook install"), remove the hook ("adrkit hook uninstall"), or bypass once with "git commit --no-verify".' >&2\n`
+      + `  exit 1\nfi\n`;
   writeFileSync(
     file,
-    `#!/bin/sh\n${HOOK_MARKER}\n# Installed by \`adrkit hook install\`; remove with \`adrkit hook uninstall\`.\nexec ${command} hook run\n`,
+    `#!/bin/sh\n${HOOK_MARKER}\n# Installed by \`adrkit hook install\`; remove with \`adrkit hook uninstall\`.\n${guard}exec ${command} hook run\n`,
     { mode: 0o755 },
   );
   chmodSync(file, 0o755);

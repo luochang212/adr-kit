@@ -81,6 +81,22 @@ describe('pre-commit hook management', () => {
     expect(existsSync(file)).toBe(false);
   });
 
+  it('fails closed with a named remedy when the pinned checker is gone', () => {
+    const root = makeRepo();
+    const entry = join(root, 'bin', 'adrkit.js');
+    hookInstallCommand(root, entry);
+    expect(existsSync(entry)).toBe(false);
+    let failure: { status: number | null; stderr: string } | undefined;
+    try {
+      execFileSync('sh', [join(root, '.git', 'hooks', 'pre-commit')], { encoding: 'utf8' });
+    } catch (error) {
+      failure = error as { status: number | null; stderr: string };
+    }
+    expect(failure?.status).toBe(1);
+    expect(failure?.stderr).toContain('adrkit hook uninstall');
+    expect(failure?.stderr).toContain('git commit --no-verify');
+  });
+
   it('refuses to replace or remove a hook it does not manage', () => {
     const root = makeRepo();
     const file = join(root, '.git', 'hooks', 'pre-commit');
