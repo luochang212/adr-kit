@@ -414,6 +414,25 @@ describe('propose and implement', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 
+  it('enforces the Later changes entry form when validating', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    const path = listRecords(root)[0]!.path;
+    // The old trailing-prose form is the drift the convention replaced.
+    writeFileSync(path, readFileSync(path, 'utf8') + '\nADR 1 later changed the terminal command.\n');
+    expect(validateCommand(root).output).toContain('amendment note is trailing prose');
+    writeFileSync(
+      path,
+      readFileSync(path, 'utf8').replace(
+        '\nADR 1 later changed the terminal command.\n',
+        '\n### Later changes\n\n**Amended by ADR 1:** the terminal command changed; the decision above is unchanged.\n',
+      ),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
   it('carries implementation sections through accept instead of dropping them', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);

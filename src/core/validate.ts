@@ -3,6 +3,7 @@ import { join, relative } from 'node:path';
 import {
   DATE_PATTERN,
   hasMeaningfulBody,
+  markdownLines,
   NUMBERED_FILE_NAME_PATTERN,
   PROPOSAL_ERA_HEADINGS,
   writtenHeadings,
@@ -250,6 +251,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
           message: `implemented record must not contain proposal-era subsection "### ${heading}"; use "${replacement}" and state shipped facts in the present tense`,
         });
       }
+      issues.push(...laterChangesIssues(path, consequences.body));
     }
   }
 
@@ -285,6 +287,76 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
 
   issues.push(...alternativesIssue(path, record.sections));
   return issues;
+}
+
+const AMENDED_BY_PATTERN = /^\*\*Amended by ADR \d+(?: and ADR \d+)*:\*\*/;
+const OLD_NOTE_PATTERN = /^(?:- )?ADR \d+ later\b/;
+
+/**
+ * The amendment-note convention the record format documents: later decisions
+ * amend through a `### Later changes` subsection at the end of Consequences,
+ * one entry per later decision opening `**Amended by ADR N:**`. The checks
+ * catch the two drifts already observed — the old trailing-prose form and an
+ * entry that lost its opening — without demanding that a note exist at all.
+ */
+function laterChangesIssues(path: string, body: string): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const lines = [...markdownLines(body)].map(({ visible, code }) => ({ visible, code }));
+  let entriesStart = -1;
+  let entriesEnd = lines.length;
+  for (let index = 0; index < lines.length; index += 1) {
+    if (lines[index]!.code || !lines[index]!.visible.startsWith('### ')) continue;
+    if (entriesStart === -1 && lines[index]!.visible.trim() === '### Later changes') {
+      entriesStart = index;
+    } else if (entriesStart !== -1) {
+      entriesEnd = index;
+      break;
+    }
+  }
+  if (entriesStart !== -1) {
+    const entries = textBlocks(lines.slice(entriesStart + 1, entriesEnd));
+    if (entries.length === 0) {
+      issues.push({ path, message: '"### Later changes" must contain at least one entry' });
+    }
+    for (const block of entries) {
+      if (!AMENDED_BY_PATTERN.test(block)) {
+        issues.push({ path, message: 'a "### Later changes" entry must open "**Amended by ADR N:**"' });
+      }
+    }
+  }
+  const outside = [
+    ...lines.slice(0, entriesStart === -1 ? lines.length : entriesStart),
+    ...lines.slice(entriesEnd),
+  ];
+  for (const block of textBlocks(outside)) {
+    if (OLD_NOTE_PATTERN.test(block)) {
+      issues.push({
+        path,
+        message: 'amendment note is trailing prose; move it under "### Later changes" opening "**Amended by ADR N:**"',
+      });
+    }
+  }
+  return issues;
+}
+
+/** Blank-line-separated blocks of visible text; fenced code never contributes. */
+function textBlocks(lines: Array<{ visible: string; code: boolean }>): string[] {
+  const blocks: string[] = [];
+  let current: string[] = [];
+  for (const line of lines) {
+    if (line.code) {
+      current = [];
+      continue;
+    }
+    if (line.visible.trim() === '') {
+      if (current.length > 0) blocks.push(current.join('\n'));
+      current = [];
+      continue;
+    }
+    current.push(line.visible);
+  }
+  if (current.length > 0) blocks.push(current.join('\n'));
+  return blocks;
 }
 
 /** Root Markdown files that document the directory rather than record a decision. */

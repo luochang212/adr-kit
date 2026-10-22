@@ -211,7 +211,7 @@ interface MarkdownLine {
  * section boundaries; fence contents are literal, including HTML markers.
  * Masking comments preserves columns so removing one cannot invent a heading.
  */
-function* markdownLines(body: string): Generator<MarkdownLine> {
+export function* markdownLines(body: string): Generator<MarkdownLine> {
   let fence: Fence | undefined;
   let comment = false;
   for (const raw of body.split(/\r?\n/)) {

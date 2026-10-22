@@ -179,6 +179,86 @@ Body.
     expect(result.output).toContain('proposal-era section');
   });
 
+  it('accepts the documented Later changes form', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      `## Consequences
+
+Body.
+
+### Later changes
+
+**Amended by ADR 2:** the terminal command is now \`adrkit record\`; the
+session shape above is unchanged.
+
+**Amended by ADR 2 and ADR 3:** the reading posture was fixed; nothing else
+changed.
+`,
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '2-second.md'),
+      decision('2 Second', { ...ACCEPTED, date: '2026-08-20', created: '2026-08-20' }),
+    );
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '3-third.md'),
+      decision('3 Third', { ...ACCEPTED, date: '2026-08-21', created: '2026-08-21' }),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('rejects the old trailing-prose amendment note', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      '## Consequences\n\nBody.\n\nADR 2 later changed the terminal command.\n',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '2-second.md'),
+      decision('2 Second', { ...ACCEPTED, date: '2026-08-20', created: '2026-08-20' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('amendment note is trailing prose');
+  });
+
+  it('requires Later changes entries to keep the documented opening', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      '## Consequences\n\nBody.\n\n### Later changes\n\nAmended by ADR 2: changed.\n',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '2-second.md'),
+      decision('2 Second', { ...ACCEPTED, date: '2026-08-20', created: '2026-08-20' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('must open "**Amended by ADR N:**"');
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-first.md'),
+      decision('1 First', ACCEPTED).replace('## Consequences\n\nBody.\n', '## Consequences\n\nBody.\n\n### Later changes\n'),
+    );
+    expect(validateCommand(root).output).toContain('must contain at least one entry');
+  });
+
+  it('ignores the old form inside fenced examples', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      '## Consequences\n\nBody.\n\n```\nADR 2 later changed the terminal command.\n```\n',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '2-second.md'),
+      decision('2 Second', { ...ACCEPTED, date: '2026-08-20', created: '2026-08-20' }),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
   it('flags unknown front matter fields', () => {
     const root = makeRepo();
     writeFileSync(
