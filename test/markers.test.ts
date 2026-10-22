@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { initCommand } from '../src/commands/init.js';
 import { validateCommand } from '../src/commands/validate.js';
@@ -215,5 +216,25 @@ describe('citation validation', () => {
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
     expect(result.output).toContain(`${join('src', 'a.ts')}: line 1: cites ADR 99, which does not exist`);
+  });
+
+  it('this repository keeps its own citations live', () => {
+    // A rotted citation fails validation, but a deleted one fails nothing:
+    // the ADR 19 citation in retire.ts vanished when ADR 30 superseded that
+    // record, and with it ADR 26's claim that the repository dogfoods the
+    // convention. Pin the set that keeps the gate exercised here.
+    const root = fileURLToPath(new URL('..', import.meta.url));
+    const expected: Array<[string, number[]]> = [
+      ['src/core/retire.ts', [30]],
+      ['src/core/graph-html.ts', [9, 11]],
+      ['src/core/decision-atlas.ts', [29, 31]],
+      ['src/core/markers.ts', [26]],
+    ];
+    for (const [file, numbers] of expected) {
+      const cited = findCitations(readFileSync(join(root, file), 'utf8')).flatMap((entry) => entry.numbers);
+      for (const number of numbers) {
+        expect(cited, `${file} should cite ADR ${number}`).toContain(number);
+      }
+    }
   });
 });

@@ -21,6 +21,7 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 | `adrkit validate [name] [--all]` | Validate one record or the whole repository, including its closed lifecycle inventory |
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
+| `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, then show which active decisions govern the staged files |
 | `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | Visualize numbered decision history |
 | `adrkit tree <name> [--mermaid\|--text\|--html]` | Render a record's deliberation tree |
 | `adrkit completion <bash\|zsh\|fish>` | Print shell completion |

@@ -47,7 +47,8 @@ other constraints remain unchanged, including ADR 10's derived tree presence.
 
 ## Consequences
 
-There are now nine first-party workflows. The maintained skills and embedded
+The first-party workflow set grows by `visualize`, as declared by `WORKFLOWS`
+in `src/core/tool-integrations.ts`. The maintained skills and embedded
 integration templates must stay synchronized. Default installations receive
 both skills; users with explicit subsets add `visualize` or select `all` when
 updating. No CLI command or runtime dependency is added. The maintainer raised

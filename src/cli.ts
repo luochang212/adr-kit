@@ -7,6 +7,7 @@ import { parseArgsOptions, unsupportedOptions } from './core/cli-options.js';
 import { archiveCommand } from './commands/archive.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
+import { hookInstallCommand, hookRunCommand, hookUninstallCommand } from './commands/hook.js';
 import { recordCommand } from './commands/record.js';
 import { implementCommand } from './commands/implement.js';
 import { graphCommand } from './commands/graph.js';
@@ -58,6 +59,8 @@ Usage:
   adrkit update [--tools <list>] [--workflows <list>]
                                            Rewrite AI tool integrations
   adrkit config                              Print the current configuration
+  adrkit hook <install|uninstall|run>
+                                           Manage the pre-commit decision check
   adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
                                            Emit the decision relationship graph
   adrkit tree <name> [--mermaid|--text|--html] Render the record's deliberation tree
@@ -227,6 +230,24 @@ export function main(argv: string[]): void {
       case 'config': {
         console.log(configCommand(process.cwd()));
         return;
+      }
+      case 'hook': {
+        const mode = rest[0];
+        if (mode === 'install') {
+          console.log(hookInstallCommand(process.cwd(), process.argv[1]));
+          return;
+        }
+        if (mode === 'uninstall') {
+          console.log(hookUninstallCommand(process.cwd()));
+          return;
+        }
+        if (mode === 'run') {
+          const result = hookRunCommand(process.cwd());
+          if (result.output.length > 0) console.log(result.output);
+          if (!result.ok) process.exitCode = 1;
+          return;
+        }
+        throw new Error('hook requires install, uninstall, or run');
       }
       case 'graph': {
         console.log(

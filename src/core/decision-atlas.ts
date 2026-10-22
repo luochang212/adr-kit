@@ -4,6 +4,7 @@ import { renderDecisionMapSvg } from './graph-html.js';
 import { relativePath } from './repository.js';
 import { escapeHtml } from './view-text.js';
 
+// @adr 29, 31 — the build-time atlas and its full archived bodies.
 /**
  * The replaceable regions in the shipped archive-page example. The example is
  * a snapshot an agent can adapt by hand; this repository's site build uses the
@@ -130,8 +131,8 @@ function replacementsNote(archived: AdrRecord[]): string {
  *
  * The page is self-contained and regenerated at site build time: records,
  * relationship map, statistics, prose, and source links all come from the same
- * commit. Archived bodies stay out of the payload; only their metadata and a
- * source link are published.
+ * commit. Archived bodies ship in the payload with their metadata; the
+ * lifecycle field keeps them distinct from current authority.
  */
 export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   const { template, graph, commit, projectName } = options;
@@ -169,7 +170,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     paths: record.paths ?? [],
     number: record.number!,
     title: record.title,
-    body: record.folder === 'archived' ? '' : markdownBody(record),
+    body: markdownBody(record),
     path: relativePath(record),
     lifecycle: record.folder,
     source: `${repositoryUrl}/blob/${commit}/${relativePath(record)}`,

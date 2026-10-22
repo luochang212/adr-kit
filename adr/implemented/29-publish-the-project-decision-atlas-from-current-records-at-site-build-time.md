@@ -115,3 +115,8 @@ regeneration; the agent chose the build-time renderer and shared slot mechanism.
   showcase of this repository's own records, not a localized site page, so both
   homepage languages link to it as-is without a bilingual promise.
 
+ADR 31 later amended the archived-body trade-off above: the atlas and the
+example now publish archived bodies in full, keeping the archived/current
+distinction visible; the metadata-only rule and the empty-body verification
+above are historical.
+

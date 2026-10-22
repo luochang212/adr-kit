@@ -111,13 +111,13 @@ describe('decision atlas rendering', () => {
     expect(recordsFrom(page)).toEqual([
       expect.objectContaining({ number: 1, lifecycle: 'implemented', body: expect.stringContaining('Use SQLite.') }),
       expect.objectContaining({ number: 2, lifecycle: 'implemented' }),
-      expect.objectContaining({ number: 3, lifecycle: 'archived', body: '' }),
+      expect.objectContaining({ number: 3, lifecycle: 'archived', body: expect.stringContaining('SECRET ARCHIVE BODY') }),
     ]);
   });
 
-  it('keeps archived bodies out of the payload while retaining their reason', () => {
+  it('publishes archived bodies in full while retaining their reason', () => {
     const page = render(live);
-    expect(page).not.toContain('SECRET ARCHIVE BODY');
+    expect(page).toContain('SECRET ARCHIVE BODY');
     expect(page).toContain('Single-tenant deployment shipped');
     expect(recordsFrom(page)[2]).toMatchObject({ 'archive-reason': 'Single-tenant deployment shipped' });
   });

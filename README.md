@@ -89,7 +89,7 @@ One page can carry the whole archive: a decision map grouped by creation date, a
 
 To generate one for your repository, ask your agent:
 
-> Use the `adrkit-visualize` skill to build a browsable decision atlas from `adr/implemented/` and `adr/archived/`. Keep archived bodies out, and pin the page to the current commit.
+> Use the `adrkit-visualize` skill to build a browsable decision atlas from `adr/implemented/` and `adr/archived/`. Publish archived bodies in full, and pin the page to the current commit.
 
 The lighter routes stay available: `adrkit graph --html` for the map and `adrkit tree <N> --html` for one decision's design tree.
 
@@ -112,6 +112,7 @@ adrkit instructions
 adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
+adrkit hook <install|uninstall|run>
 adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
 adrkit tree <name> [--mermaid|--text|--html]
 adrkit completion <bash|zsh|fish>

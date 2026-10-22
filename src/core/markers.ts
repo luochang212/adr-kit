@@ -5,6 +5,7 @@ import { ADR_DIR } from './config.js';
 import { globMatches } from './glob.js';
 import type { ValidationIssue } from './validate.js';
 
+// @adr 26 — this module is the citation gate that record defines.
 /**
  * Code cites the decision it implements with `@adr <number>`, so the link
  * between a record and its files runs both ways: `paths:` says which files a
@@ -38,6 +39,19 @@ const SKIPPED_DIRS = new Set([
 
 /** A generated or vendored file this large is not a place a person cites a decision. */
 const MAX_FILE_BYTES = 1024 * 1024;
+
+/**
+ * Whether the citation scan reads a repo-relative POSIX path: source
+ * extensions only, never the record tree or the published site copy, never a
+ * dependency or build directory. The pre-commit hook applies this to staged
+ * paths so both surfaces read the same files.
+ */
+export function isCitationScanPath(path: string): boolean {
+  const parts = path.split('/');
+  if (parts[0] === ADR_DIR || parts[0] === 'site') return false;
+  if (parts.slice(0, -1).some((part) => SKIPPED_DIRS.has(part))) return false;
+  return SCANNED_EXTENSIONS.has(extname(parts[parts.length - 1]!).toLowerCase());
+}
 
 export interface Citation {
   /** 1-based line the citation appears on. */
@@ -102,7 +116,12 @@ export function citationIssues(root: string, records: readonly AdrRecord[]): Val
   return issues;
 }
 
-function citationProblem(record: AdrRecord | undefined, number: number, file: string): string | undefined {
+/**
+ * Why one citation is invalid, or undefined when it is valid. Shared by the
+ * repository scan and the pre-commit hook, which reads staged text instead of
+ * the working tree.
+ */
+export function citationProblem(record: AdrRecord | undefined, number: number, file: string): string | undefined {
   if (record === undefined) {
     return `cites ADR ${number}, which does not exist`;
   }

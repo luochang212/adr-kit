@@ -31,14 +31,16 @@ reference material: read it only when that decision is in play, not on every
 task.
 
 Before creating any record, compare it with the active records covering the
-same choice or mechanism: extend a duplicate; for an unshipped full replacement, link its intent and
-keep the old authority active, then use `adrkit supersede --by` in the same
-change that ships and records the replacement; link a partial overlap while
-the older record stays active. When shipping or reviewing, keep each active
-record's realization facts — paths, names, defaults — aligned with shipped
-code; a changed choice is a new record with an explicit relationship, not a
-rewrite of old rationale. Archived records are ordinary Git-tracked history,
-never edited silently; `adrkit validate` checks them like any record.
+same choice or mechanism: extend a duplicate; when the active record's
+mechanism is itself unsound, weigh removing it rather than patching it; for an
+unshipped full replacement, link its intent and keep the old authority active,
+then use `adrkit supersede --by` in the same change that ships and records the
+replacement; link a partial overlap while the older record stays active. When
+shipping or reviewing, keep each active record's realization facts — paths,
+names, defaults — aligned with shipped code; a changed choice is a new record
+with an explicit relationship, not a rewrite of old rationale. Archived records
+are ordinary Git-tracked history, never edited silently; `adrkit validate`
+checks them like any record.
 
 Records cost time to write, read, and maintain, and stale records can mislead; record only when preserving the rationale is worth that cost. For example, routing all writes through one boundary to preserve validation and auditing can merit an ADR: a later direct write may look locally correct while bypassing those guarantees. Routine fixes and local renames usually need none when code and tests adequately explain them.
 
@@ -72,10 +74,10 @@ current rules; a later format change is a normal migration commit.
 
 When the user wants to review or share the project's history, use the
 `adrkit-visualize` skill; generate a browsable atlas from `adr/implemented/`
-and `adr/archived/` only, leave archived bodies out, and pin the page to the
-commit it was built from.
+and `adr/archived/` only, publish archived bodies in full, and pin the page to
+the commit it was built from.
 
-<!-- adrkit: standing-orders 5a4faf4e -->
+<!-- adrkit: standing-orders 449bd66b -->
 
 ## Commands
 

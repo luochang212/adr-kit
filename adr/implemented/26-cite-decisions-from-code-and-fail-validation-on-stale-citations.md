@@ -59,8 +59,10 @@ never by editing the frozen decision. The accepted record stays immutable.
 `test/markers.test.ts` proves both sides: a live citation in scope passes, and
 missing, archived, superseded, out-of-scope, prose, and binary cases fail — or
 stay silent — for the stated reason. The repository dogfoods the convention:
-`src/core/retire.ts` cites ADR 19, and a probe citing archived ADR 5 fails with
-"superseded by ADR 8".
+`src/core/retire.ts` cites ADR 30, `src/core/graph-html.ts` cites ADRs 9 and
+11, `src/core/decision-atlas.ts` cites 29 and 31, `src/core/markers.ts` cites
+this record, and a probe citing archived ADR 5 fails with "superseded by
+ADR 8".
 
 ### Trade-offs
 

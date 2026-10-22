@@ -9,6 +9,8 @@ import {
 } from './repository.js';
 import { stampLifecycleMove } from './templates.js';
 
+// @adr 30 — this module is the retirement boundary that record defines; it
+// moves records through Git history without a seal.
 /**
  * The one retirement boundary `archive` and `supersede` both move through:
  * stamp the record into archived/ and remove the implemented source. If the

@@ -49,7 +49,7 @@ describe('initCommand tool integrations', () => {
     expect(installed).toContain(STANDING_ORDERS_PURPOSE);
   });
 
-  it('the purpose line rides the template and this repository\'s AGENTS.md', () => {
+  it('the purpose line and current marker ride the template and this repository\'s AGENTS.md', () => {
     // The standing orders must open by binding adr/ to the failure modes it
     // blocks: obligations without that anchor never teach an agent to
     // recognize the settle moment. The dogfooded AGENTS.md must carry the
@@ -58,6 +58,11 @@ describe('initCommand tool integrations', () => {
     expect(initBody).toContain(STANDING_ORDERS_PURPOSE);
     const agents = readFileSync(fileURLToPath(new URL('../AGENTS.md', import.meta.url)), 'utf8');
     expect(agents).toContain(STANDING_ORDERS_PURPOSE);
+    // The pasted section carries the generation marker, and nothing else in CI
+    // reads it: validate never checks AGENTS.md and the drift note only fires
+    // when a command runs. Without this assertion a template edit that misses
+    // the dogfooded paste leaves every gate green and the drift silent.
+    expect(agents).toContain(STANDING_ORDERS_MARKER);
     // ADR 24: AGENTS.md is the only instruction carrier, so the repository
     // must not regrow a CLAUDE.md — Claude Code skips AGENTS.md while one exists.
     expect(existsSync(fileURLToPath(new URL('../CLAUDE.md', import.meta.url)))).toBe(false);

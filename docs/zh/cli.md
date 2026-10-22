@@ -21,6 +21,7 @@
 | `adrkit validate [name] [--all]` | 校验单条记录或整个仓库（含闭合的生命周期清单） |
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
+| `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错则失败，否则列出管辖这些改动的生效决策 |
 | `adrkit graph [--mermaid\|--dot\|--text\|--html] [--formal-only] [--tag <tag>] [--out <path>]` | 可视化编号决策及历史 |
 | `adrkit tree <name> [--mermaid\|--text\|--html]` | 渲染思辨树 |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |

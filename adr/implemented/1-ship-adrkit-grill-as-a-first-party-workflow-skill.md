@@ -55,8 +55,9 @@ stays conversational, in the skill layer.
 
 ## Consequences
 
-- Integrations now ship eight workflow skills; `--workflows` accepts
-  `grill`; README and `docs/cli.md` updated; minor bump via changeset.
+- Integrations ship the workflow set declared by `WORKFLOWS` in
+  `src/core/tool-integrations.ts`; `--workflows` accepts `grill`; README and
+  `docs/cli.md` updated; minor bump via changeset.
 - `test/integrations.test.ts` enforces the byte-exact mirror plus content
   assertions for the method, the attribution, and the CLI endpoints.
 - Grill sessions end in `adrkit record`/`adrkit propose` with `decided-by`

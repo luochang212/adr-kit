@@ -6,6 +6,8 @@ import { CANVAS_STYLE, CANVAS_SCRIPT, canvasHeaderHTML, canvasDockHTML } from '.
 import { SHARE_SCRIPT, SHARE_STYLE } from './share.js';
 import { escapeHtml, wrapText, estimateTextWidth } from './view-text.js';
 
+// @adr 9, 11 — the offline decision map and the canvas contract it shares
+// with the deliberation tree.
 const CARD_W = 248;
 const PAD_X = 16;
 const PAD_Y = 14;

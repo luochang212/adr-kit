@@ -87,7 +87,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 为自己的仓库生成一份，把这句话交给 agent：
 
-> 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的决策档案。不要包含归档正文，并把页面固定到当前提交。
+> 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的决策档案。归档正文全文展示，并把页面固定到当前提交。
 
 轻量入口仍然保留：`adrkit graph --html` 看决策地图，`adrkit tree <N> --html` 看单条决策的推敲树。
 
@@ -110,6 +110,7 @@ adrkit instructions
 adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
+adrkit hook <install|uninstall|run>
 adrkit graph [--mermaid|--dot|--text|--html] [--formal-only] [--tag <tag>] [--out <path>]
 adrkit tree <name> [--mermaid|--text|--html]
 adrkit completion <bash|zsh|fish>

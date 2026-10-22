@@ -24,6 +24,7 @@ export const COMMANDS = [
   'validate',
   'update',
   'config',
+  'hook',
   'graph',
   'tree',
   'completion',
