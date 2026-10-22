@@ -95,8 +95,10 @@ describe('decision atlas rendering', () => {
     expect(page).toContain('<strong>2</strong><span>生效决策</span>');
     expect(page).toContain('<strong>1</strong><span>归档历史</span>');
     expect(page).toContain('<strong>1</strong><span>引用关系</span>');
-    // The generator's name links to the repository it was built from.
-    expect(page).toContain('<a class="footer-repo" href="https://github.com/example/repo"');
+    // The generator's name links to the tool, while the commit link points at
+    // the repository being documented.
+    expect(page).toContain('<a class="footer-repo" href="https://github.com/luochang212/adr-kit"');
+    expect(page).toContain('href="https://github.com/example/repo/tree/abc1234"');
     // The atlas draws its own count column, so the date label stays bare.
     expect(page).toContain('>2026-10-01</text>');
     expect(page).toContain('>2 条</text>');
