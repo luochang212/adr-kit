@@ -558,6 +558,8 @@ function danglingReferenceIssues(
 
 export function formatIssues(issues: ValidationIssue[]): string {
   if (issues.length === 0) return 'OK';
-  const lines = issues.map((issue) => `  ${issue.path}: ${issue.message}`);
+  // Issue paths arrive with the platform separator (they come from node:path
+  // math); the report speaks the repository's forward-slash convention.
+  const lines = issues.map((issue) => `  ${issue.path.replace(/\\/g, '/')}: ${issue.message}`);
   return `found ${issues.length} issue${issues.length === 1 ? '' : 's'}:\n${lines.join('\n')}`;
 }

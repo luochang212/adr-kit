@@ -2,4 +2,4 @@
 'adr-kit': patch
 ---
 
-The pre-commit hook reports staged records with repository-relative forward-slash paths on Windows too: the parse error was built from an absolute native path, so the message showed backslash separators and the check's advice didn't match the paths Git prints. Windows CI caught it; the fix passes the parser the same POSIX path every other message uses.
+Validation reports now speak the repository's forward-slash path convention on Windows too: `formatIssues` normalizes the platform separators that issue paths pick up from `node:path` math, so a pre-commit hook failure on Windows reads `adr/implemented/1-test.md` instead of `adr\implemented\1-test.md`. The hook also hands the parser absolute paths again, as `validateRecord`'s relative-path math expects.

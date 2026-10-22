@@ -259,6 +259,12 @@ changed.
     expect(validateCommand(root).valid).toBe(true);
   });
 
+  it('reports issue paths with forward slashes regardless of platform', () => {
+    expect(
+      formatIssues([{ path: 'adr\\implemented\\1-first.md', message: 'section "## Problem" must contain written content' }]),
+    ).toContain('adr/implemented/1-first.md: section "## Problem" must contain written content');
+  });
+
   it('flags unknown front matter fields', () => {
     const root = makeRepo();
     writeFileSync(

@@ -93,9 +93,7 @@ export function hookCheck(cwd: string): HookCheckResult {
     if (text === undefined) continue;
     let record: AdrRecord;
     try {
-      // The path is only reported; the text comes from the index, and a
-      // repository-relative POSIX path keeps the message portable.
-      record = parseAdrText(text, path);
+      record = parseAdrText(text, join(root, path));
       // The parser cannot know the folder; the path is the only source.
       record.folder = path.split('/')[1] as AdrFolder;
     } catch (error) {
