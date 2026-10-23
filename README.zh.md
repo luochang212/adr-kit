@@ -48,7 +48,7 @@ adrkit implement "使用 SQLite 存储会话" --raised-by human --decided-by hum
 adrkit validate
 ```
 
-已交付但尚未记录的选择可直接用 `adrkit record "<标题>" --raised-by human --decided-by human`。任务进行中遇到值得先记下、但还不值得展开成记录形态的选择时，`adrkit note "<一行>"` 把带时间戳的一行写进 `adr/notes.md`——它在生命周期之外，`adrkit validate` 忽略它，`adrkit list` 和 `adrkit instructions` 会计数显示，直到它被成形或删除。
+已交付但尚未记录的选择可直接用 `adrkit record "<标题>" --raised-by human --decided-by human`。任务进行中遇到值得先记下、但还不值得展开成记录形态的选择时，`adrkit note "<一行>"` 把带时间戳的一行写进 `adr/notes.md`。这一行在生命周期之外，`adrkit validate` 忽略它，`adrkit list` 和 `adrkit instructions` 会计数显示，直到它被成形或删除。
 
 ```text
 adr/
@@ -64,7 +64,7 @@ adr/
 
 ## 升级
 
-ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容——旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；归档记录只通过有意且说明原因的提交修改。0.23.0 及更早版本写下的 `adr/archived/MANIFEST.json` 已不再读取，直接删除即可。
+ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容。旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；归档记录只通过有意且说明原因的提交修改。0.23.0 及更早版本写下的 `adr/archived/MANIFEST.json` 已不再读取，直接删除即可。
 
 `AGENTS.md` 中的该段归你所有：可选的代际标记 `<!-- adrkit: standing-orders <id> -->` 表示已与哪一代模板核对，不保证正文完全一致。允许翻译、缩写和本地修改；项目专属要求放在该段之外。旧标记会让 `init`、`update`、`list`、`instructions` 和 `relevant` 提示：先与当前 `adrkit-init` 模板比较、处理变化，再更新标记。无标记的段落现在保持安静，包括旧安装；核对后保留或添加当前标记，即可选择接收以后的模板变化提醒。缺少整段规则时，init/update 仍会给出独立提醒。
 
@@ -72,7 +72,7 @@ ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令
 
 ## 告诉 Agent
 
-Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md`。任务开始时先运行 `adrkit list`：四个目录是一份上下文预算——完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，未交付的完整替代先链接意图并保留旧权威，交付时在同次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate` 失败。
+Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md`。任务开始时先运行 `adrkit list`。四个目录是一份上下文预算：完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，未交付的完整替代先链接意图并保留旧权威，交付时在同次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate` 失败。
 
 
 实际变更可用 `adrkit relevant --base <git-ref>` 检索指定提交到工作区的变化
@@ -83,7 +83,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 ## 决策档案
 
-一个页面就能承载整个归档：按创建日期分组的决策地图、编号时间线、引用与替代关系链，以及可本地搜索的全部生效记录。档案是单个自包含的 HTML 文件，离线可用——不需要服务器，也不依赖 CDN。
+一个页面就能承载整个归档：按创建日期分组的决策地图、编号时间线、引用与替代关系链，以及可本地搜索的全部生效记录。档案是单个自包含的 HTML 文件，不需要服务器，也不依赖 CDN，可以离线使用。
 
 [打开 ADR Kit 自己的决策档案](https://luochang212.github.io/adr-kit/decisions/)。它在每次站点构建时从本仓库的 `adr/` 重新生成，并固定到构建提交。
 
@@ -158,7 +158,7 @@ tags: [storage]
 ...
 ```
 
-提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`tags` 提供主题分类，不额外引入类别目录。可选 `paths: [src/core/**]` 把记录限定到它管辖的文件：仓库相对路径 glob，`**` 跨目录、`*` 不跨目录、`?` 匹配单字符。`adrkit relevant <path>...` 按阅读姿态列出管辖某文件或目录的记录；没有 `paths` 的记录永不匹配——范围检索不是全文搜索。`adrkit validate` 检查全部四个目录、拒绝目录之外的记录，并要求每个条目的静态目录锚点（无通配符时为完整路径）存在——重命名后校验失败而不是范围悄悄悬空。归档记录也是普通记录：同样适用格式、路径与引用校验，之后的格式迁移就是一次普通的 Git 提交。新模板未填完时按预期失败。
+提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`tags` 提供主题分类，不额外引入类别目录。可选 `paths: [src/core/**]` 把记录限定到它管辖的文件：仓库相对路径 glob，`**` 跨目录、`*` 不跨目录、`?` 匹配单字符。`adrkit relevant <path>...` 按阅读姿态列出管辖某文件或目录的记录；范围检索不是全文搜索，没有 `paths` 的记录永不匹配。`adrkit validate` 检查全部四个目录、拒绝目录之外的记录，并要求每个条目的静态目录锚点（无通配符时为完整路径）存在，重命名后校验会失败，范围不会悄悄悬空。归档记录也是普通记录：同样适用格式、路径与引用校验，之后的格式迁移就是一次普通的 Git 提交。新模板未填完时按预期失败。
 
 `adrkit implement` 会把提案的 `## Acceptance criteria` 与 `## Risks` 折叠为 `## Consequences` 下的现在时 `### Verification` 与 `### Trade-offs`；implemented 记录不得在 Consequences 下保留旧 H3 标题。CLI 不能改写正文，因此折叠时会输出提醒。后续决策的修订收录在 `## Consequences` 末尾的 `### Later changes` 小节，每条以 `**Amended by ADR N:**` 开头；`adrkit validate` 校验该形式。
 
@@ -169,7 +169,7 @@ implemented 记录可以更新路径、符号、默认值等已交付事实，�
 代码或配置文件的注释可以指回它遵循的决策：
 
 ```ts
-// @adr 14 — 路径必须保持仓库相对
+// @adr 14：路径必须保持仓库相对
 export function scope() { /* ... */ }
 ```
 

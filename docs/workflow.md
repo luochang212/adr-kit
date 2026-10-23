@@ -29,7 +29,7 @@ settles. Do not confuse a settled choice with shipped work.
 3. `adrkit reject <name> --reason "<the tempting mistake this blocks>"`
    records a durable anti-pattern in `rejected/`, without an ADR number. Keep
    it; remove it only when another record owns the warning it blocks, never for
-   appearing stale — rejections are unnumbered, so removing a redundant one
+   appearing stale. Rejections are unnumbered, so removing a redundant one
    cannot reuse a number.
 4. Full replacement uses `adrkit supersede <old> --by <new>`; the old
    numbered record moves to `archived/` with `superseded-by`. Partial

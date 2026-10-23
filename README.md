@@ -48,7 +48,7 @@ adrkit implement "Use SQLite for session storage" --raised-by human --decided-by
 adrkit validate
 ```
 
-For an architectural choice already shipped, use `adrkit record "<title>" --raised-by human --decided-by human` instead. Mid-task, when a choice is worth capturing but not worth the record's shape yet, `adrkit note "<one line>"` parks a timestamped line in `adr/notes.md` — outside the lifecycle, ignored by `adrkit validate`, counted by `adrkit list` and `adrkit instructions` until it is shaped or deleted.
+For an architectural choice already shipped, use `adrkit record "<title>" --raised-by human --decided-by human` instead. Mid-task, when a choice is worth capturing but not worth the record's shape yet, `adrkit note "<one line>"` parks a timestamped line in `adr/notes.md`. The line is outside the lifecycle, ignored by `adrkit validate`, counted by `adrkit list` and `adrkit instructions` until it is shaped or deleted.
 
 ```text
 adr/
@@ -64,7 +64,7 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 ## Upgrades
 
-ADR Kit is pre-stable and breaks on purpose: a release may change the record format or the command surface, and nothing promises forward compatibility — records written by an older release are not guaranteed to keep passing validation, and not every break has a mechanical migration. Upgrading is the supported path: run `adrkit update` to refresh the installed integrations, then `adrkit validate --all` in your repositories, where validation errors name what changed. The standing orders tell your agent to upgrade the package, migrate active records where the change is mechanical, and report a record it cannot carry over instead of forcing a rewrite; archived records change only through a deliberate, explained commit. An `adr/archived/MANIFEST.json` written by 0.23.0 or earlier is no longer read; delete it.
+ADR Kit is pre-stable and breaks on purpose: a release may change the record format or the command surface, and nothing promises forward compatibility. Records written by an older release are not guaranteed to keep passing validation, and not every break has a mechanical migration. Upgrading is the supported path: run `adrkit update` to refresh the installed integrations, then `adrkit validate --all` in your repositories, where validation errors name what changed. The standing orders tell your agent to upgrade the package, migrate active records where the change is mechanical, and report a record it cannot carry over instead of forcing a rewrite; archived records change only through a deliberate, explained commit. An `adr/archived/MANIFEST.json` written by 0.23.0 or earlier is no longer read; delete it.
 
 That section in `AGENTS.md` is yours: its optional `<!-- adrkit: standing-orders <id> -->` generation marker declares which template you reconciled it against, not identical text. Translation, shortening, and local edits are allowed. Keep project-specific obligations outside the section. An old marker produces a note in `init`, `update`, `list`, `instructions`, and `relevant`: compare with the current `adrkit-init` template and reconcile changes before updating the marker. Unmarked sections now stay quiet, including older installations; retain or add the current marker after reconciliation to opt into future template-change notes. A missing section still produces the separate init/update note.
 
@@ -85,7 +85,7 @@ reading still apply. See the [retrieval contract](docs/cli.md#scope-retrieval-fo
 
 ## Decision atlas
 
-One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current record in a local-search directory. The atlas is a single self-contained HTML file that works offline — no server and no CDN.
+One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current record in a local-search directory. The atlas is a single self-contained HTML file that needs no server and no CDN, so it works offline.
 
 [Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/en.html). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit.
 
@@ -160,7 +160,7 @@ tags: [storage]
 ...
 ```
 
-Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `tags` remain the thematic classification; no class directory is needed. Optional `paths: [src/core/**]` scopes a record to the files it governs: repository-relative globs where `**` crosses directories, `*` stays within one segment, and `?` matches one character. `adrkit relevant <path>...` lists the records whose scopes govern a file or directory, grouped by lifecycle posture; records without `paths` never match, because scope retrieval is not full-text search. `adrkit validate` checks all four folders, rejects records outside them, and requires each entry's static directory anchor (or full literal path) to exist — a rename fails validation instead of silently stranding the scope. Archived records are ordinary records too: the same format, path, and reference checks apply, and a later format migration is a normal Git commit. Fresh templates intentionally fail until filled.
+Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `tags` remain the thematic classification; no class directory is needed. Optional `paths: [src/core/**]` scopes a record to the files it governs: repository-relative globs where `**` crosses directories, `*` stays within one segment, and `?` matches one character. `adrkit relevant <path>...` lists the records whose scopes govern a file or directory, grouped by lifecycle posture; records without `paths` never match, because scope retrieval is not full-text search. `adrkit validate` checks all four folders, rejects records outside them, and requires each entry's static directory anchor (or full literal path) to exist, so a rename fails validation instead of silently stranding the scope. Archived records are ordinary records too: the same format, path, and reference checks apply, and a later format migration is a normal Git commit. Fresh templates intentionally fail until filled.
 
 `adrkit implement` folds a proposal's `## Acceptance criteria` and `## Risks` into present-tense `### Verification` and `### Trade-offs` under `## Consequences`; implemented records must not keep the old H3 names under Consequences. The command warns when it folds content because the CLI cannot rewrite prose. Amendments from later decisions collect in a `### Later changes` subsection at the end of Consequences, each entry opening `**Amended by ADR N:**`; `adrkit validate` enforces the form.
 
@@ -171,7 +171,7 @@ An implemented record may refresh factual paths, symbols, or defaults, but not r
 A code or configuration comment can point back at the decision it implements:
 
 ```ts
-// @adr 14 — paths must stay repository-relative
+// @adr 14: paths must stay repository-relative
 export function scope() { /* ... */ }
 ```
 

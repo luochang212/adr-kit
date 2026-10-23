@@ -23,7 +23,7 @@
    提案但已交付的选择，用相同来源声明运行 `adrkit record <title>`。
 3. `adrkit reject <name> --reason "<它挡住的诱惑性错误>"` 把否决提案记为
    `rejected/` 的稳定反例终态，不分配 ADR 编号。保留它；只有当另一条记录
-   接管了它挡住的错误时才移除，绝不因「看起来过时」而删——否决记录无编号。
+   接管了它挡住的错误时才移除，绝不因「看起来过时」而删。否决记录没有编号。
 4. 完整替代用 `adrkit supersede <old> --by <new>`：旧编号记录带
    `superseded-by` 进入 `archived/`。部分替代仍保留有效的现行指导。
    其他低未来价值记录，仅当现状另有权威来源时，才用 `adrkit archive <N>

@@ -69,7 +69,7 @@ outside the four folders, and dangling ADR references: a record body may
 reference decisions as `ADR-12`, `ADR 4`, or `ADR12`, and a reference to a
 number that does not exist fails repository-wide validation.
 
-Optional `paths` scope a record to the files it governs — a different axis
+Optional `paths` scope a record to the files it governs. This is a different axis
 from `tags`: tags classify by theme, `paths` answer "which decisions govern
 this file?". Entries are unique repository-relative globs with forward
 slashes; `**` crosses directory separators, `*` stays within one segment,
@@ -78,13 +78,13 @@ expansion, no character classes); an entry that starts with `*` needs
 quotes in YAML flow style (`paths: ["**/*.ts"]`). `adrkit relevant <path>...` lists the
 records whose scopes govern the given file or directory, grouped by
 lifecycle posture; archived records are frozen history and are not searched
-by default, and a record without `paths` never matches — scope retrieval is
+by default, and a record without `paths` never matches, because scope retrieval is
 not full-text search. The field survives every lifecycle move and the
 proposal-to-decision promotion. `adrkit validate` rejects an empty or
 duplicate entry, an absolute path, a `..` segment, a backslash, and an
 entry whose static directory anchor does not exist in the repository
 (the complete directory components before the first wildcard, or the full
-literal path when there is no wildcard; `src/cli*.ts` checks `src`) — the drift check that fails a scope stranded by
+literal path when there is no wildcard; `src/cli*.ts` checks `src`). This is the drift check that fails a scope stranded by
 a rename. Archived records are checked the same way; a stale path is a
 normal migration fix.
 

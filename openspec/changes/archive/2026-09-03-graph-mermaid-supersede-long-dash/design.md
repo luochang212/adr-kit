@@ -18,7 +18,7 @@
 ## Decisions
 
 - **用 `linkStyle <index> stroke-dasharray:11 7` 追加在输出末尾**，而不是把 `==>` 换成 `-.->` + 标签：`==>` 与 `-.->` 语义在 mermaid 读者中有普遍预期（formal vs mined），保留语法、仅覆盖描边，视觉与语义分离。
-- **索引 = 该边在所有边（formal + references 拼接）声明数组中的下标**：mermaid 的 `linkStyle` 索引按整图边的声明顺序计。formal 边先于 references 输出，所以第 k 条 formal 边的索引就是 k（从 0 起）。用 `links.map` 重排以得出精确索引更稳妥——生成 `allEdges = [...formal, ...references]` 后对 formal 边按其 `allEdges.indexOf` 定位。全图至多几十条边，`indexOf` 的 O(n²) 可忽略，换来索引与 mermaid 引擎严格一致。
+- **索引 = 该边在所有边（formal + references 拼接）声明数组中的下标**：mermaid 的 `linkStyle` 索引按整图边的声明顺序计。formal 边先于 references 输出，所以第 k 条 formal 边的索引就是 k（从 0 起）。生成 `allEdges = [...formal, ...references]` 后，对 formal 边按其 `allEdges.indexOf` 定位，用 `links.map` 重排就能得出精确索引，这样更稳妥。全图至多几十条边，`indexOf` 的 O(n²) 可忽略，换来索引与 mermaid 引擎严格一致。
 - **每条 formal 边独占一行 `linkStyle`**（不逗号合并多条），让输出可读、索引清晰。
 - 选择 `11 7`（长划）：与官网 `Graph.astro` 的 dasharray 完全一致，避免再引入一套数值。
 
