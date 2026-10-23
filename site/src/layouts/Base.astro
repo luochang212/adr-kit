@@ -67,13 +67,16 @@ const jsonLd = {
           if (!isRoot) return;
           try { preferred = localStorage.getItem('adr-kit.language'); } catch (_) {}
           if (preferred !== 'en' && preferred !== 'zh') {
+            // Chinese anywhere in the browser's list wins: a reader without
+            // Chinese has no zh entry at all, so the list's order only ever
+            // demotes a language the reader cannot use. Everyone else gets
+            // English.
             preferred = 'en';
             var languages = navigator.languages && navigator.languages.length
               ? navigator.languages : [navigator.language];
             for (var language of languages) {
-              var match = /^(en|zh)(?:-|$)/i.exec(language);
-              if (match) {
-                preferred = match[1].toLowerCase();
+              if (/^zh(?:-|$)/i.test(language)) {
+                preferred = 'zh';
                 break;
               }
             }

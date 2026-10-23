@@ -48,13 +48,13 @@ describe('homepage language selection', () => {
   it.each([
     [['zh-CN', 'en'], '/adr-kit/zh/'],
     [['zh-Hant-TW'], '/adr-kit/zh/'],
-    [['en-GB', 'zh-CN'], null],
+    [['en-GB', 'zh-CN'], '/adr-kit/zh/'],
     [['fr', 'zh-HK', 'en'], '/adr-kit/zh/'],
-    [['fr', 'en', 'zh'], null],
+    [['fr', 'en', 'zh'], '/adr-kit/zh/'],
     [['ja', 'de'], null],
     [['zhongwen', 'english'], null],
     [['ZH-cn'], '/adr-kit/zh/'],
-  ] as const)('uses the first supported browser preference: %j', (languages, target) => {
+  ] as const)('prefers Chinese anywhere in the browser list: %j', (languages, target) => {
     const { redirects } = visit({ languages: [...languages] });
     expect(redirects).toEqual(target ? [`https://example.com${target}`] : []);
   });
