@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.26.0
+
+### Minor Changes
+
+- 7479bf2: Breaking: visualization formats no longer select the generated object. `adrkit atlas --format html --out adr.html` now writes the full decision atlas. Standalone maps require `--map`, for example `adrkit atlas --map --out map.html` or `adrkit atlas --map --format mermaid`. Non-HTML formats without an explicit map or record are rejected with a corrective hint. Map filters require `--map`; single-record trees now also default to HTML and accept `--format html|mermaid|text`. The `--diagram` flag is removed. Atlas rejects positional arguments and points record queries to `--record <name>`. File-output receipts now identify the object, format, and absolute path; stdout without `--out` remains the artifact alone. Refresh agent integrations with `adrkit update` after upgrading.
+- 340fa48: Make standing-orders generation tracking optional: unmarked AGENTS.md sections no longer produce drift notes. A marker declares reconciliation with a template generation, allowing translation and local edits without asserting body equality. Old markers ask users to compare and reconcile changes before updating the marker; init/update still report missing sections and never rewrite AGENTS.md.
+
+### Patch Changes
+
+- 2671842: Stop restarting chapter-navigation smooth scrolling on every page scroll update. Bring a chapter into view only when it becomes active and is outside the navigation viewport; honor reduced-motion preferences. This removes redundant motion in narrow decision-atlas navigation without changing page-scroll or canvas gestures.
+- 2671842: Hide HTML comments in decision-atlas details, including template guidance after lists, multiline comments, and unfinished comments. Preserve visible surrounding text and comment examples in code. The shared template updates CLI atlases, installed visualization resources, and both site languages.
+- 2671842: Render Markdown task lists in decision-atlas details as disabled native checkboxes, including checked and unchecked items, uppercase X, and ordered lists. Preserve continuation text and inline code/emphasis. The shared template fixes CLI atlases and both site languages without adding dependencies.
+- cad88d2: Balance the decision atlas's reference and replacement summaries towards a shared preferred height of 26rem, with a hard maximum of 35rem and no forced minimum. Select whole rows by their rendered heights on desktop and mobile, recalculating only when width or fonts change. Center the density chart's counts above their bars. The shared template applies to CLI exports and both website languages.
+- 40cda8d: Shorten both decision-atlas footers to the generator attribution and pinned commit. Remove project-home and language-switch footer links, and omit the redundant current-records wording. Both language pages remain generated and published.
+- 2671842: Right-align the decision-atlas chapter links on mobile and remove the right-side fade that obscured the last link. Preserve horizontal scrolling on narrow screens. Canvas window-resize events now preserve zoom and pan instead of automatically refitting; initial views and explicit Fit/Reset controls remain available in the atlas and standalone visualizations.
+- 2755f6d: Raise the decision atlas's shared insight height budget from a 26rem preference and 35rem maximum to 40rem and 50rem, so the replacement panel shows at least three rows and the reference panel sits slightly shorter. Drop the map legend's active-records note.
+
 ## 0.25.0
 
 ### Minor Changes
