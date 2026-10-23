@@ -64,7 +64,11 @@ adr/
 
 ## 升级
 
-ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容——旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；归档记录只通过有意且说明原因的提交修改。0.23.0 及更早版本写下的 `adr/archived/MANIFEST.json` 已不再读取，直接删除即可。`AGENTS.md` 中的该段归你所有，当它粘贴自与当前 CLI 不同的模板时 `adrkit list` 会提示。可视化命令已收敛为一个：`adrkit atlas`（地图用 `--format html`，单条决策的树用 `--record <N> --diagram`）；`adrkit graph` 与 `adrkit tree` 已移除。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。
+ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容——旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；归档记录只通过有意且说明原因的提交修改。0.23.0 及更早版本写下的 `adr/archived/MANIFEST.json` 已不再读取，直接删除即可。
+
+`AGENTS.md` 中的该段归你所有：可选的代际标记 `<!-- adrkit: standing-orders <id> -->` 表示已与哪一代模板核对，不保证正文完全一致。允许翻译、缩写和本地修改；项目专属要求放在该段之外。旧标记会让 `init`、`update`、`list`、`instructions` 和 `relevant` 提示：先与当前 `adrkit-init` 模板比较、处理变化，再更新标记。无标记的段落现在保持安静，包括旧安装；核对后保留或添加当前标记，即可选择接收以后的模板变化提醒。缺少整段规则时，init/update 仍会给出独立提醒。
+
+可视化命令已收敛为一个：`adrkit atlas`（地图用 `--format html`，单条决策的树用 `--record <N> --diagram`）；`adrkit graph` 与 `adrkit tree` 已移除。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。
 
 ## 告诉 Agent
 

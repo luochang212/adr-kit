@@ -18,7 +18,7 @@ import { updateCommand } from '../src/commands/update.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { todayStamp } from '../src/core/adr.js';
 import { installedWithNotice, readConfig } from '../src/core/config.js';
-import { standingOrdersSection } from '../src/core/tool-integrations.js';
+import { STANDING_ORDERS_MARKER, standingOrdersSection } from '../src/core/tool-integrations.js';
 import { listProposals, listRecords as allRecords } from '../src/core/repository.js';
 import { displayWidth } from '../src/core/view-text.js';
 import { VERSION } from '../src/version.js';
@@ -874,53 +874,63 @@ describe('standing-orders note', () => {
 });
 
 describe('standing-orders template marker', () => {
+  function freshDir(): string {
+    const root = mkdtempSync(join(tmpdir(), 'adrkit-marker-'));
+    tempDirs.push(root);
+    return root;
+  }
+
   const SECTION =
     '## Reading architecture decisions\n\nAt the start of a coding task, run adrkit list.\n';
 
-  it('a section carrying the current marker is quiet everywhere', () => {
-    // The marker is the sha256 of the template body, so an exact paste is
-    // indistinguishable from a reconciled one — both are current by
-    // declaration, and no surface may nag about them.
-    const root = makeRepo();
-    writeFileSync(join(root, 'AGENTS.md'), `# mine\n\n${standingOrdersSection()}\n`);
-    for (const output of [listCommand(root), instructionsCommand(root), updateCommand(root)]) {
+  it.each([
+    ['unmarked local section', SECTION],
+    ['current template', standingOrdersSection()],
+    ['edited body with current marker', `${SECTION}Local rules.\n${STANDING_ORDERS_MARKER}`],
+    ['translated body with current marker', `## 架构决策\n任务开始时运行 adrkit list。\n${STANDING_ORDERS_MARKER}`],
+  ])('%s stays quiet across commands and preserves AGENTS.md', (_name, section) => {
+    const root = freshDir();
+    const path = join(root, 'AGENTS.md');
+    writeFileSync(path, section);
+    const outputs = [
+      initCommand(root), updateCommand(root), listCommand(root), instructionsCommand(root),
+      relevantCommand([join(root, 'src', 'main.ts')], root).output,
+    ];
+    for (const output of outputs) {
+      expect(output).not.toContain('note: the standing orders');
+      expect(output).not.toContain('note: AGENTS.md does not carry');
+    }
+    expect(readFileSync(path, 'utf8')).toBe(section);
+  });
+
+  it('an old marker asks for comparison before re-stamping across commands', () => {
+    const root = freshDir();
+    const path = join(root, 'AGENTS.md');
+    const section = `${SECTION}\n<!-- adrkit: standing-orders deadbeef -->\n`;
+    writeFileSync(path, section);
+    const outputs = [
+      initCommand(root), updateCommand(root), listCommand(root), instructionsCommand(root),
+      relevantCommand([join(root, 'src', 'main.ts')], root).output,
+    ];
+    for (const output of outputs) {
+      expect(output).toContain('different template generation');
+      expect(output).toContain(`step 4 of ${join('.agents', 'skills', 'adrkit-init', 'SKILL.md')}`);
+      expect(output).toContain('compare the section');
+      expect(output).toContain('reconcile any changes, then update the generation marker');
+    }
+    expect(readFileSync(path, 'utf8')).toBe(section);
+  });
+
+  it.each([undefined, '# Project instructions\n'])('a missing section keeps its separate init/update note (%s)', (body) => {
+    const root = freshDir();
+    if (body !== undefined) writeFileSync(join(root, 'AGENTS.md'), body);
+    for (const output of [initCommand(root), updateCommand(root)]) {
+      expect(output).toContain('note: AGENTS.md does not carry the standing orders');
       expect(output).not.toContain('note: the standing orders');
     }
-  });
-
-  it('an unmarked section is invited to reconcile with the marker', () => {
-    // Every install made before the marker existed reads as unmarked; the
-    // note must point at the refresh source rather than rewrite the file.
-    const root = makeRepo();
-    writeFileSync(join(root, 'AGENTS.md'), `# mine\n\n${SECTION}`);
-    expect(updateCommand(root)).toContain('predate template marking');
-    expect(listCommand(root)).toContain(
-      `step 4 of ${join('.agents', 'skills', 'adrkit-init', 'SKILL.md')}`,
-    );
-    expect(instructionsCommand(root)).toContain('predate template marking');
-  });
-
-  it('a marker from a different template generation is reported as drift', () => {
-    const root = makeRepo();
-    writeFileSync(
-      join(root, 'AGENTS.md'),
-      `# mine\n\n## Reading architecture decisions\n\nAt the start of a coding task, run adrkit list.\n\n<!-- adrkit: standing-orders deadbeef -->\n`,
-    );
-    expect(listCommand(root)).toContain('different template');
-    expect(instructionsCommand(root)).toContain('different template');
-  });
-
-  it('relevant carries the drift note alongside the integration notice', () => {
-    const root = makeRepo();
-    writeFileSync(join(root, 'AGENTS.md'), `# mine\n\n${SECTION}`);
-    const result = relevantCommand([join(root, 'src', 'main.ts')], root);
-    expect(result.output).toContain('predate template marking');
-  });
-
-  it('a repository without AGENTS.md stays quiet about standing-orders drift', () => {
-    const root = makeRepo();
-    expect(listCommand(root)).not.toContain('note: the standing orders');
-    expect(instructionsCommand(root)).not.toContain('note: the standing orders');
+    for (const output of [listCommand(root), instructionsCommand(root)]) {
+      expect(output).not.toContain('note: the standing orders');
+    }
   });
 });
 

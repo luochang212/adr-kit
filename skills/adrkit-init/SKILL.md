@@ -11,6 +11,8 @@ Run `adrkit init [path]` for a new repository, or `adrkit update` if `adr/` exis
 
 Record language follows the repository: match the language of existing records, or the user's language when the repository has no records yet, and keep that language for both titles and bodies rather than switching per conversation.
 
+The trailing generation marker declares which template the section was reconciled against; it does not assert identical text. Translation, shortening, and local edits are allowed. Keep project-specific obligations outside the pasted section. Keep the marker to receive template-change notes, or omit it to maintain the section without tracking. When a note appears, compare with this template and reconcile any changes before updating the marker.
+
 Add or update this section in `AGENTS.md`:
 
 ## Reading architecture decisions

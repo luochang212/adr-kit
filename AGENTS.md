@@ -114,6 +114,11 @@ over a patch rather than share the working tree.
   `src/core/tool-integrations.ts`; each one mirrors `skills/<name>/SKILL.md`
   exactly, and `test/integrations.test.ts` machine-checks the sync. Edit one
   side and the test tells you to fix the other.
+- The standing-orders marker declares reconciliation with a template generation,
+  not body equality. Local edits and translation are allowed. Compare and
+  reconcile changes before updating the marker; omitting it opts out of
+  template-change notes. Preserve the user-owned AGENTS.md boundary: CLI
+  commands read it but never rewrite it.
 - The `adrkit-grill` method is adapted from `mattpocock/skills` (MIT). The
   upstream grilling directory is vendored under `assets/upstream/grilling/`
   and pinned in `MANIFEST.json`; CI hard-fails (`npm run check:upstream`) when

@@ -73,10 +73,9 @@ Records outlive the format that wrote them. When \`adrkit validate\` reports unk
 When the user wants to review or share the project's history, use the \`adrkit-visualize\` skill; generate a browsable atlas from \`adr/implemented/\` and \`adr/archived/\` only, publish archived bodies in full, and pin the page to the commit it was built from.`;
 
 /**
- * Fingerprint of the canonical section body. The marker is derived, never
- * hand-assigned: editing the wording changes the fingerprint, so a section
- * pasted from an older template automatically reads as stale — there is no
- * revision number to forget to bump.
+ * Template-generation id derived from the canonical body, with no manual bump.
+ * A pasted marker declares reconciliation with that generation, not equality
+ * with the local body: translation, shortening, and local edits are allowed.
  */
 export const STANDING_ORDERS_MARK = createHash('sha256')
   .update(STANDING_ORDERS_BODY)
@@ -109,6 +108,8 @@ Installing ADR Kit wires a repository's decision memory into the surfaces agents
 Run \`adrkit init [path]\` for a new repository, or \`adrkit update\` if \`adr/\` exists. Confirm the four lifecycle folders: \`proposed/\`, \`implemented/\`, \`rejected/\`, and \`archived/\`. They are a context budget as well as a lifecycle: \`implemented/\` is current authority, \`proposed/\` is intent, \`rejected/\` is anti-pattern memory, and \`archived/\` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
 
 Record language follows the repository: match the language of existing records, or the user's language when the repository has no records yet, and keep that language for both titles and bodies rather than switching per conversation.
+
+The trailing generation marker declares which template the section was reconciled against; it does not assert identical text. Translation, shortening, and local edits are allowed. Keep project-specific obligations outside the pasted section. Keep the marker to receive template-change notes, or omit it to maintain the section without tracking. When a note appears, compare with this template and reconcile any changes before updating the marker.
 
 Add or update this section in \`AGENTS.md\`:
 
@@ -602,11 +603,11 @@ const STANDING_ORDERS_MARKER_RE = /<!--\s*adrkit:\s*standing-orders\s+([0-9a-f]+
 
 /**
  * The drift note for a standing-orders section whose marker does not match
- * the current template: pasted from a different template generation, or
- * pasted before the marker existed. Reading only — the file belongs to the
- * user, and the note names the refresh source instead of rewriting anything.
- * Quiet when AGENTS.md carries no section (the missing-section note owns
- * that case) or when the marker matches the shipped template.
+ * the current template generation. Reading only — the file belongs to the
+ * user, and the note asks for reconciliation instead of rewriting anything.
+ * No marker opts out of generation tracking; a matching marker declares
+ * reconciliation without asserting body equality. A missing section is owned
+ * by the separate missing-section note.
  */
 export function standingOrdersDriftNote(root: string): string | undefined {
   if (standingOrdersFile(root) === undefined) return undefined;
@@ -616,11 +617,8 @@ export function standingOrdersDriftNote(root: string): string | undefined {
   } catch {
     return undefined;
   }
-  const source = `step 4 of ${initSkillReference(root)}`;
   const match = STANDING_ORDERS_MARKER_RE.exec(text);
-  if (match === null) {
-    return `note: the standing orders in AGENTS.md predate template marking; compare the section with ${source} and refresh it with the current marker`;
-  }
-  if (match[1] === STANDING_ORDERS_MARK) return undefined;
-  return `note: the standing orders in AGENTS.md were pasted from a different template than this adr-kit ships; compare the section with ${source} and refresh the marker`;
+  if (match === null || match[1] === STANDING_ORDERS_MARK) return undefined;
+  const source = `step 4 of ${initSkillReference(root)}`;
+  return `note: the standing orders in AGENTS.md carry a different template generation marker than this adr-kit ships; compare the section with ${source}, reconcile any changes, then update the generation marker`;
 }
