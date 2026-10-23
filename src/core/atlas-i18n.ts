@@ -40,7 +40,6 @@ const EN: Array<[string, string]> = [
   ['被反复引用的决策', 'Most-referenced decisions'],
   ['哪些选择被后来者替代？', 'Which choices were replaced?'],
   ['被替代 → 后继记录', 'Replaced → successor'],
-  ['生效约束以当前记录为准', 'Current constraints come from active records'],
   ['替代；当前约束请查看生效记录。', ' replaced; current constraints are in active records.'],
   ['决策统计', 'Decision statistics'],
   ['决策卡片', 'Decision cards'],

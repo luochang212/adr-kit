@@ -52,15 +52,27 @@ function layout(heights: number[][], { rem = 16 } = {}) {
 
 describe('atlas insight height budgets', () => {
   it('adds hubs beyond six while reducing taller replacement chains', () => {
-    const result = layout([[140, 180, 220, 260, 300, 340, 380, 420, 460], [240, 400, 700]]);
-    expect(result.visible()).toEqual([8, 2]);
+    const result = layout([[90, 180, 270, 360, 450, 540, 630, 720, 810, 900], [240, 400, 700]]);
+    expect(result.visible()).toEqual([7, 3]);
   });
 
   it('compares full rendered heights, including different heading and note heights', () => {
-    // The closest complete prefixes to 416 are 420 and 500; both fit the
-    // maximum of 560 even though the second panel's heading is taller.
+    // Every prefix up to 550 sits below the preferred 688, so the widest
+    // fitting prefix wins; the second panel stops at its 500 bottom edge.
     const result = layout([[170, 220, 270, 320, 370, 420, 480, 550], [320, 500]]);
-    expect(result.visible()).toEqual([6, 2]);
+    expect(result.visible()).toEqual([8, 2]);
+  });
+
+  it('shows at least three replacement rows at the shipped record sizes', () => {
+    // Prefix bottom edges measured on the generated atlas at 1280×720: the
+    // third replacement row ends at 666px, inside the 800px hard maximum and
+    // closer to the 640px preference than any shorter prefix, while the
+    // reference panel lands at 632px — slightly shorter, as maintained.
+    const result = layout([
+      [295, 343, 391, 439, 488, 536, 584, 632, 680, 748, 796],
+      [396, 521, 666, 791, 917],
+    ]);
+    expect(result.visible()).toEqual([8, 3]);
   });
 
   it('keeps sparse content short without a forced minimum', () => {
@@ -70,31 +82,31 @@ describe('atlas insight height budgets', () => {
   });
 
   it('hides an oversized row as a whole instead of clipping a title or card', () => {
-    expect(layout([[200, 900, 950], [580]]).visible()).toEqual([1, 0]);
+    expect(layout([[200, 900, 950], [580]]).visible()).toEqual([1, 1]);
     expect(example).toContain('.insight-columns [hidden]{display:none}');
   });
 
   it('keeps the preferred height stable when the other panel gains content', () => {
     const hubs = [170, 220, 270, 320, 370, 420, 470, 520];
-    expect(layout([hubs, [240, 400]]).visible()).toEqual([6, 2]);
-    expect(layout([hubs, [240, 400, 700, 1000]]).visible()).toEqual([6, 2]);
+    expect(layout([hubs, [240, 400]]).visible()).toEqual([8, 2]);
+    expect(layout([hubs, [240, 400, 900, 1100]]).visible()).toEqual([8, 2]);
   });
 
   it('uses the preferred height for a single module and handles no modules', () => {
-    expect(layout([[180, 250, 320, 390, 460, 530, 600]]).visible()).toEqual([4]);
+    expect(layout([[180, 250, 320, 390, 460, 530, 600]]).visible()).toEqual([7]);
     expect(layout([]).visible()).toEqual([]);
   });
 
   it('scales the preferred height and maximum with the root text size', () => {
-    expect(layout([[600, 800]], { rem: 24 }).visible()).toEqual([1]);
-    expect(layout([[700, 850]], { rem: 24 }).visible()).toEqual([1]);
-    expect(layout([[600, 800]]).visible()).toEqual([0]);
+    expect(layout([[900, 1200]], { rem: 24 }).visible()).toEqual([1]);
+    expect(layout([[700, 850]], { rem: 24 }).visible()).toEqual([2]);
+    expect(layout([[900, 1200]]).visible()).toEqual([0]);
   });
 
   it('restores hidden candidates before measuring a changed width', () => {
     const heights = [[180, 280, 380, 480, 580], [230, 440, 650]];
     const result = layout(heights);
-    expect(result.visible()).toEqual([3, 2]);
+    expect(result.visible()).toEqual([5, 3]);
     heights[0]!.splice(0, 5, 150, 200, 250, 300, 350);
     heights[1]!.splice(0, 3, 180, 280, 380);
     result.resize(1200);
@@ -116,7 +128,7 @@ describe('atlas insight height budgets', () => {
   });
 
   it('uses measured narrow-screen rows without increasing the preferred height', () => {
-    expect(layout([[220, 320, 420, 520], [300, 490, 680]]).visible()).toEqual([3, 2]);
+    expect(layout([[220, 320, 420, 520], [300, 490, 680]]).visible()).toEqual([4, 3]);
   });
 
   it('runs after candidates are rendered and absent modules removed', () => {
