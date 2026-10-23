@@ -313,7 +313,9 @@ export const CANVAS_SCRIPT = String.raw`
       paint();
     }
   });
-  window.addEventListener('resize', () => { relayout(); fitWidth(); });
+  // Browser chrome and window resizes must not replace the reader's view.
+  // Fit remains an explicit action; layout can refresh without resetting pan/zoom.
+  window.addEventListener('resize', () => { relayout(); paint(); });
 
   window.__adrCanvas = {
     viewport, world,

@@ -504,7 +504,7 @@ describe('offline card tree', () => {
     // whole-diagram overview.
     expect(html).toMatch(/relayout\(\);\s*fitWidth\(\);/);
     expect(html).toContain('function fitWidth()');
-    expect(html).toMatch(/window\.addEventListener\('resize', \(\) => \{ relayout\(\); fitWidth\(\); \}\)/);
+    expect(html).toMatch(/window\.addEventListener\('resize', \(\) => \{ relayout\(\); paint\(\); \}\)/);
     // Toolbar icons are block from the shared shell: an inline SVG carries the
     // font's descender space below it, which lifts it out of line with the
     // icon beside it (the map's own stylesheet hid this for a while).

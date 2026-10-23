@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it } from 'vitest';
+import { renderDecisionAtlas } from '../src/core/decision-atlas.js';
+import { buildDecisionGraph } from '../src/core/graph.js';
+import { markdownLines, type AdrRecord } from '../src/core/adr.js';
 import { FAVICON_DATA_URI } from '../src/core/brand.js';
 
 const example = readFileSync(new URL(
@@ -66,6 +69,11 @@ describe('visualization example archive cards', () => {
 describe('reader typography', () => {
   interface Element {
     tag: string;
+    tagName: string;
+    type?: string;
+    checked?: boolean;
+    disabled?: boolean;
+    classList: { add(name: string): void };
     textContent: string;
     className: string;
     children: Element[];
@@ -76,25 +84,38 @@ describe('reader typography', () => {
   }
 
   // Run the shipped read() against a minimal DOM and return the body lookup.
-  function renderReader(body: string): (selector: string) => Element {
-    const element = (tag = 'div'): Element => ({
-      tag, textContent: '', className: '', children: [], style: {},
-      get lastElementChild() { return this.children.at(-1) ?? null; },
-      append(...children) { this.children.push(...children); },
-      replaceChildren() { this.children = []; },
-    });
+  function renderReader(body: string, page = example): (selector: string) => Element {
+    const element = (tag = 'div'): Element => {
+      let text = '';
+      const node: Element = {
+        tag, tagName: tag.toUpperCase(), className: '', children: [], style: {},
+        get textContent(): string { return text + this.children.map(child => child.textContent).join(''); },
+        set textContent(value: string) { text = value; this.children = []; },
+        classList: { add(name: string) { node.className = name; } },
+        get lastElementChild() { return this.children.at(-1) ?? null; },
+        append(...children) { this.children.push(...children); },
+        replaceChildren() { text = ''; this.children = []; },
+      };
+      return node;
+    };
     const nodes = new Map<string, Element>();
     const lookup = (selector: string): Element => {
       let node = nodes.get(selector);
       if (!node) { node = element(); nodes.set(selector, node); }
       return node;
     };
-    const document = { createElement: (tag: string) => element(tag), querySelector: lookup };
-    const make = example.match(/const make = \(tag, cls, text\) => \{[\s\S]*?\n\};/)![0];
-    const start = example.indexOf('function read(number){');
-    const read = example.slice(start, example.indexOf('world.addEventListener', start));
+    const descendants = (node: Element): Element[] => node.children.flatMap(child => [child, ...descendants(child)]);
+    const document = {
+      createElement: (tag: string) => element(tag), querySelector: lookup,
+      createTextNode: (text: string) => Object.assign(element('#text'), { textContent: text }),
+      querySelectorAll: () => descendants(lookup('#reader-body')).filter(node => node.tag === 'p' || node.tag === 'li'),
+    };
+    const make = page.match(/const make = \(tag, cls, text\) => \{[\s\S]*?\n\};/)![0];
+    const start = page.indexOf('function readerLines(');
+    const read = page.slice(start, page.indexOf('world.addEventListener', start));
+    const inline = page.slice(page.indexOf('function inlineInto'), page.indexOf('function showContext'));
     const records = [{ number: 1, title: 'Record', lifecycle: 'implemented', tags: [], source: '', body }];
-    runInNewContext(`${make}\n${read}\nread(1);`, {
+    runInNewContext(`${make}\n${inline}\n${read}\nread(1);\ndocument.querySelectorAll().forEach(inlineText);`, {
       document, records, statusName: { implemented: '生效' }, nodes: [],
       showContext() {},
       reader: { open: false, showModal() {}, scrollTop: 0, classList: { add() {}, remove() {} } },
@@ -159,6 +180,100 @@ describe('reader typography', () => {
     expect(list.children.map((item) => item.textContent)).toEqual(['first continued', 'second']);
   });
 
+  it.each([
+    ['zh', 'implemented'], ['en', 'implemented'], ['zh', 'archived'], ['en', 'archived'],
+  ] as const)('renders task lists through the generated %s atlas (%s)', (language, folder) => {
+    const body = '## Consequences\n\n### Verification\n\n- [x] **Complete** with `code`\n  continued\n+ [ ] Pending\n* [X] Uppercase\n<!-- hidden template guidance -->\n- ordinary item\n- [x]literal\n\n3. [x] Ordered';
+    const record = {
+      number: 1, title: 'Tasks', folder, status: 'implemented',
+      created: '2026-10-23', date: '2026-10-23',
+      path: 'adr/implemented/1-tasks.md', fileName: '1-tasks.md',
+      sections: [{ heading: 'Consequences', body: body.slice('## Consequences'.length) }],
+    } as AdrRecord;
+    const page = renderDecisionAtlas({
+      template: example, records: [record], graph: buildDecisionGraph([record]),
+      commit: 'abc1234', repositoryUrl: 'https://github.com/example/repo/', projectName: 'Example', language,
+    });
+    const open = '/* atlas:records */', close = '/* /atlas:records */';
+    const slot = page.slice(page.indexOf(open) + open.length, page.indexOf(close)).trim();
+    const payload = JSON.parse(slot.slice('const records = '.length, -1)) as Array<{ body: string }>;
+    const lookup = renderReader(payload[0]!.body, page);
+    expect(lookup('#reader-body').textContent).not.toContain('hidden template guidance');
+    const list = lookup('#reader-body').children.find(child => child.tag === 'ul')!;
+    expect(list.children.slice(0, 3).map(item => item.children[0]?.children[0])).toEqual([
+      expect.objectContaining({ tag: 'input', type: 'checkbox', checked: true, disabled: true }),
+      expect.objectContaining({ tag: 'input', type: 'checkbox', checked: false, disabled: true }),
+      expect.objectContaining({ tag: 'input', type: 'checkbox', checked: true, disabled: true }),
+    ]);
+    const first = list.children[0]!;
+    expect(first.className).toBe('task-list-item');
+    expect(first.children[0]?.tag).toBe('label');
+    expect(first.textContent).toBe('Complete with code continued');
+    const content = first.children[0]!.children[1]!;
+    expect(content.children.map(child => child.tag)).toContain('strong');
+    expect(content.children.map(child => child.tag)).toContain('code');
+    expect(list.children.slice(3).map(item => item.textContent)).toEqual(['ordinary item', '[x]literal']);
+    const ordered = lookup('#reader-body').children.find(child => child.tag === 'ol')!;
+    expect(ordered.children[0]?.children[0]?.children[0]).toMatchObject({ checked: true, disabled: true });
+  });
+
+  it('leaves task-like text in paragraphs, inline code, and fenced code literal', () => {
+    const lookup = renderReader('## Decision\n\n[x] Paragraph\n\n- `[x]` Code\n\n```md\n- [x] Fenced\n```');
+    const body = lookup('#reader-body');
+    expect(body.children.find(child => child.tag === 'p')?.textContent).toBe('[x] Paragraph');
+    const item = body.children.find(child => child.tag === 'ul')!.children[0]!;
+    expect(item.children[0]?.tag).toBe('code');
+    expect(item.textContent).toBe('[x] Code');
+    expect(body.children.find(child => child.tag === 'pre')?.textContent).toBe('- [x] Fenced\n');
+  });
+
+  it.each([
+    'Before <!-- hidden --> after',
+    '<!-- multi\n## hidden\n-->Visible',
+    'Visible\n<!-- unfinished\nNever shown',
+    '`<!-- inline -->` then <!-- hidden -->',
+    '``<!-- `nested` -->`` then <!-- hidden -->',
+    '```html\n<!-- code -->\n```\n<!-- hidden -->',
+    '~~~html\n<!-- code -->\n~~~\n<!-- hidden -->',
+    '````html\n```\n<!-- code -->\n````\n<!-- hidden -->',
+  ])('keeps comment visibility aligned with the core scanner: %s', (body) => {
+    const start = example.indexOf('function readerLines(');
+    const helper = example.slice(start, example.indexOf('function read(number){', start));
+    const visible = runInNewContext(`${helper}\nreaderLines(body);`, { body }) as string[];
+    expect(visible.filter(line => line.trim())).toEqual(
+      [...markdownLines(body)].map(line => line.visible).filter(line => line.trim()),
+    );
+  });
+
+  it('hides template comments after alternatives without swallowing visible text', () => {
+    const lookup = renderReader('## Alternatives considered\n\n- Keep orchestration: rejected.\n<!-- Each genuine alternative and why it lost. Keep this section. -->\n- Another choice: rejected.\n\nBefore <!-- hidden --> after.');
+    const body = lookup('#reader-body');
+    expect(body.textContent).not.toContain('<!--');
+    expect(body.textContent).not.toContain('Each genuine');
+    const list = body.children.find(child => child.tag === 'ul')!;
+    expect(list.children.map(child => child.textContent)).toEqual([
+      'Keep orchestration: rejected.', 'Another choice: rejected.',
+    ]);
+    expect(body.children.find(child => child.tag === 'p')?.textContent.replace(/ +/g, ' ')).toBe('Before after.');
+  });
+
+  it('hides multiline and unterminated comments, including Markdown-looking content', () => {
+    const lookup = renderReader('## Decision\n\nVisible.\n<!-- hidden\n## Fake heading\n- [x] fake task\n```\n-->\n\nAfter.\n<!-- unfinished\nNever shown');
+    const body = lookup('#reader-body');
+    expect(body.children.map(child => [child.tag, child.textContent])).toEqual([
+      ['h3', 'Decision'], ['p', 'Visible.'], ['p', 'After.'],
+    ]);
+  });
+
+  it('preserves comment examples in code while hiding subsequent real comments', () => {
+    const lookup = renderReader('## Decision\n\nLiteral `<!-- inline -->` and ``<!-- `nested` -->``.\n\n```html\n<!-- fenced -->\n```\n\nAfter <!-- hidden --> visible.');
+    const body = lookup('#reader-body');
+    expect(body.textContent).toContain('<!-- inline -->');
+    expect(body.textContent).toContain('<!-- nested -->');
+    expect(body.children.find(child => child.tag === 'pre')?.textContent).toBe('<!-- fenced -->\n');
+    expect(body.textContent).not.toContain('hidden');
+  });
+
   it('renders record subheadings instead of literal hash marks', () => {
     const lookup = renderReader('## Consequences\n\n### Verification\n\nA fact.\n\n### Trade-offs\n\nA cost.');
     expect(lookup('#reader-body').children.map((child) => [child.tag, child.textContent])).toEqual([
@@ -219,5 +334,65 @@ describe('range index date labels', () => {
       expect(x).toBeLessThanOrEqual(width - 24);
       if (i) expect(x - visible[i - 1]!).toBeGreaterThanOrEqual(52);
     });
+  });
+});
+
+
+describe('chapter navigation stability', () => {
+  it('keeps right alignment and overflow safety confined to the mobile navigation override', () => {
+    const override = example.match(/<style>\.chapter-inner\{gap:32px\}([\s\S]*?)<\/style>/)![1];
+    const split = override.indexOf('@media(max-width:760px)');
+    const desktop = override.slice(0, split), mobile = override.slice(split);
+    expect(desktop).toContain('.chapter-links{margin-inline-start:auto}');
+    expect(desktop).not.toContain('justify-content');
+    const rule = mobile.match(/\.chapter-links\{([^}]+)\}/)![1];
+    expect(rule).toContain('flex:0 1 auto');
+    expect(rule).toContain('min-width:0');
+    expect(rule).toContain('justify-content:safe flex-end');
+    expect(rule).toContain('mask-image:none');
+  });
+
+  it.each([false, true])('does not restart scrolling within one chapter (reduced motion: %s)', (reducedMotion) => {
+    const callbacks = new Map<string, () => void>();
+    const frames: Array<() => void> = [];
+    const scrolls: unknown[] = [];
+    const links = [0, 1].map(index => ({
+      hash: `#section-${index}`, offsetLeft: index * 150, offsetWidth: 120,
+      setAttribute() {}, classList: { toggle() {} }, addEventListener() {},
+    }));
+    let active = 1;
+    const indicator = { style: { setProperty() {} } };
+    const nav = {
+      scrollWidth: 300, clientWidth: 150, scrollLeft: 0,
+      querySelectorAll: () => links,
+      querySelector: (selector: string) => selector === '.chapter-indicator' ? indicator : links[active],
+      scrollTo(options: unknown) { scrolls.push(options); },
+    };
+    const start = example.indexOf("const nav = document.querySelector('.chapter-links');");
+    const script = example.slice(start, example.indexOf('})();</script>', start));
+    runInNewContext(script, {
+      document: {
+        body: {}, querySelector: () => nav,
+        addEventListener(name: string, callback: () => void) { callbacks.set(name, callback); },
+      },
+      CSS: { supports: () => true },
+      matchMedia: () => ({ matches: reducedMotion }),
+      requestAnimationFrame(callback: () => void) { frames.push(callback); return frames.length; },
+      addEventListener(name: string, callback: () => void) { callbacks.set(name, callback); },
+      ResizeObserver: class { observe() {} },
+    });
+    expect(scrolls).toHaveLength(1);
+    for (let n = 0; n < 3; n++) {
+      callbacks.get('scroll')!();
+      while (frames.length) frames.shift()!();
+    }
+    expect(scrolls).toHaveLength(1);
+    expect(scrolls[0]).toMatchObject({ behavior: reducedMotion ? 'auto' : 'smooth' });
+    // A newly active, offscreen chapter may still be brought into view.
+    active = 0;
+    nav.scrollLeft = 150;
+    callbacks.get('scroll')!();
+    while (frames.length) frames.shift()!();
+    expect(scrolls).toHaveLength(2);
   });
 });
