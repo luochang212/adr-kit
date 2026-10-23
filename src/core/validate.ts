@@ -6,6 +6,7 @@ import {
   markdownLines,
   NUMBERED_FILE_NAME_PATTERN,
   PROPOSAL_ERA_HEADINGS,
+  visibleRecordText,
   writtenHeadings,
   type AdrRecord,
   type AdrSection,
@@ -277,8 +278,8 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
       if (record.archived !== record.date) {
         issues.push({ path, message: 'archived date must match the latest lifecycle date' });
       }
-      if (record.archived < record.date || (record.created !== undefined && record.archived < record.created)) {
-        issues.push({ path, message: 'archived date must not precede creation or lifecycle date' });
+      if (record.created !== undefined && record.archived < record.created) {
+        issues.push({ path, message: 'archived date must not precede creation' });
       }
     }
   } else if (record.archived !== undefined || record.archiveReason !== undefined) {
@@ -500,6 +501,10 @@ function supersedeReferenceIssues(
     if (target === undefined) {
       return [{ path, message: `"superseded-by: ${next}" references a missing decision` }];
     }
+    // An accepted-then-archived terminal is a valid end, so only the status is
+    // checked, not the folder: `archive` may retire a decision nothing
+    // replaced, and the chain then leads into frozen history by design. Code
+    // citations (`@adr`) are the surface that must name current authority.
     if (target.status === 'implemented') return [];
     if (target.status !== 'superseded') {
       return [{ path, message: `supersession chain must end at an implemented decision; decision ${next} has status "${target.status}"` }];
@@ -540,24 +545,25 @@ export function validateRecordReferences(
 /**
  * A record body may name other decisions. The decision map mines those
  * references but silently drops the ones that resolve to nothing, so this
- * reports a reference to a decision number that does not exist. The record's
- * own number is not a reference, and the title line is not scanned because it
- * is not a section.
+ * reports a reference to a decision number that does not exist. Only prose the
+ * reader can see is mined — comment-masked lines and fenced code never count —
+ * and the map's edge mining reads the same text. The record's own number is
+ * not a reference, and the title line is not scanned because it is not a
+ * section.
  */
 function danglingReferenceIssues(
   path: string,
   record: AdrRecord,
   decisions: Map<number, AdrRecord>,
 ): ValidationIssue[] {
-  // The same prose vocabulary the decision map mines: `ADR-12`, `ADR 4`, `ADR12`.
+  // The same visible-prose vocabulary the decision map mines: `ADR-12`,
+  // `ADR 4`, `ADR12`.
   const pattern = /ADR-?\s*([1-9]\d*)/g;
   const numbers = new Set<number>();
-  for (const section of record.sections) {
-    const text = `${section.heading}\n${section.body}`;
-    let match: RegExpExecArray | null;
-    while ((match = pattern.exec(text)) !== null) {
-      numbers.add(Number(match[1]));
-    }
+  const text = visibleRecordText(record);
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text)) !== null) {
+    numbers.add(Number(match[1]));
   }
   const issues: ValidationIssue[] = [];
   for (const number of [...numbers].sort((a, b) => a - b)) {

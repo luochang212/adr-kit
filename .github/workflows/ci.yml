@@ -39,6 +39,11 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
+      # The real-shell completion tests (zpty ZLE run, fish) skip when the shell
+      # is absent; install them so CI exercises the scripts it ships.
+      - name: Install completion test shells
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y zsh fish
       - run: npm ci
       - run: npm run typecheck
       - run: npm test

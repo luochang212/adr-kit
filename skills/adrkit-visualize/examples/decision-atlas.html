@@ -1260,7 +1260,7 @@ renderDirectory(); buildTimeline();
   links.forEach((link, i) => { const n = link.querySelector('span'); if (!n || n.textContent !== String(i + 1).padStart(2, '0')) drift.push('nav numbering broken at position ' + (i + 1)); });
   if (drift.length) console.error('[decision-atlas]', drift.join('; '));
 })();
-const initialView = () => { canvas.zoom((innerWidth < 760 ? .65 : .85) / canvas.scale); const first = nodes[0].getBoundingClientRect(), v = viewport.getBoundingClientRect(); canvas.addPan(v.left + 28 - first.left, v.top + 50 - first.top); syncRail(); };
+const initialView = () => { if (nodes.length === 0) return; canvas.zoom((innerWidth < 760 ? .65 : .85) / canvas.scale); const first = nodes[0].getBoundingClientRect(), v = viewport.getBoundingClientRect(); canvas.addPan(v.left + 28 - first.left, v.top + 50 - first.top); syncRail(); };
   requestAnimationFrame(initialView);
   document.getElementById('reset').addEventListener('click', initialView);
 })();

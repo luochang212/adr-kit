@@ -60,7 +60,7 @@ adr/
 └── archived/       # 保留编号，冻结历史
 ```
 
-未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都把归档记录当作普通的 Git 跟踪历史；没有单独的封存清单。`adrkit validate` 像检查其他记录一样检查它，后续修改由 Git 记录。
+未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号，因此移除一条多余的否决不会腾出可复用的编号）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都把归档记录当作普通的 Git 跟踪历史；既没有封存仪式，也没有单独的封存清单。`adrkit validate` 像检查其他记录一样检查它，后续修改由 Git 记录。
 
 ## 升级
 
@@ -83,7 +83,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 ## 决策档案
 
-一个页面就能承载整个归档：按创建日期分组的决策地图、编号时间线、引用与替代关系链，以及可本地搜索的全部生效记录。档案是单个自包含的 HTML 文件，不需要服务器，也不依赖 CDN，可以离线使用。
+一个页面就能承载整个归档：按创建日期分组的决策地图、编号时间线、引用与替代关系链，以及可本地搜索的全部生效与归档记录。档案是单个自包含的 HTML 文件，不需要服务器，也不依赖 CDN，可以离线使用。
 
 [打开 ADR Kit 自己的决策档案](https://luochang212.github.io/adr-kit/decisions/)。它在每次站点构建时从本仓库的 `adr/` 重新生成，并固定到构建提交。
 
@@ -93,7 +93,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 > 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的决策档案。归档正文全文展示，并把页面固定到当前提交。
 
-档案是默认可视化：`adrkit atlas --out decisions.html`。界面默认英文，中文用 `--lang zh`。轻量入口仍然保留：`adrkit atlas --map --format html` 出独立的地图页，`adrkit atlas --record <N>` 看单条决策的 deliberation tree。
+档案是默认可视化：`adrkit atlas --out decisions.html`。CLI 的命令输出与错误信息只有英文；档案界面默认英文，中文用 `--lang zh`。轻量入口仍然保留：`adrkit atlas --map --format html` 出独立的地图页，`adrkit atlas --record <N>` 看单条决策的 deliberation tree。
 
 ## 命令
 

@@ -15,8 +15,12 @@ const projectName = 'ADR Kit';
 
 function repositoryUrl() {
   const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+  // Keep in step with normalizeRepositoryUrl in src/commands/atlas.ts: the
+  // published footer needs a browser URL from whatever git form the manifest
+  // carries, including SSH remotes like git@host:owner/repo.git.
   return String(manifest.repository?.url ?? '')
     .replace(/^git\+/, '')
+    .replace(/^git@([^:]+):/, 'https://$1/')
     .replace(/\.git$/, '')
     .replace(/\/$/, '');
 }

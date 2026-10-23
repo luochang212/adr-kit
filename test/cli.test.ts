@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -50,7 +50,12 @@ describe('cli option handling', () => {
   });
 
   it('rejects the removed --diagram flag', () => {
-    expect(() => main(['atlas', '--record', '1', '--diagram'])).toThrow(/Unknown option '--diagram'/);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // parseArgs errors are caught by main like every other usage error, so
+    // running dist/cli.js directly prints one line instead of a stack dump.
+    main(['atlas', '--record', '1', '--diagram']);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Unknown option '--diagram'"));
   });
 
   it('rejects the removed --json flag as an unknown option', () => {
@@ -59,7 +64,10 @@ describe('cli option handling', () => {
     // parseArgs runs in strict mode, so a flag this CLI no longer declares is
     // rejected before any command runs: there is no JSON output mode left for a
     // hand-written guard to protect.
-    expect(() => main(['list', '--json'])).toThrow(/Unknown option '--json'/);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['list', '--json']);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Unknown option '--json'"));
   });
 
   it('rejects --decided-by on a command that records no decision', () => {
@@ -144,5 +152,80 @@ describe('the option spec table is the whole CLI surface', () => {
     const help = helpText();
     expect(help).toContain('adrkit -h, --help');
     expect(help).toContain('adrkit -V, --version');
+  });
+});
+
+describe('positional arity', () => {
+  it('joins an unquoted multi-word record title instead of dropping words', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    main(['record', 'use', 'postgres', 'for', 'sessions', '--raised-by', 'human', '--decided-by', 'human']);
+    expect(process.exitCode).toBeUndefined();
+    expect(existsSync(join(root, 'adr/implemented/1-use-postgres-for-sessions.md'))).toBe(true);
+    expect(output).toHaveBeenCalledWith(expect.stringContaining('created adr/implemented/1-use-postgres-for-sessions.md'));
+    output.mockRestore();
+  });
+
+  it('joins an unquoted multi-word note text', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    main(['note', 'first', 'words', 'dropped', 'here']);
+    const notes = readFileSync(join(root, 'adr/notes.md'), 'utf8');
+    expect(notes).toContain('first words dropped here');
+  });
+
+  it.each([
+    ['show', ['1', 'extra-arg']],
+    ['implement', ['1', 'extra-arg']],
+    ['reject', ['1', 'extra-arg', '--reason', 'why']],
+    ['archive', ['1', 'extra-arg', '--reason', 'why']],
+    ['supersede', ['1', '2', 'extra-arg', '--by', '3']],
+    ['completion', ['bash', 'zsh']],
+    ['hook', ['install', 'extra']],
+    ['init', ['a', 'b']],
+  ])('rejects extra positional arguments on %s', (command, args) => {
+    const root = makeRepo();
+    // Every command runs from its own throwaway repository: a regression that
+    // let an argument through must not touch the developer's checkout.
+    process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main([command, ...args]);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringMatching(/takes (one name|at most one path)/));
+    errorSpy.mockRestore();
+  });
+
+  it.each(['list', 'status', 'instructions', 'config'])('rejects any positional argument on %s', (command) => {
+    const root = makeRepo();
+    process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main([command, 'stray']);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining(`adrkit ${command} takes no positional arguments`));
+    errorSpy.mockRestore();
+  });
+
+  it('rejects a record name combined with --all on validate', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['validate', '1', '--all']);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('validate takes either a record name or --all, not both'),
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('rejects two names on validate', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['validate', '1', '2']);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('validate takes one name'));
+    errorSpy.mockRestore();
   });
 });

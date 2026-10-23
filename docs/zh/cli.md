@@ -14,7 +14,7 @@
 | `adrkit archive <name> --reason <text>` | 将不再指导工作的已交付记录归档 |
 | `adrkit supersede <old> --by <new>` | 完整替代并归档旧决策 |
 | `adrkit list` | 按生命周期列出记录 |
-| `adrkit relevant [<path>... | --base <git-ref> | --staged]` | 按阅读姿态检索手工路径、指定提交到工作区的变化或暂存区文件；三种输入互斥 |
+| `adrkit relevant [<path>... | --base <git-ref> | --staged]` | 检索作用域记录：显式路径、指定提交到工作区的变化或暂存区文件；三种输入互斥 |
 | `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录 |
 | `adrkit status` | 显示各目录数量与校验状态 |
 | `adrkit instructions` | 显示待办提案与下一步 |
@@ -34,7 +34,7 @@
 `--lang` 仅用于完整档案，也允许配合显式 `--format html`。
 
 这是破坏性变更：旧地图导出命令须增加 `--map`。未显式指定地图或单条记录时，
-非 HTML 格式会报错并指出修正方式；HTML 格式始终输出完整档案。
+非 HTML 格式会报错并指出修正方式，HTML 输出完整档案。
 
 三种对象都默认输出 HTML。`atlas --record <name>` 与
 `atlas --record <name> --format html` 输出相同的 deliberation tree，
@@ -45,13 +45,17 @@
 标准输出只含产物本身。
 
 `-h, --help` 打印帮助；`-V, --version` 打印版本。不支持的选项会报错。
-`--raised-by` 声明谁提出已交付选择，`--decided-by` 声明谁的判断定下它；
+位置参数遵循各命令的概要：`record`、`propose`、`note` 会把未加引号的
+shell 词拼接为一个标题或文本，引号因此可选；其余命令至多接受概要所示的
+位置参数，多余参数报错而不是被忽略。CLI 的命令输出与错误信息只有英文；
+`--lang` 只影响 atlas 页面。`--raised-by` 声明谁提出已交付选择，`--decided-by` 声明谁的判断定下它；
 二者都不是 CLI 推断。`reject` 与 `archive` 必须提供 `--reason`。
 CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` 在默认
 `.agents/` 之外增加 `.claude/` 副本；`--tools none` 不安装集成。
 
 整仓校验还会检查代码与配置文件中的 `@adr <编号>` 引用：引用必须指向一条
-已交付、且 `paths` 覆盖该文件的决策；指向不存在、已归档或已替代的决策会失败，
+已交付的决策；当该决策声明了 `paths` 时，引用文件必须命中其中一项。指向
+不存在、已归档或已替代的决策会失败，
 并报出行号（已替代时还会报出替代者）。Markdown 与根目录 `site/` 的文档副本不扫描，
 引用是可选的。校验只检查已经写下的那些引用。
 
@@ -74,7 +78,8 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
   编号一致、声明 `raised-by` 与 `decided-by`、不含提案期小节；提案为
   `YYYY-MM-DD-slug.md`、无编号、无来源字段；`superseded` 指向另一条决策；
   归档元数据只出现在 `archived/`。
-- 正文引用（`ADR-12`、`ADR 4`、`ADR12`）指向存在的决策；对提案尚未
+- 正文引用（`ADR-12`、`ADR 4`、`ADR12`）只从读者可见的散文中挖掘并须指向
+  存在的决策；代码围栏或 HTML 注释内的文本不算引用，对提案尚未
   取得编号的前向引用也会失败。
 - implemented 记录的 `### Later changes` 条目以 `**Amended by ADR N:**`
   开头；以 `ADR N later` 开头的尾注段落、丢失开头的条目，或首条合法条目之前
@@ -111,11 +116,12 @@ rules:
 配置字段类型错误时，`list` 仍能列出记录；`status` 和 `instructions` 会
 报告仓库校验问题，即使存在待办提案也一样。
 
-## 归档后的源记录删除失败
+## 生命周期移动的源删除失败
 
-`archive` 和 `supersede` 先写入归档文件，再删除 implemented 源记录。
-若源记录删除失败，命令会撤回暂存的归档副本、非零退出，并报告两个路径及
-原始错误。implemented 源记录保留，移动不会半完成。修复文件系统错误后重试；
+每次生命周期移动都先写目标、后删源：`archive` 和 `supersede` 写归档文件，
+`implement` 写编号决策，`reject` 写否决记录。若源删除失败，命令会撤回
+暂存副本、非零退出，并报告两个路径及原始错误。源记录保留，移动不会
+半完成，重跑也不会为同一提案分配第二个编号。修复文件系统错误后重试；
 supersede 的替代记录仍保持有效。
 
 ## 按变更检索决策

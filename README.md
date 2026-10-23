@@ -85,7 +85,7 @@ reading still apply. See the [retrieval contract](docs/cli.md#scope-retrieval-fo
 
 ## Decision atlas
 
-One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current record in a local-search directory. The atlas is a single self-contained HTML file that needs no server and no CDN, so it works offline.
+One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current and archived record in a local-search directory. The atlas is a single self-contained HTML file that needs no server and no CDN, so it works offline.
 
 [Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/en.html). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit.
 

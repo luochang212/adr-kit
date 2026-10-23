@@ -963,3 +963,34 @@ describe('graph HTML map', () => {
     }
   });
 });
+
+describe('reference edge visibility', () => {
+  it('does not mine reference edges from fenced code or HTML comments', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', {
+      date: '2026-08-17',
+      decisionBody: 'd\n\n```\nsee ADR 2 for the old approach\n```\n\n<!-- ADR 3 discussed elsewhere -->',
+    });
+    writeDecision(root, 2, 'Two', { date: '2026-08-17' });
+    writeDecision(root, 3, 'Three', { date: '2026-08-17' });
+    expect(buildDecisionGraph(listRecords(root)).referenceEdges).toEqual([]);
+  });
+
+  it('keeps mining reference edges from visible prose', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', { date: '2026-08-17', decisionBody: 'See ADR 2.' });
+    writeDecision(root, 2, 'Two', { date: '2026-08-17' });
+    expect(buildDecisionGraph(listRecords(root)).referenceEdges).toEqual([{ from: 1, to: 2 }]);
+  });
+});
+
+describe('atlas output target guards', () => {
+  it('rejects an empty or directory --out with a named remedy', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', { date: '2026-08-17', deliberation: '- Q: Which? [settled]' });
+    expect(() => atlasCommand(root, { out: '' })).toThrow(/--out must name a file, not be empty/);
+    expect(() => atlasCommand(root, { out: '.' })).toThrow(/--out must name a file, not a directory/);
+    expect(() => atlasCommand(root, { map: true, out: '.' })).toThrow(/not a directory/);
+    expect(() => atlasCommand(root, { record: '1', out: ' ' })).toThrow(/not be empty/);
+  });
+});

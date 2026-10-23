@@ -29,6 +29,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm ci
+      # The release gate: CI green on main does not prove the dispatched commit
+      # still passes, and prepublishOnly only builds.
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
 
       - name: Create release pull request or publish
         uses: changesets/action@v2

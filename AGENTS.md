@@ -177,8 +177,8 @@ GitHub Pages by `.github/workflows/site.yml`. It has its own
 `package.json` and build (`cd site && npm run build`), which regenerates the
 atlas through the compiled CLI and therefore needs the root `npm run build`
 first. Copy lives in `site/src/i18n/ui.ts`: edit both languages in
-the same change. The integration story in
-`site/src/components/GetStarted.astro` (default `.agents/` target plus the
+the same change. The integration story in that table (`faq.1.a` and
+`start.agents.footnote`: default `.agents/` target plus the
 Claude Code exception) mirrors the targets in `src/core/tool-integrations.ts`;
 update both when they change. The terminal demo transcript in
 `site/src/components/TerminalDemo.astro` and the graph example in

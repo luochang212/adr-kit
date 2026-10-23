@@ -1,11 +1,11 @@
-import { existsSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { hasMeaningfulBody, parseAdrText, section, type DecidedBy, type RaisedBy } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
-import { folderPath, nextDecisionNumber, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
+import { folderPath, listRecords, nextDecisionNumber, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
 import { droppedSections, proposalToDecision } from '../core/templates.js';
-import { formatIssues, validateRecord } from '../core/validate.js';
+import { formatIssues, validateRecord, validateRecordReferences } from '../core/validate.js';
 
 /**
  * `decidedBy` is the declaration the caller made for the promoted decision:
@@ -24,7 +24,15 @@ export function implementCommand(
     throw new Error('proposal title must not start with a number; ADR Kit assigns decision numbers');
   }
 
-  const issues = validateRecord(root, proposal);
+  // The same readiness gate `adrkit validate <name>` and `instructions` apply:
+  // structure plus cross-references. A proposal citing a missing decision must
+  // be refused here too, or promotion would create a record that fails
+  // validation the moment it lands.
+  const records = listRecords(root);
+  const issues = [
+    ...validateRecord(root, proposal),
+    ...validateRecordReferences(root, proposal, records),
+  ];
   if (issues.length > 0) {
     throw new Error(`proposal is not ready to implement:\n${formatIssues(issues)}`);
   }
@@ -40,12 +48,27 @@ export function implementCommand(
   const content = proposalToDecision(proposal, number, gitHead(root), decidedBy, raisedBy);
   const generated = parseAdrText(content, path);
   generated.folder = 'implemented';
-  const generatedIssues = validateRecord(root, generated);
+  const generatedIssues = [
+    ...validateRecord(root, generated),
+    ...validateRecordReferences(root, generated, records),
+  ];
   if (generatedIssues.length > 0) {
     throw new Error(`proposal cannot become a valid implemented decision:\n${formatIssues(generatedIssues)}`);
   }
   writeRecord(root, 'implemented', fileName, content);
-  removeRecord(proposal);
+  try {
+    removeRecord(proposal);
+  } catch (error) {
+    // The staged decision is rolled back so re-running the command cannot
+    // allocate a second number for the same proposal; the proposal itself is
+    // untouched. Same boundary retireRecord holds for archive and supersede.
+    rmSync(path, { force: true });
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `staged adr/implemented/${fileName}, but removing the proposal failed: ${detail}. The proposal is still in adr/proposed/; resolve the error and run implement again`,
+      { cause: error },
+    );
+  }
   let output = `implemented adr/proposed/${proposal.fileName} as adr/implemented/${fileName}`;
   const dropped = droppedSections(proposal);
   if (dropped.length > 0) {

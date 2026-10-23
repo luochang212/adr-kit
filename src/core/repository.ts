@@ -217,7 +217,7 @@ function listRecordsForResolve(root: string, needle: string): AdrRecord[] {
  */
 function exactlyOne<T extends Pick<AdrRecord, 'path'>>(root: string, query: string, candidates: T[], label: string): T {
   if (candidates.length === 0) {
-    throw new Error(`no ${label} matches "${query}"`);
+    throw new Error(`no ${label} matches "${query}"; run "adrkit list" to see names`);
   }
   if (candidates.length > 1) {
     const paths = candidates.map((record) => relative(root, record.path)).join(', ');
@@ -329,10 +329,9 @@ export function writeRecord(root: string, folder: AdrFolder, fileName: string, c
 export function removeRecord(record: AdrRecord): void {
   // Removal is idempotent: a record that is already gone is a completed move,
   // not a failure. Callers stage the replacement (archived/rejected/implemented)
-  // before removing the source, so a vanished source means the move finished,
-  // and ENOENT here would otherwise be reported as a half-completed lifecycle
-  // move that still has both copies (see sourceRemovalFailure). Permission and
-  // directory errors still surface.
+  // before removing the source, so a vanished source means the move finished.
+  // Permission and directory errors still surface; the staging caller owns
+  // rolling its staged file back (retireRecord, implementCommand, rejectCommand).
   rmSync(record.path, { force: true });
 }
 

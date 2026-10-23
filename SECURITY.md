@@ -2,9 +2,8 @@
 
 ## Supported versions
 
-| Version | Supported |
-| --- | --- |
-| 0.1.x | Yes |
+ADR Kit is pre-stable and ships breaking changes deliberately, so the latest
+released 0.x version is the only supported version. Report issues against it.
 
 ## Reporting a vulnerability
 

@@ -2,17 +2,21 @@ import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { initRepository } from '../src/core/repository.js';
-import { writtenHeadings } from '../src/core/adr.js';
+import { initRepository, listRecords } from '../src/core/repository.js';
+import { visibleRecordText, writtenHeadings } from '../src/core/adr.js';
+import { buildDecisionGraph } from '../src/core/graph.js';
+import { archiveCommand } from '../src/commands/archive.js';
 import { implementCommand } from '../src/commands/implement.js';
 import { instructionsCommand } from '../src/commands/instructions.js';
+import { rejectCommand } from '../src/commands/reject.js';
 import { relevantCommand } from '../src/commands/relevant.js';
 import { validateCommand } from '../src/commands/validate.js';
 
 vi.mock('node:fs', async (importOriginal) => {
   const original = await importOriginal<typeof fs>();
   return { ...original, writeFileSync: vi.fn(original.writeFileSync), readFileSync: vi.fn(original.readFileSync),
-    renameSync: vi.fn(original.renameSync), readdirSync: vi.fn(original.readdirSync) };
+    renameSync: vi.fn(original.renameSync), readdirSync: vi.fn(original.readdirSync),
+    rmSync: vi.fn(original.rmSync) };
 });
 const actualFs = await vi.importActual<typeof fs>('node:fs');
 const roots: string[] = [];
@@ -35,6 +39,7 @@ afterEach(() => {
   vi.mocked(fs.readFileSync).mockReset().mockImplementation(actualFs.readFileSync);
   vi.mocked(fs.renameSync).mockReset().mockImplementation(actualFs.renameSync);
   vi.mocked(fs.readdirSync).mockReset().mockImplementation(actualFs.readdirSync);
+  vi.mocked(fs.rmSync).mockReset().mockImplementation(actualFs.rmSync);
   for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true });
 });
 
@@ -122,5 +127,135 @@ describe('complete validation and scope acquisition', () => {
     const result = relevantCommand(['src'], root);
     expect(result.complete).toBe(true);
     expect(result.output).toContain('[1] Choice');
+  });
+});
+
+describe('movement gates and staged rollback', () => {
+  it('refuses to implement a proposal citing a missing decision', () => {
+    const root = repo(); const path = putProposal(root, 'See ADR 999 for details.\n');
+    const original = fs.readFileSync(path, 'utf8');
+    expect(validateCommand(root).valid).toBe(false);
+    expect(() => implementCommand('Choice', root, 'agent', 'human')).toThrow(/body references decision 999/);
+    expect(fs.readFileSync(path, 'utf8')).toBe(original);
+    expect(fs.readdirSync(join(root, 'adr/implemented'))).toEqual(['.gitkeep']);
+  });
+
+  it('rolls the staged decision back when the proposal cannot be removed', () => {
+    const root = repo(); const path = putProposal(root);
+    vi.mocked(fs.rmSync).mockImplementation((name, ...args) => {
+      if (String(name) === path) throw new Error('EACCES removing proposal');
+      return actualFs.rmSync(name, ...args);
+    });
+    expect(() => implementCommand('Choice', root, 'agent', 'human')).toThrow(
+      /staged adr\/implemented\/1-choice\.md, but removing the proposal failed/,
+    );
+    expect(fs.readdirSync(join(root, 'adr/implemented'))).toEqual(['.gitkeep']);
+    expect(fs.existsSync(path)).toBe(true);
+  });
+
+  it('rolls the staged rejection back when the proposal cannot be removed', () => {
+    const root = repo(); const path = putProposal(root);
+    vi.mocked(fs.rmSync).mockImplementation((name, ...args) => {
+      if (String(name) === path) throw new Error('EACCES removing proposal');
+      return actualFs.rmSync(name, ...args);
+    });
+    expect(() => rejectCommand('Choice', 'wrong fit', root)).toThrow(
+      /staged adr\/rejected\/2026-10-20-choice\.md, but removing the proposal failed/,
+    );
+    expect(fs.readdirSync(join(root, 'adr/rejected'))).toEqual(['.gitkeep']);
+    expect(fs.existsSync(path)).toBe(true);
+  });
+
+  it('rolls the staged archived record back when the implemented source cannot be removed', () => {
+    const root = repo(); const path = putDecision(root, 1);
+    vi.mocked(fs.rmSync).mockImplementation((name, ...args) => {
+      if (String(name) === path) throw new Error('EACCES removing source');
+      return actualFs.rmSync(name, ...args);
+    });
+    expect(() => archiveCommand('1', 'no longer needed', root)).toThrow(
+      /staged adr\/archived\/1-choice\.md, but removing the implemented source failed/,
+    );
+    expect(fs.readdirSync(join(root, 'adr/archived'))).toEqual(['.gitkeep']);
+    expect(fs.existsSync(path)).toBe(true);
+  });
+});
+
+describe('visible references and headings', () => {
+  it('does not mine ADR references from fenced code or HTML comments', () => {
+    const root = repo();
+    fs.writeFileSync(
+      join(root, 'adr/implemented/1-choice.md'),
+      decision(1).replace(
+        'Local files.',
+        'Local files.\n\n```\nsee ADR 999 for the old approach\n```\n\n<!-- ADR 888 discussed elsewhere -->',
+      ),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('keeps flagging a dangling reference in visible prose', () => {
+    const root = repo();
+    fs.writeFileSync(
+      join(root, 'adr/implemented/1-choice.md'),
+      decision(1).replace('Local files.', 'See ADR 999.'),
+    );
+    expect(validateCommand(root).valid).toBe(false);
+    expect(validateCommand(root).output).toContain('body references decision 999');
+  });
+
+  it('masks a trailing HTML comment when naming a section heading', () => {
+    const root = repo();
+    fs.writeFileSync(
+      join(root, 'adr/implemented/1-choice.md'),
+      decision(1).replace('## Decision', '## Decision <!-- keep -->'),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+});
+
+
+describe('comments beginning on section headings', () => {
+  it('rejects a required section whose body is hidden by a heading comment', () => {
+    const root = repo();
+    fs.writeFileSync(join(root, 'adr/implemented/1-choice.md'), decision(1).replace(
+      '## Decision\nUse SQLite.', '## Decision <!--\nUse SQLite.\n-->',
+    ));
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Decision" must contain written content');
+  });
+
+  it('refuses promotion when only a heading comment contains the proposal', () => {
+    const root = repo(); const path = putProposal(root);
+    const original = proposal().replace('## Proposal\nUse SQLite.', '## Proposal <!--\nUse SQLite.\n-->');
+    fs.writeFileSync(path, original);
+    expect(() => implementCommand('Choice', root, 'agent', 'human')).toThrow(
+      /section "## Proposal" must contain written content/,
+    );
+    expect(fs.readFileSync(path, 'utf8')).toBe(original);
+    expect(fs.readdirSync(join(root, 'adr/implemented'))).toEqual(['.gitkeep']);
+  });
+
+  it('ignores heading-comment references while keeping visible references', () => {
+    const root = repo(); putDecision(root, 2); putDecision(root, 3);
+    fs.writeFileSync(join(root, 'adr/implemented/1-choice.md'), decision(1).replace(
+      '## Decision', '## Decision <!--\nADR 999 and ADR 2\n-->\nSee ADR 3.',
+    ));
+    expect(validateCommand(root).valid).toBe(true);
+    expect(buildDecisionGraph(listRecords(root)).referenceEdges).toEqual([{ from: 1, to: 3 }]);
+  });
+
+  it('preserves heading comments as hidden text through promotion', () => {
+    const root = repo(); const path = putProposal(root);
+    fs.writeFileSync(path, proposal().replace(
+      '## Proposal', '## Proposal <!-- private draft note\nHidden text.\n--> ',
+    ));
+    implementCommand('Choice', root, 'agent', 'human');
+    const content = fs.readFileSync(join(root, 'adr/implemented/1-choice.md'), 'utf8');
+    expect(content).toContain('<!-- private draft note\nHidden text.\n-->');
+    const record = listRecords(root).find((record) => record.number === 1)!;
+    expect(visibleRecordText(record)).not.toContain('Hidden text.');
+    expect(visibleRecordText(record)).toContain('Use SQLite.');
+    expect(validateCommand(root).valid).toBe(true);
   });
 });

@@ -11,7 +11,8 @@
 - CLI reference: https://github.com/luochang212/adr-kit/blob/main/docs/cli.md
 - Record format: https://github.com/luochang212/adr-kit/blob/main/docs/record-format.md
 - Workflow guide: https://github.com/luochang212/adr-kit/blob/main/docs/workflow.md
-- Decision atlas: https://luochang212.github.io/adr-kit/decisions/
+- Decision atlas (English): https://luochang212.github.io/adr-kit/decisions/en.html
+- Decision atlas (Chinese): https://luochang212.github.io/adr-kit/decisions/
 
 ## Quick start
 

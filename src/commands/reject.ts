@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
@@ -24,6 +24,17 @@ export function rejectCommand(query: string, reason: string, cwd: string): strin
     reason: reason.trim(),
   });
   writeRecord(root, 'rejected', proposal.fileName, content);
-  removeRecord(proposal);
+  try {
+    removeRecord(proposal);
+  } catch (error) {
+    // Roll the staged rejection back so the move never half-happens; the
+    // proposal is untouched and the command can be run again.
+    rmSync(target, { force: true });
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `staged adr/rejected/${proposal.fileName}, but removing the proposal failed: ${detail}. The proposal is still in adr/proposed/; resolve the error and run reject again`,
+      { cause: error },
+    );
+  }
   return `rejected adr/proposed/${proposal.fileName} as adr/rejected/${proposal.fileName}`;
 }

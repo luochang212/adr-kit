@@ -471,7 +471,7 @@ describe('propose and implement', () => {
 });
 
 describe('cli --all flag', () => {
-  it('validate <name> --all validates the whole repository', () => {
+  it('validate --all validates the whole repository, not one record', () => {
     const root = makeRepo();
     recordCommand('Use SQLite', root, 'human', 'human');
     writeFileSync(
@@ -531,7 +531,9 @@ created: 2026-08-19
     const previousExitCode = process.exitCode;
     process.chdir(root);
     try {
-      main(['validate', 'use-sqlite', '--all']);
+      // A record name combined with --all is rejected (see test/cli.test.ts);
+      // the whole-repository check is what --all alone does here.
+      main(['validate', '--all']);
     } finally {
       process.chdir(previousCwd);
       process.exitCode = previousExitCode;

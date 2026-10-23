@@ -11,7 +11,8 @@
 
 export type AtlasLanguage = 'en' | 'zh';
 
-const EN: Array<[string, string]> = [
+/** The zh→en table; exported so a test can hold every key against the template. */
+export const ATLAS_EN: Array<[string, string]> = [
   ['<span>01</span>决策密度</a>', '<span>01</span>Density</a>'],
   ['<span>02</span>编号时间线</a>', '<span>02</span>Timeline</a>'],
   ['<span>03</span>引用与替代</a>', '<span>03</span>Relations</a>'],
@@ -74,7 +75,6 @@ const EN: Array<[string, string]> = [
   ['下一条', 'Next'],
   ['画布外侧', 'Outside the canvas'],
   ['暂无记录', 'No records'],
-  ['展开', 'Show'],
   ['提出', 'Raised'],
   ['决定', 'Decided'],
   ['创建', 'Created'],
@@ -87,12 +87,15 @@ const EN: Array<[string, string]> = [
   ['无', 'None'],
   ['人', 'Human'],
   ['次', 'refs'],
+  // Runtime string concatenation joins labels with the full-width comma; the
+  // English page gets the half-width form from the same table.
+  ['，', ', '],
 ];
 
 /** Translate the template's static chrome; record data is injected afterwards. */
 export function translateAtlasMarkup(template: string): string {
   let out = template.replace('<html lang="zh-CN">', '<html lang="en">');
-  for (const [zh, en] of [...EN].sort((a, b) => b[0].length - a[0].length)) {
+  for (const [zh, en] of [...ATLAS_EN].sort((a, b) => b[0].length - a[0].length)) {
     out = out.split(zh).join(en);
   }
   // The map's date-column count label is the one numeric UI string.

@@ -1,4 +1,4 @@
-import { existsSync, realpathSync, writeFileSync } from 'node:fs';
+import { existsSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { requireRoot } from '../core/config.js';
@@ -48,7 +48,14 @@ export function graphCommand(cwd: string, flags: GraphFormatFlags): string {
     );
   }
   const root = requireRoot(cwd);
+  if (flags.out !== undefined && flags.out.trim().length === 0) {
+    throw new Error('--out must name a file, not be empty');
+  }
   const target = flags.out === undefined ? undefined : resolve(cwd, flags.out);
+  if (target !== undefined && existsSync(target) && statSync(target).isDirectory()) {
+    // An empty or directory target would otherwise surface as a raw EISDIR.
+    throw new Error(`--out must name a file, not a directory: ${target}`);
+  }
   if (target !== undefined && !existsSync(dirname(target))) {
     throw new Error(`--out directory does not exist: ${dirname(target)}`);
   }

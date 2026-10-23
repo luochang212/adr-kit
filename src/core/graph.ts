@@ -1,5 +1,5 @@
 import type { AdrRecord } from './adr.js';
-import { section } from './adr.js';
+import { section, visibleRecordText } from './adr.js';
 import { hasDeliberationTree } from './deliberation.js';
 import { relativePath } from './repository.js';
 
@@ -106,7 +106,10 @@ export function buildDecisionGraph(
   if (!options.formalOnly) {
     for (const node of filtered) {
       const record = recordByNumber.get(node.number)!;
-      const body = record.sections.map((section) => section.body).join('\n');
+      // Mined edges come from visible prose, the same text validation's
+      // dangling-reference check reads: comment-masked and fenced text never
+      // becomes an edge.
+      const body = visibleRecordText(record);
       const targets = new Set<number>();
       for (const match of body.matchAll(REFERENCE_PATTERN)) {
         const target = Number(match[1]);

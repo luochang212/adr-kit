@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireRoot } from '../core/config.js';
@@ -42,7 +42,14 @@ function isFormat(value: string): value is AtlasFormat {
 
 function writeTarget(output: string, cwd: string, out: string | undefined, object: 'decision atlas' | 'deliberation tree', format: string): string {
   if (out === undefined) return output;
+  if (out.trim().length === 0) {
+    throw new Error('--out must name a file, not be empty');
+  }
   const target = resolve(cwd, out);
+  // An empty or directory target would otherwise surface as a raw EISDIR.
+  if (existsSync(target) && statSync(target).isDirectory()) {
+    throw new Error(`--out must name a file, not a directory: ${target}`);
+  }
   if (!existsSync(dirname(target))) {
     throw new Error(`--out directory does not exist: ${dirname(target)}`);
   }

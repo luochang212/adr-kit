@@ -88,26 +88,26 @@ Run from anywhere inside the project; commands discover the nearest adr/ directo
 `;
 
 export function main(argv: string[]): void {
-  const { values, positionals, tokens } = parseArgs({
-    args: argv,
-    allowPositionals: true,
-    tokens: true,
-    options: parseArgsOptions(),
-  });
-
-  if (values.version) {
-    console.log(VERSION);
-    return;
-  }
-  if (values.help) {
-    console.log(HELP);
-    return;
-  }
-
-  const command = positionals[0] ?? '';
-  const rest = positionals.slice(1);
-
   try {
+    const { values, positionals, tokens } = parseArgs({
+      args: argv,
+      allowPositionals: true,
+      tokens: true,
+      options: parseArgsOptions(),
+    });
+
+    if (values.version) {
+      console.log(VERSION);
+      return;
+    }
+    if (values.help) {
+      console.log(HELP);
+      return;
+    }
+
+    const command = positionals[0] ?? '';
+    const rest = positionals.slice(1);
+
     // Only record and implement assign provenance. Anywhere else the flags are a
     // mistake, not something to ignore, and this has to run before the switch
     // so a non-recording command never reaches the required-declaration check.
@@ -145,25 +145,25 @@ export function main(argv: string[]): void {
         return;
       }
       case 'init': {
+        if (rest.length > 1) {
+          throw new Error('init takes at most one path');
+        }
         const target = rest[0] ?? process.cwd();
         console.log(initCommand(target, values.tools, values.workflows));
         return;
       }
       case 'propose': {
-        requireTitle(rest, 'propose');
-        console.log(proposeCommand(rest[0]!, process.cwd()));
+        console.log(proposeCommand(joinTitle(rest, 'propose'), process.cwd()));
         return;
       }
       case 'note': {
-        requireTitle(rest, 'note');
-        console.log(noteCommand(rest[0]!, process.cwd()));
+        console.log(noteCommand(joinTitle(rest, 'note'), process.cwd()));
         return;
       }
       case 'record': {
-        requireTitle(rest, 'record');
         console.log(
           recordCommand(
-            rest[0]!,
+            joinTitle(rest, 'record'),
             process.cwd(),
             requireDecidedBy(values['decided-by']),
             requireRaisedBy(values['raised-by']),
@@ -172,10 +172,9 @@ export function main(argv: string[]): void {
         return;
       }
       case 'implement': {
-        requireTitle(rest, 'implement');
         console.log(
           implementCommand(
-            rest[0]!,
+            oneName(rest, 'implement'),
             process.cwd(),
             requireDecidedBy(values['decided-by']),
             requireRaisedBy(values['raised-by']),
@@ -184,25 +183,23 @@ export function main(argv: string[]): void {
         return;
       }
       case 'reject': {
-        requireTitle(rest, 'reject');
-        console.log(rejectCommand(rest[0]!, requireReason(values.reason, 'reject'), process.cwd()));
+        console.log(rejectCommand(oneName(rest, 'reject'), requireReason(values.reason, 'reject'), process.cwd()));
         return;
       }
       case 'archive': {
-        requireTitle(rest, 'archive');
-        console.log(archiveCommand(rest[0]!, requireReason(values.reason, 'archive'), process.cwd()));
+        console.log(archiveCommand(oneName(rest, 'archive'), requireReason(values.reason, 'archive'), process.cwd()));
         return;
       }
       case 'supersede': {
-        requireTitle(rest, 'supersede');
         const by = values.by;
         if (by === undefined) {
           throw new Error('supersede requires --by <name>');
         }
-        console.log(supersedeCommand(rest[0]!, by, process.cwd()));
+        console.log(supersedeCommand(oneName(rest, 'supersede'), by, process.cwd()));
         return;
       }
       case 'list': {
+        noPositionals(rest, 'list');
         console.log(listCommand(process.cwd()));
         return;
       }
@@ -213,30 +210,33 @@ export function main(argv: string[]): void {
         return;
       }
       case 'show': {
-        requireTitle(rest, 'show');
-        console.log(showCommand(rest[0]!, process.cwd()));
+        console.log(showCommand(oneName(rest, 'show'), process.cwd()));
         return;
       }
       case 'status': {
+        noPositionals(rest, 'status');
         const result = statusCommand(process.cwd());
         console.log(result.output);
         if (result.valid === false) process.exitCode = 1;
         return;
       }
       case 'instructions': {
+        noPositionals(rest, 'instructions');
         console.log(instructionsCommand(process.cwd()));
         return;
       }
       case 'update': {
+        noPositionals(rest, 'update');
         console.log(updateCommand(process.cwd(), values.tools, values.workflows));
         return;
       }
       case 'config': {
+        noPositionals(rest, 'config');
         console.log(configCommand(process.cwd()));
         return;
       }
       case 'hook': {
-        const mode = rest[0];
+        const mode = oneName(rest, 'hook');
         if (mode === 'install') {
           console.log(hookInstallCommand(process.cwd(), process.argv[1]));
           return;
@@ -271,12 +271,14 @@ export function main(argv: string[]): void {
         return;
       }
       case 'completion': {
-        const shell = rest[0] ?? '';
-        console.log(completionCommand(shell));
+        console.log(completionCommand(oneName(rest, 'completion')));
         return;
       }
       case 'validate': {
-        const result = validateCommand(process.cwd(), values.all ? undefined : rest[0]);
+        if (values.all && rest.length > 0) {
+          throw new Error('validate takes either a record name or --all, not both');
+        }
+        const result = validateCommand(process.cwd(), values.all ? undefined : oneNameOrNone(rest));
         console.log(result.output);
         if (result.valid === false) process.exitCode = 1;
         return;
@@ -291,9 +293,42 @@ export function main(argv: string[]): void {
   }
 }
 
-function requireTitle(rest: string[], command: string): void {
+/**
+ * Title-shaped positional: the shell splits an unquoted multi-word title into
+ * separate words, so they are joined back rather than silently dropping every
+ * word after the first. An empty title is still an error.
+ */
+function joinTitle(rest: string[], command: string): string {
+  const title = rest.join(' ').trim();
+  if (title.length === 0) {
+    throw new Error(`${command} requires a title`);
+  }
+  return title;
+}
+
+/**
+ * Identifier-shaped positional: a record name is one token, so extra words are
+ * a mistake to report, not words to join or drop.
+ */
+function oneName(rest: string[], command: string): string {
   if (rest.length === 0 || rest[0]!.trim().length === 0) {
     throw new Error(`${command} requires a title or name`);
+  }
+  if (rest.length > 1) {
+    throw new Error(`${command} takes one name, got ${rest.length} arguments: ${rest.join(' ')}`);
+  }
+  return rest[0]!;
+}
+
+/** `validate` without `--all` may name one record or none (the whole repo). */
+function oneNameOrNone(rest: string[]): string | undefined {
+  if (rest.length === 0) return undefined;
+  return oneName(rest, 'validate');
+}
+
+function noPositionals(rest: string[], command: string): void {
+  if (rest.length > 0) {
+    throw new Error(`adrkit ${command} takes no positional arguments`);
   }
 }
 

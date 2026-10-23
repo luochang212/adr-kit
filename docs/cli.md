@@ -47,7 +47,11 @@ for example `wrote deliberation tree (html) to /path/tree.html`.
 Without `--out`, stdout contains only the artifact.
 
 `-h, --help` prints help; `-V, --version` prints the version. Unsupported
-options fail rather than being ignored. `--raised-by` says who introduced
+options fail rather than being ignored. Positional arguments follow each
+command's synopsis: `record`, `propose`, and `note` join unquoted shell words
+into one title or text, so quoting is optional; every other command takes at
+most the positional arguments its synopsis shows, and extras fail rather than
+being ignored. `--raised-by` says who introduced
 a shipped choice; `--decided-by` says whose judgment settled it. Both are
 declarations, not CLI inferences. `--reason` is required for rejection and
 archival. The CLI cannot verify that code shipped or another authoritative
@@ -55,8 +59,9 @@ owner exists. `--tools claude` adds `.claude/` copies alongside the default
 `.agents/`; `--tools none` installs no integrations.
 
 Repository-wide validation also checks `@adr <number>` citations in code and
-configuration files. A citation must name an implemented decision whose `paths`
-cover the citing file; a citation to a missing, archived, or superseded decision
+configuration files. A citation must name an implemented decision; when that
+decision declares `paths`, the citing file must match one of them. A citation
+to a missing, archived, or superseded decision
 fails and names the line and, for a superseded decision, its successor. Markdown
 and the root `site/` documentation copy are not scanned, and citations are
 optional: only the ones that exist are checked.
@@ -85,8 +90,10 @@ Per record, in every mode, including archived records.
   proposal-era sections; proposals are dated `YYYY-MM-DD-slug.md`, unnumbered,
   with no provenance fields; `superseded` names another decision; archive
   metadata appears only in `archived/`.
-- Body references (`ADR-12`, `ADR 4`, or `ADR12`) resolve to existing decisions;
-  forward references to numbers not yet assigned to proposals fail too.
+- Body references (`ADR-12`, `ADR 4`, or `ADR12`) in visible prose resolve to
+  existing decisions; text inside fenced code or HTML comments is not a
+  reference, and forward references to numbers not yet assigned to proposals
+  fail too.
 - `### Later changes` entries in implemented records open with
   `**Amended by ADR N:**`; a trailing `ADR N later` block, a block that
   loses the opening, or ordinary text before the first entry fails, while a
@@ -127,13 +134,16 @@ Quote the whole item as `- "max: 500"` to make it a string. `list` still discove
 records when config fields are mistyped; `status` and `instructions` report the
 repository's validation issues, including when proposals are pending.
 
-## Source removal after archiving
+## Failed source removal on a lifecycle move
 
-`archive` and `supersede` write the archived file before removing the
-implemented source. If source removal fails, the command removes the staged
-archived copy again, exits non-zero, and reports both paths and the underlying
-error. The implemented source survives; the move is not half-completed. Fix the
-filesystem error and retry; the replacement in a supersession stays active.
+Every lifecycle move stages the target first and removes the source second:
+`archive` and `supersede` write the archived file, `implement` writes the
+numbered decision, and `reject` writes the rejected record. If source removal
+fails, the command removes the staged copy again, exits non-zero, and reports
+both paths and the underlying error. The source survives; the move is not
+half-completed, and re-running the command cannot allocate a second number for
+the same proposal. Fix the filesystem error and retry; the replacement in a
+supersession stays active.
 
 ## Scope retrieval for changes
 

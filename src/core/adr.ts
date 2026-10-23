@@ -119,9 +119,7 @@ export interface AdrRecord {
    * theme), a scope answers "which decisions govern this file?". Minimal
    * glob semantics (`**` crosses separators, `*` within a segment, `?` one
    * character); validate checks the shape and that the static directory anchor
-   * (or full literal path) exists,
-   * except on archived records, whose frozen bytes must not depend on the
-   * live filesystem.
+   * (or full literal path) exists, in every folder alike.
    */
   paths?: string[];
   number?: number;
@@ -277,6 +275,24 @@ export function writtenHeadings(body: string, level: number): string[] {
     if (!line.code && line.visible.startsWith(prefix)) headings.push(line.visible.slice(prefix.length).trim());
   }
   return headings;
+}
+
+/**
+ * A record's prose as the reader sees it: section headings plus comment-masked
+ * body lines outside fenced code. Cross-reference mining (validation's
+ * dangling-reference check and the decision map's edges) reads this, so text a
+ * reader cannot see — an HTML comment or a fenced example — is never mistaken
+ * for a reference.
+ */
+export function visibleRecordText(record: Pick<AdrRecord, 'sections'>): string {
+  const lines: string[] = [];
+  for (const sec of record.sections) {
+    lines.push(sec.heading);
+    for (const line of markdownLines(sec.body)) {
+      if (!line.code) lines.push(line.visible);
+    }
+  }
+  return lines.join('\n');
 }
 
 /**
@@ -484,11 +500,18 @@ export function parseAdrText(text: string, filePath: string): AdrRecord {
     const line = scanned.raw;
     if (!scanned.code && scanned.visible.startsWith('## ')) {
       if (current !== null) sections.push(current);
-      const heading = line.slice(3).trim();
+      // The heading text comes from the visible line: a trailing HTML comment
+      // is masked there, so "## Decision <!-- note -->" names the section
+      // "Decision" instead of a heading no reader can match.
+      const heading = scanned.visible.slice(3).trim();
       if (heading.length === 0) {
         throw new AdrFormatError('section heading must not be empty', filePath);
       }
-      current = { heading, body: '' };
+      // Keep trailing comments in the body so a comment opened on the heading
+      // still hides its continuation during section scans and lifecycle rewrites.
+      // The scanner masks comments without shifting columns.
+      const trailing = line.slice(scanned.visible.trimEnd().length);
+      current = { heading, body: trailing.trim().length > 0 ? `${trailing}\n` : '' };
     } else if (current !== null) {
       current.body += `${line}\n`;
     }

@@ -104,7 +104,12 @@ if (showDiff && live.length > 0) {
     const livePath = join(dir, file.split('/').join('__'));
     writeFileSync(livePath, content);
     const result = spawnSync('diff', ['-u', join(root, 'assets/upstream/grilling', file), livePath], { encoding: 'utf8' });
-    if (result.stdout) console.error(result.stdout);
+    // Windows has no `diff`; a failed spawn must not read as "no differences".
+    if (result.error) {
+      console.error(`cannot diff ${file}: ${result.error.message}; run the diff manually against ${livePath}`);
+    } else if (result.stdout) {
+      console.error(result.stdout);
+    }
   }
 }
 console.error('');
