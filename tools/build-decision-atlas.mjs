@@ -46,12 +46,12 @@ const records = core.listRecords(root, ['implemented', 'archived']);
 const graph = core.buildDecisionGraph(records);
 const targetDir = dirname(target);
 const pages = [
-  { file: 'index.html', language: 'zh', sibling: 'en.html' },
-  { file: 'en.html', language: 'en', sibling: 'index.html' },
+  { file: 'index.html', language: 'zh' },
+  { file: 'en.html', language: 'en' },
 ];
 
 mkdirSync(targetDir, { recursive: true });
-for (const { file, language, sibling } of pages) {
+for (const { file, language } of pages) {
   const html = core.renderDecisionAtlas({
     template: readFileSync(templatePath, 'utf8'),
     records,
@@ -59,9 +59,7 @@ for (const { file, language, sibling } of pages) {
     commit: commit(),
     repositoryUrl: repositoryUrl(),
     projectName,
-    homeHref: '../',
     language,
-    langHref: sibling,
   });
   writeFileSync(join(targetDir, file), html);
 }
