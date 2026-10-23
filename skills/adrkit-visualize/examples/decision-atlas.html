@@ -277,6 +277,11 @@ html{scroll-padding-top:68px}.archive-masthead{padding:0 24px}.masthead-inner{ma
 .cards-heading{padding-top:60px}
 #cards-view .atlas-inner{padding-bottom:90px}
 .insight-columns.single{grid-template-columns:1fr}
+.insight-columns{align-items:start}
+.insight-columns>.atlas-section{min-inline-size:0}
+.insight-columns [hidden]{display:none}
+.hub-title,.replacement-row button>span{overflow-wrap:anywhere}
+.density-day b{text-align:center}
 #decision-cards>.decision-card{min-width:0}
 .decision-card h3,.decision-card p{overflow-wrap:anywhere}
 @media (max-width:760px){
@@ -959,7 +964,7 @@ for (const date of dates) {
 }
 const incoming = n => references.filter(e => e.dataset.to === String(n));
 const outgoing = n => references.filter(e => e.dataset.from === String(n));
-records.filter(r => r.lifecycle === 'implemented').map(r => ({ r, count: incoming(r.number).length })).sort((a, b) => b.count - a.count || a.r.number - b.r.number).slice(0, 6).forEach(({ r, count }) => {
+records.filter(r => r.lifecycle === 'implemented').map(r => ({ r, count: incoming(r.number).length })).sort((a, b) => b.count - a.count || a.r.number - b.r.number).forEach(({ r, count }) => {
   const li = make('li'), b = make('button', 'hub-button');
   b.append(make('span', 'hub-number', '#' + r.number), make('span', 'hub-title', r.title), make('strong', '', count), make('small', '', '次'));
   b.addEventListener('click', () => read(r.number)); li.append(b); document.querySelector('#reference-hubs').append(li);
@@ -1259,7 +1264,51 @@ const initialView = () => { canvas.zoom((innerWidth < 760 ? .65 : .85) / canvas.
   requestAnimationFrame(initialView);
   document.getElementById('reset').addEventListener('click', initialView);
 })();
-</script><script>(() => {
+</script><script data-insight-layout>(() => {
+  const columns = document.querySelector('.insight-columns');
+  if (!columns) return;
+  let width = columns.getBoundingClientRect().width, pending = false;
+  function balanceInsights() {
+    const panels = [...columns.querySelectorAll('.atlas-section')];
+    const groups = panels.map(panel => [...panel.querySelectorAll('#reference-hubs>li, .replacement-row')]);
+    // Restore candidates before measuring so a wider viewport can reveal rows
+    // hidden at a narrower width. Batch writes before reading layout.
+    groups.flat().forEach(row => { row.hidden = false; });
+    const heights = panels.map((panel, i) => {
+      const top = panel.getBoundingClientRect().top;
+      const padding = parseFloat(getComputedStyle(panel).paddingBottom) || 0;
+      return groups[i].map(row => row.getBoundingClientRect().bottom - top + padding);
+    });
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    // The same preferred height guides paired, stacked and single panels.
+    // Sparse content stays short; only the maximum is a hard constraint.
+    const target = 26 * rem, maximum = 35 * rem;
+    groups.forEach((rows, i) => {
+      let count = 0, distance = Infinity;
+      heights[i].forEach((height, index) => {
+        if (height <= maximum && Math.abs(height - target) <= distance) {
+          count = index + 1;
+          distance = Math.abs(height - target);
+        }
+      });
+      rows.forEach((row, index) => { row.hidden = index >= count; });
+    });
+  }
+  function schedule() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(() => { pending = false; balanceInsights(); });
+  }
+  balanceInsights();
+  // Height changes are our own output, never a trigger. Scrolling does not
+  // alter the content budget either.
+  const observer = new ResizeObserver(() => {
+    const nextWidth = columns.getBoundingClientRect().width;
+    if (nextWidth !== width) { width = nextWidth; schedule(); }
+  });
+  observer.observe(columns);
+  if (document.fonts) document.fonts.ready.then(schedule);
+})();</script><script>(() => {
   const nav = document.querySelector('.chapter-links');
   const links = [...nav.querySelectorAll('a')];
   const targets = links.map(link => document.querySelector(link.hash));
