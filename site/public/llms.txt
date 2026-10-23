@@ -52,8 +52,10 @@ records that no longer guide work.
 - `raised-by` and `decided-by` are required on numbered decisions; each is
   declared as `human` or `agent`. The CLI cannot infer provenance or verify
   delivery.
-- `adrkit atlas` renders the browsable decision history; `--record <name> --diagram`
-  renders an optional `## Deliberation` tree, and `--format` exports the map.
+- `adrkit atlas` renders the browsable decision history; `--record <name>`
+  renders an optional `## Deliberation` tree. `--map` explicitly selects the map;
+  `--format` sets the format without changing the object. `atlas --format html`
+  still generates the full atlas.
 - At task start, list the inventory, read relevant implemented records in full,
   check relevant proposals and rejections, and consult archives for history.
 - The `adrkit-review` skill keeps changed records aligned with changed code and

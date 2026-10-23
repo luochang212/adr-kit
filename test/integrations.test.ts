@@ -548,7 +548,7 @@ rules:
     const visualize = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-visualize');
     expect(visualize?.description).toContain('visualize an existing ADR');
     expect(visualize?.body).toContain('adrkit atlas --out');
-    expect(visualize?.body).toContain('adrkit atlas --record <name> --diagram');
+    expect(visualize?.body).toContain('adrkit atlas --record <name>');
     expect(visualize?.body).toContain('open the generated file in the default browser');
   });
 });

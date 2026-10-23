@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -33,6 +33,26 @@ afterEach(() => {
 });
 
 describe('cli option handling', () => {
+  it.each([
+    { args: ['1'] }, { args: ['--map', 'unexpected'] },
+    { args: ['--record', '1', '--format', 'text', 'extra'] },
+  ])('rejects atlas positional arguments without creating output: %j', ({ args }) => {
+    const root = makeRepo();
+    process.chdir(root);
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['atlas', ...args, '--out', 'unexpected.html']);
+    expect(process.exitCode).toBe(1);
+    expect(errors).toHaveBeenCalledWith(expect.stringContaining('does not take positional arguments'));
+    expect(errors).toHaveBeenCalledWith(expect.stringContaining('--record'));
+    expect(output).not.toHaveBeenCalled();
+    expect(existsSync(join(root, 'unexpected.html'))).toBe(false);
+  });
+
+  it('rejects the removed --diagram flag', () => {
+    expect(() => main(['atlas', '--record', '1', '--diagram'])).toThrow(/Unknown option '--diagram'/);
+  });
+
   it('rejects the removed --json flag as an unknown option', () => {
     const root = makeRepo();
     process.chdir(root);

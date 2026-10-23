@@ -68,7 +68,7 @@ ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令
 
 `AGENTS.md` 中的该段归你所有：可选的代际标记 `<!-- adrkit: standing-orders <id> -->` 表示已与哪一代模板核对，不保证正文完全一致。允许翻译、缩写和本地修改；项目专属要求放在该段之外。旧标记会让 `init`、`update`、`list`、`instructions` 和 `relevant` 提示：先与当前 `adrkit-init` 模板比较、处理变化，再更新标记。无标记的段落现在保持安静，包括旧安装；核对后保留或添加当前标记，即可选择接收以后的模板变化提醒。缺少整段规则时，init/update 仍会给出独立提醒。
 
-可视化命令已收敛为一个：`adrkit atlas`（地图用 `--format html`，单条决策的树用 `--record <N> --diagram`）；`adrkit graph` 与 `adrkit tree` 已移除。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。
+可视化的破坏性变更：`--record <name>` 选择的树现在默认输出 HTML，也支持 `--format html`；`--diagram` 已移除。`atlas` 的多余位置参数会报错，选记录请用 `--record <name>`。`atlas --format html` 现在输出完整档案；所有格式的地图导出都必须显式添加 `--map`，未选择地图或单条记录时使用非 HTML 格式会报错。可视化命令已收敛为一个：`adrkit atlas`（地图用 `--map --format html`，单条决策的树用 `--record <N>`）；`adrkit graph` 与 `adrkit tree` 已移除。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。
 
 ## 告诉 Agent
 
@@ -93,7 +93,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 > 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的决策档案。归档正文全文展示，并把页面固定到当前提交。
 
-档案是默认可视化：`adrkit atlas --out decisions.html`。界面默认英文，中文用 `--lang zh`。轻量入口仍然保留：`adrkit atlas --format html` 出独立的地图页，`adrkit atlas --record <N> --diagram` 看单条决策的 deliberation tree。
+档案是默认可视化：`adrkit atlas --out decisions.html`。界面默认英文，中文用 `--lang zh`。轻量入口仍然保留：`adrkit atlas --map --format html` 出独立的地图页，`adrkit atlas --record <N>` 看单条决策的 deliberation tree。
 
 ## 命令
 
@@ -115,7 +115,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--lang <en|zh>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help

@@ -68,7 +68,7 @@ ADR Kit is pre-stable and breaks on purpose: a release may change the record for
 
 That section in `AGENTS.md` is yours: its optional `<!-- adrkit: standing-orders <id> -->` generation marker declares which template you reconciled it against, not identical text. Translation, shortening, and local edits are allowed. Keep project-specific obligations outside the section. An old marker produces a note in `init`, `update`, `list`, `instructions`, and `relevant`: compare with the current `adrkit-init` template and reconcile changes before updating the marker. Unmarked sections now stay quiet, including older installations; retain or add the current marker after reconciliation to opt into future template-change notes. A missing section still produces the separate init/update note.
 
- The visualization commands are now one: `adrkit atlas` (the map is `--format html`, one decision's tree is `--record <N> --diagram`); `adrkit graph` and `adrkit tree` are gone. The npm package is `adr-kit` and the CLI is `adrkit` (there is no `adrkit` package on npm). The CLI requires Node.js 22.22 or later; earlier Node.js lines are no longer supported.
+Breaking visualization change: trees selected by `--record <name>` now default to HTML and support `--format html`; `--diagram` is removed. Extra positional arguments to `atlas` are rejected; use `--record <name>`. `atlas --format html` now writes the full atlas. Map exports in any format must explicitly add `--map`; non-HTML formats without a selected map or record are rejected. The visualization commands are now one: `adrkit atlas` (the map is `--map --format html`, one decision's tree is `--record <N>`); `adrkit graph` and `adrkit tree` are gone. The npm package is `adr-kit` and the CLI is `adrkit` (there is no `adrkit` package on npm). The CLI requires Node.js 22.22 or later; earlier Node.js lines are no longer supported.
 
 ## Tell your agent
 
@@ -95,7 +95,7 @@ To generate one for your repository, ask your agent:
 
 > Use the `adrkit-visualize` skill to build a browsable decision atlas from `adr/implemented/` and `adr/archived/`. Publish archived bodies in full, and pin the page to the current commit.
 
-The atlas is the default visualization: `adrkit atlas --out decisions.html`. Its chrome is English by default; pass `--lang zh` for Chinese. The lighter routes stay available: `adrkit atlas --format html` for the standalone map page, and `adrkit atlas --record <N> --diagram` for one decision's deliberation tree.
+The atlas is the default visualization: `adrkit atlas --out decisions.html`. Its chrome is English by default; pass `--lang zh` for Chinese. The lighter routes stay available: `adrkit atlas --map --format html` for the standalone map page, and `adrkit atlas --record <N>` for one decision's deliberation tree.
 
 ## Commands
 
@@ -117,7 +117,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--lang <en|zh>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help

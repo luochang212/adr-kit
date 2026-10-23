@@ -60,8 +60,8 @@ Usage:
   adrkit config                              Print the current configuration
   adrkit hook <install|uninstall|run>
                                            Manage the pre-commit decision check
-  adrkit atlas [--out <path>] [--lang <en|zh>] [--record <name> [--diagram|--format <mermaid|text>]] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
-                                           Write the decision atlas; --record renders one deliberation tree, --format exports the decision map
+  adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+                                           Write the decision atlas; --map selects the decision map, --record selects one deliberation tree
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
   adrkit help                                Print this help
@@ -70,14 +70,19 @@ Usage:
 
 adrkit atlas writes the decision atlas from the current records: a single
 self-contained HTML page with the decision map, a browsable directory, and
-every record's text. --out <path> writes it to a file instead of stdout.
---format exports the decision map instead: mermaid pastes into any Markdown and renders
-natively on GitHub (nodes are tinted by their tags), dot feeds Graphviz
-(dot -Tpng), text prints a terminal-friendly tree, and html emits the
-standalone map page; --tag <tag> filters to one theme and --formal-only drops
-the mined edges. With --record <name>, --diagram renders that decision's
-deliberation tree and --format <mermaid|text> exports its source. The page
-chrome is English by default; --lang zh renders it in Chinese.
+every record's text. --format html keeps this full atlas; --out <path> writes
+it to a file instead of stdout. Example: adrkit atlas --format html --out adr.html.
+--map explicitly selects the standalone decision map (HTML by default).
+With --map, --format chooses mermaid, dot, text, or html; --tag filters to one
+theme and --formal-only drops mined edges. Example: adrkit atlas --map --out map.html.
+A non-HTML format without --map or --record is rejected, not routed to a map.
+--map and --record are mutually exclusive. --record <name> selects that
+record's deliberation tree, with HTML as its default; --format html|mermaid|text
+sets its encoding. All three objects default to HTML. The full atlas chrome is
+English by default; --lang zh renders it in Chinese.
+Atlas accepts no positional arguments; use --record <name> for a record.
+With --out, the receipt identifies the object, format, and destination; stdout
+without --out contains only the artifact.
 
 Run from anywhere inside the project; commands discover the nearest adr/ directory.
 `;
@@ -249,11 +254,14 @@ export function main(argv: string[]): void {
         throw new Error('hook requires install, uninstall, or run');
       }
       case 'atlas': {
+        if (rest.length > 0) {
+          throw new Error('adrkit atlas does not take positional arguments; use --record <name> to select a deliberation tree');
+        }
         console.log(
           atlasCommand(process.cwd(), {
             out: values.out,
+            map: values.map,
             record: values.record,
-            diagram: values.diagram,
             format: values.format,
             lang: values.lang,
             formalOnly: values['formal-only'],

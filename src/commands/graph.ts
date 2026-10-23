@@ -6,7 +6,7 @@ import { listRecords } from '../core/repository.js';
 import { buildDecisionGraph, dotGraph, mermaidGraph, textTree } from '../core/graph.js';
 import { renderDecisionMapHtml } from '../core/graph-html.js';
 
-/** Internal renderer for `atlas --format`; not a CLI command. */
+/** Internal renderer for `atlas --map`; not a CLI command. */
 export interface GraphFormatFlags {
   mermaid?: boolean;
   dot?: boolean;
@@ -56,11 +56,12 @@ export function graphCommand(cwd: string, flags: GraphFormatFlags): string {
     formalOnly: flags.formalOnly,
     tag: flags.tag,
   });
-  const output = formats[0] === 'dot' ? dotGraph(graph)
-    : formats[0] === 'text' ? textTree(graph)
-    : formats[0] === 'html' ? renderDecisionMapHtml(graph, 'Decision map', recordHref(root, target))
+  const format = formats[0] ?? 'mermaid';
+  const output = format === 'dot' ? dotGraph(graph)
+    : format === 'text' ? textTree(graph)
+    : format === 'html' ? renderDecisionMapHtml(graph, 'Decision map', recordHref(root, target))
     : mermaidGraph(graph);
   if (target === undefined) return output;
   writeFileSync(target, output);
-  return `wrote ${target}`;
+  return `wrote decision map (${format}) to ${target}`;
 }

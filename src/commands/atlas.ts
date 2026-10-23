@@ -18,17 +18,17 @@ const TEMPLATE_PATH = fileURLToPath(
 const FORMATS = ['mermaid', 'dot', 'text', 'html'] as const;
 type AtlasFormat = (typeof FORMATS)[number];
 
-/** The formats a single record's deliberation tree can take. */
-const TREE_FORMATS = ['mermaid', 'text'] as const;
+/** Formats supported by a single record's deliberation tree. */
+const TREE_FORMATS = ['html', 'mermaid', 'text'] as const;
 
 export interface AtlasOptions {
   /** Write the output here instead of returning it. */
   out?: string;
+  /** Select the standalone relationship map instead of the whole atlas. */
+  map?: boolean;
   /** Render one record's deliberation tree instead of the whole atlas. */
   record?: string;
-  /** With `record`: the card diagram rather than a source text. */
-  diagram?: boolean;
-  /** With no record: the map's source or page format. With a record: the tree's source. */
+  /** Output format for the selected object; the full atlas supports HTML only. */
   format?: string;
   formalOnly?: boolean;
   tag?: string;
@@ -40,14 +40,14 @@ function isFormat(value: string): value is AtlasFormat {
   return (FORMATS as readonly string[]).includes(value);
 }
 
-function writeTarget(output: string, cwd: string, out: string | undefined): string {
+function writeTarget(output: string, cwd: string, out: string | undefined, object: 'decision atlas' | 'deliberation tree', format: string): string {
   if (out === undefined) return output;
   const target = resolve(cwd, out);
   if (!existsSync(dirname(target))) {
     throw new Error(`--out directory does not exist: ${dirname(target)}`);
   }
   writeFileSync(target, output);
-  return `wrote ${target}`;
+  return `wrote ${object} (${format}) to ${target}`;
 }
 
 /** `git@host:owner/repo.git` or `git+https://…` to a browser URL without `.git`. */
@@ -109,45 +109,37 @@ function projectName(root: string): string {
 
 /**
  * The one visualization command. No flags render the decision atlas from the
- * current records; `--record <name> --diagram` renders that decision's
- * deliberation tree; `--format` exports the decision map (`mermaid`, `dot`,
- * `text`, or the standalone `html` page) or, with a record, the tree's source.
+ * current records; `--record <name>` renders that decision's
+ * deliberation tree; `--map` selects the standalone map. `--format` chooses
+ * the selected object's encoding and never changes the object.
  */
 export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
   const root = requireRoot(cwd);
-  const format = options.format;
-  if (format !== undefined && !isFormat(format)) {
+  const format = options.format ?? 'html';
+  if (!isFormat(format)) {
     throw new Error(`--format expects ${FORMATS.join(', ')}, not "${format}"`);
   }
   if (options.lang !== undefined && options.lang !== 'en' && options.lang !== 'zh') {
     throw new Error(`--lang expects en or zh, not "${options.lang}"`);
   }
-  if (options.lang !== undefined && (options.record !== undefined || format !== undefined)) {
-    throw new Error('--lang applies to the decision atlas page, not --record or --format');
+  if (options.map === true && options.record !== undefined) {
+    throw new Error('--map and --record are mutually exclusive');
   }
-  if (options.diagram === true && options.record === undefined) {
-    throw new Error('--diagram requires --record <name>');
+  if (options.lang !== undefined && (options.record !== undefined || options.map === true)) {
+    throw new Error('--lang applies to the decision atlas page, not --record or --map');
   }
   if (options.record !== undefined) {
-    if (options.diagram === true && format !== undefined) {
-      throw new Error('--diagram and --format are mutually exclusive');
-    }
-    if (options.diagram !== true && format === undefined) {
-      throw new Error('--record requires --diagram or --format <mermaid|text>');
-    }
-    if (format !== undefined && !(TREE_FORMATS as readonly string[]).includes(format)) {
-      throw new Error(`a deliberation tree has only ${TREE_FORMATS.join(' or ')}; use --diagram for the card view`);
+    if (!(TREE_FORMATS as readonly string[]).includes(format)) {
+      throw new Error(`a deliberation tree supports only ${TREE_FORMATS.join(', ')}`);
     }
     if (options.tag !== undefined || options.formalOnly === true) {
-      throw new Error('--tag and --formal-only apply to --format exports of the whole set');
+      throw new Error('--tag and --formal-only require --map');
     }
-    const output = options.diagram === true
-      ? treeCommand(options.record, cwd, { html: true })
-      : treeCommand(options.record, cwd, { [format!]: true });
-    return writeTarget(output, cwd, options.out);
+    const output = treeCommand(options.record, cwd, { [format]: true });
+    return writeTarget(output, cwd, options.out, 'deliberation tree', format);
   }
 
-  if (format !== undefined) {
+  if (options.map === true) {
     const flags = {
       formalOnly: options.formalOnly,
       tag: options.tag,
@@ -159,8 +151,11 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
       : { ...flags, html: true });
   }
 
+  if (format !== 'html') {
+    throw new Error(`the decision atlas supports only --format html; use --map --format ${format} for the decision map`);
+  }
   if (options.tag !== undefined || options.formalOnly === true) {
-    throw new Error('--tag and --formal-only apply to --format exports of the whole set');
+    throw new Error('--tag and --formal-only require --map');
   }
   const records = listRecords(root, ['implemented', 'archived']);
   const page = renderDecisionAtlas({
@@ -172,5 +167,5 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
     projectName: projectName(root),
     language: options.lang === 'zh' ? 'zh' : 'en',
   });
-  return writeTarget(page, cwd, options.out);
+  return writeTarget(page, cwd, options.out, 'decision atlas', format);
 }

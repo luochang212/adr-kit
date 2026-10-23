@@ -131,6 +131,13 @@ over a patch rather than share the working tree.
   (`test/cli.test.ts` holds each command's synopsis to the table), and document
   it in `docs/cli.md`; keep `src/commands/completion.ts` for the per-shell
   rendering.
+- Visualization object selection is explicit: `adrkit atlas` and
+  `adrkit atlas --format html` generate the full atlas. Use `--map` for the
+  decision map, including source exports; `--format` never selects an object.
+  All three objects default to HTML; `--record <name>` selects a record's
+  deliberation tree and `--format` sets its encoding. The old `--diagram` flag
+  is removed. Reject positional arguments rather than silently ignoring them.
+  Old map export commands must add `--map`.
 - Code and configuration may cite the decision they follow with `@adr N`
   (`@adr 14, 22`). `adrkit validate` fails when a citation names a missing,
   archived, or superseded decision, or a file outside that decision's `paths`.

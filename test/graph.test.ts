@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
+import { atlasCommand } from '../src/commands/atlas.js';
 import { graphCommand } from '../src/commands/graph.js';
 import { treeCommand } from '../src/commands/tree.js';
 import { initCommand } from '../src/commands/init.js';
@@ -266,6 +267,106 @@ r
 });
 
 describe('cli atlas surface', () => {
+  it('identifies the selected object, format, and destination in every file receipt', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', {
+      date: '2026-08-17', deliberation: '- Q: Which? [settled]\n  - A: This. [settled]',
+    });
+    const cases = [
+      { object: 'decision atlas', options: {} },
+      { object: 'decision atlas', options: { format: 'html' } },
+      ...[undefined, 'html', 'mermaid', 'dot', 'text'].map(format => ({
+        object: 'decision map', options: { map: true, format },
+      })),
+      ...[undefined, 'html', 'mermaid', 'text'].map(format => ({
+        object: 'deliberation tree', options: { record: '1', format },
+      })),
+    ];
+    for (const { object, options } of cases) {
+      const format = 'format' in options ? options.format ?? 'html' : 'html';
+      expect(atlasCommand(root, { ...options, out: 'artifact' })).toBe(
+        `wrote ${object} (${format}) to ${join(root, 'artifact')}`,
+      );
+      const contents = readFileSync(join(root, 'artifact'), 'utf8');
+      expect(contents).not.toContain('wrote ' + object);
+      expect(contents.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('defaults a selected tree to HTML and supports each format through --format', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', {
+      date: '2026-08-17', deliberation: '- Q: Which? [settled]\n  - A: This. [settled]',
+    });
+    const page = atlasCommand(root, { record: '1' });
+    expect(page).toContain('<!doctype html>');
+    expect(page).not.toContain('id="reader"');
+    expect(atlasCommand(root, { record: '1', format: 'html' })).toBe(page);
+    for (const format of ['html', 'mermaid', 'text']) {
+      expect(atlasCommand(root, { record: '1', format })).toBe(treeCommand('1', root, { [format]: true }));
+    }
+    expect(() => atlasCommand(root, { record: '1', format: 'dot' })).toThrow(/supports only/);
+  });
+
+  it('keeps an explicit HTML format on the full atlas and writes that artifact', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', { date: '2026-08-17' });
+    for (const options of [{}, { format: 'html' }, { format: 'html', lang: 'zh' }]) {
+      const page = atlasCommand(root, options);
+      expect(page).toContain('id="directory-search"');
+      expect(page).toContain('id="reader"');
+      expect(page).toContain('One');
+    }
+    // The CLI must choose the right artifact even without local agent skills.
+    rmSync(join(root, '.agents'), { recursive: true, force: true });
+    const previousCwd = process.cwd();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      process.chdir(root);
+      main(['atlas', '--format', 'html', '--out', 'adr.html']);
+      expect(readFileSync(join(root, 'adr.html'), 'utf8')).toContain('id="reader"');
+    } finally {
+      process.chdir(previousCwd);
+      logSpy.mockRestore();
+    }
+  });
+
+  it('requires an explicit map object for each map format', () => {
+    const root = makeRepo();
+    writeDecision(root, 1, 'One', { date: '2026-08-17' });
+    for (const format of ['mermaid', 'dot', 'text']) {
+      expect(() => atlasCommand(root, { format })).toThrow(/--map/);
+      expect(atlasCommand(root, { map: true, format })).toBe(
+        graphCommand(root, { [format]: true }),
+      );
+    }
+    expect(atlasCommand(root, { map: true, format: 'text', tag: 'storage', formalOnly: true })).toBe(
+      graphCommand(root, { text: true, tag: 'storage', formalOnly: true }),
+    );
+    for (const format of [undefined, 'html']) {
+      const page = atlasCommand(root, { map: true, format });
+      expect(page).toContain('<!doctype html>');
+      expect(page).not.toContain('id="directory-search"');
+      expect(page).not.toContain('id="reader"');
+    }
+    atlasCommand(root, { map: true, format: 'html', out: 'map.html' });
+    const page = readFileSync(join(root, 'map.html'), 'utf8');
+    expect(page).not.toContain('id="reader"');
+    expect(page).toContain('adr/implemented/');
+  });
+
+  it.each([
+    { map: true, record: '1' },
+    { map: true, record: '1', format: 'text' },
+    { map: true, lang: 'zh' },
+    { format: 'html', tag: 'storage' },
+    { formalOnly: true },
+  ])('rejects invalid object combinations before writing: %j', (options) => {
+    const root = makeRepo();
+    expect(() => atlasCommand(root, { ...options, out: 'invalid.html' })).toThrow();
+    expect(existsSync(join(root, 'invalid.html'))).toBe(false);
+  });
+
   it('rejects a language other than en or zh', () => {
     const root = makeRepo();
     const previousCwd = process.cwd();
@@ -292,11 +393,11 @@ describe('cli atlas surface', () => {
     try {
       process.chdir(root);
       process.exitCode = undefined;
-      main(['atlas', '--format', 'mermaid', '--lang', 'zh']);
+      main(['atlas', '--map', '--format', 'mermaid', '--lang', 'zh']);
       expect(process.exitCode).toBe(1);
       expect(errorSpy.mock.calls[0]?.[0]).toContain('--lang applies to the decision atlas page');
       process.exitCode = undefined;
-      main(['atlas', '--record', '1', '--diagram', '--lang', 'zh']);
+      main(['atlas', '--record', '1', '--lang', 'zh']);
       expect(process.exitCode).toBe(1);
       expect(errorSpy.mock.calls[1]?.[0]).toContain('--lang applies to the decision atlas page');
     } finally {
@@ -339,7 +440,7 @@ describe('cli atlas surface', () => {
       main(['atlas', '--format', 'bogus']);
       expect(process.exitCode).toBe(1);
       expect(errorSpy.mock.calls[0]?.[0]).toContain('expects');
-      main(['atlas', '--format', 'mermaid']);
+      main(['atlas', '--map', '--format', 'mermaid']);
       expect((logSpy.mock.calls[0]?.[0] as string).startsWith('flowchart LR')).toBe(true);
     } finally {
       process.chdir(previousCwd);
@@ -456,7 +557,7 @@ describe('graph output file', () => {
     const root = fixtureRepo();
     mkdirSync(join(root, 'reports'), { recursive: true });
     const target = join(root, 'reports', 'map.html');
-    expect(graphCommand(root, { html: true, out: 'reports/map.html' })).toBe('wrote ' + target);
+    expect(graphCommand(root, { html: true, out: 'reports/map.html' })).toBe('wrote decision map (html) to ' + target);
     const html = readFileSync(target, 'utf8');
     // Relative to the map, not to the repository root: the cards have to open
     // from wherever the file was written.
@@ -480,7 +581,7 @@ describe('graph output file', () => {
   it('writes other formats to the same path and rejects a missing directory', () => {
     const root = fixtureRepo();
     const target = join(root, 'map.mmd');
-    expect(graphCommand(root, { out: target })).toBe('wrote ' + target);
+    expect(graphCommand(root, { out: target })).toBe('wrote decision map (mermaid) to ' + target);
     expect(readFileSync(target, 'utf8').startsWith('flowchart LR')).toBe(true);
     expect(() => graphCommand(root, { html: true, out: 'missing/map.html' })).toThrow(/does not exist/);
   });
@@ -823,11 +924,12 @@ describe('graph HTML map', () => {
     try {
       process.chdir(root);
       process.exitCode = undefined;
-      main(['atlas', '--format', 'html']);
+      main(['atlas', '--map', '--format', 'html']);
       expect(String(logSpy.mock.calls[0]?.[0]).startsWith('<!doctype html>')).toBe(true);
-      main(['atlas', '--record', '1', '--diagram', '--format', 'mermaid']);
-      expect(process.exitCode).toBe(1);
-      expect(errorSpy.mock.calls[0]?.[0]).toContain('mutually exclusive');
+      main(['atlas', '--record', '1', '--format', 'html']);
+      expect(process.exitCode).toBeUndefined();
+      expect(String(logSpy.mock.calls[1]?.[0])).toContain('<!doctype html>');
+      expect(errorSpy).not.toHaveBeenCalled();
     } finally {
       process.chdir(previousCwd);
       process.exitCode = previousExitCode;
@@ -851,7 +953,7 @@ describe('graph HTML map', () => {
       process.exitCode = undefined;
       main(['atlas', '--record', '1', '--format', 'dot']);
       expect(process.exitCode).toBe(1);
-      expect(errorSpy.mock.calls[0]?.[0]).toContain('only mermaid or text');
+      expect(errorSpy.mock.calls[0]?.[0]).toContain('a deliberation tree supports only');
       expect(logSpy).not.toHaveBeenCalled();
     } finally {
       process.chdir(previousCwd);

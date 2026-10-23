@@ -22,10 +22,27 @@
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
 | `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错则失败，否则列出管辖这些改动的生效决策 |
-| `adrkit atlas [--out <path>] [--lang <en\|zh>] [--record <name> [--diagram\|--format <mermaid\|text>]] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record --diagram` 是单条决策的 deliberation tree（卡片视图），`--format` 导出决策地图（带 `--record` 时导出该树的源码） |
+| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record` 是单条决策的 deliberation tree（卡片视图），`--map` 显式选择决策地图；`--format` 只设置已选对象的格式，完整档案只支持 HTML |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |
 | `adrkit version` | 输出版本 |
 | `adrkit help` | 输出帮助 |
+
+地图必须显式指定：`adrkit atlas --map --out map.html` 默认输出 HTML 地图，
+可加 `--format mermaid|dot|text|html`。不带 `--map` 的
+`adrkit atlas --format html --out adr.html` 输出完整决策档案。
+`--tag`、`--formal-only` 要求 `--map`；`--map` 与 `--record` 互斥。
+`--lang` 仅用于完整档案，也允许配合显式 `--format html`。
+
+这是破坏性变更：旧地图导出命令须增加 `--map`。未显式指定地图或单条记录时，
+非 HTML 格式会报错并指出修正方式；HTML 格式始终输出完整档案。
+
+三种对象都默认输出 HTML。`atlas --record <name>` 与
+`atlas --record <name> --format html` 输出相同的 deliberation tree，
+`--format mermaid|text` 导出树的源码。旧 `--diagram` 参数已移除。
+不接受位置参数；选择记录请用 `--record <name>`。
+使用 `--out` 时，回执说明对象、格式和绝对路径，例如
+`wrote deliberation tree (html) to /path/tree.html`；不带 `--out` 时，
+标准输出只含产物本身。
 
 `-h, --help` 打印帮助；`-V, --version` 打印版本。不支持的选项会报错。
 `--raised-by` 声明谁提出已交付选择，`--decided-by` 声明谁的判断定下它；

@@ -90,3 +90,6 @@ rule missing.
 **Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`;
 `graph --out` is now `atlas --format html --out`. The link-resolution rule
 above is unchanged.
+
+**Amended by ADR 36:** explicit map exports use `atlas --map --format html --out`.
+The output-relative link contract is unchanged.
