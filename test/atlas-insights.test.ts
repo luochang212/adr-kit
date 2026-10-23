@@ -124,3 +124,9 @@ describe('atlas insight height budgets', () => {
     expect(example).not.toContain('.slice(0, 6).forEach(({ r, count })');
   });
 });
+
+describe('atlas density chart', () => {
+  it('centers the density counts and their dates together', () => {
+    expect(example).toContain('.density-day b,.density-day span{text-align:center}');
+  });
+});
