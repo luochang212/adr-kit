@@ -48,6 +48,44 @@ const jsonLd = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline data-language-redirect define:vars={{ basePath: import.meta.env.BASE_URL }}>
+      (function () {
+        var url = new URL(location.href);
+        var root = basePath.replace(/\/$/, '') + '/';
+        var path = url.pathname.replace(/\/index\.html$/, '/').replace(/\/$/, '');
+        var isRoot = path === root.slice(0, -1);
+        var isChinese = path === root + 'zh';
+        if (!isRoot && !isChinese) return;
+
+        // An explicit switch also works when storage is unavailable. A plain
+        // Chinese URL stays Chinese; only the default entry detects language.
+        var requested = url.searchParams.get('lang');
+        var preferred = requested === 'en' || requested === 'zh' ? requested : null;
+        if (preferred) {
+          try { localStorage.setItem('adr-kit.language', preferred); } catch (_) {}
+        } else {
+          if (!isRoot) return;
+          try { preferred = localStorage.getItem('adr-kit.language'); } catch (_) {}
+          if (preferred !== 'en' && preferred !== 'zh') {
+            preferred = 'en';
+            var languages = navigator.languages && navigator.languages.length
+              ? navigator.languages : [navigator.language];
+            for (var language of languages) {
+              var match = /^(en|zh)(?:-|$)/i.exec(language);
+              if (match) {
+                preferred = match[1].toLowerCase();
+                break;
+              }
+            }
+          }
+        }
+        var target = root + (preferred === 'zh' ? 'zh/' : '');
+        if (url.pathname !== target) {
+          url.pathname = target;
+          location.replace(url.href);
+        }
+      })();
+    </script>
     <script is:inline>document.documentElement.classList.add('js')</script>
     <title>{t('meta.title')}</title>
     <meta name="description" content={t('meta.description')} />

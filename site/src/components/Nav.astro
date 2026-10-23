@@ -27,7 +27,7 @@ const other: Lang = lang === 'zh' ? 'en' : 'zh';
       <a href="#faq">{t('nav.faq')}</a>
       <a href="https://github.com/luochang212/adr-kit">{t('nav.github')}</a>
     </nav>
-    <a class="nav__lang" href={langPath(other, '/')} hreflang={other === 'zh' ? 'zh-CN' : 'en'}>
+    <a class="nav__lang" href={`${langPath(other, '/')}?lang=${other}`} hreflang={other === 'zh' ? 'zh-CN' : 'en'}>
       {other === 'zh' ? '中文' : 'EN'}
     </a>
   </div>

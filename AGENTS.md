@@ -166,6 +166,11 @@ over a patch rather than share the working tree.
 
 ## Project website
 
+The homepage's default entry selects language from an explicit `?lang=en|zh`
+switch, then the saved `adr-kit.language` preference, then the browser's ordered
+language list (first supported en/zh; otherwise English). A direct `/zh/` link
+stays Chinese. Keep the switch usable when local storage is unavailable.
+
 `site/` is the bilingual (en/zh) project homepage, an Astro app deployed to
 GitHub Pages by `.github/workflows/site.yml`. It has its own
 `package.json` and build (`cd site && npm run build`), which regenerates the
