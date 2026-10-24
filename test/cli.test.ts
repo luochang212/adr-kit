@@ -101,6 +101,9 @@ describe('cli option handling', () => {
     main(['--help']);
     expect(process.exitCode).toBeUndefined();
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Usage:'));
+    // Users who only know the command name must be able to find the package
+    // on npm; the help is the one surface every installation can print.
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('npm package: adr-kit'));
 
     logSpy.mockClear();
     main(['--version']);

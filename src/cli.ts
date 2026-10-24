@@ -24,7 +24,7 @@ import { supersedeCommand } from './commands/supersede.js';
 import { updateCommand } from './commands/update.js';
 import { validateCommand } from './commands/validate.js';
 
-const HELP = `adrkit ${VERSION} - A lightweight ADR workflow for humans and agents
+const HELP = `adrkit ${VERSION} - A lightweight ADR workflow for humans and agents (npm package: adr-kit)
 
 Records live in adr/proposed/, adr/implemented/, adr/rejected/, or adr/archived/.
 An unshipped proposal stays proposed until implementation. record and

@@ -2,6 +2,7 @@
 
 Run from anywhere inside a project; ADR Kit discovers the nearest `adr/`.
 Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
+The npm package is `adr-kit`; the command it installs is `adrkit`.
 
 | Command | Purpose |
 | --- | --- |
