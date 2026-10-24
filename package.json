@@ -54,6 +54,7 @@
   "keywords": [
     "adr",
     "architecture-decision-records",
+    "adrkit",
     "cli",
     "ai",
     "development"

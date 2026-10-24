@@ -14,6 +14,13 @@ describe('VERSION', () => {
   });
 });
 
+describe('package keywords', () => {
+  it('lists the command name so npm search by "adrkit" finds adr-kit', () => {
+    const pkg = JSON.parse(read('package.json')) as { keywords: string[] };
+    expect(pkg.keywords).toContain('adrkit');
+  });
+});
+
 describe('Node.js floor', () => {
   it('states the package.json engine floor in both READMEs', () => {
     const pkg = JSON.parse(read('package.json')) as { engines: { node: string } };
