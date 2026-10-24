@@ -87,7 +87,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 [打开 ADR Kit 自己的决策档案](https://luochang212.github.io/adr-kit/decisions/)。它在每次站点构建时从本仓库的 `adr/` 重新生成，并固定到构建提交。
 
-[![ADR Kit 决策档案](./assets/decision-atlas.png)](https://luochang212.github.io/adr-kit/decisions/)
+[![ADR Kit 决策档案](./assets/decision-atlas.zh.png)](https://luochang212.github.io/adr-kit/decisions/)
 
 为自己的仓库生成一份，把这句话交给 agent：
 
