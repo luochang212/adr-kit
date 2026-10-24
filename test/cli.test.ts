@@ -228,4 +228,24 @@ describe('positional arity', () => {
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('validate takes one name'));
     errorSpy.mockRestore();
   });
+
+  it('names the hook modes when hook is called without one', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['hook']);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('hook requires install, uninstall, or run'));
+    errorSpy.mockRestore();
+  });
+
+  it('names the supported shells when completion is called without one', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['completion']);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Supported: bash, zsh, fish'));
+    errorSpy.mockRestore();
+  });
 });

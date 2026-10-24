@@ -236,7 +236,8 @@ export function main(argv: string[]): void {
         return;
       }
       case 'hook': {
-        const mode = oneName(rest, 'hook');
+        // No mode falls through to the mode list below; only extra words are an arity error.
+        const mode = rest.length === 0 ? '' : oneName(rest, 'hook');
         if (mode === 'install') {
           console.log(hookInstallCommand(process.cwd(), process.argv[1]));
           return;
@@ -271,7 +272,9 @@ export function main(argv: string[]): void {
         return;
       }
       case 'completion': {
-        console.log(completionCommand(oneName(rest, 'completion')));
+        // An empty shell reaches completionCommand, whose error names the supported ones.
+        const shell = rest.length === 0 ? '' : oneName(rest, 'completion');
+        console.log(completionCommand(shell));
         return;
       }
       case 'validate': {
