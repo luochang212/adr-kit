@@ -76,7 +76,7 @@ const ui = {
     'start.step1': 'Install the CLI',
     'start.step2': 'Initialize your project',
     'start.step3': 'Start an unshipped proposal',
-    'start.node': 'Requires Node.js 22.22 or later.',
+    'start.node': 'Requires Node.js 22.22 or later. The npm package is `adr-kit`; the command it installs is `adrkit`.',
     'start.workflows':
       "Small repo? --workflows init,propose,implement,validate installs a lean subset.",
 
@@ -159,7 +159,7 @@ const ui = {
     'start.step1': '安装 CLI',
     'start.step2': '初始化项目',
     'start.step3': '创建未交付提案',
-    'start.node': '需要 Node.js 22.22 或更高版本。',
+    'start.node': '需要 Node.js 22.22 或更高版本。npm 包名是 `adr-kit`，它安装的命令是 `adrkit`。',
     'start.workflows':
       "小仓库可装精简子集：--workflows init,propose,implement,validate。",
 

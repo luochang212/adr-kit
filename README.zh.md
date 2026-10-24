@@ -36,7 +36,7 @@ ADR 保留的是这些难以从代码中还原、却会持续影响未来工作�
 
 ## 快速开始
 
-需要 Node.js 22.22 或更新版本。
+需要 Node.js 22.22 或更新版本。npm 包名是 `adr-kit`，它安装的命令是 `adrkit`。
 
 ```bash
 npm install -g adr-kit

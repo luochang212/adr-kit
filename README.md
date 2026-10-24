@@ -36,7 +36,7 @@ ADRs preserve reasons that are hard to recover from code yet continue to shape f
 
 ## Quick start
 
-Requires Node.js 22.22 or later.
+Requires Node.js 22.22 or later. The npm package is `adr-kit`; the command it installs is `adrkit`.
 
 ```bash
 npm install -g adr-kit
