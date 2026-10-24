@@ -68,7 +68,7 @@ ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令
 
 `AGENTS.md` 中的该段归你所有：可选的代际标记 `<!-- adrkit: standing-orders <id> -->` 表示已与哪一代模板核对，不保证正文完全一致。允许翻译、缩写和本地修改；项目专属要求放在该段之外。旧标记会让 `init`、`update`、`list`、`instructions` 和 `relevant` 提示：先与当前 `adrkit-init` 模板比较、处理变化，再更新标记。无标记的段落现在保持安静，包括旧安装；核对后保留或添加当前标记，即可选择接收以后的模板变化提醒。缺少整段规则时，init/update 仍会给出独立提醒。
 
-可视化的破坏性变更：`--record <name>` 选择的树现在默认输出 HTML，也支持 `--format html`；`--diagram` 已移除。`atlas` 的多余位置参数会报错，选记录请用 `--record <name>`。`atlas --format html` 现在输出完整档案；所有格式的地图导出都必须显式添加 `--map`，未选择地图或单条记录时使用非 HTML 格式会报错。可视化命令已收敛为一个：`adrkit atlas`（地图用 `--map --format html`，单条决策的树用 `--record <N>`）；`adrkit graph` 与 `adrkit tree` 已移除。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。
+可视化的破坏性变更：`--record <name>` 选择的树现在默认输出 HTML，也支持 `--format html`；`--diagram` 已移除。`atlas` 的多余位置参数会报错，选记录请用 `--record <name>`。`atlas --format html` 现在输出完整档案；所有格式的地图导出都必须显式添加 `--map`，未选择地图或单条记录时使用非 HTML 格式会报错。可视化命令已收敛为一个：`adrkit atlas`（地图用 `--map --format html`，单条决策的树用 `--record <N>`）；`adrkit graph` 与 `adrkit tree` 已移除。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。CLI 的破坏性变更：所有命令现在拒绝多余位置参数而不是忽略；`record`、`propose`、`note` 例外，它们把未加引号的 shell 词拼接为一个标题或文本。`validate` 只接受记录名或 `--all` 之一，不能同时给出。
 
 ## 告诉 Agent
 
