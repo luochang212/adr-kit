@@ -106,3 +106,20 @@ front matter，原始 Markdown 本来就保留，此处涉及的正文重写特�
 
 修复后验证：四个回归场景全部转绿；全量测试 657 通过、1 跳过；typecheck、
 build、`adrkit validate --all` 与 `git diff --check` 均通过。
+
+
+## CI 回填：真实 shell 测试的 Linux 运行条件
+
+`c6f209d` 的 CI（run 40018644347）在两个 Ubuntu Node 版本均失败，
+Windows、upstream、audit 和站点构建通过。失败是刚启用的两条 shell 测试：
+
+- zsh 的 `compinit` 在发现不安全的 fpath 目录后等待人工确认，造成超时。
+  Linux 容器捕获到实际提示 `Ignore insecure directories and continue`；
+  改为 `compinit -i -D` 忽略这些目录后，九个补全结果全部符合预期。
+  测试还显式加入权限为 0777 的目录，使本机也覆盖这个运行条件。
+- fish 3.6 从 Node 的 Linux stdin 读取脚本，最小 `echo fish-ok` 即报
+  `Unable to read input file: Is a directory`；相同脚本用 `-c` 执行则通过。
+  测试改用 `-c`，原有补全断言全部保留。macOS 上 fish 4.x 也通过。
+
+本机集成测试 55 项通过（zsh、fish 都实际执行），typecheck 和差异检查通过。
+这是测试启动方式修复，不改变 ADR 36 规定的补全表面，不新增 ADR。

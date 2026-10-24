@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -711,6 +711,12 @@ describe('completionCommand', () => {
       const dir = mkdtempSync(join(tmpdir(), 'adrkit-zsh-'));
       tempDirs.push(dir);
       writeFileSync(join(dir, '_adrkit'), completionCommand('zsh'));
+      // Hosted runners can carry writable directories in their system fpath.
+      // Exercise that case locally too: compinit must ignore them, not wait for
+      // an interactive security confirmation that this harness cannot answer.
+      const untrusted = join(dir, 'untrusted');
+      mkdirSync(untrusted);
+      chmodSync(untrusted, 0o777);
       const cases = [
         ['adrkit val', 'adrkit validate'],
         ['adrkit record SQLite --dec', 'adrkit record SQLite --decided-by='],
@@ -742,7 +748,7 @@ describe('completionCommand', () => {
           'zmodload zsh/zpty',
           'zpty shell zsh -f',
           `trap 'zpty -d shell 2>/dev/null' EXIT`,
-          `zpty -w shell 'fpath=("$ADRKIT_COMPLETION_DIR" $fpath); autoload -Uz compinit; compinit -D; bindkey "^I" expand-or-complete; report() { print -r -- "RESULT:$BUFFER"; zle .kill-whole-line; }; zle -N report; bindkey "^X" report; print READY'`,
+          `zpty -w shell 'fpath=("$ADRKIT_COMPLETION_DIR/untrusted" "$ADRKIT_COMPLETION_DIR" $fpath); autoload -Uz compinit; compinit -i -D; bindkey "^I" expand-or-complete; report() { print -r -- "RESULT:$BUFFER"; zle .kill-whole-line; }; zle -N report; bindkey "^X" report; print READY'`,
           `zpty -r shell output '*READY\r\n*'`,
           ...cases.flatMap(([input]) => [
             `zpty -w -n shell $'${input}\\t\\x18'`,
@@ -761,10 +767,12 @@ describe('completionCommand', () => {
   it.skipIf(spawnSync('fish', ['--version']).status !== 0)(
     'completes space-separated declaration values through a real fish',
     () => {
-      const answer = (command: string): string[] => execFileSync('fish', ['--no-config'], {
-        encoding: 'utf8',
-        input: `${completionCommand('fish')}\ncomplete -C '${command}'\n`,
-      }).trim().split('\n').map((line) => line.split('\t')[0]!);
+      // fish 3.x cannot read Node's Linux stdin socket as a script. Pass the
+      // script explicitly; retain the real shell and all completion assertions.
+      const answer = (command: string): string[] => execFileSync(
+        'fish', ['--no-config', '-c', `${completionCommand('fish')}\ncomplete -C '${command}'\n`],
+        { encoding: 'utf8' },
+      ).trim().split('\n').map((line) => line.split('\t')[0]!);
       expect(answer('adrkit record SQLite --decided-by ')).toEqual(['agent', 'human']);
       expect(answer('adrkit implement draft --decided-by h')).toEqual(['human']);
       expect(answer('adrkit record SQLite --decided-by=a')).toContain('--decided-by=agent');
