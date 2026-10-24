@@ -63,7 +63,9 @@ recording one they made earlier — `agent` when it came from the agent's own
 judgment, including when a person only let it through. The CLI neither infers
 nor verifies it.
 
-Records outlive the format that wrote them. When `adrkit validate` reports
+Records outlive the format that wrote them. The npm package is
+`adr-kit`; the command it installs is `adrkit`, so install and upgrade
+with `npm install -g adr-kit`. When `adrkit validate` reports
 unknown fields, missing sections, or parse errors on records an older release
 wrote, treat it as format drift rather than damage: upgrade the `adr-kit`
 package to the latest stable release, migrate the active records to the current
@@ -77,7 +79,7 @@ When the user wants to review or share the project's history, use the
 and `adr/archived/` only, publish archived bodies in full, and pin the page to
 the commit it was built from.
 
-<!-- adrkit: standing-orders 449bd66b -->
+<!-- adrkit: standing-orders b82e4add -->
 
 ## Commands
 
