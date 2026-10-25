@@ -54,7 +54,11 @@ const transcriptHtml = lines
   <script type="application/json" id="term-data" set:html={JSON.stringify(lines)}></script>
 </div>
 
-<style>
+<style is:global>
+  /* Global on purpose: the replay builds its lines, prompt, and caret with
+     JS, so those elements never carry Astro's scoping attribute — scoped
+     rules would silently miss them (the caret has never rendered). Every
+     selector is .term-prefixed and the component appears once per page. */
   .term {
     margin: 48px auto 0;
     max-width: 760px;
@@ -109,9 +113,10 @@ const transcriptHtml = lines
     animation: term-blink 1s step-end infinite;
   }
   /* replay polish, all gated on .playing so the SSR transcript and
-     reduced-motion users never animate: lines land with a soft rise, ok
-     lines flash brighter for a beat, and the window dots breathe in turn
-     while the replay runs */
+     reduced-motion users never animate: lines land with a soft rise and ok
+     lines flash brighter for a beat. The three window dots stay untouched —
+     they read as the macOS traffic-light buttons, and system controls must
+     not flicker. */
   .term.playing .term__line { animation: term-line-in 0.18s ease-out both; }
   .term.playing .term__line--ok { animation: term-ok-in 0.6s ease-out both; }
   @keyframes term-line-in {
@@ -123,15 +128,8 @@ const transcriptHtml = lines
     30% { opacity: 1; color: #a5f3fc; }
     100% { opacity: 1; }
   }
-  .term.playing .term__dot { animation: term-dot 1.2s ease-in-out infinite; }
-  .term.playing .term__dot:nth-child(2) { animation-delay: 0.2s; }
-  .term.playing .term__dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes term-dot {
-    50% { background: var(--cyan); box-shadow: 0 0 6px rgba(34, 211, 238, 0.6); }
-  }
   @media (prefers-reduced-motion: reduce) {
-    .term.playing .term__line,
-    .term.playing .term__dot { animation: none; }
+    .term.playing .term__line { animation: none; }
   }
   @keyframes term-blink { 50% { opacity: 0; } }
   /* The terminal does NOT use the shared .reveal class: the generic observer
@@ -147,8 +145,19 @@ const transcriptHtml = lines
     transition: opacity 0.7s ease, transform 0.7s ease;
   }
   html.js .term.in { opacity: 1; transform: none; }
+  /* mobile entrance: the terminal is ordinary content (shown immediately,
+     no replay), but it still lands softly — a one-shot fade delayed so it
+     follows the hero copy's rise, matching the site's cascade style */
+  @media (max-width: 640px) {
+    html.js .term.in { animation: term-mobile-in 0.45s ease-out 0.35s both; }
+  }
+  @keyframes term-mobile-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
   @media (prefers-reduced-motion: reduce) {
     html.js .term { opacity: 1; transform: none; transition: none; }
+    html.js .term.in { animation: none; }
   }
   @media (max-width: 640px) {
     .term__body { font-size: 11.5px; }
