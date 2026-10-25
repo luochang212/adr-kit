@@ -45,7 +45,7 @@ const transcriptHtml = lines
   .join('');
 ---
 
-<div class="term reveal" id="term-demo">
+<div class="term" id="term-demo">
   <div class="term__bar" aria-hidden="true">
     <span class="term__dot"></span><span class="term__dot"></span><span class="term__dot"></span>
     <span class="term__title">terminal</span>
@@ -108,6 +108,21 @@ const transcriptHtml = lines
     animation: term-blink 1s step-end infinite;
   }
   @keyframes term-blink { 50% { opacity: 0; } }
+  /* The terminal does NOT use the shared .reveal class: the generic observer
+     would fade it in while the hero is still on screen. It owns its reveal
+     and its script decides when .in lands — after the scroll gate, or
+     immediately when the first screen is exposed enough that hiding would
+     read as a hole. No-JS visitors keep the fully rendered transcript (the
+     .js class gates these hidden initial states). */
+  html.js .term {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  html.js .term.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    html.js .term { opacity: 1; transform: none; transition: none; }
+  }
   @media (max-width: 640px) {
     .term__body { font-size: 11.5px; }
   }
@@ -122,7 +137,12 @@ const transcriptHtml = lines
     var term = document.getElementById('term-demo');
     if (!term) return;
     var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce || typeof IntersectionObserver !== 'function') return;
+    // The element carries its own scroll-gated reveal (not the shared
+    // .reveal class), so these fallbacks must reveal it themselves.
+    if (reduce || typeof IntersectionObserver !== 'function') {
+      term.classList.add('in');
+      return;
+    }
 
     var data = JSON.parse(document.getElementById('term-data').textContent);
     var pre = term.querySelector('.term__body');
@@ -175,14 +195,65 @@ const transcriptHtml = lines
       nextLine();
     }
 
+    // The terminal appears only when both of these hold: it is at least 25%
+    // visible AND the visitor has actually scrolled away from the top of the
+    // page. Visibility alone is not enough — the terminal sits at the bottom
+    // of the hero, so on a tall viewport (or with the shorter Chinese copy)
+    // part of it is on the first screen and would otherwise fade in and start
+    // typing on load.
+    //
+    // Hiding has its own cost, so the decision is made in absolute units, not
+    // as a share of the box (the transcript, and with it the box height, will
+    // change): if the first screen already shows SHOW_ABOVE_REM or more of
+    // the terminal, hiding it would leave a hole that reads as broken layout,
+    // and the box belongs to the hero — it is revealed statically and never
+    // replayed (clearing content the visitor already saw to re-type it is
+    // worse than no motion). Below that, the hidden part reads as hero
+    // whitespace and the replay waits for the scroll gate. rem keeps both
+    // budgets on the page's own scale, so they survive transcript growth and
+    // track the root font size across displays. If the page cannot scroll at
+    // all, the SSR transcript simply stays.
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    var gatePx = 6 * rem;
+    var SHOW_ABOVE_REM = 24;
+    function exposurePx() {
+      var rect = term.getBoundingClientRect();
+      return Math.min(window.innerHeight, rect.bottom) - Math.max(0, rect.top);
+    }
+    var visible = false;
+    var played = false;
+    function startIfReady() {
+      if (played || !visible || window.scrollY <= gatePx) return;
+      played = true;
+      io.disconnect();
+      window.removeEventListener('scroll', startIfReady);
+      window.removeEventListener('resize', promoteIfExposed);
+      term.classList.add('in');
+      play();
+    }
+    // A window move or resize can push the first screen past the exposure
+    // threshold while the terminal is still gated; static is absorbing —
+    // once shown there is no un-showing.
+    function promoteIfExposed() {
+      if (!played && exposurePx() >= SHOW_ABOVE_REM * rem) showStatically();
+    }
+    function showStatically() {
+      played = true;
+      io.disconnect();
+      window.removeEventListener('scroll', startIfReady);
+      window.removeEventListener('resize', promoteIfExposed);
+      term.classList.add('in');
+    }
+
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          io.disconnect();
-          play();
-        }
+        visible = entry.isIntersecting;
+        startIfReady();
       });
     }, { threshold: 0.25 });
     io.observe(term);
+    window.addEventListener('scroll', startIfReady, { passive: true });
+    window.addEventListener('resize', promoteIfExposed);
+    if (exposurePx() >= SHOW_ABOVE_REM * rem) showStatically();
   })();
 </script>
