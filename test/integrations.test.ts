@@ -600,6 +600,33 @@ describe('skills/ stays in sync with the tool integration templates', () => {
   });
 });
 
+describe('installed atlas theme contract', () => {
+  it('installs and updates both themes with the same selection policy', () => {
+    const root = makeTarget();
+    initCommand(root, 'claude');
+    for (const target of ['.agents', '.claude']) {
+      const skillPath = join(root, target, 'skills/adrkit-visualize/SKILL.md');
+      const resourcePath = join(root, target, 'skills/adrkit-visualize/examples/decision-atlas.html');
+      const verify = () => {
+        const skill = readFileSync(skillPath, 'utf8');
+        expect(skill).toContain('The agent owns selection');
+        expect(skill).toContain('prefer `--theme random`');
+        expect(skill).toContain('When updating an existing atlas, preserve');
+        expect(skill).toContain('do not ask the user merely');
+        const resource = readFileSync(resourcePath, 'utf8');
+        expect(resource).toContain('data-atlas-style="folio"');
+        expect(resource).toContain('data-atlas-style="signal"');
+        expect(resource).toContain('data-insight-layout');
+      };
+      verify();
+      writeFileSync(skillPath, '# Old theme instructions\n');
+      writeFileSync(resourcePath, '<!-- old single-theme resource -->');
+      updateCommand(root);
+      verify();
+    }
+  });
+});
+
 describe('npm package resources', () => {
   it('lists every declared workflow resource in the package files', () => {
     // Resources are read at runtime from skills/; a missing files entry keeps
@@ -618,6 +645,12 @@ describe('npm package resources', () => {
 });
 
 describe('completionCommand', () => {
+  it('offers named atlas themes in each shell', () => {
+    expect(completionCommand('bash')).toContain('compgen -W "folio signal random"');
+    expect(completionCommand('zsh')).toContain(':theme:(folio signal random)');
+    expect(completionCommand('fish')).toContain('-l theme -x -a "folio signal random"');
+  });
+
   it('prints bash completion', () => {
     expect(completionCommand('bash')).toContain('complete -F _adrkit_completion adrkit');
   });
@@ -701,6 +734,9 @@ describe('completionCommand', () => {
       // come back where the CLI is waiting for a value.
       expect(answer(`(adrkit atlas '')`, 2)).toContain('--tag');
       expect(answer(`(adrkit atlas --tag '')`, 3)).toBe('');
+      expect(answer(`(adrkit atlas --theme '')`, 3)).toBe('folio signal random');
+      expect(answer(`(adrkit atlas --theme s)`, 3)).toBe('signal');
+      expect(answer(`(adrkit list --theme '')`, 3)).toBe('');
       expect(answer(`(adrkit init --tools '')`, 3)).toBe('');
     },
   );

@@ -33,6 +33,26 @@ afterEach(() => {
 });
 
 describe('cli option handling', () => {
+  it.each(['folio', 'signal', 'random'])('exports a full atlas with --theme %s', theme => {
+    process.chdir(makeRepo());
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    main(['atlas', '--theme', theme, '--out', 'chosen.html']);
+    expect(process.exitCode).toBeUndefined();
+    const html = readFileSync('chosen.html', 'utf8');
+    expect(html).toMatch(/data-atlas-theme="(?:folio|signal)"/);
+    if (theme !== 'random') expect(html).toContain(`data-atlas-theme="${theme}"`);
+  });
+
+  it.each([['--theme', 'auto'], ['--theme', 'light'], ['--map', '--theme', 'folio'],
+    ['--record', '1', '--theme', 'signal']].map(args => ({ args })))('rejects invalid theme use without writing: %j', ({ args }) => {
+    process.chdir(makeRepo());
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['atlas', ...args, '--out', 'invalid.html']);
+    expect(process.exitCode).toBe(1);
+    expect(errors).toHaveBeenCalledWith(expect.stringContaining('--theme'));
+    expect(existsSync('invalid.html')).toBe(false);
+  });
+
   it.each([
     { args: ['1'] }, { args: ['--map', 'unexpected'] },
     { args: ['--record', '1', '--format', 'text', 'extra'] },

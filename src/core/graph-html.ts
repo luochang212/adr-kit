@@ -308,7 +308,7 @@ export function renderDecisionMapSvg(
   const viewW = Math.round(box.maxX - box.minX) + MAP_MARGIN * 2;
   const viewH = Math.round(box.maxY - box.minY) + MAP_MARGIN * 2;
   const svg: string[] = [
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + viewX + ' ' + viewY + ' ' + viewW + ' ' + viewH + '" width="' + viewW + '" height="' + viewH + '" role="img" aria-label="Decision map">',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + viewX + ' ' + viewY + ' ' + viewW + ' ' + viewH + '" width="' + viewW + '" height="' + viewH + '" role="group" aria-label="Decision map">',
     '<defs>',
     '<marker id="arrow-supersede" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#294d3e"/></marker>',
     '<marker id="arrow-reference" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b6c7ba"/></marker>',

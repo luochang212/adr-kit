@@ -158,6 +158,40 @@ Visualize existing records only when asked. Run \`adrkit list\` first, then read
 - For the decision map alone, use \`adrkit atlas --map --format html --out "<path>.html"\`; for source exports, \`adrkit atlas --map --format mermaid|dot|text\`. For a tree's source, use \`adrkit atlas --record <name> --format mermaid|text\`; \`--map\` and \`--record\` are mutually exclusive. Use \`--tag\` or \`--formal-only\` only when requested or useful to the question.
 - Text and Mermaid may be enough for docs; do not generate HTML merely because the CLI supports it.
 
+## Theme selection
+
+Folio (warm paper, editorial typography) and Signal (dark surfaces, cyan accents,
+compact layout) are independent themes with the same atlas capabilities.
+The agent owns selection; do not make the user choose a theme as a setup step.
+
+1. Honor an explicit theme request or a clearly stated visual preference with
+   \`--theme folio\` or \`--theme signal\`. If the user requests randomness, use
+   \`--theme random\`.
+2. When updating an existing atlas, preserve its concrete \`data-atlas-theme\`
+   value by passing that named theme, unless the user requests another theme
+   or a fresh random choice.
+3. For a new atlas without a clear preference, prefer \`--theme random\` (also
+   the CLI default). Do not guess a preference from the project category,
+   the reader's identity, or the operating system; do not ask the user merely
+   to break the tie.
+
+Random selection chooses either theme with equal probability once at generation.
+The resulting file keeps that theme. Do not add system appearance detection,
+a page switch, or a runtime reroll. Theme selection is unavailable for
+standalone maps and record trees.
+
+Both themes retain the same record scope, complete archived bodies, pinned
+source links, bilingual copy, offline behavior, map gestures and bounds,
+relationship focus, timeline, local search, reader navigation and keyboard
+behavior. Absent modules and their chapter entries disappear, the chapters
+renumber, and legends show only symbols actually present. Insight panels use
+measured complete rows near 40rem with a 50rem ceiling, including on narrow
+screens; sparse content stays short. Empty reference directions disappear,
+and when both are empty the relation area and its lower divider disappear.
+Preserve these mechanisms when adapting either theme; change only the
+presentation the user requested. Signal keeps its source link in the original
+reader header; Folio keeps it below the tags.
+
 ## Optional decision-atlas example
 
 Use the atlas for the whole set, the map when only relationships matter, and the deliberation tree for one record. Do not generate a separate page when the built-in atlas already answers the question.

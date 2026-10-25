@@ -83,6 +83,10 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 ## 决策档案
 
+完整决策档案提供两个独立主题：**Folio（纸页）**采用暖纸色和编辑式排版，**Signal（信号）**采用深色、青色强调和紧凑布局。AI 可以用 `--theme folio` 或 `--theme signal` 直接选择；省略 `--theme` 或指定 `--theme random`，会在生成时等概率随机选择一次。主题固定在生成的 HTML 中，不跟随系统外观，也没有页面切换按钮。`--theme` 仅适用于完整档案，不能与 `--map` 或 `--record` 一起使用。
+
+新建档案且用户没有明确视觉偏好时，由 AI 默认使用 `--theme random`，无需让用户再选一次。用户明确指定主题或视觉偏好时遵循该要求；更新已有档案时保留它已选定的主题，除非用户要求更换或重新随机。不根据系统外观或项目类别猜测偏好。 两套主题必须保留的机制见[共同主题规格](docs/atlas-themes.md)。
+
 一个页面就能承载整个归档：按创建日期分组的决策地图、编号时间线、引用与替代关系链，以及可本地搜索的全部生效与归档记录。档案是单个自包含的 HTML 文件，不需要服务器，也不依赖 CDN，可以离线使用。
 
 [打开 ADR Kit 自己的决策档案](https://luochang212.github.io/adr-kit/decisions/)。它在每次站点构建时从本仓库的 `adr/` 重新生成，并固定到构建提交。
@@ -115,7 +119,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help

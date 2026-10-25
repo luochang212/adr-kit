@@ -6,6 +6,7 @@ import { requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
 import { buildDecisionGraph } from '../core/graph.js';
 import { renderDecisionAtlas } from '../core/decision-atlas.js';
+import { selectAtlasTheme } from '../core/atlas-theme.js';
 import { listRecords } from '../core/repository.js';
 import { graphCommand } from './graph.js';
 import { treeCommand } from './tree.js';
@@ -34,6 +35,8 @@ export interface AtlasOptions {
   tag?: string;
   /** Page copy language: `en` (default) or `zh`. */
   lang?: string;
+  /** Full-atlas visual composition: folio, signal, or random (default). */
+  theme?: string;
 }
 
 function isFormat(value: string): value is AtlasFormat {
@@ -135,6 +138,9 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
   if (options.lang !== undefined && (options.record !== undefined || options.map === true)) {
     throw new Error('--lang applies to the decision atlas page, not --record or --map');
   }
+  if (options.theme !== undefined && (options.record !== undefined || options.map === true)) {
+    throw new Error('--theme applies to the decision atlas page, not --record or --map');
+  }
   if (options.record !== undefined) {
     if (!(TREE_FORMATS as readonly string[]).includes(format)) {
       throw new Error(`a deliberation tree supports only ${TREE_FORMATS.join(', ')}`);
@@ -164,6 +170,7 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
   if (options.tag !== undefined || options.formalOnly === true) {
     throw new Error('--tag and --formal-only require --map');
   }
+  const theme = selectAtlasTheme(options.theme);
   const records = listRecords(root, ['implemented', 'archived']);
   const page = renderDecisionAtlas({
     template: readFileSync(TEMPLATE_PATH, 'utf8'),
@@ -173,6 +180,7 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
     repositoryUrl: repositoryUrl(root),
     projectName: projectName(root),
     language: options.lang === 'zh' ? 'zh' : 'en',
+    theme,
   });
   return writeTarget(page, cwd, options.out, 'decision atlas', format);
 }

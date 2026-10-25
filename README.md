@@ -85,6 +85,10 @@ reading still apply. See the [retrieval contract](docs/cli.md#scope-retrieval-fo
 
 ## Decision atlas
 
+The full atlas offers two independent themes: **Folio** uses warm paper and editorial typography; **Signal** uses dark surfaces, cyan accents and a compact layout. An AI can choose `--theme folio` or `--theme signal`; omitting `--theme` or passing `--theme random` chooses either with equal probability once at generation. The HTML keeps that theme across reloads, with no system appearance detection or theme switch. `--theme` applies only to the full atlas, not `--map` or `--record`.
+
+For a new atlas without a clear visual preference, the agent should prefer `--theme random` and proceed without asking the user to choose. Honor explicit theme or visual requests; when updating an existing file, preserve its selected theme unless the user requests a change or a fresh random choice. Do not infer style from the operating system or project category. See the [shared theme contract](docs/atlas-themes.md) for the mechanisms both themes retain.
+
 One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current and archived record in a local-search directory. The atlas is a single self-contained HTML file that needs no server and no CDN, so it works offline.
 
 [Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/en.html). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit.
@@ -117,7 +121,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help

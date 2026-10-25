@@ -22,10 +22,14 @@
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
 | `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错则失败，否则列出管辖这些改动的生效决策 |
-| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record` 是单条决策的 deliberation tree（卡片视图），`--map` 显式选择决策地图；`--format` 只设置已选对象的格式，完整档案只支持 HTML |
+| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record` 是单条决策的 deliberation tree（卡片视图），`--map` 显式选择决策地图；`--format` 只设置已选对象的格式，完整档案只支持 HTML |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |
 | `adrkit version` | 输出版本 |
 | `adrkit help` | 输出帮助 |
+
+完整决策档案提供两个独立主题：**Folio（纸页）**采用暖纸色和编辑式排版，**Signal（信号）**采用深色、青色强调和紧凑布局。AI 可以用 `--theme folio` 或 `--theme signal` 直接选择；省略 `--theme` 或指定 `--theme random`，会在生成时等概率随机选择一次。主题固定在生成的 HTML 中，不跟随系统外观，也没有页面切换按钮。`--theme` 仅适用于完整档案，不能与 `--map` 或 `--record` 一起使用。
+
+新建档案且用户没有明确视觉偏好时，由 AI 默认使用 `--theme random`，无需让用户再选一次。用户明确指定主题或视觉偏好时遵循该要求；更新已有档案时保留它已选定的主题，除非用户要求更换或重新随机。不根据系统外观或项目类别猜测偏好。
 
 地图必须显式指定：`adrkit atlas --map --out map.html` 默认输出 HTML 地图，
 可加 `--format mermaid|dot|text|html`。不带 `--map` 的

@@ -1,4 +1,5 @@
 import { DECIDED_BY_VALUES } from '../core/adr.js';
+import { ATLAS_THEME_CHOICES } from '../core/atlas-theme.js';
 import { COMMANDS, COMMAND_OPTIONS, takesValue, VALUE_OPTIONS } from '../core/cli-options.js';
 
 /** Short descriptions for the shells that show one next to an option. */
@@ -12,6 +13,7 @@ const OPTION_DESCRIPTIONS: Record<string, string> = {
   '--out': 'write the output to this file',
   '--tools': 'AI tools to install integrations for',
   '--workflows': 'workflows to install',
+  '--theme': 'atlas theme: folio, signal, or random',
 };
 
 /**
@@ -20,6 +22,9 @@ const OPTION_DESCRIPTIONS: Record<string, string> = {
  * caller is left typing a value with the option list still on screen.
  */
 function zshSpec(option: string): string {
+  if (option === '--theme') {
+    return `'--theme=[${OPTION_DESCRIPTIONS[option]}]:theme:(${ATLAS_THEME_CHOICES.join(' ')})'`;
+  }
   if (option === '--decided-by' || option === '--raised-by') {
     return `'${option}=[${OPTION_DESCRIPTIONS[option]}]:declared by:(${DECIDED_BY_VALUES.join(' ')})'`;
   }
@@ -40,6 +45,14 @@ export function completionCommand(shell: string): string {
   command="\${COMP_WORDS[1]}"
 
   case "$prev" in
+    --theme)
+      if [[ "$command" == "atlas" ]]; then
+        COMPREPLY=( $(compgen -W "${ATLAS_THEME_CHOICES.join(' ')}" -- "$cur") )
+      else
+        COMPREPLY=()
+      fi
+      return
+      ;;
     --decided-by|--raised-by)
       if [[ "$command" == "record" || "$command" == "implement" ]]; then
         COMPREPLY=( $(compgen -W "${DECIDED_BY_VALUES.join(' ')}" -- "$cur") )
@@ -108,13 +121,15 @@ _adrkit "$@"
         Object.entries(COMMAND_OPTIONS)
           .flatMap(([command, options]) =>
             options
-              .filter((option) => option !== '--decided-by' && option !== '--raised-by')
+              .filter((option) => option !== '--decided-by' && option !== '--raised-by' && option !== '--theme')
               .map(
                 (option) =>
                   `complete -c adrkit -n "__fish_seen_subcommand_from ${command}" -l ${option.slice(2)}${takesValue(option) ? ' -x' : ''}`,
               ),
           )
           .join('\n') +
+        '\n' +
+        `complete -c adrkit -n "__fish_seen_subcommand_from atlas" -l theme -x -a "${ATLAS_THEME_CHOICES.join(' ')}"` +
         '\n' +
         // `-x` requires the value and suppresses file candidates; both
         // declarations live on one line with the two values as `-a`.

@@ -127,8 +127,8 @@ describe('reader typography', () => {
     // Records are hard-wrapped at ~80 columns. Preserving those newlines
     // fragments a paragraph into ragged lines; only pre stays verbatim.
     const rule = (selector: string) => example.match(
-      new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{([^}]*)\\}'),
-    )?.[1] ?? '';
+      new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\{([^}]*)\\}'),
+    )?.[1]?.replace(/\s/g, '') ?? '';
     for (const selector of ['#reader-body p', '#reader-body li']) {
       expect(rule(selector), selector).toContain('white-space:normal');
       expect(rule(selector), selector).toContain('text-wrap:pretty');
@@ -136,9 +136,10 @@ describe('reader typography', () => {
     }
   });
 
-  it('keeps the fixed close tab aligned with the reader width', () => {
-    expect(example).toContain('width:clamp(460px,45vw,1024px)');
-    expect(example).toContain('right:calc(clamp(460px,45vw,1024px) - 17px)');
+  it('keeps reader controls in one sticky header without width-dependent positioning', () => {
+    expect(example).toMatch(/\.reader-head\s*\{[^}]*position: sticky/);
+    expect(example).not.toContain('right:calc(clamp(');
+    expect(example).toContain('<button id="close-reader"');
   });
 
   it('keeps a hard-wrapped list item inside its bullet', () => {
@@ -340,15 +341,16 @@ describe('range index date labels', () => {
 
 describe('chapter navigation stability', () => {
   it('keeps right alignment and overflow safety confined to the mobile navigation override', () => {
-    const override = example.match(/<style>\.chapter-inner\{gap:32px\}([\s\S]*?)<\/style>/)![1];
-    const split = override.indexOf('@media(max-width:760px)');
-    const desktop = override.slice(0, split), mobile = override.slice(split);
-    expect(desktop).toContain('.chapter-links{margin-inline-start:auto}');
-    expect(desktop).not.toContain('justify-content');
-    const rule = mobile.match(/\.chapter-links\{([^}]+)\}/)![1];
-    expect(rule).toContain('flex:0 1 auto');
+    const stylesheet = example.match(/<style data-atlas-style="folio">([\s\S]*?)<\/style>/)![1]!;
+    const split = stylesheet.indexOf('@media(max-width:760px)');
+    const desktop = stylesheet.slice(0, split), mobile = stylesheet.slice(split);
+    const desktopRule = desktop.match(/\.chapter-links\s*\{([^}]+)\}/)![1]!.replace(/\s/g, '');
+    expect(desktopRule).toContain('margin-inline-start:auto');
+    expect(desktopRule).not.toContain('justify-content');
+    const rule = mobile.match(/\.chapter-links\s*\{([^}]+)\}/)![1]!.replace(/\s/g, '');
+    expect(rule).toContain('flex:01auto');
     expect(rule).toContain('min-width:0');
-    expect(rule).toContain('justify-content:safe flex-end');
+    expect(rule).toContain('justify-content:safeflex-end');
     expect(rule).toContain('mask-image:none');
   });
 

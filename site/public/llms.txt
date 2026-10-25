@@ -64,3 +64,13 @@ records that no longer guide work.
 - Integrations install in `.agents/` by default; `--tools claude` adds
   `.claude/`, and `--tools none` installs nothing.
 - License: MIT. Single runtime dependency: yaml.
+
+Full atlas themes: --theme folio (paper/editorial), --theme signal (dark/instrumental),
+or --theme random (also the default). Random selection happens once at generation,
+with equal probability. No system appearance detection or page switch.
+Theme selection is not supported for --map or --record.
+
+Agents should default to random for a new atlas without an explicit visual
+preference; do not ask the user to break the tie or guess from project category.
+Honor stated preferences. Preserve an existing file’s selected theme when
+updating it, unless the user requests a change or fresh random selection.

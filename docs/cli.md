@@ -23,10 +23,14 @@ The npm package is `adr-kit`; the command it installs is `adrkit`.
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
 | `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, then show which active decisions govern the staged files |
-| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | Write the decision atlas; no flags writes the full atlas (English chrome by default, `--lang zh` for Chinese), `--record` is one deliberation tree, and `--map` selects the decision map. `--format` sets the selected object's format; the full atlas supports only HTML |
+| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | Write the decision atlas; no flags writes the full atlas (English chrome by default, `--lang zh` for Chinese), `--record` is one deliberation tree, and `--map` selects the decision map. `--format` sets the selected object's format; the full atlas supports only HTML |
 | `adrkit completion <bash\|zsh\|fish>` | Print shell completion |
 | `adrkit version` | Print version |
 | `adrkit help` | Print help |
+
+The full atlas offers two independent themes: **Folio** uses warm paper and editorial typography; **Signal** uses dark surfaces, cyan accents and a compact layout. An AI can choose `--theme folio` or `--theme signal`; omitting `--theme` or passing `--theme random` chooses either with equal probability once at generation. The HTML keeps that theme across reloads, with no system appearance detection or theme switch. `--theme` applies only to the full atlas, not `--map` or `--record`.
+
+For a new atlas without a clear visual preference, the agent should prefer `--theme random` and proceed without asking the user to choose. Honor explicit theme or visual requests; when updating an existing file, preserve its selected theme unless the user requests a change or a fresh random choice. Do not infer style from the operating system or project category.
 
 `adrkit atlas --format html --out adr.html` writes the full atlas, just like
 omitting `--format`. To generate only the decision map, use

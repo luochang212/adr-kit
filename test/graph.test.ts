@@ -596,6 +596,9 @@ describe('graph HTML map', () => {
     const html = graphCommand(root, { html: true });
     expect(html.startsWith('<!doctype html>')).toBe(true);
     expect(html).toContain('<svg');
+    // This SVG contains focusable record links, so it is a group rather than
+    // an atomic image whose descendants disappear from the accessibility tree.
+    expect(html).toContain('role="group" aria-label="Decision map"');
     expect(html).toContain('data-adr="1"');
     expect(html).toContain('data-adr="2"');
     expect(html).toContain('data-has-deliberation="true"');

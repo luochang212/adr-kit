@@ -39,7 +39,7 @@ function record(
   } as AdrRecord;
 }
 
-function render(records: AdrRecord[], page = template, language?: 'en' | 'zh'): string {
+function render(records: AdrRecord[], page = template, language?: 'en' | 'zh', theme: 'folio' | 'signal' = 'folio'): string {
   return renderDecisionAtlas({
     template: page,
     records,
@@ -48,6 +48,7 @@ function render(records: AdrRecord[], page = template, language?: 'en' | 'zh'): 
     repositoryUrl: 'https://github.com/example/repo/',
     projectName: 'Example',
     language,
+    theme,
   });
 }
 
@@ -137,7 +138,7 @@ describe('decision atlas rendering', () => {
     const page = render(live, shipped, 'en');
     expect(page).toContain('Example · Decision atlas');
     expect(page).toContain('Active decisions');
-    expect(page).toContain('<html lang="en">');
+    expect(page).toContain('<html lang="en"');
     // The six chapter tabs stay one word each; their section headings keep the
     // full label.
     for (const tab of ['Density', 'Timeline', 'Relations', 'Map', 'Provenance', 'Records']) {
@@ -202,7 +203,7 @@ describe('decision atlas rendering', () => {
     ), 'utf8');
     const page = render(live, shipped);
     expect(page).toContain('Example · 决策档案');
-    expect(page).toContain('<html lang="zh-CN">');
+    expect(page).toContain('<html lang="zh-CN"');
   });
 
   it('keeps the deliberation appendix in the record body', () => {
@@ -284,4 +285,36 @@ describe('decision atlas rendering', () => {
     const broken = template.replace('<!-- atlas:map --><svg></svg><!-- /atlas:map -->', '');
     expect(() => render(live, broken)).toThrow(/missing the map slot/);
   });
+});
+
+
+it('keeps records and non-hero content identical across named themes', () => {
+  const folio = render(live, template, 'en', 'folio');
+  const signal = render(live, template, 'en', 'signal');
+  expect(recordsFrom(signal)).toEqual(recordsFrom(folio));
+  const withoutHero = (html: string) => html.replace(/<!-- atlas:hero -->[\s\S]*?<!-- \/atlas:hero -->/, '');
+  expect(withoutHero(signal).replace('data-atlas-theme="signal"', 'data-atlas-theme="folio"')).toBe(withoutHero(folio));
+});
+
+
+it.each(['folio', 'signal'] as const)('enables only the selected %s document styles', theme => {
+  const page = readFileSync(new URL('../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url), 'utf8');
+  const html = render(live, page, 'en', theme);
+  expect(html).toContain(`<style data-atlas-style="${theme}">`);
+  expect(html).toContain(`<style data-atlas-style="${theme === 'folio' ? 'signal' : 'folio'}" media="not all">`);
+  expect(html.includes('class="hero-actions"')).toBe(theme === 'folio');
+  const sourceInHeader = /<span id="reader-meta"><\/span><a id="reader-source"/.test(html);
+  expect(sourceInHeader).toBe(theme === 'signal');
+  expect(html.match(/id="reader-source"/g)).toHaveLength(1);
+});
+
+
+it.each(['en', 'zh'] as const)('shares every runtime script between themes in %s', language => {
+  const page = readFileSync(new URL('../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url), 'utf8');
+  const scripts = (html: string) => [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(match => match[1]);
+  const folio = render(live, page, language, 'folio');
+  const signal = render(live, page, language, 'signal');
+  expect(scripts(folio).length).toBeGreaterThan(1);
+  expect(scripts(signal)).toEqual(scripts(folio));
+  expect(recordsFrom(signal)).toEqual(recordsFrom(folio));
 });

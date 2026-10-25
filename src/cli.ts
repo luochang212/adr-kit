@@ -60,7 +60,7 @@ Usage:
   adrkit config                              Print the current configuration
   adrkit hook <install|uninstall|run>
                                            Manage the pre-commit decision check
-  adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+  adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
                                            Write the decision atlas; --map selects the decision map, --record selects one deliberation tree
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
@@ -80,6 +80,11 @@ A non-HTML format without --map or --record is rejected, not routed to a map.
 record's deliberation tree, with HTML as its default; --format html|mermaid|text
 sets its encoding. All three objects default to HTML. The full atlas chrome is
 English by default; --lang zh renders it in Chinese.
+Full atlases offer Folio (paper/editorial) and Signal (dark/instrumental).
+--theme folio|signal selects one; omitted --theme or --theme random rolls once
+at generation. The file keeps that theme: no system preference or page switch.
+Agents should prefer random without a clear preference; no theme prompt is needed.
+--theme applies only to the full atlas, not --map or --record.
 Atlas accepts no positional arguments; use --record <name> for a record.
 With --out, the receipt identifies the object, format, and destination; stdout
 without --out contains only the artifact.
@@ -265,6 +270,7 @@ export function main(argv: string[]): void {
             record: values.record,
             format: values.format,
             lang: values.lang,
+            theme: values.theme,
             formalOnly: values['formal-only'],
             tag: values.tag,
           }),
