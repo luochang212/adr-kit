@@ -91,7 +91,7 @@ For a new atlas without a clear visual preference, the agent should prefer `--th
 
 One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current and archived record in a local-search directory. The atlas is a single self-contained HTML file that needs no server and no CDN, so it works offline.
 
-[Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/en.html). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit. The same records are also published in the other theme: [Signal](https://luochang212.github.io/adr-kit/decisions/signal.en.html).
+[Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/en.html). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit.
 
 [![ADR Kit decision atlas](./assets/decision-atlas.png)](https://luochang212.github.io/adr-kit/decisions/en.html)
 

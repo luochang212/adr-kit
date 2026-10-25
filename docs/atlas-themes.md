@@ -19,8 +19,13 @@ Use this order, without adding a theme-selection step for the user:
 `src/core/atlas-theme.ts` makes an equal-probability choice once at generation.
 The resulting HTML stores a concrete identity. Refreshes and OS appearance
 changes do not select again. There is no in-page switch. `--theme` applies only
-to the full atlas; maps and deliberation trees reject it. Website builds select
-both named themes explicitly in each language so their URLs are reproducible.
+to the full atlas; maps and deliberation trees reject it. The website publishes
+one theme at a time: `SITE_THEME` in `tools/build-decision-atlas.mjs`, or
+`ATLAS_THEME` for a single build, writes only `index.html` and `en.html` and
+removes a previous theme's pages, so each language keeps one URL (ADR 40).
+Switching is that one word, not a code change to the renderer; both themes stay
+selectable through the CLI and the browser gate renders each of them from the
+same records into a temporary tree instead of publishing both.
 
 The installed agent instructions are `skills/adrkit-visualize/SKILL.md`, mirrored
 in `src/core/tool-integrations.ts`. Init and update distribute both visual
@@ -55,8 +60,9 @@ are checked. Do not silently describe this as complete WCAG conformance.
 
 ## Change gate
 
-Run the common unit gate and `npm run test:browser`; the latter builds real
-artifacts and exercises both themes in both languages. A theme change must pass
+Run the common unit gate and `npm run test:browser`; the latter builds the
+published page, renders both themes from the real records as fixtures and
+exercises them in both languages. A theme change must pass
 the shared behavioral checks and its intentional presentation checks. A new
 behavior belongs in the shared runtime and should be tested across themes.
 Maintain CLI help/completion, bilingual docs, installed skill text and packaged

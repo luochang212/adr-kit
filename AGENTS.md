@@ -186,22 +186,26 @@ update both when they change. The terminal demo transcript in
 `site/src/components/TerminalDemo.astro` and the graph example in
 `site/src/components/Graph.astro` mirror real CLI output; refresh them
 when command output changes. `tools/build-decision-atlas.mjs` regenerates
-`site/public/decisions/index.html` and `en.html` (Folio), plus
-`signal.html` and `signal.en.html` (Signal) from the current `adr/` records before
-every site build; those pages are generated, ignored by Git, and pinned to the
-build commit. They are published in Chinese and English from one template and
-its translation table (ADR 34), so they stay outside the `ui.ts` copy rule.
-The homepage's atlas link lives in `Graph.astro`. Both named atlas themes
+`site/public/decisions/index.html` and `en.html` from the current `adr/`
+records before every site build; those pages are generated, ignored by Git, and
+pinned to the build commit. The site publishes one theme at a time: `SITE_THEME`
+in that script, or `ATLAS_THEME` for a single build, selects Folio or Signal;
+the build writes only those two pages and removes a previous theme's files, so
+each language keeps one URL (ADR 40). They are published in Chinese and English
+from one template and its translation table (ADR 34), so they stay outside the
+`ui.ts` copy rule. The homepage's atlas link lives in `Graph.astro` and never
+selects a theme; the build has already fixed one. Both named atlas themes
 follow `docs/atlas-themes.md`: behavior is shared and presentation is separate.
 Theme changes must keep the common browser gate passing in both themes and
-languages, including unavailable-module activation and insight height budgets.
-Agents default to random for a new atlas without a clear preference and preserve
-the selected theme when updating an existing artifact unless asked to change it.
-The browser gate runs on Linux CI and on macOS and Windows locally, where font
-metrics differ: express a layout budget in the page's own units — rem, or a
-measured row height — rather than as a pixel gap between two elements, and match
-a negative assertion to the control's own wording rather than to any element
-whose text mentions the feature.
+languages, including unavailable-module activation and insight height budgets;
+the gate renders both themes from the same records as temporary fixtures rather
+than publishing them. Agents default to random for a new atlas without a clear
+preference and preserve the selected theme when updating an existing artifact
+unless asked to change it. The browser gate runs on Linux CI and on macOS and
+Windows locally, where font metrics differ: express a layout budget in the
+page's own units — rem, or a measured row height — rather than as a pixel gap
+between two elements, and match a negative assertion to the control's own
+wording rather than to any element whose text mentions the feature.
 
 ## Record format is the product
 

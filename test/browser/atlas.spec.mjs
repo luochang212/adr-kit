@@ -1,11 +1,32 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { renderAtlasPages, SITE_THEME, SITE_THEMES } from '../../tools/build-decision-atlas.mjs';
 
-const artifact = (language, theme = 'folio') => {
-  const file = theme === 'signal' ? (language === 'zh' ? 'signal.html' : 'signal.en.html')
-    : (language === 'zh' ? 'index.html' : 'en.html');
-  return new URL(`../../site/public/decisions/${file}`, import.meta.url).href;
-};
+// The site publishes one theme at a time, so the gate renders both named themes
+// from the same records into a temp tree and checks what the build would serve
+// if the switch were flipped (ADR 40).
+const fixtureRoot = mkdtempSync(join(tmpdir(), 'adrkit-atlas-pages-'));
+process.on('exit', () => rmSync(fixtureRoot, { recursive: true, force: true }));
+const artifact = (language, theme = SITE_THEME) =>
+  pathToFileURL(join(fixtureRoot, theme, language === 'en' ? 'en.html' : 'index.html')).href;
+
+test.beforeAll(async () => {
+  for (const theme of SITE_THEMES) await renderAtlasPages({ theme, outDir: join(fixtureRoot, theme) });
+});
+
+test('the published atlas serves one theme and keeps both pages', async () => {
+  const published = join(process.cwd(), 'site/public/decisions');
+  test.skip(!existsSync(published), 'run "npm run test:browser" to build the published pages first');
+  expect(readdirSync(published).filter((file) => file.endsWith('.html')).sort()).toEqual(['en.html', 'index.html']);
+  for (const file of ['index.html', 'en.html']) {
+    expect(readFileSync(join(published, file), 'utf8')).toContain(`data-atlas-theme="${SITE_THEME}"`);
+  }
+  expect(SITE_THEMES).toContain(SITE_THEME);
+});
 
 for (const theme of ['folio', 'signal']) {
 test(`${theme}: generated theme survives reload and system appearance changes`, async ({ page }) => {
