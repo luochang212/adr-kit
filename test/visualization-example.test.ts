@@ -303,6 +303,15 @@ describe('archive page shell', () => {
     // share the constant the CLI inlines.
     expect(example).toContain(FAVICON_DATA_URI);
   });
+
+  it('locks the page scrollbar behind the modal reader', () => {
+    // With persistent scrollbars the page's own bar renders beside the
+    // reader's as a second, dead scrollbar while the modal is open. The lock
+    // lives in the shared block: both themes inherit it without duplication.
+    const shared = example.slice(0, example.indexOf('<style data-atlas-style'));
+    expect(shared).toContain('html { scrollbar-gutter: stable; }');
+    expect(shared).toContain('html:has(#reader[open]) { overflow: hidden; }');
+  });
 });
 
 describe('range index date labels', () => {

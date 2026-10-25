@@ -46,6 +46,28 @@ test(`${theme}: generated theme survives reload and system appearance changes`, 
       .getByRole('button', { name: /theme|主题/i })).toHaveCount(0);
   }
 });
+test(`${theme}: locks the page scrollbar behind the open reader`, async ({ page }) => {
+  await page.goto(artifact('en', theme));
+  const root = page.locator('html');
+  // With persistent scrollbars the page's own bar renders beside the reader's
+  // as a second, dead scrollbar while the modal is open; the lock removes it,
+  // and the reserved gutter keeps the toggle from shifting the layout.
+  await expect(root).toHaveCSS('scrollbar-gutter', 'stable');
+  await expect(root).not.toHaveCSS('overflow-y', 'hidden');
+  const scrollY = await page.evaluate(() => {
+    scrollTo({ top: document.documentElement.scrollHeight / 2, behavior: 'instant' });
+    return window.scrollY;
+  });
+  await page.locator('.decision-card').first().click();
+  await expect(page.locator('#reader')).toBeVisible();
+  await expect(root).toHaveCSS('overflow-y', 'hidden');
+  await page.locator('#reader').evaluate(el => { el.scrollTop = 120; });
+  await expect(page.locator('#reader')).toHaveCSS('overflow-y', 'auto');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#reader')).not.toBeVisible();
+  await expect(root).not.toHaveCSS('overflow-y', 'hidden');
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
+});
 for (const language of ['zh', 'en']) {
   test(`${theme} / ${language}: reader groups provenance separately from navigable references`, async ({ page }) => {
     await page.goto(artifact(language, theme));

@@ -185,6 +185,11 @@ body.interactive { height: 100vh; height: 100dvh; display: flex; flex-direction:
 #reader-body li.task-list-item{list-style:none}
 #reader-body .task-list-item>label{display:flex;align-items:flex-start;gap:.6em}
 #reader-body .task-list-item input{flex:none;inline-size:1em;block-size:1em;margin:.35em 0 0;accent-color:var(--accent)}
+/* The reader is modal: while it is open the page behind must not keep its own
+   scrollbar, which renders beside the reader's as a second, dead bar. Reserve
+   the gutter so toggling the lock does not shift the layout. */
+html { scrollbar-gutter: stable; }
+html:has(#reader[open]) { overflow: hidden; }
 </style><style data-atlas-style="folio">
 /* One archive surface: warm paper, readable ink, and a single rust accent.
    The shared map controller and SVG geometry above remain unchanged. */

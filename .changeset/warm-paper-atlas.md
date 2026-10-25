@@ -12,4 +12,7 @@ deliberation trees reject `--theme`.
 Refresh Folio’s responsive three-column directory and improve reader
 provenance/reference layouts in both themes. Preserve Signal’s original
 page styling and opening without hero actions. Fix range hover masking and interactive SVG semantics,
-and add browser accessibility and navigation regression checks.
+and add browser accessibility and navigation regression checks. Lock the page's
+own scrollbar while the reader modal is open, so it no longer renders beside
+the reader's as a second, dead scrollbar on browsers with persistent
+scrollbars.

@@ -43,7 +43,7 @@ scripts to add or repair a theme.
 | Density, timeline, replacement chains, reference counts, provenance and local-search directory | One runtime script set; renderer and browser tests |
 | Hide unavailable modules and legend symbols; remove their chapter links, renumber chapters, expand a lone insight panel | Shared content activation logic; `test/browser/atlas-contract.spec.mjs` covers empty, unlinked, reference-only, replacement-only and archive-only records |
 | Choose complete insight rows by measured height; sparse panels stay short; remeasure on width/font changes | `test/atlas-insights.test.ts` owns the 40rem preference / 50rem ceiling; browser checks also require the shipped corpus to retain at least three replacement rows and comparable panel proportions in both themes |
-| Reader opening, full Markdown bodies, previous/next, keyboard/Escape, sticky controls and source access | Shared reader; reader unit tests and responsive browser tests |
+| Reader opening, full Markdown bodies, previous/next, keyboard/Escape, sticky controls, source access, and a page-scrollbar lock behind the modal reader (a reserved gutter keeps the toggle from shifting the layout) | Shared reader; reader unit tests and responsive browser tests |
 | Omit an empty reference direction; omit the relation list and its lower border/padding when both directions are empty | Shared context renderer and corresponding theme styles; browser checks include 0/0, 0/12, 12/0, 1/12 and reopening records |
 | Distribute both themes and agent policy via init/update and npm package resources | `test/integrations.test.ts`; package files include the shared resource and compiled selector |
 
