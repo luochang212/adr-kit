@@ -50,12 +50,14 @@ const records = core.listRecords(root, ['implemented', 'archived']);
 const graph = core.buildDecisionGraph(records);
 const targetDir = dirname(target);
 const pages = [
-  { file: 'index.html', language: 'zh' },
-  { file: 'en.html', language: 'en' },
+  { file: 'index.html', language: 'zh', theme: 'folio' },
+  { file: 'en.html', language: 'en', theme: 'folio' },
+  { file: 'signal.html', language: 'zh', theme: 'signal' },
+  { file: 'signal.en.html', language: 'en', theme: 'signal' },
 ];
 
 mkdirSync(targetDir, { recursive: true });
-for (const { file, language } of pages) {
+for (const { file, language, theme } of pages) {
   const html = core.renderDecisionAtlas({
     template: readFileSync(templatePath, 'utf8'),
     records,
@@ -64,9 +66,10 @@ for (const { file, language } of pages) {
     repositoryUrl: repositoryUrl(),
     projectName,
     language,
+    theme,
   });
   writeFileSync(join(targetDir, file), html);
 }
 console.log(
-  `wrote ${targetDir.slice(root.length + 1)}/index.html (zh) and en.html (en): ${records.length} records, ${graph.referenceEdges.length} references`,
+  `wrote four atlas pages in ${targetDir.slice(root.length + 1)} (Folio and Signal, zh/en): ${records.length} records, ${graph.referenceEdges.length} references`,
 );

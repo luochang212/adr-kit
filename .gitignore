@@ -22,3 +22,7 @@ adr/.write-*.lock
 # Local artifacts kept out of the shared tree, such as the competitor-research
 # reading PDF cited by its openspec change.
 /output/
+
+# Browser regression output
+/test-results/
+/playwright-report/
