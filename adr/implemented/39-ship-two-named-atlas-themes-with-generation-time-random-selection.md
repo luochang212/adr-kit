@@ -95,3 +95,12 @@ The agent proposed the names, equal-probability default and fixed HTML attribute
 - Distinct layouts create a second visual test surface; data and behavior stay
   shared, with the browser suite parameterized by theme.
 
+### Later changes
+
+**Amended by ADR 40:** the website no longer publishes both themes at once. The
+site build writes `index.html` and `en.html` for the single theme named by
+`SITE_THEME` (or `ATLAS_THEME` for one build) and removes a previous theme's
+pages, while the browser gate renders both themes as fixtures; `signal.html`
+and `signal.en.html` no longer exist. Both named themes, the generation-time
+selection rule, and the shared mechanisms above are unchanged.
+
