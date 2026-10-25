@@ -189,8 +189,9 @@ measured complete rows near 40rem with a 50rem ceiling, including on narrow
 screens; sparse content stays short. Empty reference directions disappear,
 and when both are empty the relation area and its lower divider disappear.
 Preserve these mechanisms when adapting either theme; change only the
-presentation the user requested. Signal keeps its source link in the original
-reader header; Folio keeps it below the tags.
+presentation the user requested. Both themes keep the source link in the reader
+header; Folio renders it as a bordered chip and Signal as its original quiet
+text link.
 
 ## Optional decision-atlas example
 

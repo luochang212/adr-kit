@@ -266,14 +266,6 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   // page styles independent prevents Folio rules from changing Signal's layout.
   page = page.replace(/<style data-atlas-style="(folio|signal)"(?: media="not all")?>/g,
     (_, name: string) => `<style data-atlas-style="${name}"${name === theme ? '' : ' media="not all"'}>`);
-  if (theme === 'signal' && page.includes('<span id="reader-meta"></span>')) {
-    // Signal keeps the source link in its original header position.
-    const source = page.match(/<a id="reader-source"[^>]*>[\s\S]*?<\/a>/)?.[0];
-    if (source) {
-      page = page.replace(source, '').replace('<span id="reader-meta"></span>',
-        `<span id="reader-meta"></span>${source}`);
-    }
-  }
   page = replaceHtmlSlot(page, 'title', `<title>${escapeHtml(projectName)} · ${en ? 'Decision atlas' : '决策档案'}</title>`);
   page = replaceHtmlSlot(page, 'hero', hero);
   page = replaceHtmlSlot(page, 'stats', stats);

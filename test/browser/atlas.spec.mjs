@@ -174,16 +174,15 @@ for (const language of ['zh', 'en']) {
       await page.locator('.decision-card:not(.archived-card)').first().click();
       await expect(page.locator('#reader')).toBeVisible();
       await expect(page.locator('#reader-source')).toHaveAttribute('href', /\/blob\/[a-f0-9]+\/adr\//);
-      if (theme === 'signal') {
-        await expect(page.locator('.reader-head #reader-meta + #reader-source')).toBeVisible();
-        await expect(page.locator('.reader-byline #reader-source')).toHaveCount(0);
-      } else {
-        await expect(page.locator('.reader-head #reader-source')).toHaveCount(0);
-        await expect(page.locator('.reader-byline #reader-source')).toBeVisible();
-        const byline = await page.locator('#reader-source').boundingBox();
-        const tags = await page.locator('#reader-tags').boundingBox();
-        expect(byline.x).toBeCloseTo(tags.x, 0);
-        expect(byline.y).toBeGreaterThanOrEqual(tags.y + tags.height);
+      // Both themes keep the source link in the sticky header, right after the
+      // record identity; only its styling differs (ADR 39 presentation split).
+      await expect(page.locator('.reader-head #reader-meta + #reader-source')).toBeVisible();
+      await expect(page.locator('.reader-byline #reader-source')).toHaveCount(0);
+      if (theme === 'folio') {
+        // Folio renders the header link as a bordered chip; Signal keeps its
+        // original quiet text link in the same slot.
+        expect(parseFloat(await page.locator('#reader-source')
+          .evaluate(el => getComputedStyle(el).borderTopWidth))).toBeGreaterThan(0);
       }
       await expect(page.locator('#reader-body h3').first()).toBeVisible();
       const type = await page.locator('#reader-body').evaluate(el => ({
@@ -322,7 +321,7 @@ for (const theme of ['folio', 'signal']) {
           expect(boxes[1].y).toBeGreaterThanOrEqual(boxes[0].y + boxes[0].height);
           expect(boxes[1].x).toBeCloseTo(boxes[0].x, 0);
         }
-        await expect(page.locator(theme === 'signal' ? '.reader-head #reader-source' : '.reader-byline #reader-source')).toBeVisible();
+        await expect(page.locator('.reader-head #reader-source')).toBeVisible();
         await page.locator('#close-reader').click();
       }
     });

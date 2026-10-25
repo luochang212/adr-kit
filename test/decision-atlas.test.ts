@@ -304,7 +304,7 @@ it.each(['folio', 'signal'] as const)('enables only the selected %s document sty
   expect(html).toContain(`<style data-atlas-style="${theme === 'folio' ? 'signal' : 'folio'}" media="not all">`);
   expect(html.includes('class="hero-actions"')).toBe(theme === 'folio');
   const sourceInHeader = /<span id="reader-meta"><\/span><a id="reader-source"/.test(html);
-  expect(sourceInHeader).toBe(theme === 'signal');
+  expect(sourceInHeader).toBe(true);
   expect(html.match(/id="reader-source"/g)).toHaveLength(1);
 });
 

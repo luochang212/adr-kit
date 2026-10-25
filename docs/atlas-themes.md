@@ -48,9 +48,9 @@ scripts to add or repair a theme.
 | Distribute both themes and agent policy via init/update and npm package resources | `test/integrations.test.ts`; package files include the shared resource and compiled selector |
 
 Presentation differences are intentional: Folio has editorial typography and
-hero actions, with the source link below reader tags. Signal keeps its original
-opening without those actions, and the source link in the original reader-header
-slot. Colors, card treatment, responsive breakpoints and visual density may
+hero actions. Both themes keep the source link in the reader header — Folio as
+a bordered chip, Signal as its original quiet text link. Colors, card
+treatment, responsive breakpoints and visual density may
 differ. These differences do not authorize dropping a mechanism.
 
 Signal's original inactive chapter-number spans have an existing 3.15:1 contrast
