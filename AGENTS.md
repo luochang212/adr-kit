@@ -186,11 +186,18 @@ update both when they change. The terminal demo transcript in
 `site/src/components/TerminalDemo.astro` and the graph example in
 `site/src/components/Graph.astro` mirror real CLI output; refresh them
 when command output changes. `tools/build-decision-atlas.mjs` regenerates
-`site/public/decisions/index.html` and `en.html` from the current `adr/` records before
+`site/public/decisions/index.html` and `en.html` (Folio), plus
+`signal.html` and `signal.en.html` (Signal) from the current `adr/` records before
 every site build; those pages are generated, ignored by Git, and pinned to the
 build commit. They are published in Chinese and English from one template and
 its translation table (ADR 34), so they stay outside the `ui.ts` copy rule.
-The homepage's atlas link lives in `Graph.astro`.
+The homepage's atlas link lives in `Graph.astro`. Both named atlas themes
+follow `docs/atlas-themes.md`: behavior is shared and presentation is separate.
+Theme changes must keep the common browser gate passing in both themes and
+languages, including unavailable-module activation and insight height budgets.
+Agents default to random for a new atlas without a clear preference and preserve
+the selected theme when updating an existing artifact unless asked to change it.
+
 
 ## Record format is the product
 
