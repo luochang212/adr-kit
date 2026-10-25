@@ -1,8 +1,14 @@
 ---
-status: proposed
+status: implemented
 date: 2026-10-25
+raised-by: human
+decided-by: human
 created: 2026-10-25
-tags: [visualization, website, themes]
+commit: 246c65d
+tags:
+  - visualization
+  - website
+  - themes
 paths:
   - src/core/atlas-theme.ts
   - src/core/decision-atlas.ts
@@ -18,7 +24,7 @@ paths:
   - docs/zh/cli.md
 ---
 
-# ADR: Ship two named atlas themes with generation-time random selection
+# ADR: 39 Ship two named atlas themes with generation-time random selection
 
 ## Problem
 
@@ -29,7 +35,7 @@ visual themes, and the generating agent should choose one or roll a random choic
 ADR 29 currently owns one shared offline template; ADRs 31/34 preserve complete
 archived text and bilingual generation. None owns theme selection.
 
-## Proposal
+## Decision
 
 Ship exactly two full-atlas themes: Folio (paper/editorial) and Signal
 (dark/instrumental). The agent chooses `--theme folio` or `--theme signal`;
@@ -64,22 +70,28 @@ The agent proposed the names, equal-probability default and fixed HTML attribute
 - Duplicate templates and scripts: every reader or map fix would need to be
   carried twice, undoing ADR 29's single-frontend contract.
 
-## Acceptance criteria
+## Consequences
 
-- Both explicit themes and both random outcomes are tested deterministically;
-  invalid names and map/tree combinations fail without output writes.
-- One generated file keeps its chosen theme across reloads and emulated system
-  changes, with no theme UI or runtime network request.
-- The shared mechanism contract is maintained in `docs/atlas-themes.md`, with
-  installed AI instructions and init/update resource coverage.
-- Both languages and themes pass the same browser checks, including responsive
-  directory, full archived bodies, context navigation, map and range hover.
-- Unit tests, typecheck, CLI/site builds and ADR validation pass; installed
-  visualize guidance matches its source and the package contains both styles.
+### Verification
 
-## Risks
+- `test/atlas-theme.test.ts` pins both random outcomes and the rejection of
+  invalid names deterministically; `test/cli.test.ts` proves invalid names and
+  `--map`/`--record` combinations fail before any output write.
+- `test/browser/atlas.spec.mjs` holds one generated file to its
+  `data-atlas-theme` across reloads and emulated system appearance changes,
+  with no theme UI and zero runtime network requests.
+- `docs/atlas-themes.md` carries the shared mechanism contract;
+  `test/integrations.test.ts` checks the installed AI instructions and the
+  init/update distribution of both styles in one resource.
+- Both languages and themes pass the same browser suite, including responsive
+  directory columns, full archived bodies, context navigation, map and range
+  hover; unit tests, typecheck, CLI/site builds and ADR validation pass, and
+  installed visualize guidance matches its source.
+
+### Trade-offs
 
 - Random output makes repeated generation differ in style; explicit names give
   reproducible artifacts, and site builds always use explicit names.
 - Distinct layouts create a second visual test surface; data and behavior stay
   shared, with the browser suite parameterized by theme.
+

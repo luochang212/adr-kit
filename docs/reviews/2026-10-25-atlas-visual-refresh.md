@@ -37,8 +37,8 @@ template, following ADR 29. Full archived bodies (ADR 31), bilingual generation
 (ADR 34), and provenance-only footers (ADR 37) remain in effect.
 
 The presentation remains reversible and adds no record format or generated-page
-dependency. The two-theme boundary and generation-time selection are captured
-in the accompanying theme proposal.
+dependency. The two-theme boundary and generation-time selection are recorded
+in ADR 39.
 
 ## Verification
 
