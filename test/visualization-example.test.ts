@@ -18,12 +18,16 @@ function renderCards(records: Record<string, unknown>[]) {
     className: string;
     dataset: Record<string, unknown>;
     children: Element[];
+    classList: { add(): void; remove(): void };
+    style: { setProperty(name: string, value: string | number): void };
     append(...children: Element[]): void;
     replaceChildren(): void;
     addEventListener(): void;
   }
   const element = (): Element => ({
     textContent: '', className: '', dataset: {}, children: [],
+    classList: { add() {}, remove() {} },
+    style: { setProperty() {} },
     append(...children) { this.children.push(...children); },
     replaceChildren() { this.children = []; },
     addEventListener() {},
