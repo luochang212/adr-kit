@@ -105,15 +105,42 @@ const transcriptHtml = lines
   .term__caret::after {
     content: "▋";
     color: var(--cyan);
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.7);
     animation: term-blink 1s step-end infinite;
+  }
+  /* replay polish, all gated on .playing so the SSR transcript and
+     reduced-motion users never animate: lines land with a soft rise, ok
+     lines flash brighter for a beat, and the window dots breathe in turn
+     while the replay runs */
+  .term.playing .term__line { animation: term-line-in 0.18s ease-out both; }
+  .term.playing .term__line--ok { animation: term-ok-in 0.6s ease-out both; }
+  @keyframes term-line-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes term-ok-in {
+    0% { opacity: 0; }
+    30% { opacity: 1; color: #a5f3fc; }
+    100% { opacity: 1; }
+  }
+  .term.playing .term__dot { animation: term-dot 1.2s ease-in-out infinite; }
+  .term.playing .term__dot:nth-child(2) { animation-delay: 0.2s; }
+  .term.playing .term__dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes term-dot {
+    50% { background: var(--cyan); box-shadow: 0 0 6px rgba(34, 211, 238, 0.6); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .term.playing .term__line,
+    .term.playing .term__dot { animation: none; }
   }
   @keyframes term-blink { 50% { opacity: 0; } }
   /* The terminal does NOT use the shared .reveal class: the generic observer
      would fade it in while the hero is still on screen. It owns its reveal
-     and its script decides when .in lands — after the scroll gate, or
-     immediately when the first screen is exposed enough that hiding would
-     read as a hole. No-JS visitors keep the fully rendered transcript (the
-     .js class gates these hidden initial states). */
+     and its script decides when .in lands — on desktop only after the
+     visitor scrolls it into view; on mobile the first screen exposes too
+     much of the box to hide without a hole, so it is ordinary content.
+     No-JS visitors keep the fully rendered transcript (the .js class gates
+     these hidden initial states). */
   html.js .term {
     opacity: 0;
     transform: translateY(22px);
@@ -129,10 +156,10 @@ const transcriptHtml = lines
 </style>
 
 <script is:inline>
-  // The one attention-grabbing motion on the page: the terminal plays the
-  // real adrkit workflow when it scrolls into view. SSR renders the full
-  // transcript, so no-JS / reduced-motion users see everything; JS clears
-  // and replays it with typing.
+  // The one attention-grabbing motion on the page: on desktop the terminal
+  // plays the real adrkit workflow when the visitor scrolls it into view.
+  // SSR renders the full transcript, so no-JS / reduced-motion / mobile
+  // users see everything; desktop JS clears and replays it with typing.
   (function () {
     var term = document.getElementById('term-demo');
     if (!term) return;
@@ -154,6 +181,7 @@ const transcriptHtml = lines
       // would grow the box again and push the page around as they type.
       pre.style.height = pre.getBoundingClientRect().height + 'px';
       body.textContent = '';
+      term.classList.add('playing');
       var caret = document.createElement('span');
       caret.className = 'term__caret';
       body.appendChild(caret);
@@ -164,6 +192,7 @@ const transcriptHtml = lines
           // Show over; the typed content now matches the SSR layout, so the
           // box can follow its own content again (stays current on resize).
           pre.style.height = '';
+          term.classList.remove('playing');
           return;
         }
         var line = data[i++];
@@ -180,69 +209,58 @@ const transcriptHtml = lines
           var j = 0;
           (function typeChar() {
             if (j < line.text.length) {
-              textNode.textContent += line.text[j++];
-              setTimeout(typeChar, 28 + Math.random() * 40);
+              // human cadence: usually one character per strike, sometimes
+              // two in a quick burst, with uneven inter-key delays
+              var step = Math.random() < 0.2 && j + 1 < line.text.length ? 2 : 1;
+              textNode.textContent += line.text.slice(j, j + step);
+              j += step;
+              setTimeout(typeChar, 18 + Math.random() * 30);
             } else {
               span.appendChild(document.createTextNode('\n'));
-              setTimeout(nextLine, 350);
+              setTimeout(nextLine, 240);
             }
           })();
         } else {
           span.textContent = line.text + '\n';
-          setTimeout(nextLine, line.kind === 'note' ? 900 : 140);
+          setTimeout(nextLine, line.kind === 'note' ? 500 : 90);
         }
       }
       nextLine();
     }
 
-    // The terminal appears only when both of these hold: it is at least 25%
-    // visible AND the visitor has actually scrolled away from the top of the
-    // page. Visibility alone is not enough — the terminal sits at the bottom
-    // of the hero, so on a tall viewport (or with the shorter Chinese copy)
-    // part of it is on the first screen and would otherwise fade in and start
-    // typing on load.
-    //
-    // Hiding has its own cost, so the decision is made in absolute units, not
-    // as a share of the box (the transcript, and with it the box height, will
-    // change): if the first screen already shows SHOW_ABOVE_REM or more of
-    // the terminal, hiding it would leave a hole that reads as broken layout,
-    // and the box belongs to the hero — it is revealed statically and never
-    // replayed (clearing content the visitor already saw to re-type it is
-    // worse than no motion). Below that, the hidden part reads as hero
-    // whitespace and the replay waits for the scroll gate. rem keeps both
-    // budgets on the page's own scale, so they survive transcript growth and
-    // track the root font size across displays. If the page cannot scroll at
-    // all, the SSR transcript simply stays.
+    // One fixed budget decides everything, in rem (the transcript, and with
+    // it the box height, will change — a share of the box would drift):
+    //  - Mobile (the shared 640px breakpoint): the first screen exposes too
+    //    much of the box to hide without a hole, so it is ordinary content —
+    //    shown immediately, no replay.
+    //  - Desktop: the box stays out of the first screen entirely and is
+    //    revealed, with the replay, once REVEAL_REM of it is visible after
+    //    the visitor has scrolled. Any scroll is enough — there is no
+    //    distance gate — so external displays where the box fits entirely
+    //    still stay hidden until the first scroll.
+    var mobile = matchMedia('(max-width: 640px)');
     var rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-    var gatePx = 6 * rem;
-    var SHOW_ABOVE_REM = 24;
-    function exposurePx() {
+    var REVEAL_REM = 12;
+    var visible = false;
+    var scrolled = false;
+    var played = false;
+    function visiblePx() {
       var rect = term.getBoundingClientRect();
       return Math.min(window.innerHeight, rect.bottom) - Math.max(0, rect.top);
-    }
-    var visible = false;
-    var played = false;
-    function startIfReady() {
-      if (played || !visible || window.scrollY <= gatePx) return;
-      played = true;
-      io.disconnect();
-      window.removeEventListener('scroll', startIfReady);
-      window.removeEventListener('resize', promoteIfExposed);
-      term.classList.add('in');
-      play();
-    }
-    // A window move or resize can push the first screen past the exposure
-    // threshold while the terminal is still gated; static is absorbing —
-    // once shown there is no un-showing.
-    function promoteIfExposed() {
-      if (!played && exposurePx() >= SHOW_ABOVE_REM * rem) showStatically();
     }
     function showStatically() {
       played = true;
       io.disconnect();
-      window.removeEventListener('scroll', startIfReady);
-      window.removeEventListener('resize', promoteIfExposed);
       term.classList.add('in');
+    }
+    function startIfReady() {
+      if (played) return;
+      if (mobile.matches) { showStatically(); return; }
+      if (!visible || !scrolled || visiblePx() < REVEAL_REM * rem) return;
+      played = true;
+      io.disconnect();
+      term.classList.add('in');
+      play();
     }
 
     var io = new IntersectionObserver(function (entries) {
@@ -250,10 +268,15 @@ const transcriptHtml = lines
         visible = entry.isIntersecting;
         startIfReady();
       });
-    }, { threshold: 0.25 });
+    }, { threshold: 0 });
     io.observe(term);
-    window.addEventListener('scroll', startIfReady, { passive: true });
-    window.addEventListener('resize', promoteIfExposed);
-    if (exposurePx() >= SHOW_ABOVE_REM * rem) showStatically();
+    window.addEventListener('scroll', function () {
+      scrolled = true;
+      startIfReady();
+    }, { passive: true });
+    if (mobile.addEventListener) {
+      mobile.addEventListener('change', startIfReady);
+    }
+    if (mobile.matches) showStatically();
   })();
 </script>
