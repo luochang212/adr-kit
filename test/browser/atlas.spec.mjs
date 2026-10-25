@@ -215,13 +215,28 @@ test(`${theme}: preserves the original insight height budget`, async ({ page }) 
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(artifact('zh', theme));
   await expect(page.locator('.hero-actions')).toHaveCount(theme === 'signal' ? 0 : 1);
-  const panels = await page.locator('.insight-columns>.atlas-section').evaluateAll(elements => elements.map(el => ({
-    height: el.getBoundingClientRect().height,
-    visible: [...el.querySelectorAll('#reference-hubs>li,.replacement-row')].filter(row => !row.hidden).length,
-  })));
+  const panels = await page.locator('.insight-columns>.atlas-section').evaluateAll(elements => {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    return elements.map(el => {
+      const rows = [...el.querySelectorAll('#reference-hubs>li,.replacement-row')].filter(row => !row.hidden);
+      return {
+        height: el.getBoundingClientRect().height,
+        visible: rows.length,
+        rowHeight: rows.length ? rows[0].getBoundingClientRect().height : 0,
+        target: 40 * rem,
+        ceiling: 50 * rem,
+      };
+    });
+  });
   expect(panels[1].visible).toBeGreaterThanOrEqual(3);
   expect(panels[0].height).toBeLessThan(panels[1].height);
-  expect(panels[1].height - panels[0].height).toBeLessThan(80);
+  // Each panel fills to the closest row count around the 40rem target; the gap
+  // between them therefore follows platform font metrics, so the budget is
+  // "within one row of the target" rather than a fixed pixel difference.
+  for (const [index, panel] of panels.entries()) {
+    expect(Math.abs(panel.height - panel.target), `panel ${index} targets 40rem`).toBeLessThan(panel.rowHeight);
+    expect(panel.height, `panel ${index} stays under 50rem`).toBeLessThanOrEqual(panel.ceiling);
+  }
 });
 }
 
