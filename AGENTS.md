@@ -197,7 +197,11 @@ Theme changes must keep the common browser gate passing in both themes and
 languages, including unavailable-module activation and insight height budgets.
 Agents default to random for a new atlas without a clear preference and preserve
 the selected theme when updating an existing artifact unless asked to change it.
-
+The browser gate runs on Linux CI and on macOS and Windows locally, where font
+metrics differ: express a layout budget in the page's own units — rem, or a
+measured row height — rather than as a pixel gap between two elements, and match
+a negative assertion to the control's own wording rather than to any element
+whose text mentions the feature.
 
 ## Record format is the product
 
