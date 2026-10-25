@@ -51,7 +51,7 @@ export const ATLAS_EN: Array<[string, string]> = [
   ['关闭正文', 'Close record'],
   ['源记录 ↗', 'Source record ↗'],
   ['搜索记录', 'Search records'],
-  ['记录定格于', 'Records pinned at'],
+  ['定格于', 'Pinned at'],
   ['决策密度', 'Decision density'],
   ['编号时间线', 'Numbered timeline'],
   ['引用与替代', 'References and replacements'],
