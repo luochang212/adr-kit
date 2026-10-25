@@ -16,7 +16,13 @@ test(`${theme}: generated theme survives reload and system appearance changes`, 
     await expect(page.locator('html')).toHaveAttribute('data-atlas-theme', theme);
     expect(await page.locator('html').evaluate(el => getComputedStyle(el).colorScheme))
       .toBe(theme === 'folio' ? 'light' : 'dark');
-    await expect(page.getByRole('button', { name: /theme|主题/i })).toHaveCount(0);
+    // Records discuss themes, so a bare /theme|主题/ name match would hit their
+    // own cards. A switch must be absent by offering the switch itself, and no
+    // piece of page chrome may mention themes at all.
+    await expect(page.getByRole('button', { name: /^\s*(?:switch|toggle|change)\s+theme\s*$|^\s*切换主题\s*$/i }))
+      .toHaveCount(0);
+    await expect(page.locator('.chapter-bar, .page-hero, .page-footer')
+      .getByRole('button', { name: /theme|主题/i })).toHaveCount(0);
   }
 });
 for (const language of ['zh', 'en']) {
