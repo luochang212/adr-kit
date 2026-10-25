@@ -38,12 +38,12 @@ test(`${theme}: generated theme survives reload and system appearance changes`, 
     expect(await page.locator('html').evaluate(el => getComputedStyle(el).colorScheme))
       .toBe(theme === 'folio' ? 'light' : 'dark');
     // Records discuss themes, so a bare /theme|主题/ name match would hit their
-    // own cards. A switch must be absent by offering the switch itself, and no
-    // piece of page chrome may mention themes at all.
+    // own cards, including Signal's hero stack. Match the theme control's own
+    // wording rather than a record title that happens to discuss themes.
     await expect(page.getByRole('button', { name: /^\s*(?:switch|toggle|change)\s+theme\s*$|^\s*切换主题\s*$/i }))
       .toHaveCount(0);
     await expect(page.locator('.chapter-bar, .page-hero, .page-footer')
-      .getByRole('button', { name: /theme|主题/i })).toHaveCount(0);
+      .getByRole('button', { name: /^(?:(?:switch|toggle|change)\s+theme|theme|切换主题|主题)$/i })).toHaveCount(0);
   }
 });
 test(`${theme}: locks the page scrollbar behind the open reader`, async ({ page }) => {
@@ -246,7 +246,70 @@ test(`${theme}: large text reflows without document overflow or unreachable read
 
 }
 
+for (const language of ['en', 'zh']) {
+test(`signal / ${language}: hero retains hierarchy and fits desktop and mobile`, async ({ page }) => {
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto(artifact(language, 'signal'));
+    const layout = await page.locator('.page-hero').evaluate(el => {
+      const heading = el.querySelector('.hero-heading').getBoundingClientRect();
+      const ledger = el.querySelector('.hero-archive').getBoundingClientRect();
+      return {
+        headingRight: heading.right, headingBottom: heading.bottom,
+        ledgerLeft: ledger.left, ledgerTop: ledger.top,
+        titleSize: parseFloat(getComputedStyle(el.querySelector('h1')).fontSize),
+        bodySize: parseFloat(getComputedStyle(el.querySelector('.hero-description')).fontSize),
+        overflows: el.scrollWidth > el.clientWidth,
+      };
+    });
+    expect(layout.overflows).toBe(false);
+    expect(layout.titleSize).toBeGreaterThanOrEqual(layout.bodySize * 3);
+    if (width > 760) expect(layout.ledgerLeft).toBeGreaterThan(layout.headingRight);
+    else expect(layout.ledgerTop).toBeGreaterThan(layout.headingBottom);
+    await expect(page.locator('.archive-card')).toHaveCount(3);
+    await expect(page.locator('.page-hero .stats-band')).toHaveCount(1);
+    await expect(page.locator('.hero-baseline')).toHaveCount(0);
+    if (width === 1440) {
+      const statsBottom = await page.locator('.stats-band').evaluate(el => el.getBoundingClientRect().bottom);
+      expect(statsBottom).toBeGreaterThanOrEqual(998);
+      expect(statsBottom).toBeLessThanOrEqual(1000);
+      const overviewTop = await page.locator('#overview-page').evaluate(el => el.getBoundingClientRect().top);
+      expect(overviewTop).toBeGreaterThanOrEqual(1000);
+    }
+    await expect(page.locator('.hero-actions')).toHaveCount(0);
+  }
+});
+}
+
+test('signal: hero ends at the first-screen boundary before the overview', async ({ page }) => {
+  for (const [width, height] of [[1440, 900], [1280, 720], [390, 844]]) {
+    await page.setViewportSize({ width, height });
+    await page.goto(artifact('zh', 'signal'));
+    const layout = await page.evaluate(() => ({
+      next: document.querySelector('#overview-page').getBoundingClientRect().top,
+      stats: document.querySelector('.stats-band').getBoundingClientRect().bottom,
+      hero: document.querySelector('.page-hero').getBoundingClientRect().bottom,
+    }));
+    expect(layout.next).toBeGreaterThanOrEqual(height);
+    expect(Math.abs(layout.stats - layout.hero)).toBeLessThanOrEqual(2);
+    if (width > 760) expect(layout.hero).toBeCloseTo(height, 0);
+    await expect(page.locator('.stats-inner')).not.toContainText('含');
+  }
+});
+
 for (const theme of ['folio', 'signal']) {
+test(`${theme}: automatic page entrances stay inside the hero`, async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(artifact('en', theme));
+  await page.locator('#density-chart').scrollIntoViewIfNeeded();
+  await page.locator('#decision-cards').scrollIntoViewIfNeeded();
+  const motion = await page.locator('.atlas-section,.atlas-section h2,.density-day,.decision-card,.page-footer').evaluateAll(elements => elements.map(el => {
+    const style = getComputedStyle(el);
+    return { animation: style.animationName, opacity: style.opacity, transform: style.transform };
+  }));
+  expect(motion.every(style => style.animation === 'none' && style.opacity === '1' && style.transform === 'none')).toBe(true);
+  await expect(page.locator('.reveal,.load-in,#density-chart.play,#decision-cards.armed')).toHaveCount(0);
+});
 test(`${theme}: preserves the original insight height budget`, async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(artifact('zh', theme));

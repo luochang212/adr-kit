@@ -48,7 +48,28 @@ scripts to add or repair a theme.
 | Distribute both themes and agent policy via init/update and npm package resources | `test/integrations.test.ts`; package files include the shared resource and compiled selector |
 
 Presentation differences are intentional: Folio has editorial typography and
-hero actions. Both themes keep the source link in the reader header — Folio as
+hero actions. Signal opens with a large project heading, a bilingual statement,
+and a stack of up to three actual records, newest number first; active and
+archived records retain their status. On desktop (1024px and wider), only picks from the hero open a non-modal left
+reader, so the right-hand stack remains clickable for successive picks. Other
+entry points keep the modal right reader; mobile archive picks keep that same
+modal presentation. Reader links and previous/next retain their current entry
+mode, and resizing an open archive reader adapts its mode. Only the top file can be taken. Hover highlights every exposed surface without
+moving its geometry or changing its depth; clicking a back file gives a brief
+stationary highlight without opening or consuming it. Taking the top file first extracts and straightens
+it for 160ms, then expands it into the shared reader over 300ms and replenishes
+only that file; untouched cards keep their order. Escape during extraction
+cancels without consuming a file. Closing
+returns focus to the next file (or the completion message); directory/history navigation never
+consumes the stack. Consumption lasts only for the current page visit. One or
+two records show one or two cards; exhaustion shows a completion message and an
+empty repository never invents cards. Reduced motion skips the expansion.
+All four statistics sit inside Signal's hero; it has no bottom down-arrow.
+Signal's hero fills at least the viewport below the chapter bar, ending with
+statistics before the next section starts. Short/mobile viewports may scroll
+through taller content. Page entrance and count-up effects stay inside the
+hero; subsequent sections, density bars and directory cards appear normally.
+Both themes keep the source link in the reader header — Folio as
 a quiet padded control, Signal as its original text link. Colors, card
 treatment, responsive breakpoints and visual density may
 differ. These differences do not authorize dropping a mechanism.

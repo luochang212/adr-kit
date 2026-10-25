@@ -98,7 +98,7 @@ describe('decision atlas rendering', () => {
     expect(page).toContain('<strong>1</strong><span>引用关系</span>');
     // ADR 33 fixes the tree's term as "deliberation tree"; the label keeps it
     // as written and marks what the count covers.
-    expect(page).toContain('<span>含 deliberation tree</span>');
+    expect(page).toContain('<span>deliberation tree</span>');
     // The generator's name links to the tool, while the commit link points at
     // the repository being documented.
     expect(page).toContain('<a class="footer-repo" href="https://github.com/luochang212/adr-kit"');
@@ -292,7 +292,7 @@ it('keeps records and non-hero content identical across named themes', () => {
   const folio = render(live, template, 'en', 'folio');
   const signal = render(live, template, 'en', 'signal');
   expect(recordsFrom(signal)).toEqual(recordsFrom(folio));
-  const withoutHero = (html: string) => html.replace(/<!-- atlas:hero -->[\s\S]*?<!-- \/atlas:hero -->/, '');
+  const withoutHero = (html: string) => html.replace(/<!-- atlas:hero -->[\s\S]*?<!-- \/atlas:hero -->/, '').replace(/<!-- atlas:stats -->[\s\S]*?<!-- \/atlas:stats -->/, '');
   expect(withoutHero(signal).replace('data-atlas-theme="signal"', 'data-atlas-theme="folio"')).toBe(withoutHero(folio));
 });
 
@@ -306,6 +306,25 @@ it.each(['folio', 'signal'] as const)('enables only the selected %s document sty
   const sourceInHeader = /<span id="reader-meta"><\/span><a id="reader-source"/.test(html);
   expect(sourceInHeader).toBe(true);
   expect(html.match(/id="reader-source"/g)).toHaveLength(1);
+});
+
+it.each(['en', 'zh'] as const)('keeps Signal’s archive entrance and all statistics inside the hero in %s', language => {
+  const html = render(live, template, language, 'signal');
+  const hero = html.split('<!-- atlas:hero -->')[1].split('<!-- /atlas:hero -->')[0];
+  expect(hero).toContain('class="archive-stack"');
+  expect(hero).not.toContain('archive-heading');
+  expect(hero).not.toContain('archive-progress');
+  expect(hero).not.toContain('archive-reset');
+  expect(hero).toContain('class="stats-band"');
+  expect(hero).toContain(language === 'en' ? 'Active decisions' : '生效决策');
+  expect(hero).toContain(language === 'en' ? 'Archived history' : '归档历史');
+  expect(hero).toContain(language === 'en' ? 'References' : '引用关系');
+  expect(hero).toContain(language === 'en' ? 'Deliberation trees' : 'deliberation tree');
+  expect(hero).not.toContain('hero-baseline');
+  expect(hero).not.toContain('↓');
+  expect(hero).toContain(language === 'en' ? 'A traceable story.' : '都有迹可循。');
+  expect(html.match(/class="stats-band"/g)).toHaveLength(1);
+  expect(render([], template, language, 'signal')).toContain('class="archive-stack"');
 });
 
 

@@ -13,6 +13,9 @@ export type AtlasLanguage = 'en' | 'zh';
 
 /** The zh→en table; exported so a test can hold every key against the template. */
 export const ATLAS_EN: Array<[string, string]> = [
+  ['取出阅读 ↗', 'Open file ↗'],
+  ['请先取出顶层档案', 'Take the top file first'],
+  ['已翻阅全部档案', 'All files explored'],
   ['<span>01</span>决策密度</a>', '<span>01</span>Density</a>'],
   ['<span>02</span>编号时间线</a>', '<span>02</span>Timeline</a>'],
   ['<span>03</span>引用与替代</a>', '<span>03</span>Relations</a>'],

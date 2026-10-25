@@ -191,29 +191,9 @@ body.interactive { height: 100vh; height: 100dvh; display: flex; flex-direction:
 html { scrollbar-gutter: stable; }
 html:has(#reader[open]) { overflow: hidden; }
 
-/* Motion that both themes share lives here, past the frozen canvas and share
-   constants. Everything is progressive: content is server-rendered visible,
-   the script at the end of the body opts the document in only when
-   IntersectionObserver exists and motion is welcome, and the reduced-motion
-   rule below forces every state back off regardless of the script. */
+/* Page entrance belongs to the hero; reader transitions remain interactive. */
 #reader[open]::backdrop { animation: reader-backdrop-in .2s ease; }
 @keyframes reader-backdrop-in { from { opacity: 0; } }
-html.reveal-on .reveal { opacity: 0; transform: translateY(24px); }
-html.reveal-on .reveal.is-in { opacity: 1; transform: none; transition: opacity .7s ease-out, transform .7s cubic-bezier(.2,.7,.2,1); }
-html.reveal-on .insight-columns .reveal.is-in:nth-child(2) { transition-delay: .08s; }
-
-/* Section heading blocks rise in the same three beats as the hero: eyebrow,
-   title, then the lead note — one phrase each, offset in phase. .load-in
-   sections were already above the fold at script time, so theirs wait out
-   the hero entrance; scrolled-in sections follow the section itself. */
-html.reveal-on .reveal.is-in .eyebrow, html.reveal-on .reveal.is-in h2, html.reveal-on .reveal.is-in .section-note { animation: head-in .6s cubic-bezier(.2,.7,.2,1) backwards; }
-html.reveal-on .reveal.is-in .eyebrow { animation-delay: .05s; }
-html.reveal-on .reveal.is-in h2 { animation-delay: .13s; }
-html.reveal-on .reveal.is-in .section-note { animation-delay: .21s; }
-html.reveal-on .reveal.is-in.load-in .eyebrow { animation-delay: .45s; }
-html.reveal-on .reveal.is-in.load-in h2 { animation-delay: .55s; }
-html.reveal-on .reveal.is-in.load-in .section-note { animation-delay: .65s; }
-@keyframes head-in { from { opacity: 0; transform: translateY(12px); } }
 
 /* Hero entrance: eyebrow, title, lead, then actions, once per load. Pure CSS,
    so it also runs without JS and simply ends visible everywhere. */
@@ -222,32 +202,13 @@ html.reveal-on .reveal.is-in.load-in .section-note { animation-delay: .65s; }
 .page-hero .hero-description { animation-delay: .15s; }
 .page-hero .hero-actions { animation-delay: .23s; }
 @keyframes hero-in { from { opacity: 0; transform: translateY(18px); } }
+.hero-tagline .hero-line { display: block; animation: hero-in .7s cubic-bezier(.2,.7,.2,1) backwards; }
+.hero-tagline .hero-line:first-child { animation-delay: .14s; }
+.hero-tagline .hero-line:last-child { animation-delay: .24s; }
 
-/* The bars grow on first view, not at load. --count is registered as a number
-   (not an integer) so interpolation is continuous rather than stepped; the
-   shared script adds .play when the chart first intersects the viewport, and
-   per-bar --i staggers the columns. Without the script the bars stand at full
-   height. */
-@property --count { syntax: '<number>'; inherits: false; initial-value: 0; }
-#density-chart.play .density-day { animation: density-grow .8s cubic-bezier(.25,.8,.3,1) backwards; animation-delay: min(calc(var(--i, 0) * 35ms), .5s); }
-@keyframes density-grow { from { --count: 0; } }
-
-/* The bars grow smoothly (--count is registered as a number, not an integer,
-   so interpolation is continuous rather than stepped) with a per-column
-   stagger. The shared script adds .play the first time the chart intersects
-   the viewport — including at load, when it sits above the fold. Without the
-   script the bars stand at full height. */
-@property --count { syntax: '<number>'; inherits: false; initial-value: 0; }
-#density-chart.play .density-day { animation: density-grow .8s cubic-bezier(.25,.8,.3,1) backwards; animation-delay: min(calc(var(--i, 0) * 35ms), .5s); }
-@keyframes density-grow { from { --count: 0; } }
-
-/* Decision cards stagger once, when the directory first scrolls into view.
-   --i is capped in the runtime, so a large corpus cannot stretch the delay. */
-#decision-cards.armed .decision-card { animation: card-in .5s cubic-bezier(.2,.7,.2,1) backwards; animation-delay: min(calc(var(--i, 0) * 55ms), .55s); }
-@keyframes card-in { from { opacity: 0; transform: translateY(14px); } }
 
 @media (prefers-reduced-motion: reduce) {
-  #reader[open]::backdrop, html.reveal-on .reveal, html.reveal-on .reveal.is-in .eyebrow, html.reveal-on .reveal.is-in h2, html.reveal-on .reveal.is-in .section-note, .page-hero .eyebrow, .page-hero h1, .page-hero .hero-description, .page-hero .hero-actions, #density-chart.play .density-day, #decision-cards.armed .decision-card { animation: none; opacity: 1; transform: none; transition: none; }
+  #reader[open]::backdrop, .page-hero .eyebrow, .page-hero h1, .page-hero .hero-description, .page-hero .hero-actions, .hero-tagline .hero-line { animation: none; opacity: 1; transform: none; transition: none; }
 }
 </style><style data-atlas-style="folio">
 /* One archive surface: warm paper, readable ink, and a single rust accent.
@@ -610,25 +571,29 @@ body.interactive{height:auto;min-height:100dvh;display:block;overflow:visible}
 :root{--inner:1120px;--indigo:#818cf8;--cyan:#22d3ee;--grad:linear-gradient(90deg,var(--indigo),var(--cyan));--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--font-sans:Inter,ui-sans-serif,system-ui,-apple-system,"PingFang SC",sans-serif;color:var(--fg);background:var(--bg)}
 html{scroll-behavior:smooth;scroll-padding-top:90px}body{font-family:var(--font-sans);-webkit-font-smoothing:antialiased}body.interactive{display:block;height:auto;overflow:visible}a{text-decoration:none}section[id]{scroll-margin-top:0}
 .page-nav{position:fixed;inset:0 0 auto;z-index:30;display:flex;justify-content:center;padding:14px 16px 0;pointer-events:none}.nav-pill{box-sizing:border-box;pointer-events:auto;display:flex;align-items:center;gap:24px;max-width:var(--inner);width:100%;padding:10px 18px;border:1px solid transparent;border-radius:999px;transition:background .2s,border-color .2s}.page-nav.scrolled .nav-pill{border-color:var(--border);background:#0d1117ed;backdrop-filter:blur(12px)}.page-brand{display:flex;align-items:center;gap:9px;font:700 14px var(--font-mono);color:var(--fg);letter-spacing:.02em}.page-nav nav{display:flex;gap:24px;margin-inline-start:auto}.page-nav nav a{font-size:12px;color:var(--muted)}.page-nav a:hover{color:var(--fg)}.nav-repo{border:1px solid var(--border);border-radius:999px;padding:5px 12px;font:10px var(--font-mono);color:var(--muted)}
-.page-hero{position:relative;overflow:hidden}.page-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,#ffffff26 1px,transparent 1px);background-size:22px 22px;mask-image:radial-gradient(at 50% 32%,#000 4%,#0000 65%)}.hero-content{position:relative;max-width:var(--inner);margin-inline:auto;padding:150px 24px 80px;text-align:center}.hero-content .eyebrow{font-size:10px;letter-spacing:.16em;color:var(--muted);margin-bottom:27px}.hero-content h1{font:700 clamp(72px,11vw,132px)/1 var(--font-mono);letter-spacing:-.06em;margin:0;color:var(--fg)}.hero-content h1 span{background:var(--grad);background-clip:text;-webkit-background-clip:text;color:transparent}.hero-tagline{font-size:clamp(21px,3vw,28px);font-weight:500;letter-spacing:-.02em;margin:28px 0 0;color:var(--fg)}.hero-description{font-size:14px;line-height:1.9;color:var(--muted);margin:18px auto 0;max-width:58ch}.hero-actions{display:flex;align-items:center;justify-content:center;gap:28px;margin-top:32px}.hero-actions a{font-size:12px;color:var(--muted)}.hero-actions .primary-link{padding:12px 18px;border:1px solid #ffffff26;border-radius:8px;background:#ffffff08;color:var(--fg)}.hero-actions .primary-link:hover{border-color:var(--cyan)}.hero-actions a span{margin-inline-start:10px;color:var(--cyan)}.hero-stamp{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;color:var(--muted);font:10px var(--font-mono)}.hero-stamp>span{width:5px;height:5px;border-radius:50%;background:var(--cyan)}
+/* Signal's opening pairs a project statement with its real record inventory. */
+.page-hero{--hero-nav-height:52px;min-height:calc(100dvh - var(--hero-nav-height));display:flex;flex-direction:column;box-sizing:border-box;position:relative;overflow:hidden;background:radial-gradient(ellipse at 88% 40%,#22d3ee09,transparent 55%)}
+.page-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,#ffffff18 1px,transparent 1px);background-size:24px 24px;mask-image:linear-gradient(90deg,transparent 30%,#000)}
+.hero-content{position:relative;box-sizing:border-box;flex:1;width:100%;max-width:var(--inner);margin-inline:auto;padding:48px 24px 28px;min-height:32rem;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:center;gap:64px;text-align:start}
+.hero-heading{min-width:0}.hero-content .eyebrow{display:flex;align-items:center;gap:10px;font:10px/1.6 var(--font-mono);letter-spacing:.13em;color:var(--muted);margin:0 0 26px}.hero-content .eyebrow>span{width:6px;height:6px;background:var(--cyan);box-shadow:0 0 12px #22d3ee55}
+.hero-content h1{font:600 clamp(2.75rem,1.5rem + 4.5vw,5.5rem)/1.08 var(--font-mono);letter-spacing:-.065em;margin:0;color:var(--fg);overflow-wrap:anywhere}
+.hero-tagline{font:500 clamp(1.75rem,1.1rem + 2vw,2.75rem)/1.35 var(--font-sans);letter-spacing:-.04em;margin:30px 0 0}.hero-tagline .hero-line:last-child{color:var(--cyan)}
+.hero-description{font:13px/1.9 var(--font-sans);color:var(--muted);margin:24px 0 0;max-width:44ch;text-wrap:pretty}
+.hero-archive{min-width:0;box-sizing:border-box;width:100%;max-width:26rem;padding-inline:12px;justify-self:end;transform:translateY(2.25rem)}
+.archive-stack{position:relative;height:23rem;isolation:isolate}.archive-card{box-sizing:border-box;position:absolute;inset:0 14px auto;width:calc(100% - 28px);height:18rem;padding:22px;display:flex;flex-direction:column;align-items:stretch;text-align:start;font-family:var(--font-sans);color:var(--fg);background:var(--panel);border:1px solid #61778970;border-radius:5px;box-shadow:0 12px 24px #0003;transform:translateY(52px) rotate(-3deg);transform-origin:50% 50%;z-index:3;cursor:pointer;transition:transform .38s cubic-bezier(.2,.75,.2,1),border-color .2s,background-color .2s}
+.archive-card[data-depth="1"]{z-index:2;transform:translateY(26px) rotate(3deg);background:#192330}.archive-card[data-depth="2"]{z-index:1;transform:rotate(-5deg);background:#202b38}.archive-card:active{border-color:var(--fg)}.archive-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--cyan);pointer-events:none;opacity:0}.archive-card.is-tapped::after{animation:archive-tap .24s ease-out}@keyframes archive-tap{0%,100%{opacity:0}35%{opacity:.14}}.archive-card.is-pulling{z-index:5;pointer-events:none}.archive-stack.is-opening{pointer-events:none}@media(hover:hover) and (pointer:fine){.archive-card:hover{border-color:var(--cyan);background:#243749;box-shadow:0 12px 24px #0003,0 0 0 1px #22d3ee24}}.archive-card:focus-visible,.archive-empty:focus-visible{outline:2px solid var(--cyan);outline-offset:6px}
+.archive-card-top{display:flex;align-items:center;gap:12px;font:10px/1.5 var(--font-mono);color:var(--muted)}.archive-id{white-space:nowrap;color:var(--cyan)}.archive-spine{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}.archive-card[data-depth="0"] .archive-spine{visibility:hidden}.archive-status{margin-inline-start:auto;white-space:nowrap;font-size:9px;color:var(--fg)}.archive-title{font-size:clamp(1.125rem,1rem + .35vw,1.375rem);font-weight:550;line-height:1.4;letter-spacing:-.02em;margin-top:24px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}.archive-excerpt{font-size:11px;line-height:1.8;color:var(--muted);margin-top:16px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}.archive-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--border);padding-top:14px;margin-top:auto;font:9px/1.5 var(--font-mono);color:var(--muted)}.archive-card-bottom>span{color:var(--cyan)}.archive-empty{box-sizing:border-box;height:18rem;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;border:1px dashed var(--border);border-radius:5px;color:var(--muted);font-size:12px;transform:translateY(26px)}.archive-empty>span:first-child{font:36px/1 var(--font-mono);color:var(--cyan)}
+#reader[open].archive-open:not(.closing){animation:none;transform-origin:0 0}#reader.from-archive>.reader-head,#reader.from-archive>#reader-title{animation:archive-content-in .3s ease both}#reader.from-archive>#reader-body,#reader.from-archive>#reader-context,#reader.from-archive>#reader-tags{animation:archive-content-in .3s .04s ease both}@keyframes archive-content-in{0%,35%{opacity:0}100%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.archive-card{transition:none}#reader.from-archive>*{animation:none}}
+@media(max-width:760px){.page-hero{--hero-nav-height:50px}.hero-content{padding:40px 20px 20px;min-height:0;grid-template-columns:minmax(0,1fr);gap:32px}.hero-content h1{font-size:clamp(2.5rem,1.5rem + 7vw,4rem)}.hero-content .eyebrow{font-size:9px;margin-bottom:20px}.hero-tagline{margin-top:22px}.hero-description{font-size:12px;margin-top:20px}.hero-archive{padding-inline:8px;transform:none;justify-self:center}.archive-card{padding:18px}.archive-title{font-size:18px}.archive-card-top{gap:8px;font-size:9px}.archive-stack{height:22rem}}
 .stats-band{border-block:1px solid var(--border)}.stats-inner{max-width:var(--inner);margin-inline:auto;padding:30px 24px;display:grid;grid-template-columns:repeat(4,1fr)}.stats-inner>div{display:flex;flex-direction:column;align-items:center;gap:9px;padding:12px}.stats-inner>div+div{border-inline-start:1px solid var(--border)}.stats-inner strong{font:700 clamp(28px,3.5vw,44px)/1.1 var(--font-mono);letter-spacing:-.05em}.stats-inner span{font-size:11px;color:var(--muted)}
 .atlas-page{display:block;overflow:visible}.atlas-inner{box-sizing:border-box;max-width:var(--inner);padding:90px 24px;margin-inline:auto}.atlas-section{padding:0 0 90px;border:0}.atlas-section:last-child{padding-bottom:0}.atlas-section .eyebrow,.map-intro .eyebrow,.cards-heading .eyebrow{font-size:11px;letter-spacing:.12em}.atlas-section h2,.cards-heading h2,.map-intro h2{font-size:clamp(25px,3.6vw,34px);font-weight:600;letter-spacing:-.025em;line-height:1.4;margin:0}.section-note{font-size:13px;line-height:1.85;margin:14px 0 28px}.insight-columns{gap:48px}.insight-columns .atlas-section h2{font-size:24px}.atlas-section:last-child{padding-bottom:0}.origin-cell{background:#ffffff04;border-radius:0}.origin-cell strong{font-size:36px}#provenance-grid{gap:1px;border:1px solid var(--border);background:var(--border);border-radius:10px;overflow:hidden}.origin-cell{border:0;background:var(--bg);padding:24px}.origin-cell strong{margin:20px 0}.replacement-row>a,.replacement-row>button{background:#ffffff03}#density-chart{margin-top:40px;height:140px}
 .page-map{padding:90px 24px;box-sizing:border-box;background:#ffffff02}.map-intro{max-width:1072px;margin:0 auto 36px}.workspace{max-width:1072px;margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr);height:640px;border:1px solid #ffffff20;border-radius:12px;overflow:hidden;background:var(--bg)}.workspace>.catalog{display:none}body.interactive .workspace #viewport{height:100%;flex:initial}.date-rail{background:#101620e8}.canvas-dock{padding:12px}.cards-heading{margin-bottom:30px}.decision-card{border-radius:9px;background:#ffffff03;padding:24px}.decision-card:hover{background:#ffffff06}.decision-card h3{font-size:16px}.page-footer{box-sizing:border-box;max-width:var(--inner);margin-inline:auto;padding:30px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:11px;color:var(--muted)}.footer-meta{display:flex;align-items:center;flex-wrap:wrap;gap:0 6px}.page-footer>a:last-child{color:var(--muted)}
-@media(max-width:760px){.page-nav{padding:10px 10px 0}.nav-pill{gap:12px;padding:10px 12px}.page-nav nav{gap:12px}.page-nav nav a{font-size:10px}.nav-repo{display:none}.hero-content{padding:130px 20px 64px}.hero-content .eyebrow{font-size:8px;letter-spacing:.1em}.hero-content h1{font-size:80px}.hero-tagline{font-size:22px}.hero-description{font-size:12px}.hero-actions{gap:20px}.hero-stamp{font-size:9px}.stats-inner{grid-template-columns:repeat(4,1fr);padding:25px 12px}.stats-inner>div{padding:6px}.stats-inner strong{font-size:30px}.stats-inner span{font-size:9px}.atlas-inner{padding:64px 20px}.atlas-section{padding-bottom:48px}.insight-columns{gap:0}.insight-columns .atlas-section h2{font-size:24px}.page-map{padding:64px 16px}.workspace{height:560px;grid-template-rows:minmax(0,1fr)}.map-intro{padding-inline:4px}.origin-cell{padding:18px}.page-footer{margin-inline:20px;padding:26px 0;gap:12px;flex-wrap:wrap}.footer-meta{gap:6px 14px;flex-wrap:wrap}.cards-heading search{margin-top:24px}.canvas-legend{max-width:100%}}
+@media(max-width:760px){.page-nav{padding:10px 10px 0}.nav-pill{gap:12px;padding:10px 12px}.page-nav nav{gap:12px}.page-nav nav a{font-size:10px}.nav-repo{display:none}.stats-inner{grid-template-columns:repeat(4,1fr);padding:25px 12px}.stats-inner>div{padding:6px}.stats-inner strong{font-size:30px}.stats-inner span{font-size:9px}.atlas-inner{padding:64px 20px}.atlas-section{padding-bottom:48px}.insight-columns{gap:0}.insight-columns .atlas-section h2{font-size:24px}.page-map{padding:64px 16px}.workspace{height:560px;grid-template-rows:minmax(0,1fr)}.map-intro{padding-inline:4px}.origin-cell{padding:18px}.page-footer{margin-inline:20px;padding:26px 0;gap:12px;flex-wrap:wrap}.footer-meta{gap:6px 14px;flex-wrap:wrap}.cards-heading search{margin-top:24px}.canvas-legend{max-width:100%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.nav-pill{transition:none}}
 
 
-/* A repository archive heading, sized for orientation rather than promotion. */
 .page-brand small{font:10px var(--font-mono);font-weight:400;color:var(--muted)}
-.hero-content{padding:112px 24px 46px}
-.hero-content .eyebrow{font-size:9px;margin-bottom:20px}
-.hero-content h1{font:600 clamp(2rem,5vw,3.25rem)/1.25 var(--font-sans);letter-spacing:-.035em;text-wrap:balance}
-.hero-tagline{font:12px/1.5 var(--font-mono);font-weight:400;letter-spacing:.02em;color:var(--muted);margin-top:16px}
-.hero-description{font-size:13px;margin-top:12px}
-.hero-actions{margin-top:24px;gap:24px}.hero-actions .primary-link{padding:9px 14px;background:#ffffff04}
-.hero-stamp{margin-top:22px}
-@media(max-width:760px){.hero-content{padding:100px 20px 36px}.hero-content .eyebrow{font-size:7px;letter-spacing:.08em}.hero-content h1{font-size:2.25rem}.hero-description{font-size:11px}.page-brand{gap:6px;font-size:12px}.page-brand small{font-size:9px}.page-nav nav{gap:10px}.hero-stamp{font-size:8px}}
-
 #timeline-frame{border:1px solid var(--border);background:#ffffff02;border-radius:10px;padding:14px 8px 5px;overflow:hidden}#timeline-svg{display:block;width:100%;height:auto;max-width:100%}.timeline-grid{stroke:#ffffff12;stroke-width:1}.timeline-axis{font:9px var(--font-mono);fill:var(--muted)}.timeline-point{cursor:pointer;outline:none}.point-hit{fill:transparent}.point-dot{fill:var(--accent);stroke:var(--bg);stroke-width:1.5}.archived-point .point-dot{fill:var(--bg);stroke:var(--indigo);stroke-width:1.6;stroke-dasharray:2 1}.timeline-point:hover .point-dot,.timeline-point:focus-visible .point-dot{stroke:var(--fg);stroke-width:2.5;fill:var(--accent)}.timeline-replacement{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:4 3}.timeline-key{display:flex;flex-wrap:wrap;gap:10px 20px;margin:14px 0 0;color:var(--muted);font:10px/1.8 var(--font-sans)}.timeline-key>span{display:inline-flex;align-items:center;gap:7px}.timeline-key i{width:7px;height:7px;border-radius:50%;background:var(--accent)}.timeline-key .hollow{background:none;border:1px dashed var(--indigo)}.timeline-key .arrow{width:20px;height:0;border-top:1px dashed var(--accent);border-radius:0;background:none}
 .workspace{height:min(700px,calc(100dvh - 175px));grid-template-rows:minmax(0,1fr) auto}
 body.interactive .workspace #viewport{height:auto}
@@ -656,9 +621,9 @@ body.interactive .workspace #viewport{height:auto}
 
 
 /* Document masthead + underlined section index, adapted from feed-header and scroll-spy-nav. */
-html{scroll-padding-top:68px}.archive-masthead{padding:0 24px}.masthead-inner{max-width:1072px;margin-inline:auto;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:68px;border-bottom:1px solid var(--border)}.archive-path{display:flex;gap:12px;align-items:center;font:12px var(--font-mono);color:var(--fg)}.archive-path>span:first-child{font-weight:650}.path-divider{color:#ffffff40}.masthead-meta{display:flex;align-items:center;gap:20px;font:10px var(--font-mono);color:var(--muted)}.masthead-meta>a{color:var(--muted)}.masthead-meta>a:hover{color:var(--accent)}.page-hero::before{content:none}.hero-content{text-align:start;padding:34px 24px 36px}.hero-content .eyebrow{font-size:9px;letter-spacing:.12em;margin-bottom:14px}.hero-content h1{font-size:clamp(1.875rem,4vw,2.75rem);font-weight:550}.hero-description{margin:14px 0 0;max-width:65ch;font-size:12px;line-height:1.8}.stats-band{border-block:0}.stats-inner{padding:0 24px 30px;gap:0}.stats-inner>div{flex-direction:row;justify-content:flex-start;gap:10px;padding:0 24px}.stats-inner>div:first-child{padding-inline-start:0}
+html{scroll-padding-top:68px}.archive-masthead{padding:0 24px}.masthead-inner{max-width:1072px;margin-inline:auto;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:68px;border-bottom:1px solid var(--border)}.archive-path{display:flex;gap:12px;align-items:center;font:12px var(--font-mono);color:var(--fg)}.archive-path>span:first-child{font-weight:650}.path-divider{color:#ffffff40}.masthead-meta{display:flex;align-items:center;gap:20px;font:10px var(--font-mono);color:var(--muted)}.masthead-meta>a{color:var(--muted)}.masthead-meta>a:hover{color:var(--accent)}.stats-band{border-block:0}.stats-inner{padding:0 24px 30px;gap:0}.stats-inner>div{flex-direction:row;justify-content:flex-start;gap:10px;padding:0 24px}.stats-inner>div:first-child{padding-inline-start:0}
 .chapter-bar{position:sticky;inset-block-start:0;z-index:20;background:var(--bg);border-block:1px solid var(--border)}.chapter-inner{max-width:1072px;min-height:50px;margin-inline:auto;display:flex;gap:28px;align-items:center;padding-inline:24px}.chapter-label{font:9px var(--font-mono);color:var(--muted);white-space:nowrap}.chapter-links{position:relative;display:flex;gap:28px;align-items:stretch;scroll-target-group:auto}.chapter-links>a{display:flex;align-items:center;gap:8px;min-height:50px;color:var(--muted);font-size:11px;border-bottom:2px solid transparent;box-sizing:border-box}.chapter-links>a>span{font:9px var(--font-mono);opacity:.55}.chapter-links>a:hover{color:var(--fg)}.chapter-links>a:is(:target-current,.fallback-current){color:var(--fg);font-weight:550;border-bottom-color:var(--accent)}.chapter-links>a:is(:target-current,.fallback-current)>span{color:var(--accent);opacity:1}.chapter-indicator{position:absolute;inset:auto auto 0 0;height:2px;width:var(--indicator-width,0px);background:var(--accent);transform:translateX(var(--indicator-x,0px));transition:transform .18s ease,width .18s ease;pointer-events:none}.directory-search{display:grid;gap:8px;color:var(--muted);font-size:10px}.directory-search input{box-sizing:border-box;min-width:270px;max-width:100%;height:39px;background:#121924;border:1px solid var(--border);border-radius:5px;padding:8px 12px;color:var(--fg);font:11px var(--font-sans)}.directory-empty{grid-column:1/-1;border-top:1px solid var(--border);padding:24px 0;font-size:12px;color:var(--muted)}.density-day{cursor:default}.density-day:hover{background:#1f3444;border-color:#ffffff18;color:var(--muted)}
-@media(max-width:760px){.archive-masthead{padding-inline:20px}.masthead-inner{min-height:57px}.archive-path{font-size:11px;gap:8px}.masthead-meta{gap:12px;font-size:9px}.masthead-meta>span{display:none}.hero-content{padding:28px 20px 30px}.hero-content .eyebrow{font-size:8px}.hero-content h1{font-size:2rem}.hero-description{font-size:11px}.stats-inner{padding:0 20px 24px;grid-template-columns:repeat(4,1fr)}.stats-inner>div{display:grid;gap:7px;padding:0 12px}.stats-inner strong{font-size:22px}.stats-inner span{font-size:8px}.chapter-inner{gap:0;padding-inline:20px;min-height:48px}.chapter-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.archive-home{display:block;white-space:nowrap;font-size:10px}.chapter-links{flex:1;justify-content:flex-start;gap:10px;overflow-x:auto;scrollbar-width:none;mask-image:linear-gradient(90deg,#000 calc(100% - 20px),transparent);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 20px),transparent)}.chapter-links::-webkit-scrollbar{display:none}.chapter-links>a{font-size:10px;gap:5px;min-height:48px}.chapter-links>a>span{font-size:8px}.directory-search{margin-top:24px}.directory-search input{width:100%;min-width:0}}
+@media(max-width:760px){.archive-masthead{padding-inline:20px}.masthead-inner{min-height:57px}.archive-path{font-size:11px;gap:8px}.masthead-meta{gap:12px;font-size:9px}.masthead-meta>span{display:none}.stats-inner{padding:0 20px 24px;grid-template-columns:repeat(4,1fr)}.stats-inner>div{display:grid;gap:7px;padding:0 12px}.stats-inner strong{font-size:22px}.stats-inner span{font-size:8px}.chapter-inner{gap:0;padding-inline:20px;min-height:48px}.chapter-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.archive-home{display:block;white-space:nowrap;font-size:10px}.chapter-links{flex:1;justify-content:flex-start;gap:10px;overflow-x:auto;scrollbar-width:none;mask-image:linear-gradient(90deg,#000 calc(100% - 20px),transparent);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 20px),transparent)}.chapter-links::-webkit-scrollbar{display:none}.chapter-links>a{font-size:10px;gap:5px;min-height:48px}.chapter-links>a>span{font-size:8px}.directory-search{margin-top:24px}.directory-search input{width:100%;min-width:0}}
 @media(prefers-reduced-motion:reduce){.chapter-indicator{transition:none}}
 
 .chapter-inner{gap:32px}.archive-home{color:var(--fg);font:600 11px var(--font-mono);text-decoration:none}.archive-home>span{color:var(--muted);font-weight:400}.chapter-links{margin-inline-start:auto}@media(max-width:760px){.chapter-inner{gap:16px;padding-inline:16px}.archive-home>span{display:none}.chapter-links{width:auto;min-width:0;flex:0 1 auto;justify-content:safe flex-end;gap:10px;mask-image:none;-webkit-mask-image:none}.chapter-links>a{font-size:9px;gap:4px;white-space:nowrap}.chapter-links>a>span{display:none}}
@@ -690,11 +655,18 @@ html{scroll-padding-top:68px}.archive-masthead{padding:0 24px}.masthead-inner{ma
 #cards-view .atlas-inner{padding-bottom:64px}
 }
 
-/* Signal retains its original page styles. Only the reader is redesigned. */
+.page-hero .stats-band{padding-top:20px;flex:none;width:100%}.page-hero .stats-inner{padding-bottom:28px}.page-hero{border-bottom:1px solid var(--border)}
+/* Signal reader styles share the document palette. */
 :root { --quiet: #17202e; --accent-soft: #153342; }
 /* A reading column, rather than a scaled-down dashboard panel. */
 #reader { margin: 0 0 0 auto; inset: 0 0 0 auto; width: min(780px,80vw); max-width: none; height: 100dvh; max-height: 100dvh; padding: 28px 48px 72px; border: 0; border-inline-start: 1px solid var(--border); border-radius: 0; background: var(--panel); color: var(--fg); overscroll-behavior: contain; }
 #reader::backdrop { background: #222a235c; backdrop-filter: blur(3px); }
+/* Desktop archive picks leave the right-hand stack available for the next pick. */
+:root[data-atlas-theme="signal"] #reader.archive-left { position:fixed;z-index:50;box-sizing:border-box;inset:0 auto 0 0;margin:0;width:min(680px,48vw);border-inline-start:0;border-inline-end:1px solid var(--border);box-shadow:16px 0 48px #0003; }
+#reader.archive-left.closing { animation:archive-left-out .18s ease forwards; }
+@keyframes archive-left-out { to { opacity:0;transform:translateX(-24px); } }
+@media(prefers-reduced-motion:reduce){#reader.archive-left.closing{animation:none}}
+
 #reader[open] { animation: reader-in .2s ease; }
 #reader.closing { animation: reader-out .18s ease forwards; }
 #reader-body.swap { animation: reader-swap .18s ease; }
@@ -1430,6 +1402,7 @@ const edges = [...document.querySelectorAll('#world .edge')];
 const references = edges.filter(e => e.classList.contains('reference'));
 const supersessions = edges.filter(e => e.classList.contains('supersede'));
 const reader = document.querySelector('#reader');
+const archiveDesktop = matchMedia('(min-width: 1024px)');
 const statusName = { implemented: '生效', archived: '归档', proposed: '提案', rejected: '否决' };
 const dates = [...new Set(records.map(r => r.created))].sort();
 const make = (tag, cls, text) => {
@@ -1476,15 +1449,9 @@ for (const raised of ['human', 'agent']) for (const decided of ['human', 'agent'
 }
 function renderCards(visible) {
   const container = document.querySelector('#decision-cards'); container.replaceChildren();
-  // Re-arming here would replay the entrance on every keystroke: the arm is
-  // owned by the first-view observer, and a re-render only ever disarms.
-  container.classList.remove('armed');
   document.querySelector('#cards-count').textContent = visible.length + ' / ' + records.length + ' 条记录 · 生效 ' + visible.filter(r => r.lifecycle === 'implemented').length + ' · 归档 ' + visible.filter(r => r.lifecycle === 'archived').length;
-  let cardIndex = 0;
   for (const r of visible) {
     const b = make('button', 'decision-card' + (r.lifecycle === 'archived' ? ' archived-card' : '')); b.dataset.record = r.number;
-    if (cardIndex < 12) b.style.setProperty('--i', cardIndex);
-    cardIndex++;
     const first = r.lifecycle === 'archived'
       ? (r['superseded-by'] != null
         ? '归档历史，已由 ADR ' + r['superseded-by'] + ' 替代；当前约束请查看生效记录。'
@@ -1646,6 +1613,7 @@ new MutationObserver(scheduleRail).observe(world, { attributes: true, attributeF
 const railObserver = new ResizeObserver(scheduleRail); railObserver.observe(viewport); railObserver.observe(track);
 
 let readerNumber=null;
+let archiveMotion=null;
 function inlineInto(parent,raw){const pattern=/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g;let start=0;const text=(value)=>{if(value)parent.append(document.createTextNode(value));};for(const m of raw.matchAll(pattern)){text(raw.slice(start,m.index));const token=m[0];if(token.startsWith(String.fromCharCode(96))){parent.append(make('code','',token.slice(1,-1)));}else{const strong=token.startsWith('**');const child=make(strong?'strong':'em');inlineInto(child,token.slice(strong?2:1,strong?-2:-1));parent.append(child);}start=m.index+token.length;}text(raw.slice(start));}
 function inlineText(el){
   const raw=el.textContent;
@@ -1691,7 +1659,7 @@ function showContext(r) {
       if (record) {
         const button = make('button', 'record-pill', 'ADR ' + number);
         button.setAttribute('aria-label', record.title);
-        button.addEventListener('click', () => read(record.number));
+        button.addEventListener('click', () => read(record.number,reader.dataset.origin==='archive'));
         values.append(button);
       } else {
         const link = make('a', 'record-pill', 'ADR ' + number + ' · 归档');
@@ -1756,8 +1724,8 @@ function readerLines(markdown){
   return lines;
 }
 
-function read(number){const r=records.find(r=>r.number===Number(number));if(!r)return;const source=document.querySelector('#reader-source');source.hidden=!r.source;if(r.source)source.href=r.source;document.querySelector('#reader-title').textContent=r.title;const meta=document.querySelector('#reader-meta');meta.replaceChildren();meta.append(make('span','meta-num','ADR '+String(r.number).padStart(2,'0')),make('span','meta-status '+r.lifecycle,statusName[r.lifecycle]||r.lifecycle));document.querySelector('#reader-tags').textContent=(r.tags||[]).map(t=>'#'+t).join('  ');const body=document.querySelector('#reader-body');body.replaceChildren();let buffer=[],list=null,listType=null,code=null;const flush=()=>{if(buffer.length){const p=document.createElement('p');p.textContent=buffer.join('\n');body.append(p);buffer=[];}};
-for(const line of readerLines(r.body.replace(/^\s*# ADR:.*\n/,''))){if(line.startsWith(String.fromCharCode(96,96,96))){flush();list=null;listType=null;if(code){body.append(code);code=null;}else code=document.createElement('pre');continue;}if(code){code.textContent+=line+'\n';continue;}const heading=line.match(/^(#{2,6}) /);const numbered=line.match(/^\s*(\d+)\. /);if(heading){flush();list=null;listType=null;const h=document.createElement(heading[1].length===2?'h3':'h4');h.textContent=line.slice(heading[0].length);body.append(h);}else if(/^\s*[-+*] /.test(line)||numbered){flush();const tag=numbered?'ol':'ul';if(!list||listType!==tag){list=document.createElement(tag);listType=tag;if(numbered)list.start=Number(numbered[1]);body.append(list);}const li=document.createElement('li');li.textContent=line.replace(numbered?/^\s*\d+\. /:/^\s*[-+*] /,'');li.style.marginInlineStart=(line.match(/^ */)[0].length*5)+'px';list.append(li);}else if(!line.trim()){flush();list=null;listType=null;}else if(list&&list.lastElementChild){list.lastElementChild.textContent+=' '+line.trim();}else{list=null;listType=null;buffer.push(line);}}flush();if(code)body.append(code);nodes.forEach(n=>n.classList.toggle('selected',n.dataset.adr===String(r.number)));showContext(r);const wasOpen=reader.open;if(!wasOpen)reader.showModal();reader.scrollTop=0;if(wasOpen){const bodyEl=document.querySelector('#reader-body');bodyEl.classList.remove('swap');void bodyEl.offsetWidth;bodyEl.classList.add('swap');}}
+function read(number,fromArchive=false){const r=records.find(r=>r.number===Number(number));if(!r)return;const source=document.querySelector('#reader-source');source.hidden=!r.source;if(r.source)source.href=r.source;document.querySelector('#reader-title').textContent=r.title;const meta=document.querySelector('#reader-meta');meta.replaceChildren();meta.append(make('span','meta-num','ADR '+String(r.number).padStart(2,'0')),make('span','meta-status '+r.lifecycle,statusName[r.lifecycle]||r.lifecycle));document.querySelector('#reader-tags').textContent=(r.tags||[]).map(t=>'#'+t).join('  ');const body=document.querySelector('#reader-body');body.replaceChildren();let buffer=[],list=null,listType=null,code=null;const flush=()=>{if(buffer.length){const p=document.createElement('p');p.textContent=buffer.join('\n');body.append(p);buffer=[];}};
+for(const line of readerLines(r.body.replace(/^\s*# ADR:.*\n/,''))){if(line.startsWith(String.fromCharCode(96,96,96))){flush();list=null;listType=null;if(code){body.append(code);code=null;}else code=document.createElement('pre');continue;}if(code){code.textContent+=line+'\n';continue;}const heading=line.match(/^(#{2,6}) /);const numbered=line.match(/^\s*(\d+)\. /);if(heading){flush();list=null;listType=null;const h=document.createElement(heading[1].length===2?'h3':'h4');h.textContent=line.slice(heading[0].length);body.append(h);}else if(/^\s*[-+*] /.test(line)||numbered){flush();const tag=numbered?'ol':'ul';if(!list||listType!==tag){list=document.createElement(tag);listType=tag;if(numbered)list.start=Number(numbered[1]);body.append(list);}const li=document.createElement('li');li.textContent=line.replace(numbered?/^\s*\d+\. /:/^\s*[-+*] /,'');li.style.marginInlineStart=(line.match(/^ */)[0].length*5)+'px';list.append(li);}else if(!line.trim()){flush();list=null;listType=null;}else if(list&&list.lastElementChild){list.lastElementChild.textContent+=' '+line.trim();}else{list=null;listType=null;buffer.push(line);}}flush();if(code)body.append(code);nodes.forEach(n=>n.classList.toggle('selected',n.dataset.adr===String(r.number)));showContext(r);const wasOpen=reader.open;const left=fromArchive&&archiveDesktop.matches;if(wasOpen&&reader.classList.contains('archive-left')!==left){archiveMotion?.cancel();reader.close();reader.classList.remove('archive-open','from-archive','closing');}reader.classList.toggle('archive-left',left);reader.dataset.origin=fromArchive?'archive':'other';if(!reader.open){if(left)reader.show();else reader.showModal();}reader.scrollTop=0;if(wasOpen){const bodyEl=document.querySelector('#reader-body');bodyEl.classList.remove('swap');void bodyEl.offsetWidth;bodyEl.classList.add('swap');}}
 
 
 world.addEventListener('click', event => {
@@ -1765,8 +1733,124 @@ world.addEventListener('click', event => {
   if (!n) return;
   event.preventDefault(); const r = byNumber.get(n.dataset.adr); read(r.number);
 });
-const closeReader=()=>{if(!reader.open||reader.classList.contains('closing'))return;reader.classList.add('closing');setTimeout(()=>{reader.classList.remove('closing');reader.close();},170);};
-const step=d=>{const i=records.findIndex(r=>r.number===readerNumber);const t=records[i+d];if(t)read(t.number);};
+const closeReader=()=>{if(!reader.open||reader.classList.contains('closing'))return;archiveMotion?.cancel();reader.classList.remove('from-archive');reader.classList.add('closing');setTimeout(()=>{reader.classList.remove('closing');reader.close();},170);};
+// The hero is another entrance to the shared reader; only this local deck is consumed.
+(() => {
+  const archive = document.querySelector('.hero-archive');
+  if (!archive) return;
+  const stack = archive.querySelector('.archive-stack');
+  const queue = [...records].sort((a, b) => b.number - a.number);
+  let remaining = [...queue], extracting = false;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const cardFor = r => {
+    const card = make('button', 'archive-card');
+    card.type = 'button';
+    card.dataset.record = r.number;
+    card.setAttribute('aria-label', 'ADR ' + r.number + ': ' + r.title);
+    const top = make('span', 'archive-card-top');
+    top.append(make('span', 'archive-id', 'ADR ' + String(r.number).padStart(2, '0')),
+      make('span', 'archive-spine', r.title), make('span', 'archive-status', statusName[r.lifecycle]));
+    const excerpt = (readerLines(r.body).join('\n').split(/\n\s*\n/).find(paragraph => paragraph.trim() && !/^\s*(#|`{3})/.test(paragraph)) || '').replace(/\s+/g, ' ').trim();
+    const summary = make('span', 'archive-excerpt');
+    inlineInto(summary, excerpt.slice(0, 180) + (excerpt.length > 180 ? '…' : ''));
+    const bottom = make('span', 'archive-card-bottom');
+    bottom.append(make('time', '', r.created || r.date || ''), make('span', '', '取出阅读 ↗'));
+    card.append(top, make('span', 'archive-title', r.title), summary, bottom);
+    return card;
+  };
+  function replenish() {
+    while (stack.children.length < Math.min(3, remaining.length)) {
+      stack.append(cardFor(remaining[stack.children.length]));
+    }
+    [...stack.children].forEach((card, depth) => {
+      card.dataset.depth = depth;
+      if (depth) card.setAttribute('aria-description', '请先取出顶层档案');
+      else card.removeAttribute('aria-description');
+
+    });
+    if (!stack.children.length) {
+      const empty = make('div', 'archive-empty');
+      empty.tabIndex = 0;
+      empty.append(make('span', '', queue.length ? '✓' : '—'),
+        make('span', '', queue.length ? '已翻阅全部档案' : '暂无记录'));
+      stack.append(empty);
+    }
+  }
+  stack.addEventListener('click', async event => {
+    const card = event.target.closest('.archive-card');
+    if (!card || extracting || (reader.open && !reader.classList.contains('archive-left'))) return;
+    if (card.dataset.depth !== '0') {
+      if (!reducedMotion.matches) {
+        card.classList.remove('is-tapped');
+        void card.offsetWidth;
+        card.classList.add('is-tapped');
+      }
+      return;
+    }
+    const animate = !reducedMotion.matches && typeof reader.animate === 'function';
+    let origin = card.getBoundingClientRect();
+    if (animate) {
+      extracting = true;
+      stack.classList.add('is-opening');
+      card.classList.add('is-pulling');
+      const depth = Number(card.dataset.depth);
+      const lift = card.animate([
+        { transform: getComputedStyle(card).transform },
+        { transform: `translate(${Math.min(origin.width * (innerWidth <= 760 ? .08 : .25), 96)}px,${[52, 26, 0][depth] - 36}px) rotate(0deg) scale(1.03)` },
+      ], { duration: 160, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' });
+      archiveMotion = lift;
+      let completed = false;
+      try { await lift.finished; completed = true; } catch { /* Escape cancels without taking the file. */ }
+      origin = card.getBoundingClientRect();
+      extracting = false;
+      stack.classList.remove('is-opening');
+      if (!completed || (reader.open && !reader.classList.contains('archive-left'))) {
+        lift.cancel();
+        card.classList.remove('is-pulling');
+        if (archiveMotion === lift) archiveMotion = null;
+        return;
+      }
+      // Keep the extracted pose until the reader takes over in this same task.
+    }
+    if (animate) reader.classList.add('archive-open', 'from-archive');
+    read(card.dataset.record,true);
+    remaining.splice(remaining.findIndex(r => r.number === Number(card.dataset.record)), 1);
+    card.remove();
+    archiveMotion?.cancel();
+    replenish();
+    if (!animate) return;
+    const destination = reader.getBoundingClientRect();
+    const motion = reader.animate([
+      { transform: `translate(${origin.left - destination.left}px,${origin.top - destination.top}px) scale(${origin.width / destination.width},${origin.height / destination.height})`, borderRadius: '5px' },
+      { transform: 'none', borderRadius: '0px' },
+    ], { duration: 300, easing: 'cubic-bezier(.2,.75,.2,1)' });
+    archiveMotion = motion;
+    motion.finished.catch(() => {}).finally(() => {
+      if (archiveMotion === motion) {
+        archiveMotion = null;
+        reader.classList.remove('from-archive');
+      }
+    });
+  });
+  reader.addEventListener('close', () => {
+    if (reader.open) return;
+    reader.classList.remove('archive-open', 'from-archive', 'archive-left');
+    if (reader.dataset.origin !== 'archive') return;
+    (stack.querySelector('.archive-card') || stack.querySelector('.archive-empty')).focus({ preventScroll: true });
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    if (extracting) { event.preventDefault(); archiveMotion?.cancel(); }
+    else if (reader.open && reader.classList.contains('archive-left')) { event.preventDefault(); closeReader(); }
+  });
+  archiveDesktop.addEventListener('change', () => {
+    if (reader.open && reader.dataset.origin === 'archive') read(readerNumber,true);
+  });
+  reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) archiveMotion?.cancel(); });
+  replenish();
+})();
+
+const step=d=>{const i=records.findIndex(r=>r.number===readerNumber);const t=records[i+d];if(t)read(t.number,reader.dataset.origin==='archive');};
 document.querySelector('#reader-prev').addEventListener('click',()=>step(-1));
 document.querySelector('#reader-next').addEventListener('click',()=>step(1));
 reader.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')step(-1);else if(e.key==='ArrowRight')step(1);});
@@ -1887,50 +1971,10 @@ const initialView = () => { if (nodes.length === 0) return; canvas.zoom((innerWi
   new ResizeObserver(schedule).observe(document.body);
   sync();
 })();</script><script>(() => {const btn = document.getElementById('to-top');if (!btn) return;const footer = document.querySelector('.page-footer');const updateFab = () => { btn.classList.toggle('is-visible', scrollY > innerHeight * 0.6 && (!footer || footer.getBoundingClientRect().top > innerHeight - 20)); };addEventListener('scroll', updateFab, { passive: true });addEventListener('resize', updateFab);updateFab();btn.addEventListener('click', () => scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));})();</script><script>(() => {
-// Sections rise once, on first view. Server output stays visible whenever
-// motion is reduced or IntersectionObserver is missing: only this script
-// hides anything, so no-JS and reduced-motion readers never see a blank page.
+// Only hero statistics count up. Everything below the hero is visible and
+// static on arrival, with no scroll-triggered entrance or chart/card staging.
 if (matchMedia('(prefers-reduced-motion: reduce)').matches || typeof IntersectionObserver !== 'function') return;
-const targets = [...document.querySelectorAll('.atlas-section, .map-intro, .cards-heading, .page-footer')];
-if (!targets.length) return;
-document.documentElement.classList.add('reveal-on');
-const io = new IntersectionObserver(entries => {
-  for (const entry of entries) if (entry.isIntersecting) { entry.target.classList.add('is-in'); io.unobserve(entry.target); }
-}, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
-for (const el of targets) {
-  // Above the fold at load: mark settled in the same tick, so nothing the
-  // reader already sees fades in from under them. .load-in lets the heading
-  // animations wait out the hero entrance before rising.
-  if (el.getBoundingClientRect().top < innerHeight) { el.classList.add('reveal', 'is-in', 'load-in'); continue; }
-  el.classList.add('reveal');
-  io.observe(el);
-}
-// The density chart grows on first view: .play is added once, when the chart
-// itself (not its section top) enters the viewport.
-const chart = document.getElementById('density-chart');
-if (chart) {
-  if (chart.getBoundingClientRect().top < innerHeight) chart.classList.add('play');
-  else {
-    const chartIo = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) { chart.classList.add('play'); chartIo.disconnect(); }
-    }, { threshold: 0.3 });
-    chartIo.observe(chart);
-  }
-}
-// The directory arms its cards once; a search re-render disarms in
-// renderCards and this observer never fires again.
-const cards = document.getElementById('decision-cards');
-if (cards && cards.getBoundingClientRect().top < innerHeight) cards.classList.add('armed');
-else if (cards) {
-  const cardsIo = new IntersectionObserver(entries => {
-    if (entries.some(entry => entry.isIntersecting)) { cards.classList.add('armed'); cardsIo.disconnect(); }
-  }, { threshold: 0 });
-  cardsIo.observe(cards);
-}
-// The stats row counts up on first view, the same discipline as the project
-// homepage: the server output is the final value, and this only replays it
-// from zero. Non-integer stat text is left exactly as rendered.
-const stats = document.querySelectorAll('.stats-inner strong');
+const stats = document.querySelectorAll('.page-hero .stats-inner strong');
 if (stats.length) {
   const countUp = el => {
     const text = el.textContent.trim();
@@ -1947,7 +1991,7 @@ if (stats.length) {
     };
     requestAnimationFrame(frame);
   };
-  const band = document.querySelector('.stats-band');
+  const band = document.querySelector('.page-hero .stats-band');
   if (band && band.getBoundingClientRect().top < innerHeight) stats.forEach(countUp);
   else if (band) {
     const statsIo = new IntersectionObserver(entries => {

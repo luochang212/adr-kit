@@ -122,7 +122,7 @@ describe('reader typography', () => {
     runInNewContext(`${make}\n${inline}\n${read}\nread(1);\ndocument.querySelectorAll().forEach(inlineText);`, {
       document, records, statusName: { implemented: '生效' }, nodes: [],
       showContext() {},
-      reader: { open: false, showModal() {}, scrollTop: 0, classList: { add() {}, remove() {} } },
+      reader: { open: false, showModal() {}, scrollTop: 0, dataset: {}, classList: { add() {}, remove() {}, toggle() {} } },
     });
     return lookup;
   }
@@ -243,7 +243,7 @@ describe('reader typography', () => {
     '````html\n```\n<!-- code -->\n````\n<!-- hidden -->',
   ])('keeps comment visibility aligned with the core scanner: %s', (body) => {
     const start = example.indexOf('function readerLines(');
-    const helper = example.slice(start, example.indexOf('function read(number){', start));
+    const helper = example.slice(start, example.indexOf('function read(', start));
     const visible = runInNewContext(`${helper}\nreaderLines(body);`, { body }) as string[];
     expect(visible.filter(line => line.trim())).toEqual(
       [...markdownLines(body)].map(line => line.visible).filter(line => line.trim()),

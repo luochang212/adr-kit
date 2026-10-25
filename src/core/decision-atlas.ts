@@ -229,17 +229,20 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     + `<div><strong>${implemented.length}</strong><span>${en ? 'Active decisions' : '生效决策'}</span></div>`
     + `<div><strong>${archived.length}</strong><span>${en ? 'Archived history' : '归档历史'}</span></div>`
     + `<div><strong>${graph.referenceEdges.length}</strong><span>${en ? 'References' : '引用关系'}</span></div>`
-    + `<div><strong>${graph.nodes.filter((node) => node.hasDeliberation).length}</strong><span>${en ? 'Deliberation trees' : '含 deliberation tree'}</span></div>`
+    + `<div><strong>${graph.nodes.filter((node) => node.hasDeliberation).length}</strong><span>${en ? 'Deliberation trees' : 'deliberation tree'}</span></div>`
     + `</div></section>`;
 
   const hero = theme === 'signal'
-    ? `<section id="top" class="page-hero"><div class="hero-content">`
-    + `<p class="eyebrow">DECISION ATLAS / LIVE ARCHIVE</p>`
+    ? `<section id="top" class="page-hero"><div class="hero-content"><div class="hero-heading">`
+    + `<p class="eyebrow"><span aria-hidden="true"></span> DECISION ATLAS / ${en ? 'PROJECT MEMORY' : '项目记忆'}</p>`
     + `<h1>${escapeHtml(projectName)}</h1>`
+    + `<p class="hero-tagline">${en ? '<span class="hero-line">Every choice.</span><span class="hero-line">A traceable story.</span>' : '<span class="hero-line">每一次选择，</span><span class="hero-line">都有迹可循。</span>'}</p>`
     + (en
-      ? `<p class="hero-description">Generated from ${implemented.length} active decisions and ${archived.length} archived records in adr/.<br>Records are re-read at every site build; no manual snapshot.</p>`
-      : `<p class="hero-description">从本仓库 adr/ 的 ${implemented.length} 条生效决策与 ${archived.length} 条归档历史生成。<br>每次站点构建重新读取记录，不保留手工快照。</p>`)
-    + `</div></section>`
+      ? `<p class="hero-description">The questions, trade-offs, and turning points behind this project. Follow the decisions to see how it became what it is.</p>`
+      : `<p class="hero-description">留下问题、判断与取舍，也留下改变方向的理由。<br>沿着决策的脉络，看这个项目如何成为今天的样子。</p>`)
+    + `</div><div class="hero-archive" aria-label="${en ? 'Decision files' : '决策档案'}">`
+    + `<div class="archive-stack"></div><noscript><a href="#cards-view">${en ? 'Browse records' : '浏览记录'}</a></noscript>`
+    + `</div></div>${stats}</section>`
     : `<section id="top" class="page-hero"><div class="hero-content"><div class="hero-heading">`
     + `<p class="eyebrow">DECISION ATLAS / LIVE ARCHIVE</p>`
     + `<h1>${escapeHtml(projectName)}</h1></div><div class="hero-guide">`
@@ -268,7 +271,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     (_, name: string) => `<style data-atlas-style="${name}"${name === theme ? '' : ' media="not all"'}>`);
   page = replaceHtmlSlot(page, 'title', `<title>${escapeHtml(projectName)} · ${en ? 'Decision atlas' : '决策档案'}</title>`);
   page = replaceHtmlSlot(page, 'hero', hero);
-  page = replaceHtmlSlot(page, 'stats', stats);
+  page = replaceHtmlSlot(page, 'stats', theme === 'signal' ? '' : stats);
   page = replaceHtmlSlot(page, 'density-note', `<p class="section-note">${escapeHtml(densityNote(records, language))}</p>`);
   page = replaceHtmlSlot(
     page,
