@@ -198,9 +198,11 @@ const transcriptHtml = lines
       var i = 0;
       function nextLine() {
         if (i >= data.length) {
-          // Show over; the typed content now matches the SSR layout, so the
-          // box can follow its own content again (stays current on resize).
+          // Show over: drop the caret so the box settles into exactly the
+          // SSR transcript — typed content matches it, and the box can
+          // follow its own content again (stays current on resize).
           pre.style.height = '';
+          caret.remove();
           term.classList.remove('playing');
           return;
         }
