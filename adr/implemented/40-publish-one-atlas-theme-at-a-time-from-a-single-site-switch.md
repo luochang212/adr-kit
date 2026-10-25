@@ -61,7 +61,7 @@ holds the published directory to the selected theme and its two files.
 - `test/atlas-theme.test.ts` pins the site selector to the two named themes and
   rejects `random`, `auto` and the empty string.
 - `test/browser/atlas.spec.mjs` renders both themes from the real records as
-  fixtures and keeps all 54 behavioral checks across both themes and languages,
+  fixtures and keeps the behavioral checks across both themes and languages,
   plus a check that the published directory holds only `index.html` and
   `en.html` and carries the selected `data-atlas-theme`.
 - `docs/atlas-themes.md` and `AGENTS.md` name the switch where the build reads

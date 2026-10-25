@@ -49,7 +49,7 @@ scripts to add or repair a theme.
 
 Presentation differences are intentional: Folio has editorial typography and
 hero actions. Both themes keep the source link in the reader header — Folio as
-a bordered chip, Signal as its original quiet text link. Colors, card
+a quiet padded control, Signal as its original text link. Colors, card
 treatment, responsive breakpoints and visual density may
 differ. These differences do not authorize dropping a mechanism.
 

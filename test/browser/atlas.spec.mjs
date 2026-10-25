@@ -178,12 +178,6 @@ for (const language of ['zh', 'en']) {
       // record identity; only its styling differs (ADR 39 presentation split).
       await expect(page.locator('.reader-head #reader-meta + #reader-source')).toBeVisible();
       await expect(page.locator('.reader-byline #reader-source')).toHaveCount(0);
-      if (theme === 'folio') {
-        // Folio renders the header link as a bordered chip; Signal keeps its
-        // original quiet text link in the same slot.
-        expect(parseFloat(await page.locator('#reader-source')
-          .evaluate(el => getComputedStyle(el).borderTopWidth))).toBeGreaterThan(0);
-      }
       await expect(page.locator('#reader-body h3').first()).toBeVisible();
       const type = await page.locator('#reader-body').evaluate(el => ({
         size: parseFloat(getComputedStyle(el).fontSize),

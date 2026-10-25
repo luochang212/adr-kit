@@ -11,8 +11,8 @@ deliberation trees reject `--theme`.
 
 Refresh Folio’s responsive three-column directory and improve reader
 provenance/reference layouts in both themes. Both themes now keep the reader's
-source link in the sticky header: Folio renders it as a bordered chip and
-Signal keeps its original quiet text link. Preserve Signal’s original
+source link in the sticky header: Folio styles it as a quiet padded control and
+Signal keeps its original text link. Preserve Signal’s original
 page styling and opening without hero actions. Fix range hover masking and interactive SVG semantics,
 and add browser accessibility and navigation regression checks. Lock the page's
 own scrollbar while the reader modal is open, so it no longer renders beside
