@@ -119,3 +119,8 @@ at generation; shuffling the files does not change the theme.
 previews, with the route inventory owned by `SITE_PAGES`. This replaces ADR 40's
 single-theme publication choice. The CLI's selection policy, shared template and
 offline artifacts are unchanged.
+
+**Amended by ADR 42:** the random default is no longer an even coin — it rolls
+Folio 30% and Signal 70% once at generation, promoting Signal as the flagship
+theme. The two named themes, generation-time selection, fixed identity and the
+shared mechanisms above are unchanged; explicit themes bypass the weights.

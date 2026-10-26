@@ -94,7 +94,7 @@ One offline HTML file brings together the decision map, numbered timeline, refer
 | **[Folio](https://luochang212.github.io/adr-kit/decisions/folio.en.html)** | [![Folio — warm paper, editorial typography and decision statistics](./assets/decision-atlas-folio.png)](./assets/decision-atlas-folio.png) |
 | **[Signal](https://luochang212.github.io/adr-kit/decisions/signal.en.html)** | [![Signal — dark archive with an interactive stack of decision files](./assets/decision-atlas-signal.png)](./assets/decision-atlas-signal.png) |
 
-Without a specified theme, generation chooses Folio or Signal with equal probability, once. An explicit theme request takes precedence; updates preserve an existing atlas's theme unless a change or fresh random choice is requested. Reloading the HTML keeps its theme.
+Without a specified theme, generation rolls Folio 30% / Signal 70% once — Signal is the flagship theme. An explicit theme request takes precedence; updates preserve an existing atlas's theme unless a change or fresh random choice is requested. Reloading the HTML keeps its theme.
 
 ```bash
 adrkit atlas --out decisions.html

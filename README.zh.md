@@ -92,7 +92,7 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 | **[Folio](https://luochang212.github.io/adr-kit/decisions/folio.html)** | [![Folio：暖纸色、编辑式排版与决策统计](./assets/decision-atlas-folio.zh.png)](./assets/decision-atlas-folio.zh.png) |
 | **[Signal](https://luochang212.github.io/adr-kit/decisions/signal.html)** | [![Signal：深色档案桌面与可交互的决策卡片堆叠](./assets/decision-atlas-signal.zh.png)](./assets/decision-atlas-signal.zh.png) |
 
-未指定主题时，在生成时等概率随机选择 Folio 或 Signal；明确指定时遵循选择；更新已有档案时保留原主题，除非要求更换或重新随机。主题固定在 HTML 中，刷新页面不会改变。
+未指定主题时，在生成时按 Folio 30%、Signal 70% 加权随机选择一次（Signal 为主推主题）；明确指定时遵循选择；更新已有档案时保留原主题，除非要求更换或重新随机。主题固定在 HTML 中，刷新页面不会改变。
 
 ```bash
 adrkit atlas --lang zh --out decisions.html

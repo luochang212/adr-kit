@@ -12,15 +12,21 @@ describe('generation-time atlas theme selection', () => {
     expect(randomInt).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, 'random'])('resolves both outcomes of %s exactly once', selection => {
+  it.each([undefined, 'random'])('resolves %s from the weighted 30/70 roll exactly once', selection => {
     vi.mocked(randomInt).mockClear();
     vi.mocked(randomInt).mockReturnValueOnce(0);
     expect(selectAtlasTheme(selection)).toBe('folio');
-    expect(randomInt).toHaveBeenCalledExactlyOnceWith(2);
+    expect(randomInt).toHaveBeenCalledExactlyOnceWith(10);
     vi.mocked(randomInt).mockClear();
-    vi.mocked(randomInt).mockReturnValueOnce(1);
+    vi.mocked(randomInt).mockReturnValueOnce(2);
+    expect(selectAtlasTheme(selection)).toBe('folio');
+    vi.mocked(randomInt).mockClear();
+    vi.mocked(randomInt).mockReturnValueOnce(3);
     expect(selectAtlasTheme(selection)).toBe('signal');
-    expect(randomInt).toHaveBeenCalledExactlyOnceWith(2);
+    vi.mocked(randomInt).mockClear();
+    vi.mocked(randomInt).mockReturnValueOnce(9);
+    expect(selectAtlasTheme(selection)).toBe('signal');
+    expect(randomInt).toHaveBeenCalledExactlyOnceWith(10);
   });
 
   it.each(['auto', 'light', 'dark', '', 'Folio'])('rejects unsupported selection %j', selection => {

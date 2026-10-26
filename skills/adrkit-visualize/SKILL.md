@@ -31,7 +31,7 @@ The agent owns selection; do not make the user choose a theme as a setup step.
    the reader's identity, or the operating system; do not ask the user merely
    to break the tie.
 
-Random selection chooses either theme with equal probability once at generation.
+Random selection favors Signal as the flagship theme: Folio 30%, Signal 70%, rolled once at generation.
 The resulting file keeps that theme. Do not add system appearance detection,
 a page switch, or a runtime reroll. Theme selection is unavailable for
 standalone maps and record trees.

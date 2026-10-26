@@ -16,6 +16,22 @@ test.beforeAll(async () => {
   for (const theme of SITE_THEMES) await renderAtlasPages({ theme, outDir: join(fixtureRoot, theme) });
 });
 
+// The hero desk shows the record's Decision extract; mirror the template's
+// derivation so the assertion follows the record set instead of pinning one
+// record's text (which rots with every new record).
+function decisionExcerpt(number, lifecycle) {
+  const dir = join(process.cwd(), 'adr', lifecycle);
+  const file = readdirSync(dir).find(entry => entry.startsWith(`${number}-`));
+  const body = readFileSync(join(dir, file), 'utf8').replace(/^---\n[\s\S]*?\n---\n/, '');
+  const decision = body.split(/^## Decision\s*$/m)[1]?.split(/^## /m)[0] ?? body;
+  const paragraph = decision.split(/\n\s*\n/).find(candidate => candidate.trim() && !/^\s*(#|`{3})/.test(candidate)) ?? '';
+  // Inline markers (code spans, bold, emphasis) become elements on the page,
+  // so the plain text drops them.
+  return paragraph.replace(/^\s*[-+*]\s+/, '')
+    .replace(/`([^`]+)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1')
+    .replace(/\s+/g, ' ').trim();
+}
+
 test('the published atlas serves both themes and languages from the same records', async () => {
   const published = join(process.cwd(), 'site/public/decisions');
   test.skip(!existsSync(published), 'run "npm run test:browser" to build the published pages first');
@@ -342,10 +358,12 @@ test(`signal / ${language}: hero retains hierarchy and fits desktop and mobile`,
       })).toBe(true);
     }
 
-    const firstNumber = await page.locator('.archive-card').first().getAttribute('data-record');
+    const firstCard = page.locator('.archive-card').first();
+    const firstNumber = await firstCard.getAttribute('data-record');
     await expect(page.locator('.archive-title').first()).not.toContainText(new RegExp('^' + firstNumber + '\\s'));
     await expect(page.locator('.archive-summary-label').first()).toHaveText(language === 'en' ? 'DECISION EXTRACT' : '决策摘录');
-    await expect(page.locator('.archive-excerpt').first()).toContainText('Publish Folio and Signal together');
+    const excerpt = decisionExcerpt(firstNumber, await firstCard.getAttribute('data-lifecycle'));
+    await expect(page.locator('.archive-excerpt').first()).toContainText(excerpt.slice(0, 60));
     await expect(page.locator('.page-hero .stats-band')).toHaveCount(1);
     await expect(page.locator('.hero-baseline')).toHaveCount(0);
     if (width === 1440) {
