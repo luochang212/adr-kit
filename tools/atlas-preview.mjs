@@ -39,8 +39,8 @@ export function renderThemePreview({ language, pages, screenshots, favicon, comm
   .shell { inline-size:min(100% - 3rem,76rem); margin-inline:auto; }
   header { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; padding-block:1.5rem; border-block-end:1px solid #302e3526; }
   .brand { display:flex; align-items:center; gap:.75rem; font-size:.85rem; font-weight:650; letter-spacing:.1em; }
-  .brand img { inline-size:2rem; block-size:2rem; }
-  .language { padding:.7rem 0; font-size:.85rem; }
+  .language { padding:.5rem 1.15rem; font-size:.8rem; font-weight:600; letter-spacing:.06em; text-decoration:none; border:1px solid #302e354d; border-radius:999px; transition:border-color .15s ease, color .15s ease, background .15s ease; }
+  .language:hover { border-color:#7662a0; color:#7662a0; background:#7662a00d; }
   .intro { padding-block:3.5rem 2.5rem; }
   .eyebrow { margin:0 0 1rem; color:#6a5d78; font-size:.7rem; letter-spacing:.18em; }
   h1 { max-inline-size:20ch; margin:0; font-family:Georgia,"Songti SC",serif; font-size:clamp(2rem,1.4rem + 2.5vw,3.6rem); font-weight:400; line-height:1.22; text-wrap:balance; }
@@ -61,7 +61,7 @@ export function renderThemePreview({ language, pages, screenshots, favicon, comm
   @media (max-width:36rem) { .intro { padding-block:2.5rem 2rem; } .shell { inline-size:calc(100% - 2rem); } .card-copy { padding:1.25rem; } }
 </style></head>
 <body><div class="shell">
-<header><div class="brand"><img src="${favicon}" alt="" width="32" height="32">ADR KIT <span aria-hidden="true">/</span> ${en ? 'DECISION ATLAS' : '决策档案'}</div><a class="language" href="${en ? 'index.html' : 'en.html'}" lang="${en ? 'zh-CN' : 'en'}" hreflang="${en ? 'zh-CN' : 'en'}">${en ? '中文' : 'English'}</a></header>
+<header><div class="brand">ADR KIT <span aria-hidden="true">/</span> ${en ? 'DECISION ATLAS' : '决策档案'}</div><a class="language" href="${en ? 'index.html' : 'en.html'}" lang="${en ? 'zh-CN' : 'en'}" hreflang="${en ? 'zh-CN' : 'en'}">${en ? '中文' : 'English'}</a></header>
 <main><div class="intro"><p class="eyebrow">THEME PREVIEWS / 01—02</p><h1>${title}</h1><p>${en ? 'The same decisions, references, and original records. Choose a reading experience and explore ADR Kit’s history.' : '相同的决策、引用与原文，不同的阅读节奏。选一种喜欢的方式，走进 ADR Kit 的项目历史。'}</p></div>
 <section class="themes" aria-label="${en ? 'Available themes' : '可选主题'}">${cards}</section></main>
 <footer><span>${en ? 'Both themes include the full decision atlas.' : '两种主题均包含完整的决策档案。'}</span><span>ADR Kit · <a href="${repositoryUrl}/tree/${commit}">${commit}</a></span></footer>
