@@ -83,7 +83,6 @@ const boxes = groups.map((g, gi) => {
 // formal supersede edge (1 superseded by 11): long dashes, clearly distinct
 // from the reference edges' short 4/4 dashes; same color and weight
 const supPath = `M ${pos[1].x + NW} ${pos[1].cy} C ${pos[1].x + NW + COLGAP / 2} ${pos[1].cy}, ${pos[11].x - COLGAP / 2} ${pos[11].cy}, ${pos[11].x} ${pos[11].cy}`;
-const supLabelX = 302, supLabelY = 130;
 
 const REFS: Array<[number, number]> = [
   [1, 4], [5, 4], [6, 3], [6, 5], [7, 6], [8, 6], [8, 9], [9, 6], [9, 8],
@@ -162,8 +161,7 @@ const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
           ))}
 
           {/* formal supersede: long dashes — clearly distinct from the refs' short dashes */}
-          <path d={supPath} class="graph__link" data-a="1" data-b="11" fill="none" stroke="#ffffff5e" stroke-width="1.4" stroke-dasharray="11 7" marker-end="url(#g-arrow)"></path>
-          <text x={supLabelX} y={supLabelY} text-anchor="middle" class="graph__suplabel">superseded by</text>
+          <path d={supPath} class="graph__link" data-a="1" data-b="11" fill="none" stroke="#ffffff5e" stroke-width="1.4" stroke-dasharray="11 7" marker-end="url(#g-arrow)"><title>{t('graph.supersede')}</title></path>
 
           {Object.entries(pos).map(([n, p]) => (
             <g class="graph__nodebox" data-id={n}>
@@ -228,11 +226,6 @@ const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
   .graph__nodebox.is-dim { opacity: 0.2; }
   @media (prefers-reduced-motion: reduce) {
     .graph__link, .graph__nodebox { transition: none; }
-  }
-  .graph__suplabel {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    fill: var(--fg-30);
   }
   .graph__caption {
     margin: 10px 4px 0;
