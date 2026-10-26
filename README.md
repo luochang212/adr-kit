@@ -85,21 +85,28 @@ reading still apply. See the [retrieval contract](docs/cli.md#scope-retrieval-fo
 
 ## Decision atlas
 
-The full atlas offers two independent themes: **Folio** uses warm paper and editorial typography; **Signal** uses dark surfaces, cyan accents and a compact layout. An AI can choose `--theme folio` or `--theme signal`; omitting `--theme` or passing `--theme random` chooses either with equal probability once at generation. The HTML keeps that theme across reloads, with no system appearance detection or theme switch. `--theme` applies only to the full atlas, not `--map` or `--record`.
+One offline HTML file brings together the decision map, numbered timeline, reference and supersession chains, and a searchable directory of every current and archived record, with full bodies. Both themes share these capabilities; no server or CDN is needed.
 
-For a new atlas without a clear visual preference, the agent should prefer `--theme random` and proceed without asking the user to choose. Honor explicit theme or visual requests; when updating an existing file, preserve its selected theme unless the user requests a change or a fresh random choice. Do not infer style from the operating system or project category. See the [shared theme contract](docs/atlas-themes.md) for the mechanisms both themes retain.
+[Explore ADR Kit's live atlas →](https://luochang212.github.io/adr-kit/decisions/en.html) It is rebuilt from this repository's `adr/` and pinned to the build commit. Both themes have live previews: click a theme name below to try it, or its screenshot to view the full image.
 
-One page can carry the whole archive: a decision map grouped by creation date, a numbered timeline, the reference and supersession chains, and every current and archived record in a local-search directory. The atlas is a single self-contained HTML file that needs no server and no CDN, so it works offline.
+| Theme | Preview |
+| :--- | :--- |
+| **[Folio](https://luochang212.github.io/adr-kit/decisions/en.html)** | [![Folio — warm paper, editorial typography and decision statistics](./assets/decision-atlas-folio.png)](./assets/decision-atlas-folio.png) |
+| **[Signal](https://luochang212.github.io/adr-kit/decisions/signal.en.html)** | [![Signal — dark archive with an interactive stack of decision files](./assets/decision-atlas-signal.png)](./assets/decision-atlas-signal.png) |
 
-[Open ADR Kit's own decision atlas](https://luochang212.github.io/adr-kit/decisions/en.html). It is regenerated from this repository's `adr/` on every site build and pinned to the build commit.
+Without a specified theme, generation chooses Folio or Signal with equal probability, once. An explicit theme request takes precedence; updates preserve an existing atlas's theme unless a change or fresh random choice is requested. Reloading the HTML keeps its theme.
 
-[![ADR Kit decision atlas](./assets/decision-atlas.png)](https://luochang212.github.io/adr-kit/decisions/en.html)
+```bash
+adrkit atlas --out decisions.html
+adrkit atlas --theme folio --out folio.html
+adrkit atlas --theme signal --out signal.html
+```
 
-To generate one for your repository, ask your agent:
+The interface defaults to English; add `--lang zh` for Chinese. Or ask your agent:
 
 > Use the `adrkit-visualize` skill to build a browsable decision atlas from `adr/implemented/` and `adr/archived/`. Publish archived bodies in full, and pin the page to the current commit.
 
-The atlas is the default visualization: `adrkit atlas --out decisions.html`. Its chrome is English by default; pass `--lang zh` for Chinese. The lighter routes stay available: `adrkit atlas --map --format html` for the standalone map page, and `adrkit atlas --record <N>` for one decision's deliberation tree.
+For a smaller view, use `adrkit atlas --map --format html` for the standalone decision map, or `adrkit atlas --record <N>` for one decision's deliberation tree. Themes apply only to the full atlas. See the [theme selection and shared behavior contract](docs/atlas-themes.md) for details.
 
 ## Commands
 
@@ -207,4 +214,4 @@ npm run build
 
 ## License
 
-MIT.
+MIT

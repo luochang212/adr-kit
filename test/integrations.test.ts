@@ -613,6 +613,9 @@ describe('installed atlas theme contract', () => {
         expect(skill).toContain('prefer `--theme random`');
         expect(skill).toContain('When updating an existing atlas, preserve');
         expect(skill).toContain('do not ask the user merely');
+        expect(skill).toContain('shuffled desk of real decision files');
+        expect(skill).toContain('opening the next file takes a separate card click');
+        expect(skill).toContain('a quiet reset only after exhaustion');
         const resource = readFileSync(resourcePath, 'utf8');
         expect(resource).toContain('data-atlas-style="folio"');
         expect(resource).toContain('data-atlas-style="signal"');

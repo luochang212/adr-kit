@@ -19,13 +19,17 @@ Use this order, without adding a theme-selection step for the user:
 `src/core/atlas-theme.ts` makes an equal-probability choice once at generation.
 The resulting HTML stores a concrete identity. Refreshes and OS appearance
 changes do not select again. There is no in-page switch. `--theme` applies only
-to the full atlas; maps and deliberation trees reject it. The website publishes
-one theme at a time: `SITE_THEME` in `tools/build-decision-atlas.mjs`, or
-`ATLAS_THEME` for a single build, writes only `index.html` and `en.html` and
-removes a previous theme's pages, so each language keeps one URL (ADR 40).
-Switching is that one word, not a code change to the renderer; both themes stay
-selectable through the CLI and the browser gate renders each of them from the
-same records into a temporary tree instead of publishing both.
+to the full atlas; maps and deliberation trees reject it.
+
+The website publishes deterministic bilingual previews of both themes from the
+same template, records and build commit. `SITE_PAGES` in
+`tools/build-decision-atlas.mjs` owns the public routes: Folio uses `index.html`
+(Chinese) and `en.html`; Signal uses `signal.html` and `signal.en.html`.
+Astro's prebuild writes all four pages before obsolete generated HTML is removed.
+The homepage links to Folio; both READMEs link each theme in the reader's
+language. These public examples do not change the CLI's random default or add
+an in-page theme switch. The browser gate checks all published routes and also
+uses isolated per-theme fixtures for behavioral checks.
 
 The installed agent instructions are `skills/adrkit-visualize/SKILL.md`, mirrored
 in `src/core/tool-integrations.ts`. Init and update distribute both visual
@@ -45,13 +49,38 @@ scripts to add or repair a theme.
 | Choose complete insight rows by measured height; sparse panels stay short; remeasure on width/font changes | `test/atlas-insights.test.ts` owns the 40rem preference / 50rem ceiling; browser checks also require the shipped corpus to retain at least three replacement rows and comparable panel proportions in both themes |
 | Reader opening, full Markdown bodies, previous/next, keyboard/Escape, sticky controls, source access, and a page-scrollbar lock behind the modal reader (a reserved gutter keeps the toggle from shifting the layout) | Shared reader; reader unit tests and responsive browser tests |
 | Omit an empty reference direction; omit the relation list and its lower border/padding when both directions are empty | Shared context renderer and corresponding theme styles; browser checks include 0/0, 0/12, 12/0, 1/12 and reopening records |
-| Distribute both themes and agent policy via init/update and npm package resources | `test/integrations.test.ts`; package files include the shared resource and compiled selector |
+| Distribute both themes and agent policy via init/update and npm package resources | `test/integrations.test.ts`; `test/browser/atlas-package.spec.mjs` installs a local tarball outside the source tree, checks both integration targets and update, then generates and exercises the bilingual Signal desk with that package's CLI |
+
+Both themes hide the decision map's on-screen legend at viewport widths up to
+760px to preserve canvas space. Map controls, pan/zoom and record opening remain
+available; the desktop legend continues to follow the data present.
+
+All displayed ADR identifiers, chapter numbers and deliberation question
+numbers use natural integers without leading zeros, in both themes and
+languages. For example: `ADR 3`, chapter `2`, and `QUESTION 1`. Date/time
+formats and character escapes keep their required fixed-width components.
 
 Presentation differences are intentional: Folio has editorial typography and
 hero actions. Signal opens with a large project heading, a bilingual statement,
-and a stack of up to three actual records, newest number first; active and
-archived records retain their status. On desktop (1024px and wider), only picks from the hero open a non-modal left
-reader, so the right-hand stack remains clickable for successive picks. Other
+and a stack of up to three actual records, shuffled at the start of each round; active and
+archived records retain their status. The stack uses landscape folder covers on desktop and near-square covers on
+mobile with exposed numbered tabs, the same dark slate paper color on every file;
+there are no edge glows. Asymmetric offsets and opposing rotations expose
+numbered tabs and corners. Shadows vary by height: the bottom sheet stays close
+to the desk, the middle casts a compact shadow, and the top casts a longer,
+softer shadow. Isolated contact shadows, subtle paper grain and creases,
+and slight lighting differences over the shared base color separate
+the same-colored sheets. Desktop tracks share space with the heading instead
+of pushing a narrow stack against the right edge. Covers omit the title's repeated ADR number and show
+an extract from Decision, falling back to record context when it is absent.
+After the last file is taken, a quiet reset button returns every file to the
+desk in a newly shuffled order; an empty repository has no reset.
+Only the front cover reveals its contents; the backing files expose their IDs.
+ On desktop (1024px and wider), only picks from the hero open a modal left
+reader. Its native dismiss backdrop covers the entire background, including the stack,
+with the same dimming and blur as the ordinary reader backdrop. Clicking it
+closes the reader without taking another file; the next file requires a fresh
+click after the reader closes. Other
 entry points keep the modal right reader; mobile archive picks keep that same
 modal presentation. Reader links and previous/next retain their current entry
 mode, and resizing an open archive reader adapts its mode. Only the top file can be taken. Hover highlights every exposed surface without
@@ -66,7 +95,13 @@ two records show one or two cards; exhaustion shows a completion message and an
 empty repository never invents cards. Reduced motion skips the expansion.
 All four statistics sit inside Signal's hero; it has no bottom down-arrow.
 Signal's hero fills at least the viewport below the chapter bar, ending with
-statistics before the next section starts. Short/mobile viewports may scroll
+statistics before the next section starts. Folio's hero also fills that viewport;
+its title, introduction, actions, statistics and decision density flow as one
+group. On desktop the introduction and density regions share spare height,
+keeping the space above and below statistics balanced; the density lower rule
+aligns with the viewport bottom. Only shorter windows tighten vertical spacing;
+type sizes, horizontal proportions and density chart height stay unchanged.
+Mobile stays natural. Short/mobile viewports may scroll
 through taller content. Page entrance and count-up effects stay inside the
 hero; subsequent sections, density bars and directory cards appear normally.
 Both themes keep the source link in the reader header — Folio as

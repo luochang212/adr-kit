@@ -251,7 +251,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
       : `<p class="hero-description">记录每一次选择，也保留被替代的理由。<br>沿着时间与引用，回看 ${implemented.length} 条生效决策和 ${archived.length} 条归档历史中的问题、判断与取舍。</p>`)
     + `<div class="hero-actions"><a class="primary-link" href="#cards-view">${en ? 'Browse records' : '记录目录'} <span aria-hidden="true">↗</span></a>`
     + `<a href="#decision-map">${en ? 'Explore the map' : '演进全景'} <span aria-hidden="true">↗</span></a></div>`
-    + `</div></div></section>`;
+    + `</div></div>${stats}</section>`;
 
   const commitLabel = repositoryUrl.length > 0
     ? `<a class="footer-commit" href="${escapeHtml(`${repositoryUrl}/tree/${commit}`)}" target="_blank" rel="noopener noreferrer">${escapeHtml(commit)}</a>`
@@ -270,8 +270,18 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   page = page.replace(/<style data-atlas-style="(folio|signal)"(?: media="not all")?>/g,
     (_, name: string) => `<style data-atlas-style="${name}"${name === theme ? '' : ' media="not all"'}>`);
   page = replaceHtmlSlot(page, 'title', `<title>${escapeHtml(projectName)} · ${en ? 'Decision atlas' : '决策档案'}</title>`);
-  page = replaceHtmlSlot(page, 'hero', hero);
-  page = replaceHtmlSlot(page, 'stats', theme === 'signal' ? '' : stats);
+  // Folio keeps the original opening's content, statistics and density together.
+  // Move the existing section, including its replaceable note, rather than
+  // maintaining a second density component for the hero.
+  const density = theme === 'folio'
+    ? page.match(/<section class="atlas-section" id="overview-view">[\s\S]*?<\/section>/)?.[0]
+    : undefined;
+  if (density) page = page.replace(density, '');
+  const opening = density
+    ? hero.replace(/<\/section>$/, `<div class="atlas-inner hero-density">${density}</div></section>`)
+    : hero;
+  page = replaceHtmlSlot(page, 'hero', opening);
+  page = replaceHtmlSlot(page, 'stats', '');
   page = replaceHtmlSlot(page, 'density-note', `<p class="section-note">${escapeHtml(densityNote(records, language))}</p>`);
   page = replaceHtmlSlot(
     page,

@@ -104,3 +104,18 @@ pages, while the browser gate renders both themes as fixtures; `signal.html`
 and `signal.en.html` no longer exist. Both named themes, the generation-time
 selection rule, and the shared mechanisms above are unchanged.
 
+
+Signal's presentation has since evolved into a shuffled, replenishing desk of
+real decision files, with extraction/reader motion and an exhaustion-only reset.
+Desktop hero picks use a left reader with a dismissing backdrop; directory/map
+picks and mobile retain the right reader. These are shared-template presentation
+and entry-point behaviors, distributed through the same CLI and init/update
+resource described above. `docs/atlas-themes.md` owns the current interaction
+contract; `test/browser/atlas-package.spec.mjs` verifies the packed CLI and
+installed resources in an external repository. Theme selection remains fixed
+at generation; shuffling the files does not change the theme.
+
+**Amended by ADR 41:** the website again publishes both themes as bilingual
+previews, with the route inventory owned by `SITE_PAGES`. This replaces ADR 40's
+single-theme publication choice. The CLI's selection policy, shared template and
+offline artifacts are unchanged.

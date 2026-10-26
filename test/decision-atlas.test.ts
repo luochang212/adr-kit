@@ -308,6 +308,24 @@ it.each(['folio', 'signal'] as const)('enables only the selected %s document sty
   expect(html.match(/id="reader-source"/g)).toHaveLength(1);
 });
 
+it.each(['en', 'zh'] as const)('preserves Folio’s original content and statistics together in %s', language => {
+  const html = render(live, template, language, 'folio');
+  const hero = html.split('<!-- atlas:hero -->')[1].split('<!-- /atlas:hero -->')[0];
+  expect(hero).toContain('class="hero-actions"');
+  expect(hero).toContain('class="stats-band"');
+  expect(html.match(/class="stats-band"/g)).toHaveLength(1);
+});
+
+it.each(['en', 'zh'] as const)('keeps the existing Folio density section once inside the hero in %s', language => {
+  const page = readFileSync(new URL('../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url), 'utf8');
+  const html = render(live, page, language, 'folio');
+  const hero = html.split('<!-- atlas:hero -->')[1].split('<!-- /atlas:hero -->')[0];
+  expect(hero).toContain('id="overview-view"');
+  expect(hero).toContain('id="density-chart"');
+  expect(hero).toContain(language === 'en' ? 'Decision density' : '决策密度');
+  expect(html.match(/id="density-chart"/g)).toHaveLength(1);
+});
+
 it.each(['en', 'zh'] as const)('keeps Signal’s archive entrance and all statistics inside the hero in %s', language => {
   const html = render(live, template, language, 'signal');
   const hero = html.split('<!-- atlas:hero -->')[1].split('<!-- /atlas:hero -->')[0];

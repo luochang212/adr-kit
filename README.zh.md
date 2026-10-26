@@ -83,21 +83,28 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 ## 决策档案
 
-完整决策档案提供两个独立主题：**Folio（纸页）**采用暖纸色和编辑式排版，**Signal（信号）**采用深色、青色强调和紧凑布局。AI 可以用 `--theme folio` 或 `--theme signal` 直接选择；省略 `--theme` 或指定 `--theme random`，会在生成时等概率随机选择一次。主题固定在生成的 HTML 中，不跟随系统外观，也没有页面切换按钮。`--theme` 仅适用于完整档案，不能与 `--map` 或 `--record` 一起使用。
+一个离线 HTML 文件，汇集决策地图、编号时间线、引用与替代关系链，以及可搜索的全部生效与归档记录，正文完整展示。两种主题共享这些能力，不需要服务器，也不依赖 CDN。
 
-新建档案且用户没有明确视觉偏好时，由 AI 默认使用 `--theme random`，无需让用户再选一次。用户明确指定主题或视觉偏好时遵循该要求；更新已有档案时保留它已选定的主题，除非用户要求更换或重新随机。不根据系统外观或项目类别猜测偏好。 两套主题必须保留的机制见[共同主题规格](docs/atlas-themes.md)。
+[打开 ADR Kit 的在线档案 →](https://luochang212.github.io/adr-kit/decisions/) 它从本仓库的 `adr/` 重新构建，并固定到构建提交。两种主题均提供在线预览：点击下方主题名称直接体验，点击截图查看大图。
 
-一个页面就能承载整个归档：按创建日期分组的决策地图、编号时间线、引用与替代关系链，以及可本地搜索的全部生效与归档记录。档案是单个自包含的 HTML 文件，不需要服务器，也不依赖 CDN，可以离线使用。
+| 主题 | 预览 |
+| :--- | :--- |
+| **[Folio](https://luochang212.github.io/adr-kit/decisions/)** | [![Folio：暖纸色、编辑式排版与决策统计](./assets/decision-atlas-folio.zh.png)](./assets/decision-atlas-folio.zh.png) |
+| **[Signal](https://luochang212.github.io/adr-kit/decisions/signal.html)** | [![Signal：深色档案桌面与可交互的决策卡片堆叠](./assets/decision-atlas-signal.zh.png)](./assets/decision-atlas-signal.zh.png) |
 
-[打开 ADR Kit 自己的决策档案](https://luochang212.github.io/adr-kit/decisions/)。它在每次站点构建时从本仓库的 `adr/` 重新生成，并固定到构建提交。
+未指定主题时，在生成时等概率随机选择 Folio 或 Signal；明确指定时遵循选择；更新已有档案时保留原主题，除非要求更换或重新随机。主题固定在 HTML 中，刷新页面不会改变。
 
-[![ADR Kit 决策档案](./assets/decision-atlas.zh.png)](https://luochang212.github.io/adr-kit/decisions/)
+```bash
+adrkit atlas --lang zh --out decisions.html
+adrkit atlas --theme folio --lang zh --out folio.html
+adrkit atlas --theme signal --lang zh --out signal.html
+```
 
-为自己的仓库生成一份，把这句话交给 agent：
+档案界面默认英文，以上命令用 `--lang zh` 生成中文界面；CLI 输出和错误信息仍为英文。也可以把这句话交给 agent：
 
-> 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的决策档案。归档正文全文展示，并把页面固定到当前提交。
+> 使用 `adrkit-visualize` 技能，从 `adr/implemented/` 与 `adr/archived/` 生成本仓库可浏览的中文决策档案。归档正文全文展示，并把页面固定到当前提交。
 
-档案是默认可视化：`adrkit atlas --out decisions.html`。CLI 的命令输出与错误信息只有英文；档案界面默认英文，中文用 `--lang zh`。轻量入口仍然保留：`adrkit atlas --map --format html` 出独立的地图页，`adrkit atlas --record <N>` 看单条决策的 deliberation tree。
+只需要更小的视图时，`adrkit atlas --map --format html` 生成独立决策地图，`adrkit atlas --record <N>` 查看单条决策的 deliberation tree。主题仅适用于完整档案，详细选择规则和共有能力见[主题规格](docs/atlas-themes.md)。
 
 ## 命令
 
@@ -202,4 +209,4 @@ npm run build
 
 ## 许可证
 
-MIT.
+MIT

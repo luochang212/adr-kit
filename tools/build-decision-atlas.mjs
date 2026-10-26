@@ -13,14 +13,14 @@ const templatePath = join(root, 'skills/adrkit-visualize/examples/decision-atlas
 const defaultOutDir = join(root, 'site/public/decisions');
 const projectName = 'ADR Kit';
 
-/**
- * The site publishes one atlas theme at a time: flip this word, or set
- * ATLAS_THEME for a single build, and /decisions/ serves the other theme.
- * Both themes stay renderable through `adrkit atlas --theme`, and the browser
- * gate renders each one as a fixture instead of publishing both (ADR 40).
- */
-export const SITE_THEME = 'folio';
-export const SITE_THEMES = ['folio', 'signal'];
+/** Public previews are deterministic; CLI theme selection remains independent. */
+export const SITE_PAGES = [
+  { theme: 'folio', language: 'zh', file: 'index.html' },
+  { theme: 'folio', language: 'en', file: 'en.html' },
+  { theme: 'signal', language: 'zh', file: 'signal.html' },
+  { theme: 'signal', language: 'en', file: 'signal.en.html' },
+];
+export const SITE_THEMES = [...new Set(SITE_PAGES.map(page => page.theme))];
 
 function repositoryUrl() {
   const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
@@ -58,7 +58,7 @@ async function loadCore() {
 
 let core;
 /** Reject a name the site cannot serve; `random` belongs to the CLI, not a build. */
-export function selectSiteTheme(value = SITE_THEME) {
+export function selectSiteTheme(value = 'folio') {
   if (!SITE_THEMES.includes(value)) {
     throw new Error(`the site publishes ${SITE_THEMES.join(' or ')}, not "${value}"`);
   }
@@ -66,16 +66,16 @@ export function selectSiteTheme(value = SITE_THEME) {
 }
 
 /**
- * Write the two site pages for one theme. `outDir` lets the browser gate
- * render each theme into a temp directory without touching the published tree.
+ * Write one theme’s bilingual pages. `outDir` also supports isolated previews
+ * and browser fixtures; cleanup belongs to the complete site build.
  */
-export async function renderAtlasPages({ theme = SITE_THEME, outDir = defaultOutDir, languages = ['zh', 'en'] } = {}) {
+export async function renderAtlasPages({ theme = 'folio', outDir = defaultOutDir, languages = ['zh', 'en'] } = {}) {
   const chosen = selectSiteTheme(theme);
   core ??= await loadCore();
   const records = core.listRecords(root, ['implemented', 'archived']);
   const graph = core.buildDecisionGraph(records);
   const template = readFileSync(templatePath, 'utf8');
-  const pages = languages.map((language) => ({ file: language === 'en' ? 'en.html' : 'index.html', language }));
+  const pages = SITE_PAGES.filter(page => page.theme === chosen && languages.includes(page.language));
   mkdirSync(outDir, { recursive: true });
   for (const { file, language } of pages) {
     writeFileSync(join(outDir, file), core.renderDecisionAtlas({
@@ -89,11 +89,6 @@ export async function renderAtlasPages({ theme = SITE_THEME, outDir = defaultOut
       theme: chosen,
     }));
   }
-  // A previously published theme would otherwise ship beside this one.
-  const keep = new Set(pages.map(({ file }) => file));
-  for (const entry of readdirSync(outDir)) {
-    if (entry.endsWith('.html') && !keep.has(entry)) rmSync(join(outDir, entry));
-  }
   return {
     theme: chosen,
     files: pages.map(({ file }) => file),
@@ -103,11 +98,22 @@ export async function renderAtlasPages({ theme = SITE_THEME, outDir = defaultOut
   };
 }
 
+/** Build all public previews before removing obsolete generated HTML files. */
+export async function buildSiteAtlases({ outDir = defaultOutDir } = {}) {
+  const results = [];
+  for (const theme of SITE_THEMES) results.push(await renderAtlasPages({ theme, outDir }));
+  const keep = new Set(SITE_PAGES.map(page => page.file));
+  for (const entry of readdirSync(outDir)) {
+    if (entry.endsWith('.html') && !keep.has(entry)) rmSync(join(outDir, entry));
+  }
+  return { outDir, files: [...keep], records: results[0].records, references: results[0].references };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const result = await renderAtlasPages({ theme: process.env.ATLAS_THEME ?? SITE_THEME });
+    const result = await buildSiteAtlases();
     console.log(
-      `wrote ${result.files.join(' and ')} in ${result.outDir.slice(root.length + 1)} (${result.theme}, zh/en): ${result.records} records, ${result.references} references`,
+      `wrote ${result.files.join(' and ')} in ${result.outDir.slice(root.length + 1)} (folio/signal, zh/en): ${result.records} records, ${result.references} references`,
     );
   } catch (error) {
     console.error(`build-decision-atlas: ${error instanceof Error ? error.message : String(error)}`);

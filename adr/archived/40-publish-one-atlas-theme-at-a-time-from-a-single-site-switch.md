@@ -1,11 +1,17 @@
 ---
-status: implemented
-date: 2026-10-25
+status: superseded
+date: 2026-10-27
 raised-by: human
 decided-by: human
 created: 2026-10-25
 commit: 8dc58f5
-tags: [visualization, website, themes]
+superseded-by: 41
+archived: 2026-10-27
+archive-reason: superseded by ADR 41
+tags:
+  - visualization
+  - website
+  - themes
 paths:
   - tools/build-decision-atlas.mjs
   - test/browser/atlas.spec.mjs

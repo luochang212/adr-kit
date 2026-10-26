@@ -343,6 +343,13 @@ describe('offline card tree', () => {
     expect(html).toContain('class="card root"');
   });
 
+  it('renders natural question numbers across single and multiple digits', () => {
+    const outline = ['- Root [settled]', ...Array.from({ length: 12 }, (_, index) => `  - Q: Choice ${index + 1}? [open]`)];
+    const html = renderDeliberationHtml(parseDeliberation(outline.join('\n')), 'Numbers');
+    const numbers = [...html.matchAll(/<span>QUESTION (\d+)<\/span>/g)].map(match => match[1]);
+    expect(numbers).toEqual(Array.from({ length: 12 }, (_, index) => String(index + 1)));
+  });
+
   it('chips a state only when it is an exception to settled', () => {
     const html = renderDeliberationHtml(parseDeliberation([
       '- Root topic [settled]',
@@ -356,7 +363,7 @@ describe('offline card tree', () => {
     const labels = html.match(/<div class="label">[\s\S]*?<\/div>/g)!;
     expect(labels[0]).toBe('<div class="label"><span>ROOT</span></div>');
     expect(labels[1]).toContain('<span class="state open">open</span>');
-    expect(labels[2]).toBe('<div class="label"><span>QUESTION 02</span></div>');
+    expect(labels[2]).toBe('<div class="label"><span>QUESTION 2</span></div>');
     expect(html).not.toContain('class="state settled"');
     // The state still travels on the card, where the layout script reads it.
     expect(html).toContain('data-state="settled"');

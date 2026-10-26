@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { randomInt } from 'node:crypto';
 import { selectAtlasTheme } from '../src/core/atlas-theme.js';
-import { selectSiteTheme, SITE_THEME, SITE_THEMES } from '../tools/build-decision-atlas.mjs';
+import { selectSiteTheme, SITE_PAGES, SITE_THEMES } from '../tools/build-decision-atlas.mjs';
 
 vi.mock('node:crypto', () => ({ randomInt: vi.fn() }));
 
@@ -28,11 +28,16 @@ describe('generation-time atlas theme selection', () => {
   });
 });
 
-describe('the published site serves one theme', () => {
+describe('the published site serves both themes in both languages', () => {
   it('accepts either named theme without rolling', () => {
-    expect(SITE_THEMES).toContain(SITE_THEME);
+    expect(SITE_PAGES).toEqual([
+      { theme: 'folio', language: 'zh', file: 'index.html' },
+      { theme: 'folio', language: 'en', file: 'en.html' },
+      { theme: 'signal', language: 'zh', file: 'signal.html' },
+      { theme: 'signal', language: 'en', file: 'signal.en.html' },
+    ]);
     for (const theme of SITE_THEMES) expect(selectSiteTheme(theme)).toBe(theme);
-    expect(SITE_THEME).toBe(selectSiteTheme());
+    expect(selectSiteTheme()).toBe('folio');
   });
 
   it.each(['random', 'auto', ''])('rejects %j: a roll belongs to the CLI, not a build', selection => {

@@ -1,31 +1,43 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { renderAtlasPages, SITE_THEME, SITE_THEMES } from '../../tools/build-decision-atlas.mjs';
+import { renderAtlasPages, buildSiteAtlases, SITE_PAGES, SITE_THEMES } from '../../tools/build-decision-atlas.mjs';
 
-// The site publishes one theme at a time, so the gate renders both named themes
-// from the same records into a temp tree and checks what the build would serve
-// if the switch were flipped (ADR 40).
+// Isolate behavioral fixtures from the published directory.
 const fixtureRoot = mkdtempSync(join(tmpdir(), 'adrkit-atlas-pages-'));
 process.on('exit', () => rmSync(fixtureRoot, { recursive: true, force: true }));
-const artifact = (language, theme = SITE_THEME) =>
-  pathToFileURL(join(fixtureRoot, theme, language === 'en' ? 'en.html' : 'index.html')).href;
+const artifact = (language, theme = 'folio') =>
+  pathToFileURL(join(fixtureRoot, theme, SITE_PAGES.find(page => page.theme === theme && page.language === language).file)).href;
 
 test.beforeAll(async () => {
   for (const theme of SITE_THEMES) await renderAtlasPages({ theme, outDir: join(fixtureRoot, theme) });
 });
 
-test('the published atlas serves one theme and keeps both pages', async () => {
+test('the published atlas serves both themes and languages from the same records', async () => {
   const published = join(process.cwd(), 'site/public/decisions');
   test.skip(!existsSync(published), 'run "npm run test:browser" to build the published pages first');
-  expect(readdirSync(published).filter((file) => file.endsWith('.html')).sort()).toEqual(['en.html', 'index.html']);
-  for (const file of ['index.html', 'en.html']) {
-    expect(readFileSync(join(published, file), 'utf8')).toContain(`data-atlas-theme="${SITE_THEME}"`);
+  expect(readdirSync(published).filter(file => file.endsWith('.html')).sort()).toEqual(SITE_PAGES.map(page => page.file).sort());
+  const payloads = [];
+  for (const { file, theme, language } of SITE_PAGES) {
+    const html = readFileSync(join(published, file), 'utf8');
+    expect(html).toContain(`data-atlas-theme="${theme}"`);
+    expect(html).toContain(`<html lang="${language === 'zh' ? 'zh-CN' : 'en'}"`);
+    payloads.push(html.split('/* atlas:records */')[1].split('/* /atlas:records */')[0]);
   }
-  expect(SITE_THEMES).toContain(SITE_THEME);
+  expect(new Set(payloads).size).toBe(1);
+});
+
+test('site generation writes both themes before dropping obsolete HTML', async () => {
+  const outDir = join(fixtureRoot, 'publish');
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(join(outDir, 'obsolete.html'), 'old preview');
+  writeFileSync(join(outDir, 'notes.txt'), 'unrelated file');
+  await buildSiteAtlases({ outDir });
+  expect(readdirSync(outDir).filter(file => file.endsWith('.html')).sort()).toEqual(SITE_PAGES.map(page => page.file).sort());
+  expect(readFileSync(join(outDir, 'notes.txt'), 'utf8')).toBe('unrelated file');
 });
 
 for (const theme of ['folio', 'signal']) {
@@ -68,6 +80,21 @@ test(`${theme}: locks the page scrollbar behind the open reader`, async ({ page 
   await expect(root).not.toHaveCSS('overflow-y', 'hidden');
   expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
 });
+test(`${theme}: mobile map hides the legend while keeping controls and records usable`, async ({ page }) => {
+  await page.goto(artifact('en', theme));
+  const legend = page.locator('#decision-map .canvas-legend');
+  for (const width of [390, 760, 761, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.locator('#decision-map').scrollIntoViewIfNeeded();
+    if (width <= 760) await expect(legend).toBeHidden();
+    else await expect(legend).toBeVisible();
+    await expect(page.locator('#decision-map .controls')).toBeVisible();
+    await page.locator('#world .node').first().click();
+    await expect(page.locator('#reader')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#reader')).not.toBeVisible();
+  }
+});
 for (const language of ['zh', 'en']) {
   test(`${theme} / ${language}: reader groups provenance separately from navigable references`, async ({ page }) => {
     await page.goto(artifact(language, theme));
@@ -97,7 +124,7 @@ for (const language of ['zh', 'en']) {
     const reference = page.locator('.ctx-relations button.record-pill').first();
     const number = (await reference.textContent()).replace('ADR ', '');
     await reference.click();
-    await expect(page.locator('.meta-num')).toHaveText(`ADR ${number.padStart(2, '0')}`);
+    await expect(page.locator('.meta-num')).toHaveText(`ADR ${number}`);
   });
 
   test(`${theme} / ${language}: range hover preserves the viewport outline`, async ({ page }) => {
@@ -248,6 +275,7 @@ test(`${theme}: large text reflows without document overflow or unreachable read
 
 for (const language of ['en', 'zh']) {
 test(`signal / ${language}: hero retains hierarchy and fits desktop and mobile`, async ({ page }) => {
+  await page.addInitScript(() => { Math.random = () => .999999; });
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(artifact(language, 'signal'));
@@ -266,7 +294,33 @@ test(`signal / ${language}: hero retains hierarchy and fits desktop and mobile`,
     expect(layout.titleSize).toBeGreaterThanOrEqual(layout.bodySize * 3);
     if (width > 760) expect(layout.ledgerLeft).toBeGreaterThan(layout.headingRight);
     else expect(layout.ledgerTop).toBeGreaterThan(layout.headingBottom);
+    const file = await page.locator('.archive-card[data-depth="0"]').evaluate(el => ({
+      ratio: el.offsetWidth / el.offsetHeight,
+      sheetColor: getComputedStyle(el.querySelector('.archive-sheet')).backgroundColor,
+      shadowColor: getComputedStyle(el, '::before').backgroundColor,
+    }));
+    if (width >= 1024) {
+      expect(file.ratio).toBeGreaterThan(1.35);
+      expect(layout.ledgerLeft - layout.headingRight).toBeLessThanOrEqual(48);
+    } else if (width <= 760) {
+      expect(file.ratio).toBeGreaterThan(.9);
+      expect(file.ratio).toBeLessThan(1.15);
+    }
+    expect(file.shadowColor).not.toBe(file.sheetColor);
     await expect(page.locator('.archive-card')).toHaveCount(3);
+    // Every exposed file number must remain unobscured by the sheets above it.
+    for (const card of await page.locator('.archive-card').all()) {
+      expect(await card.evaluate(el => {
+        const box = el.querySelector('.archive-id').getBoundingClientRect();
+        return [box.left + 2, box.right - 2].every(x =>
+          document.elementFromPoint(x, box.top + box.height / 2)?.closest('.archive-card') === el);
+      })).toBe(true);
+    }
+
+    const firstNumber = await page.locator('.archive-card').first().getAttribute('data-record');
+    await expect(page.locator('.archive-title').first()).not.toContainText(new RegExp('^' + firstNumber + '\\s'));
+    await expect(page.locator('.archive-summary-label').first()).toHaveText(language === 'en' ? 'DECISION EXTRACT' : '决策摘录');
+    await expect(page.locator('.archive-excerpt').first()).toContainText('Publish Folio and Signal together');
     await expect(page.locator('.page-hero .stats-band')).toHaveCount(1);
     await expect(page.locator('.hero-baseline')).toHaveCount(0);
     if (width === 1440) {
@@ -281,18 +335,39 @@ test(`signal / ${language}: hero retains hierarchy and fits desktop and mobile`,
 });
 }
 
-test('signal: hero ends at the first-screen boundary before the overview', async ({ page }) => {
-  for (const [width, height] of [[1440, 900], [1280, 720], [390, 844]]) {
+for (const theme of ['folio', 'signal']) test(`${theme}: hero ends at the first-screen boundary before the overview`, async ({ page }) => {
+  for (const language of ['en', 'zh']) for (const [width, height] of [[1440, 1000], [1440, 900], [1280, 800], [1366, 768], [1280, 720], [390, 844]]) {
     await page.setViewportSize({ width, height });
-    await page.goto(artifact('zh', 'signal'));
+    await page.goto(artifact(language, theme));
     const layout = await page.evaluate(() => ({
       next: document.querySelector('#overview-page').getBoundingClientRect().top,
       stats: document.querySelector('.stats-band').getBoundingClientRect().bottom,
       hero: document.querySelector('.page-hero').getBoundingClientRect().bottom,
     }));
     expect(layout.next).toBeGreaterThanOrEqual(height);
-    expect(Math.abs(layout.stats - layout.hero)).toBeLessThanOrEqual(2);
-    if (width > 760) expect(layout.hero).toBeCloseTo(height, 0);
+    if (theme === 'signal') expect(Math.abs(layout.stats - layout.hero)).toBeLessThanOrEqual(2);
+    else {
+      expect(layout.stats).toBeLessThanOrEqual(layout.hero);
+      await expect(page.locator('.page-hero .stats-band')).toHaveCount(1);
+      await expect(page.locator('.page-hero #overview-view')).toHaveCount(1);
+      expect(layout.next).toBeGreaterThanOrEqual(layout.hero);
+      const gap = await page.evaluate(() => document.querySelector('.stats-band').getBoundingClientRect().top
+        - document.querySelector('.hero-content').getBoundingClientRect().bottom);
+      expect(Math.abs(gap)).toBeLessThanOrEqual(1);
+      const content = await page.locator('.hero-content').evaluate(el => ({
+        padding: getComputedStyle(el).paddingTop,
+        offset: el.getBoundingClientRect().top - el.closest('.page-hero').getBoundingClientRect().top,
+      }));
+      if (width > 760) {
+        expect(layout.hero).toBeCloseTo(height, 0);
+        const densityBottom = await page.locator('#overview-view').evaluate(el => el.getBoundingClientRect().bottom);
+        expect(densityBottom).toBeCloseTo(height, 0);
+        await expect(page.locator('#density-chart')).toHaveCSS('height', '180px');
+      }
+      expect(content.offset).toBe(0);
+    }
+    if (theme === 'signal' && width > 760) expect(layout.hero).toBeCloseTo(height, 0);
+    else expect(layout.hero).toBeGreaterThanOrEqual(height);
     await expect(page.locator('.stats-inner')).not.toContainText('含');
   }
 });

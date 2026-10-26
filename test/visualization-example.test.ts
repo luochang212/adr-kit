@@ -77,7 +77,7 @@ describe('reader typography', () => {
     type?: string;
     checked?: boolean;
     disabled?: boolean;
-    classList: { add(name: string): void };
+    classList: { add(name: string): void; remove(name: string): void };
     textContent: string;
     className: string;
     children: Element[];
@@ -95,7 +95,7 @@ describe('reader typography', () => {
         tag, tagName: tag.toUpperCase(), className: '', children: [], style: {},
         get textContent(): string { return text + this.children.map(child => child.textContent).join(''); },
         set textContent(value: string) { text = value; this.children = []; },
-        classList: { add(name: string) { node.className = name; } },
+        classList: { add(name: string) { node.className = name; }, remove(name: string) { node.className = node.className.split(' ').filter(value => value !== name).join(' '); } },
         get lastElementChild() { return this.children.at(-1) ?? null; },
         append(...children) { this.children.push(...children); },
         replaceChildren() { text = ''; this.children = []; },

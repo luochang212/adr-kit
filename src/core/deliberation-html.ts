@@ -104,7 +104,7 @@ export function renderCardTree(nodes: DeliberationNode[], title: string): string
     // from its chosen answer, so the same word on every card would say nothing.
     const chip = kind !== 'virtual' && status !== 'settled';
     if (chip) chipped.add(status);
-    const label = kind === 'question' ? `QUESTION ${String(++questionNumber).padStart(2, '0')}`
+    const label = kind === 'question' ? `QUESTION ${++questionNumber}`
       : kind === 'virtual' ? 'DELIBERATION' : kind.toUpperCase();
     const stateChip = chip ? `<span class="state ${status}">${status}</span>` : '';
     // A folded option writes its state as plain text, not as a chip, so it earns

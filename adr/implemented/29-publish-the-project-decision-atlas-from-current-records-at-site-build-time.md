@@ -21,7 +21,7 @@ paths:
   - README.md
   - README.zh.md
   - AGENTS.md
-  - assets/decision-atlas.png
+  - assets/decision-atlas-*.png
   - test/decision-atlas.test.ts
   - test/visualization-example.test.ts
 ---

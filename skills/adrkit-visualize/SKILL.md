@@ -47,7 +47,36 @@ and when both are empty the relation area and its lower divider disappear.
 Preserve these mechanisms when adapting either theme; change only the
 presentation the user requested. Both themes keep the source link in the reader
 header; Folio styles it as a quiet padded control and Signal as its original
-text link.
+text link. On viewports up to 760px, both themes hide the map's on-screen
+legend to keep the canvas clear; map controls and interactions remain available.
+Desktop keeps the data-dependent legend. Both heroes fill at least the viewport
+below the chapter bar. Folio keeps its original title/introduction/actions/statistics/
+decision-density group and proportions. On desktop the introduction and density
+regions share spare height, balancing whitespace around the statistics while the
+lower rule meets the viewport bottom; only shorter windows
+compress vertical spacing, without shrinking type or the chart; Signal keeps
+statistics at the bottom of its hero. Taller content can scroll.
+
+
+Display ADR identifiers, chapter numbers and question numbers as natural
+integers without leading zeros (ADR 3, chapter 2, QUESTION 1), including visible
+labels and accessible names. Date/time fields retain their standard formats.
+
+Signal's built-in hero is a shuffled desk of real decision files, not a static
+illustration. Generate it with `adrkit atlas --theme signal --out "<path>.html"`
+and preserve its shared template behavior when adapting the page: up to three
+same-material folder covers, desktop landscape/mobile near-square proportions,
+irregular overlapping angles and depth-specific contact shadows,
+top-file extraction followed by reader expansion, replenishment without duplicate
+files, and a quiet reset only after exhaustion that returns all files and reshuffles.
+Use the target repository's records and counts; zero, one or two records must
+remain honest. Desktop hero picks open the reader on the left with the ordinary
+dimming/blur backdrop over the right-hand desk. Clicking that backdrop only
+closes the reader; opening the next file takes a separate card click. Other
+entry points and mobile keep the right reader. Keep all four statistics inside
+the hero, no bottom arrow, and automatic entrance effects confined to the hero;
+respect reduced motion. The runtime file shuffle is independent of the one-time
+choice of atlas theme. Do not replace this mechanism with decorative sample cards.
 
 ## Optional decision-atlas example
 
