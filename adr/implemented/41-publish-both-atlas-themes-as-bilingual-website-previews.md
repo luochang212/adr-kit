@@ -66,5 +66,14 @@ layout and build organization are the agent's implementation choices.
 ### Trade-offs
 
 - Both theme previews now have public routes and must be maintained together.
-- The website build renders four pages instead of two; behavior remains shared,
+- The website build renders four atlas pages instead of two; behavior remains shared,
   so this adds generated artifacts rather than a second implementation.
+
+## Later changes
+
+The public entry now presents a bilingual theme gallery at `index.html` /
+`en.html`; Folio's atlas routes are `folio.html` / `folio.en.html`, while
+Signal's routes are unchanged. `SITE_PREVIEW_PAGES` owns the two gallery routes
+and `SITE_PAGES` retains the four atlases. The homepage opens the gallery;
+README theme names still open their named previews. This route/presentation
+adjustment preserves the publication and CLI selection decisions above.

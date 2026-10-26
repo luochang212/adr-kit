@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, mkdirSync, 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { renderAtlasPages, buildSiteAtlases, SITE_PAGES, SITE_THEMES } from '../../tools/build-decision-atlas.mjs';
+import { renderAtlasPages, buildSiteAtlases, SITE_PAGES, SITE_THEMES, SITE_HTML_FILES, SITE_PREVIEW_PAGES } from '../../tools/build-decision-atlas.mjs';
 
 // Isolate behavioral fixtures from the published directory.
 const fixtureRoot = mkdtempSync(join(tmpdir(), 'adrkit-atlas-pages-'));
@@ -19,7 +19,7 @@ test.beforeAll(async () => {
 test('the published atlas serves both themes and languages from the same records', async () => {
   const published = join(process.cwd(), 'site/public/decisions');
   test.skip(!existsSync(published), 'run "npm run test:browser" to build the published pages first');
-  expect(readdirSync(published).filter(file => file.endsWith('.html')).sort()).toEqual(SITE_PAGES.map(page => page.file).sort());
+  expect(readdirSync(published).filter(file => file.endsWith('.html')).sort()).toEqual([...SITE_HTML_FILES].sort());
   const payloads = [];
   for (const { file, theme, language } of SITE_PAGES) {
     const html = readFileSync(join(published, file), 'utf8');
@@ -36,9 +36,34 @@ test('site generation writes both themes before dropping obsolete HTML', async (
   writeFileSync(join(outDir, 'obsolete.html'), 'old preview');
   writeFileSync(join(outDir, 'notes.txt'), 'unrelated file');
   await buildSiteAtlases({ outDir });
-  expect(readdirSync(outDir).filter(file => file.endsWith('.html')).sort()).toEqual(SITE_PAGES.map(page => page.file).sort());
+  expect(readdirSync(outDir).filter(file => file.endsWith('.html')).sort()).toEqual([...SITE_HTML_FILES].sort());
   expect(readFileSync(join(outDir, 'notes.txt'), 'utf8')).toBe('unrelated file');
 });
+
+for (const { language, file } of SITE_PREVIEW_PAGES) {
+  test(`theme gallery: ${language} links to both named themes and stays usable on mobile`, async ({ page }) => {
+    await page.goto(pathToFileURL(join(process.cwd(), 'site/public/decisions', file)).href);
+    await expect(page).toHaveTitle(/ADR Kit/);
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('.theme-card')).toHaveCount(2);
+    for (const { theme, file: target } of SITE_PAGES.filter(entry => entry.language === language)) {
+      await expect(page.locator(`.${theme} .open`)).toHaveAttribute('href', target);
+      expect(await page.locator(`.${theme} .preview img`).evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
+      await page.locator(`.${theme} .open`).click();
+      await expect(page.locator('html')).toHaveAttribute('data-atlas-theme', theme);
+      await page.goBack();
+    }
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const boxes = await page.locator('.theme-card').evaluateAll(cards => cards.map(card => ({ x: card.offsetLeft, y: card.offsetTop })));
+      if (width === 375) expect(boxes[1].y).toBeGreaterThan(boxes[0].y);
+      else expect(boxes[1].y).toBe(boxes[0].y);
+    }
+    const accessibility = await new AxeBuilder({ page }).analyze();
+    expect(accessibility.violations).toEqual([]);
+  });
+}
 
 for (const theme of ['folio', 'signal']) {
 test(`${theme}: generated theme survives reload and system appearance changes`, async ({ page }) => {

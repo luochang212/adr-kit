@@ -21,12 +21,18 @@ The resulting HTML stores a concrete identity. Refreshes and OS appearance
 changes do not select again. There is no in-page switch. `--theme` applies only
 to the full atlas; maps and deliberation trees reject it.
 
+Favicons are embedded SVGs selected at generation time: Folio uses the light
+pastel mark and Signal uses the dark mark. They remain available offline.
+
 The website publishes deterministic bilingual previews of both themes from the
 same template, records and build commit. `SITE_PAGES` in
-`tools/build-decision-atlas.mjs` owns the public routes: Folio uses `index.html`
-(Chinese) and `en.html`; Signal uses `signal.html` and `signal.en.html`.
-Astro's prebuild writes all four pages before obsolete generated HTML is removed.
-The homepage links to Folio; both READMEs link each theme in the reader's
+`tools/build-decision-atlas.mjs` owns the atlas routes. `SITE_PREVIEW_PAGES`
+publishes a theme gallery at `index.html` (Chinese) and `en.html`; Folio uses `folio.html` and
+`folio.en.html`, and Signal uses `signal.html` and `signal.en.html`.
+Astro's prebuild writes both gallery languages and all four atlas pages before
+obsolete generated HTML is removed. The gallery uses the README screenshots
+and links to the actual theme pages; it does not add a theme switch to an atlas.
+The homepage links to the gallery; both READMEs link each theme in the reader's
 language. These public examples do not change the CLI's random default or add
 an in-page theme switch. The browser gate checks all published routes and also
 uses isolated per-theme fixtures for behavioral checks.

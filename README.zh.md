@@ -85,11 +85,11 @@ Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这�
 
 一个离线 HTML 文件，汇集决策地图、编号时间线、引用与替代关系链，以及可搜索的全部生效与归档记录，正文完整展示。两种主题共享这些能力，不需要服务器，也不依赖 CDN。
 
-[打开 ADR Kit 的在线档案 →](https://luochang212.github.io/adr-kit/decisions/) 它从本仓库的 `adr/` 重新构建，并固定到构建提交。两种主题均提供在线预览：点击下方主题名称直接体验，点击截图查看大图。
+[预览 ADR Kit 的档案主题 →](https://luochang212.github.io/adr-kit/decisions/) 每份档案都从本仓库的 `adr/` 重新构建，并固定到构建提交。两种主题均提供在线预览：点击下方主题名称直接体验，点击截图查看大图。
 
 | 主题 | 预览 |
 | :--- | :--- |
-| **[Folio](https://luochang212.github.io/adr-kit/decisions/)** | [![Folio：暖纸色、编辑式排版与决策统计](./assets/decision-atlas-folio.zh.png)](./assets/decision-atlas-folio.zh.png) |
+| **[Folio](https://luochang212.github.io/adr-kit/decisions/folio.html)** | [![Folio：暖纸色、编辑式排版与决策统计](./assets/decision-atlas-folio.zh.png)](./assets/decision-atlas-folio.zh.png) |
 | **[Signal](https://luochang212.github.io/adr-kit/decisions/signal.html)** | [![Signal：深色档案桌面与可交互的决策卡片堆叠](./assets/decision-atlas-signal.zh.png)](./assets/decision-atlas-signal.zh.png) |
 
 未指定主题时，在生成时等概率随机选择 Folio 或 Signal；明确指定时遵循选择；更新已有档案时保留原主题，除非要求更换或重新随机。主题固定在 HTML 中，刷新页面不会改变。

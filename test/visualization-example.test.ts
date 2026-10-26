@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { renderDecisionAtlas } from '../src/core/decision-atlas.js';
 import { buildDecisionGraph } from '../src/core/graph.js';
 import { markdownLines, type AdrRecord } from '../src/core/adr.js';
-import { FAVICON_DATA_URI } from '../src/core/brand.js';
+import { LIGHT_FAVICON_DATA_URI } from '../src/core/brand.js';
 
 const example = readFileSync(new URL(
   '../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url,
@@ -303,9 +303,8 @@ describe('archive page shell', () => {
   it('carries a self-contained favicon', () => {
     expect(example).toContain('rel="icon"');
     expect(example).toContain('data:image/svg+xml;base64,');
-    // One mark for every page: the static example and the generated pages
-    // share the constant the CLI inlines.
-    expect(example).toContain(FAVICON_DATA_URI);
+    // The paper example uses the same light mark as generated Folio pages.
+    expect(example).toContain(LIGHT_FAVICON_DATA_URI);
   });
 
   it('locks the page scrollbar behind the modal reader', () => {

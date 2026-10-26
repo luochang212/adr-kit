@@ -31,8 +31,8 @@ describe('generation-time atlas theme selection', () => {
 describe('the published site serves both themes in both languages', () => {
   it('accepts either named theme without rolling', () => {
     expect(SITE_PAGES).toEqual([
-      { theme: 'folio', language: 'zh', file: 'index.html' },
-      { theme: 'folio', language: 'en', file: 'en.html' },
+      { theme: 'folio', language: 'zh', file: 'folio.html' },
+      { theme: 'folio', language: 'en', file: 'folio.en.html' },
       { theme: 'signal', language: 'zh', file: 'signal.html' },
       { theme: 'signal', language: 'en', file: 'signal.en.html' },
     ]);

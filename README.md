@@ -87,11 +87,11 @@ reading still apply. See the [retrieval contract](docs/cli.md#scope-retrieval-fo
 
 One offline HTML file brings together the decision map, numbered timeline, reference and supersession chains, and a searchable directory of every current and archived record, with full bodies. Both themes share these capabilities; no server or CDN is needed.
 
-[Explore ADR Kit's live atlas →](https://luochang212.github.io/adr-kit/decisions/en.html) It is rebuilt from this repository's `adr/` and pinned to the build commit. Both themes have live previews: click a theme name below to try it, or its screenshot to view the full image.
+[Preview ADR Kit's atlas themes →](https://luochang212.github.io/adr-kit/decisions/en.html) Each atlas is rebuilt from this repository's `adr/` and pinned to the build commit. Both themes have live previews: click a theme name below to try it, or its screenshot to view the full image.
 
 | Theme | Preview |
 | :--- | :--- |
-| **[Folio](https://luochang212.github.io/adr-kit/decisions/en.html)** | [![Folio — warm paper, editorial typography and decision statistics](./assets/decision-atlas-folio.png)](./assets/decision-atlas-folio.png) |
+| **[Folio](https://luochang212.github.io/adr-kit/decisions/folio.en.html)** | [![Folio — warm paper, editorial typography and decision statistics](./assets/decision-atlas-folio.png)](./assets/decision-atlas-folio.png) |
 | **[Signal](https://luochang212.github.io/adr-kit/decisions/signal.en.html)** | [![Signal — dark archive with an interactive stack of decision files](./assets/decision-atlas-signal.png)](./assets/decision-atlas-signal.png) |
 
 Without a specified theme, generation chooses Folio or Signal with equal probability, once. An explicit theme request takes precedence; updates preserve an existing atlas's theme unless a change or fresh random choice is requested. Reloading the HTML keeps its theme.

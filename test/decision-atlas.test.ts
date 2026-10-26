@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { AdrRecord } from '../src/core/adr.js';
+import { FAVICON_DATA_URI, LIGHT_FAVICON_DATA_URI } from '../src/core/brand.js';
 import { ATLAS_SLOTS, renderDecisionAtlas } from '../src/core/decision-atlas.js';
 import { buildDecisionGraph } from '../src/core/graph.js';
 
@@ -306,6 +307,20 @@ it.each(['folio', 'signal'] as const)('enables only the selected %s document sty
   const sourceInHeader = /<span id="reader-meta"><\/span><a id="reader-source"/.test(html);
   expect(sourceInHeader).toBe(true);
   expect(html.match(/id="reader-source"/g)).toHaveLength(1);
+});
+
+it.each(['en', 'zh'] as const)('embeds the theme’s offline favicon in %s', language => {
+  const page = readFileSync(new URL('../skills/adrkit-visualize/examples/decision-atlas.html', import.meta.url), 'utf8');
+  for (const theme of ['folio', 'signal'] as const) {
+    const html = render(live, page, language, theme);
+    const icons = [...html.matchAll(/<link rel="icon" type="image\/svg\+xml" href="([^"]+)"/g)];
+    expect(icons).toHaveLength(1);
+    const uri = icons[0]![1]!;
+    expect(uri).toBe(theme === 'folio' ? LIGHT_FAVICON_DATA_URI : FAVICON_DATA_URI);
+    const svg = Buffer.from(uri.split(',')[1]!, 'base64').toString('utf8');
+    const name = theme === 'folio' ? 'light' : 'dark';
+    expect(svg).toBe(readFileSync(new URL(`../assets/favicon-${name}.svg`, import.meta.url), 'utf8'));
+  }
 });
 
 it.each(['en', 'zh'] as const)('preserves Folio’s original content and statistics together in %s', language => {

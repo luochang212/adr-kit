@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { renderThemePreview } from './atlas-preview.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
@@ -15,12 +16,17 @@ const projectName = 'ADR Kit';
 
 /** Public previews are deterministic; CLI theme selection remains independent. */
 export const SITE_PAGES = [
-  { theme: 'folio', language: 'zh', file: 'index.html' },
-  { theme: 'folio', language: 'en', file: 'en.html' },
+  { theme: 'folio', language: 'zh', file: 'folio.html' },
+  { theme: 'folio', language: 'en', file: 'folio.en.html' },
   { theme: 'signal', language: 'zh', file: 'signal.html' },
   { theme: 'signal', language: 'en', file: 'signal.en.html' },
 ];
 export const SITE_THEMES = [...new Set(SITE_PAGES.map(page => page.theme))];
+export const SITE_PREVIEW_PAGES = [
+  { language: 'zh', file: 'index.html' },
+  { language: 'en', file: 'en.html' },
+];
+export const SITE_HTML_FILES = [...SITE_PAGES, ...SITE_PREVIEW_PAGES].map(page => page.file);
 
 function repositoryUrl() {
   const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
@@ -102,7 +108,16 @@ export async function renderAtlasPages({ theme = 'folio', outDir = defaultOutDir
 export async function buildSiteAtlases({ outDir = defaultOutDir } = {}) {
   const results = [];
   for (const theme of SITE_THEMES) results.push(await renderAtlasPages({ theme, outDir }));
-  const keep = new Set(SITE_PAGES.map(page => page.file));
+  const favicon = 'data:image/svg+xml;base64,' + readFileSync(join(root, 'assets/favicon-light.svg')).toString('base64');
+  for (const { language, file } of SITE_PREVIEW_PAGES) {
+    const screenshots = Object.fromEntries(SITE_THEMES.map(theme => [theme,
+      'data:image/png;base64,' + readFileSync(join(root, `assets/decision-atlas-${theme}${language === 'zh' ? '.zh' : ''}.png`)).toString('base64'),
+    ]));
+    writeFileSync(join(outDir, file), renderThemePreview({
+      language, pages: SITE_PAGES, screenshots, favicon, commit: commit(), repositoryUrl: repositoryUrl(),
+    }));
+  }
+  const keep = new Set(SITE_HTML_FILES);
   for (const entry of readdirSync(outDir)) {
     if (entry.endsWith('.html') && !keep.has(entry)) rmSync(join(outDir, entry));
   }
