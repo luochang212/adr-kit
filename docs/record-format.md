@@ -49,6 +49,16 @@ fenced examples do not create sections. Comment markers inside fenced examples
 are literal text. Before removing a proposal, `implement` validates the generated
 decision and refuses collisions with its canonical sections.
 
+Every required section must contain written prose outside HTML comments and
+fenced examples. In particular, `Consequences` is required content in both
+implemented and archived decisions, and `Acceptance criteria` and `Risks` are
+required content in proposals. This tightens validation after 0.29.0: existing
+empty sections need author input, not placeholder text or a mechanical rewrite.
+Run `adrkit validate --all`; explain any archived edits in their commit.
+`reject` checks the rejected record's requirements, so it does not require
+acceptance criteria or risks to be completed. It preserves any such sections
+already present, including unfinished notes.
+
 `raised-by` and `decided-by` are required on numbered decisions and
 forbidden on unnumbered proposals and rejections. Each is `human` or
 `agent`: the former says who introduced the choice; the latter says whose

@@ -125,6 +125,11 @@ from this repository.
 
 - `adrkit init` creates no `MANIFEST.json`; `adrkit archive` and
   `adrkit supersede` move records without reading or writing a manifest.
+- Archive staging uses exclusive creation in `writeRecord`: a competing move
+  cannot overwrite an already staged or completed archive, even with identical
+  bytes. `test/review-regressions.test.ts` checks overlapping retirements with
+  a source-removal failure, rollback, and retry; `test/regressions.test.ts`
+  checks that same-name archive writes preserve the existing bytes.
 - `adrkit validate` checks an archived record's format, paths, and references
   like any other record; `validate --base` no longer exists.
 - `list`, `show`, `graph`, and `tree` use the normal parsed inventory; a

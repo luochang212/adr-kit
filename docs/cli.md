@@ -64,6 +64,10 @@ archival. The CLI cannot verify that code shipped or another authoritative
 owner exists. `--tools claude` adds `.claude/` copies alongside the default
 `.agents/`; `--tools none` installs no integrations.
 
+`reject` validates the rejection's problem, proposal, and alternatives; it
+requires a reason but does not require an abandoned proposal's acceptance
+criteria or risks to be finished. Existing notes in those sections are kept.
+
 Repository-wide validation also checks `@adr <number>` citations in code and
 configuration files. A citation must name an implemented decision; when that
 decision declares `paths`, the citing file must match one of them. A citation

@@ -209,6 +209,13 @@ wording rather than to any element whose text mentions the feature.
 
 ## Record format is the product
 
+Every required section needs written content outside HTML comments and fenced
+examples, including decisions' `Consequences` and proposals' `Acceptance
+criteria` and `Risks`. Older empty sections need author input, not placeholder
+prose; report missing substance that cannot be mechanically migrated. Rejection
+requires the problem, proposal, alternatives, and a reason, without completing
+an abandoned implementation plan.
+
 The front matter layout (`---`, `status`/`date` fields in canonical
 order, `---`, blank line, `# ADR:` title) and the per-status section
 skeletons are machine-checked. The `date` field is machine-stamped at

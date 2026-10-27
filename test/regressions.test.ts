@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -476,9 +476,14 @@ describe('cli option surface', () => {
     // A new decision must not overwrite even an identical destination name.
     expect(() => writeRecord(root, 'implemented', '1-use-sqlite.md', 'implemented 1 revised'))
       .toThrow('decision number 1 is already taken');
-    // Retirement may stage and re-write the same name in archived/.
+    // Retirement stages beside its source, but must not replace another
+    // retirement's archive, even if it would write exactly the same bytes.
     expect(() => writeRecord(root, 'archived', '1-use-sqlite.md', 'archived 1')).not.toThrow();
-    expect(() => writeRecord(root, 'archived', '1-use-sqlite.md', 'archived 1 revised')).not.toThrow();
+    expect(() => writeRecord(root, 'archived', '1-use-sqlite.md', 'archived 1'))
+      .toThrow('already taken by adr/archived/1-use-sqlite.md');
+    expect(() => writeRecord(root, 'archived', '1-use-sqlite.md', 'archived 1 revised'))
+      .toThrow('already taken by adr/archived/1-use-sqlite.md');
+    expect(readFileSync(join(folderPath(root, 'archived'), '1-use-sqlite.md'), 'utf8')).toBe('archived 1');
     expect(() => writeRecord(root, 'implemented', '1-reused.md', 'reused 1'))
       .toThrow('decision number 1 is already taken');
     // The guard covers archived/ too, where the same race lands on supersede.

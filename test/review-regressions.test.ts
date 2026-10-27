@@ -3,9 +3,10 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { initRepository, listRecords } from '../src/core/repository.js';
-import { visibleRecordText, writtenHeadings } from '../src/core/adr.js';
+import { todayStamp, visibleRecordText, writtenHeadings } from '../src/core/adr.js';
 import { buildDecisionGraph } from '../src/core/graph.js';
 import { archiveCommand } from '../src/commands/archive.js';
+import { retireRecord } from '../src/core/retire.js';
 import { implementCommand } from '../src/commands/implement.js';
 import { instructionsCommand } from '../src/commands/instructions.js';
 import { rejectCommand } from '../src/commands/reject.js';
@@ -204,6 +205,43 @@ describe('movement gates and staged rollback', () => {
     );
     expect(fs.existsSync(stagedPath)).toBe(true);
     expect(fs.readFileSync(stagedPath, 'utf8')).toBe('another writer staged a different record\n');
+  });
+
+  it('prevents a competing same-content retirement from losing the only record during rollback', () => {
+    const root = repo(); const path = putDecision(root, 1);
+    // Both commands resolved before either staged its archive. Inject the
+    // second real move at the first command's source-removal boundary.
+    const competingRecord = listRecords(root).find(record => record.number === 1)!;
+    const archived = join(root, 'adr/archived/1-choice.md');
+    let attempted = false;
+    let competingError: unknown;
+    vi.mocked(fs.rmSync).mockImplementation((name, ...args) => {
+      if (String(name) === path && !attempted) {
+        attempted = true;
+        try {
+          retireRecord(root, competingRecord, {
+            date: todayStamp(), archived: todayStamp(), 'archive-reason': 'no longer needed',
+          });
+        } catch (error) {
+          competingError = error;
+        }
+        throw new Error('EACCES removing source');
+      }
+      return actualFs.rmSync(name, ...args);
+    });
+    expect(() => archiveCommand('1', 'no longer needed', root)).toThrow(/removing the implemented source failed/);
+    expect(attempted).toBe(true);
+    // Previously the second move succeeded with identical bytes, then the
+    // first rollback deleted its archive: both paths ended up absent.
+    expect(fs.existsSync(path)).toBe(true);
+    expect(competingError).toMatchObject({
+      message: expect.stringContaining('already taken by adr/archived/1-choice.md'),
+    });
+    expect(fs.existsSync(archived)).toBe(false);
+    vi.mocked(fs.rmSync).mockImplementation(actualFs.rmSync);
+    expect(archiveCommand('1', 'no longer needed', root)).toContain('archived');
+    expect(fs.existsSync(path)).toBe(false);
+    expect(fs.readFileSync(archived, 'utf8')).toContain('archive-reason: no longer needed');
   });
 });
 

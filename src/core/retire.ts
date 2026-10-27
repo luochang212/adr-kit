@@ -28,9 +28,9 @@ export function retireRecord(
     removeRecord(record);
   } catch (error) {
     const staged = join(folderPath(root, 'archived'), record.fileName);
-    // Roll back only bytes this call staged: a concurrent move may have
-    // staged its own record under the same name after ours, and deleting
-    // that would lose the only copy of a record.
+    // Exclusive archive creation prevents another CLI move replacing this
+    // destination. The content check additionally preserves manual edits;
+    // byte equality alone would not establish ownership between two moves.
     let rolledBack = true;
     try {
       if (readFileSync(staged, 'utf8') !== content) rolledBack = false;

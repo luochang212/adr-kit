@@ -64,6 +64,15 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 ## Upgrades
 
+Validation tightening after 0.29.0: `Consequences` must contain written content
+in implemented and archived decisions; proposals must also fill `Acceptance
+criteria` and `Risks`. Empty headings, HTML comments, and fenced examples do
+not satisfy these requirements. Run `adrkit validate --all` and have the author
+supply missing substance; this is not a mechanical migration, and placeholder
+prose is not a remedy. Explain any archived edits in their commit. Rejecting a
+proposal still requires only its problem, proposal, alternatives, and a reason;
+an abandoned implementation plan need not be completed.
+
 ADR Kit is pre-stable and breaks on purpose: a release may change the record format or the command surface, and nothing promises forward compatibility. Records written by an older release are not guaranteed to keep passing validation, and not every break has a mechanical migration. Upgrading is the supported path: run `adrkit update` to refresh the installed integrations, then `adrkit validate --all` in your repositories, where validation errors name what changed. The standing orders tell your agent to upgrade the package, migrate active records where the change is mechanical, and report a record it cannot carry over instead of forcing a rewrite; archived records change only through a deliberate, explained commit. An `adr/archived/MANIFEST.json` written by 0.23.0 or earlier is no longer read; delete it.
 
 That section in `AGENTS.md` is yours: its optional `<!-- adrkit: standing-orders <id> -->` generation marker declares which template you reconciled it against, not identical text. Translation, shortening, and local edits are allowed. Keep project-specific obligations outside the section. An old marker produces a note in `init`, `update`, `list`, `instructions`, and `relevant`: compare with the current `adrkit-init` template and reconcile changes before updating the marker. Unmarked sections now stay quiet, including older installations; retain or add the current marker after reconciliation to opt into future template-change notes. A missing section still produces the separate init/update note.

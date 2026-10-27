@@ -107,11 +107,13 @@ ${contextBlock(context)}## Problem
 
 ## Acceptance criteria
 
-<!-- Observable state that means the proposal is done. -->
+<!-- Observable state that means the proposal is done. Required for validation
+     and implementation; may remain unwritten when rejecting the proposal. -->
 
 ## Risks
 
-<!-- What could go wrong, and what the change knowingly gives up. -->
+<!-- What could go wrong, and what the change knowingly gives up. Required for
+     validation and implementation; may remain unwritten when rejecting. -->
 `;
 }
 
@@ -155,7 +157,8 @@ ${contextBlock(context)}## Problem
 
 ## Consequences
 
-<!-- What the trade-off cost and bought. Later decisions amend this record
+<!-- What the trade-off cost and bought. Required: replace this comment with
+     written prose. Later decisions amend this record
      under "### Later changes", one "**Amended by ADR N:**" entry each. -->
 `;
 }

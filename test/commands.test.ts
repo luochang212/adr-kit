@@ -414,6 +414,51 @@ describe('propose and implement', () => {
     expect(existsSync(file)).toBe(true);
   });
 
+  it('rejects a proposal without requiring its abandoned acceptance criteria or risks', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillDraft(root);
+    writeFileSync(file, readFileSync(file, 'utf8')
+      .replace('Sessions survive restart.', '<!-- not planned -->')
+      .replace('Native dependency.', '<!-- not assessed -->'));
+    expect(validateCommand(root).valid).toBe(false);
+    expect(() => implementCommand('Use SQLite', root, 'human', 'human')).toThrow(/Acceptance criteria/);
+    expect(rejectCommand('Use SQLite', 'we prefer files', root)).toContain('adr/rejected/');
+    expect(existsSync(file)).toBe(false);
+    const rejected = allRecords(root)[0]!;
+    expect(rejected.rejectionReason).toBe('we prefer files');
+    expect(readFileSync(rejected.path, 'utf8')).toContain('<!-- not assessed -->');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('still refuses to reject a proposal without written alternatives', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillDraft(root);
+    const content = readFileSync(file, 'utf8').replace(
+      '- **JSON files**: rejected because they do not scale for queries.',
+      '<!-- no alternatives written -->',
+    );
+    writeFileSync(file, content);
+    expect(() => rejectCommand('Use SQLite', 'we prefer files', root)).toThrow(/written alternative/);
+    expect(readFileSync(file, 'utf8')).toBe(content);
+    expect(allRecords(root).filter(record => record.folder === 'rejected')).toEqual([]);
+  });
+
+  it.each([
+    { from: 'status: proposed', to: 'status: rejected\nreason: already declined', error: /status must be "proposed"/ },
+    { from: 'created: 2026-08-19', to: 'created: 2026-08-19\nunknown-field: keep', error: /unknown front matter/ },
+  ])('preserves an invalid rejection source: $to', ({ from, to, error }) => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillDraft(root);
+    const content = readFileSync(file, 'utf8').replace(from, to);
+    writeFileSync(file, content);
+    expect(() => rejectCommand('Use SQLite', 'we prefer files', root)).toThrow(error);
+    expect(readFileSync(file, 'utf8')).toBe(content);
+    expect(allRecords(root).filter(record => record.folder === 'rejected')).toEqual([]);
+  });
+
   it('warns when acceptance drops proposal-era sections', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);

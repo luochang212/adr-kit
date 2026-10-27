@@ -321,10 +321,11 @@ export function writeRecord(root: string, folder: AdrFolder, fileName: string, c
       const collision = existsSync(dir)
         ? readdirSync(dir).find((entry) => {
             if (!entry.endsWith('.md') || Number(entry.match(/^(\d+)-/)?.[1]) !== number) return false;
-            // Retirement stages the archive alongside the same source name.
-            // Keep archived re-writes available to the retirement boundary;
-            // new implemented decisions must never overwrite existing bytes.
-            return !(folder === 'archived' && entry === fileName);
+            // Retirement may stage alongside its implemented source, but must
+            // never replace an archive another move already staged. Otherwise
+            // that move's rollback could delete this writer's only copy even
+            // when both writers generated identical bytes.
+            return !(folder === 'archived' && candidateFolder === 'implemented' && entry === fileName);
           })
         : undefined;
       if (collision !== undefined) {
@@ -335,7 +336,7 @@ export function writeRecord(root: string, folder: AdrFolder, fileName: string, c
     }
     // A removed lifecycle folder is recreated on write.
     mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, content, folder === 'implemented' ? { flag: 'wx' } : undefined);
+    writeFileSync(path, content, { flag: 'wx' });
     return path;
   } finally {
     closeSync(lock);

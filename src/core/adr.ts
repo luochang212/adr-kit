@@ -70,6 +70,7 @@ export function todayStamp(): string {
 
 export interface AdrSection {
   heading: string;
+  /** Raw Markdown, including comments; validate applies the lifecycle's written-content requirements. */
   body: string;
 }
 
