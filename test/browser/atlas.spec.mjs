@@ -89,6 +89,14 @@ for (const { language, file } of SITE_PREVIEW_PAGES) {
       await expect(page.locator('html')).toHaveAttribute('data-atlas-theme', theme);
       await page.goBack();
     }
+    // The Signal card title speaks the theme's own mono voice, so the gallery
+    // keeps advertising what the theme actually looks like.
+    const voice = await page.locator('.signal h2').evaluate(el => {
+      const style = getComputedStyle(el);
+      return { family: style.fontFamily, weight: style.fontWeight };
+    });
+    expect(voice.family).toContain('monospace');
+    expect(voice.weight).toBe('600');
     for (const width of [1280, 1920, 768, 375, 320]) {
       await page.setViewportSize({ width, height: 800 });
       await page.evaluate(() => scrollTo(0, 0));

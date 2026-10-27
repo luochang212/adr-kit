@@ -53,7 +53,7 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
 <meta name="description" content="${copy.lede} ${copy.note}">
 <link rel="icon" type="image/svg+xml" href="${favicon}">
 <style>
-  :root { color-scheme:light; --paper:#eeeade; --ink:#23251f; --muted:#5d6056; --accent:#b63620; --rule:#c6c5b8; --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; --serif:Georgia,"Songti SC","STSong",serif; font-family:var(--sans); color:var(--ink); background:var(--paper); }
+  :root { color-scheme:light; --paper:#eeeade; --ink:#23251f; --muted:#5d6056; --accent:#b63620; --rule:#c6c5b8; --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; --serif:Georgia,"Songti SC","STSong",serif; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-family:var(--sans); color:var(--ink); background:var(--paper); }
   * { box-sizing:border-box; }
   body { margin:0; min-block-size:100dvh; display:flex; flex-direction:column; }
   a { color:inherit; text-underline-offset:.3em; }
@@ -80,7 +80,7 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
   .card-heading { text-decoration:none; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-block:.35rem .5rem; position:relative; z-index:1; padding:0; pointer-events:none; }
   h2 { margin:0; font-size:var(--title-size); font-weight:400; line-height:.88; letter-spacing:-.06em; }
   .folio h2 { font-family:var(--serif); font-style:italic; }
-  .signal h2 { font-weight:650; letter-spacing:-.085em; }
+  .signal h2 { font-family:var(--mono); font-weight:600; letter-spacing:-.04em; font-size:calc(var(--title-size)*.85); }
   .preview { display:block; border:1px solid var(--card-rule); --shadow-color:#b63620; --shadow-x:.8rem; --shadow-y:1.4rem; --shadow-spread:-.6rem; box-shadow:calc(var(--shadow-x) + var(--shadow-shift,0rem)) calc(var(--shadow-y) + var(--shadow-shift,0rem)) 0 var(--shadow-spread) var(--shadow-color); transition:box-shadow .25s ease; inline-size:100%; min-inline-size:0; position:relative; }
   .preview img { display:block; inline-size:100%; block-size:auto; }
   .preview:focus-visible { --shadow-shift:.4rem; }
@@ -98,7 +98,7 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
   .folio .card-heading { margin-inline-start:-.5rem; transform:rotate(-5deg); margin-block:.3rem -.2rem; }
   .signal .card-heading { margin-inline-start:0; margin-block:.4rem .75rem; }
   .folio .preview { margin-inline-start:2rem; max-inline-size:calc(100% - 2rem); inline-size:min(calc(100% - 2rem),max(12rem,calc((100dvh - 25rem)*1.5))); transform:rotate(2deg); margin-block:calc(var(--title-size)*-.5) 1.6rem; }
-  .signal .preview { inline-size:min(100%,max(12rem,calc((100dvh - 25rem)*1.5))); margin-inline-start:-.5rem; transform:rotate(-3deg); margin-block:calc(var(--title-size)*-.5) 1.6rem; --shadow-color:#35423c; --shadow-x:.7rem; --shadow-y:.9rem; --shadow-spread:-.3rem; }
+  .signal .preview { inline-size:min(100%,max(12rem,calc((100dvh - 25rem)*1.5))); margin-inline-start:-.5rem; transform:rotate(-3deg); margin-block:calc(var(--title-size)*-.425) 1.6rem; --shadow-color:#35423c; --shadow-x:.7rem; --shadow-y:.9rem; --shadow-spread:-.3rem; }
   .folio .card-actions { margin-inline-start:2rem; }
   .signal .card-actions { margin-inline-start:-.5rem; }
   .mobile-nav { display:none; }
@@ -115,7 +115,7 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
     .stage { display:flex; align-items:stretch; overflow-x:auto; scroll-snap-type:x mandatory; scroll-padding-inline:1rem; background:var(--paper); gap:.75rem; padding:0 1rem; }
     .theme-card { flex:0 0 92%; min-inline-size:0; padding:1rem; scroll-snap-align:start; background:#f5f1e7; }
     .signal { background:#14201e; }
-    h2 { font-size:clamp(4rem,1rem + 17vw,6rem); }
+    .theme-card { --title-size:clamp(4rem,1rem + 17vw,6rem); }
     .signal .card-heading,.folio .card-heading { margin:.5rem 0; transform:none; }
     .folio .preview,.signal .preview { max-inline-size:100%; inline-size:100%; min-inline-size:0; transform:none; margin:.75rem 0 1rem; --shadow-color:var(--card-accent); --shadow-x:.4rem; --shadow-y:.5rem; --shadow-spread:-.2rem; }
 
