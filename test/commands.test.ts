@@ -365,6 +365,34 @@ describe('propose and implement', () => {
     expect(listProposals(root)[0]!.raisedBy).toBeUndefined();
   });
 
+  it('warns when the implement rewrite drops prose between the title and the first section', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillDraft(root);
+    const draft = readFileSync(file, 'utf8');
+    writeFileSync(
+      file,
+      draft.replace('# ADR: Use SQLite\n', '# ADR: Use SQLite\n\nA hand-written preamble worth keeping.\n'),
+    );
+    const output = implementCommand('Use SQLite', root, 'human', 'human');
+    expect(output).toContain('warning: dropped prose between the title and the first section');
+    const implemented = readFileSync(join(root, 'adr', 'implemented', '1-use-sqlite.md'), 'utf8');
+    expect(implemented).not.toContain('hand-written preamble');
+  });
+
+  it('does not warn when only a comment sits between the title and the first section', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const file = fillDraft(root);
+    const draft = readFileSync(file, 'utf8');
+    writeFileSync(
+      file,
+      draft.replace('# ADR: Use SQLite\n', '# ADR: Use SQLite\n\n<!-- draft note only -->\n'),
+    );
+    const output = implementCommand('Use SQLite', root, 'human', 'human');
+    expect(output).not.toContain('warning: dropped prose');
+  });
+
   it('rejects a draft and leaves no record', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);

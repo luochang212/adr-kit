@@ -176,6 +176,11 @@ describe('the option spec table is the whole CLI surface', () => {
     expect(help).toContain('adrkit -h, --help');
     expect(help).toContain('adrkit -V, --version');
   });
+
+  it('describes --tag in terms of tags, not themes', () => {
+    // The help wraps at 80 columns, so the phrase may span lines.
+    expect(helpText().replace(/\s+/g, ' ')).toContain('--tag filters to one tag keyword');
+  });
 });
 
 describe('positional arity', () => {

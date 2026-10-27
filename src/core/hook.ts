@@ -36,6 +36,14 @@ function isRecordPath(path: string): boolean {
   return parts.length === 2 && (FOLDERS as readonly string[]).includes(parts[0]!);
 }
 
+/** The stable decision number of a numbered record path, if it carries one. */
+function numberedPath(path: string): number | undefined {
+  const parts = path.slice(ADR_DIR.length + 1).split('/');
+  if (parts.length !== 2 || (parts[0] !== 'implemented' && parts[0] !== 'archived')) return undefined;
+  const match = parts[1]!.match(/^(\d+)-/);
+  return match === null ? undefined : Number(match[1]);
+}
+
 function hooksDir(root: string): string {
   const out = git(root, ['rev-parse', '--git-path', 'hooks']).trim();
   return isAbsolute(out) ? out : resolve(root, out);
@@ -88,10 +96,29 @@ export function hookCheck(cwd: string): HookCheckResult {
     if (record.number !== undefined) byNumber.set(record.number, record);
   }
 
-  for (const path of staged) {
-    if (!isRecordPath(path)) continue;
+  const stagedRecordPaths = staged.filter((path) => isRecordPath(path));
+  // Numbers that survive elsewhere in this commit: a rename stages the old
+  // path's deletion and the new path's addition, and the number never leaves
+  // the index. Only a deletion with no staged successor erases the number.
+  const keptNumbers = new Set<number>();
+  for (const path of stagedRecordPaths) {
+    const number = numberedPath(path);
+    if (number !== undefined && stagedText(root, prefix, path) !== undefined) keptNumbers.add(number);
+  }
+
+  for (const path of stagedRecordPaths) {
     const text = stagedText(root, prefix, path);
-    if (text === undefined) continue;
+    if (text === undefined) {
+      const number = numberedPath(path);
+      if (number !== undefined && !keptNumbers.has(number)) {
+        issues.push({
+          path,
+          message:
+            'staged deletion of a numbered decision; decisions are never deleted — retire it with "adrkit archive" or "adrkit supersede" instead',
+        });
+      }
+      continue;
+    }
     let record: AdrRecord;
     try {
       record = parseAdrText(text, join(root, path));

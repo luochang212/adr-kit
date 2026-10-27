@@ -86,6 +86,18 @@ function writer(root: string, action: string, title: string, pause = false) {
   return { paused, done };
 }
 
+describe('unnumbered record writes', () => {
+  it('refuses to overwrite an existing proposed or rejected record', () => {
+    const root = mkdtempSync(join(fixtures, 'unnumbered-'));
+    initCommand(root);
+    writeRecord(root, 'proposed', '2026-01-01-use-sqlite.md', 'first\n');
+    expect(() => writeRecord(root, 'proposed', '2026-01-01-use-sqlite.md', 'second\n')).toThrow(
+      /already exists/,
+    );
+    expect(readFileSync(join(root, 'adr/proposed/2026-01-01-use-sqlite.md'), 'utf8')).toBe('first\n');
+  });
+});
+
 describe('concurrent decision writes', () => {
   it.each(['different title', 'same title', 'implement'])('rejects a competing %s writer and permits retry', async (scenario) => {
     const root = mkdtempSync(join(fixtures, 'repo-'));

@@ -192,6 +192,30 @@ describe('pre-commit hook management', () => {
     expect(result.output).toContain('cites ADR 99, which does not exist');
   });
 
+  it('fails on a staged deletion of a numbered decision', () => {
+    const root = makeRepo();
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
+    git(root, 'add', '-A');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
+    git(root, 'rm', '-q', 'adr/implemented/1-test.md');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('adr/implemented/1-test.md: staged deletion of a numbered decision');
+    expect(result.output).toContain('"adrkit archive"');
+  });
+
+  it('allows a staged rename that keeps the decision number', () => {
+    const root = makeRepo();
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
+    git(root, 'add', '-A');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
+    git(root, 'mv', 'adr/implemented/1-test.md', 'adr/implemented/1-renamed.md');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(true);
+  });
+
   it('reads the staged blob, not the working tree', () => {
     const root = makeRepo();
     write(join(root, 'src', 'a.ts'), `${cite(99)}export const a = 1;\n`);

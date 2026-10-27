@@ -1,4 +1,4 @@
-import { rmSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import type { AdrRecord } from './adr.js';
 import {
@@ -27,10 +27,23 @@ export function retireRecord(
   try {
     removeRecord(record);
   } catch (error) {
-    rmSync(join(folderPath(root, 'archived'), record.fileName), { force: true });
+    const staged = join(folderPath(root, 'archived'), record.fileName);
+    // Roll back only bytes this call staged: a concurrent move may have
+    // staged its own record under the same name after ours, and deleting
+    // that would lose the only copy of a record.
+    let rolledBack = true;
+    try {
+      if (readFileSync(staged, 'utf8') !== content) rolledBack = false;
+    } catch {
+      rolledBack = false;
+    }
+    if (rolledBack) rmSync(staged, { force: true });
     const detail = error instanceof Error ? error.message : String(error);
+    const kept = rolledBack
+      ? ''
+      : ` The staged adr/archived/${record.fileName} was left in place: its bytes no longer match this move.`;
     throw new Error(
-      `staged adr/archived/${record.fileName}, but removing the implemented source failed: ${detail}`,
+      `staged adr/archived/${record.fileName}, but removing the implemented source failed: ${detail}.${kept}`,
       { cause: error },
     );
   }

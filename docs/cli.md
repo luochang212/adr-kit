@@ -56,7 +56,8 @@ options fail rather than being ignored. Positional arguments follow each
 command's synopsis: `record`, `propose`, and `note` join unquoted shell words
 into one title or text, so quoting is optional; every other command takes at
 most the positional arguments its synopsis shows, and extras fail rather than
-being ignored. `--raised-by` says who introduced
+being ignored. Command output and error messages are English only; `--lang`
+affects only the atlas page. `--raised-by` says who introduced
 a shipped choice; `--decided-by` says whose judgment settled it. Both are
 declarations, not CLI inferences. `--reason` is required for rejection and
 archival. The CLI cannot verify that code shipped or another authoritative
@@ -86,19 +87,20 @@ Per record, in every mode, including archived records.
 - `paths` (when present): non-empty, repository-relative, forward slashes,
   no `..`, no duplicates, and every static directory anchor (or full literal
   path) still exists in the repository.
-- Sections: the required headings per status exist without duplicates.
-  `Problem`, `Decision`/`Proposal`, and `Alternatives considered` require
-  written content; `Consequences`, `Acceptance criteria`, and `Risks` require
-  headings but may have empty bodies.
+- Sections: the required headings per status exist without duplicates, and
+  every required section carries written content: `Problem`, `Decision`/
+  `Proposal`, `Alternatives considered`, and `Consequences` for a decision;
+  `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`,
+  and `Risks` for a proposal. HTML comments and fenced code do not count.
 - Folder consistency: implemented records are `N-slug.md` with title
   `# ADR: N <title>`, matching numbers, `raised-by` and `decided-by`, and no
   proposal-era sections; proposals are dated `YYYY-MM-DD-slug.md`, unnumbered,
   with no provenance fields; `superseded` names another decision; archive
   metadata appears only in `archived/`.
 - Body references (`ADR-12`, `ADR 4`, or `ADR12`) in visible prose resolve to
-  existing decisions; text inside fenced code or HTML comments is not a
-  reference, and forward references to numbers not yet assigned to proposals
-  fail too.
+  existing decisions; a word that merely contains ADR (like `MADR-12`) is not
+  a reference, text inside fenced code or HTML comments is not a reference,
+  and forward references to numbers not yet assigned to proposals fail too.
 - `### Later changes` entries in implemented records open with
   `**Amended by ADR N:**`; a trailing `ADR N later` block, a block that
   loses the opening, or ordinary text before the first entry fails, while a

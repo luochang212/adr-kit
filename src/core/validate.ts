@@ -210,7 +210,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
     ) {
       issues.push({ path, message: `status "${record.status}" is not valid in ${record.folder}/` });
     }
-    issues.push(...sectionIssues(path, record.sections, DECISION_REQUIRED, ['Problem', 'Decision']));
+    issues.push(...sectionIssues(path, record.sections, DECISION_REQUIRED, ['Problem', 'Decision', 'Consequences']));
     for (const heading of PROPOSAL_ERA_HEADINGS) {
       if (record.sections.some((section) => section.heading === heading)) {
         issues.push({ path, message: `implemented record must not contain proposal-era section "## ${heading}"` });
@@ -238,7 +238,13 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
     const required = record.folder === 'rejected'
       ? ['Problem', 'Proposal', 'Alternatives considered']
       : PROPOSED_REQUIRED;
-    issues.push(...sectionIssues(path, record.sections, required, ['Problem', 'Proposal']));
+    // Alternatives considered is checked for written content below; the rest
+    // of the required skeleton must be filled in too — validate fails on fresh
+    // proposals until every required section carries written content.
+    const meaningful = record.folder === 'rejected'
+      ? ['Problem', 'Proposal']
+      : ['Problem', 'Proposal', 'Acceptance criteria', 'Risks'];
+    issues.push(...sectionIssues(path, record.sections, required, meaningful));
   }
 
   if (record.folder === 'implemented') {
@@ -557,8 +563,9 @@ function danglingReferenceIssues(
   decisions: Map<number, AdrRecord>,
 ): ValidationIssue[] {
   // The same visible-prose vocabulary the decision map mines: `ADR-12`,
-  // `ADR 4`, `ADR12`.
-  const pattern = /ADR-?\s*([1-9]\d*)/g;
+  // `ADR 4`, `ADR12`. The lookbehind keeps terms that merely contain ADR —
+  // "MADR-12" and the like — out of the reference vocabulary.
+  const pattern = /(?<![A-Za-z])ADR-?\s*([1-9]\d*)/g;
   const numbers = new Set<number>();
   const text = visibleRecordText(record);
   let match: RegExpExecArray | null;

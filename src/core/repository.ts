@@ -79,6 +79,13 @@ Never delete a numbered decision: its stable N may be referenced elsewhere.
 Implemented records may refresh factual paths, symbols, and defaults, but a
 changed choice needs a new record. Archive or supersede rather than erase it.
 
+If a numbered record was created by mistake before anything cites it, removing
+it is a Git operation, not a lifecycle move: git rm it in a commit that also
+removes or updates anything citing the number, and say why in the commit
+message. The pre-commit hook flags such a removal; treat that as the moment to
+double-check nothing references it. The record survives in Git history, as
+every archived record does.
+
 The canonical header includes status, date, and created: YYYY-MM-DD (the
 birth date, never re-stamped). Numbered records declare raised-by: human | agent
 and decided-by: human | agent; these are provenance declarations, not proof
@@ -279,7 +286,17 @@ export function writeRecord(root: string, folder: AdrFolder, fileName: string, c
     : null;
   if (numberMatch === null) {
     mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, content);
+    // Exclusive creation backs the callers' existsSync pre-check through the
+    // race window: two concurrent writers of the same unnumbered name must
+    // not overwrite each other's draft.
+    try {
+      writeFileSync(path, content, { flag: 'wx' });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
+        throw new Error(`record already exists: ${relative(root, path)}`);
+      }
+      throw error;
+    }
     return path;
   }
 

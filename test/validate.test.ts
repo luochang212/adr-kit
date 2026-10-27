@@ -114,6 +114,77 @@ Body.
     expect(result.output).toContain('must contain at least one written alternative');
   });
 
+  it('fails an implemented record whose Consequences keeps only the template comment', () => {
+    const root = makeRepo();
+    const content = `---
+status: implemented
+date: 2026-08-19
+raised-by: human
+decided-by: human
+created: 2026-08-19
+---
+
+# ADR: 1 First
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- **Other**: rejected.
+
+## Consequences
+
+<!-- what the trade-off cost and bought -->
+`;
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Consequences" must contain written content');
+  });
+
+  it('fails a proposal whose Acceptance criteria and Risks keep only template comments', () => {
+    const root = makeRepo();
+    const content = `---
+status: proposed
+date: 2026-08-19
+created: 2026-08-19
+---
+
+# ADR: Use SQLite
+
+## Problem
+
+We need durable local storage.
+
+## Proposal
+
+Use SQLite.
+
+## Alternatives considered
+
+- **JSON files**: rejected because they do not scale for queries.
+
+## Acceptance criteria
+
+<!-- what done means -->
+
+## Risks
+
+<!-- what could go wrong -->
+`;
+    writeFileSync(join(folderPath(root, 'proposed'), '2026-08-19-use-sqlite.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Acceptance criteria" must contain written content');
+    expect(result.output).toContain('section "## Risks" must contain written content');
+  });
+
   it('detects duplicate decision numbers', () => {
     const root = makeRepo();
     const content = `---
@@ -839,6 +910,26 @@ created: 2026-08-19
 });
 
 describe('body references', () => {
+  it('does not mine a term that merely contains ADR, like MADR-12', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-first.md'),
+      decision('1 First', ACCEPTED).replace('Body.', 'We write records in MADR-12 format today.'),
+    );
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('still mines a reference that follows punctuation', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-first.md'),
+      decision('1 First', ACCEPTED).replace('Body.', 'See (ADR 99) for the follow-up.'),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('body references decision 99, which does not exist');
+  });
+
   it('flags a body reference to a decision that does not exist', () => {
     const root = makeRepo();
     writeFileSync(

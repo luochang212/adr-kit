@@ -1,4 +1,4 @@
-import { existsSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { hasMeaningfulBody, parseAdrText, section, type DecidedBy, type RaisedBy } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
@@ -62,7 +62,13 @@ export function implementCommand(
     // The staged decision is rolled back so re-running the command cannot
     // allocate a second number for the same proposal; the proposal itself is
     // untouched. Same boundary retireRecord holds for archive and supersede.
-    rmSync(path, { force: true });
+    // Roll back only bytes this call staged: a concurrent move may have
+    // staged its own record under the same name after ours.
+    try {
+      if (readFileSync(path, 'utf8') === content) rmSync(path, { force: true });
+    } catch {
+      // A file we cannot read back is not ours to delete.
+    }
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(
       `staged adr/implemented/${fileName}, but removing the proposal failed: ${detail}. The proposal is still in adr/proposed/; resolve the error and run implement again`,
@@ -70,6 +76,9 @@ export function implementCommand(
     );
   }
   let output = `implemented adr/proposed/${proposal.fileName} as adr/implemented/${fileName}`;
+  if (proposal.introProse !== undefined) {
+    output += '\nwarning: dropped prose between the title and the first section; move it under a section to keep it';
+  }
   const dropped = droppedSections(proposal);
   if (dropped.length > 0) {
     output += `\nwarning: dropped section(s) with no place in an implemented decision: ${dropped

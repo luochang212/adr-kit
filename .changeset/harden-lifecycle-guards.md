@@ -1,0 +1,5 @@
+---
+'adr-kit': minor
+---
+
+Harden the lifecycle guards surfaced by a whole-repo review. The pre-commit hook now blocks a staged deletion of a numbered decision — a rename that keeps the number still passes — and points at `adrkit archive`/`adrkit supersede` instead. `adrkit validate` requires written content in `## Consequences` for implemented records and in `## Acceptance criteria` and `## Risks` for proposals, matching the "fresh templates fail until filled" promise. `adrkit implement` warns when prose between the title and the first section is dropped by the promotion rewrite. Reference mining ignores a word that merely contains ADR (such as `MADR-12`), so mentioning a format no longer blocks promotion with a misleading dangling-reference error. Writing the same unnumbered record name concurrently now fails with "record already exists" instead of silently overwriting the other draft, and a lifecycle-move rollback only removes the staged bytes it wrote itself, so a concurrent move staging under the same archived name can no longer lose the only copy of a record.

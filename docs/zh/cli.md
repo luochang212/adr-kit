@@ -75,16 +75,17 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
 - `tags`（存在时）：非空、小写 kebab-case、不重复。
 - `paths`（存在时）：非空、仓库相对、正斜杠、不含 `..`、不重复，且每个
   静态目录锚点（无通配符时为完整路径）在仓库中仍然存在。
-- 小节：按状态要求的必备标题齐全、不重复。`Problem`、`Decision`/`Proposal`
-  和 `Alternatives considered` 必须有实际内容；`Consequences`、
-  `Acceptance criteria`、`Risks` 必须有标题，但正文可以为空。
+- 小节：按状态要求的必备标题齐全、不重复，且每个必备小节都有实际内容：
+  决策要求 `Problem`、`Decision`/`Proposal`、`Alternatives considered` 和
+  `Consequences`；提案要求 `Problem`、`Proposal`、`Alternatives considered`、
+  `Acceptance criteria` 和 `Risks`。HTML 注释与代码围栏内的文本不算内容。
 - 目录一致性：implemented 记录为 `N-slug.md`、标题 `# ADR: N <标题>`、
   编号一致、声明 `raised-by` 与 `decided-by`、不含提案期小节；提案为
   `YYYY-MM-DD-slug.md`、无编号、无来源字段；`superseded` 指向另一条决策；
   归档元数据只出现在 `archived/`。
 - 正文引用（`ADR-12`、`ADR 4`、`ADR12`）只从读者可见的散文中挖掘并须指向
-  存在的决策；代码围栏或 HTML 注释内的文本不算引用，对提案尚未
-  取得编号的前向引用也会失败。
+  存在的决策；仅包含 ADR 字样的词（如 `MADR-12`）不算引用，代码围栏或
+  HTML 注释内的文本不算引用，对提案尚未取得编号的前向引用也会失败。
 - implemented 记录的 `### Later changes` 条目以 `**Amended by ADR N:**`
   开头；以 `ADR N later` 开头的尾注段落、丢失开头的条目，或首条合法条目之前
   的普通正文会失败，承接上一条的普通段落不受影响。

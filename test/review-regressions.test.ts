@@ -25,7 +25,7 @@ function repo(): string {
   roots.push(root); initRepository(root); return root;
 }
 const decision = (n: number, scope?: string) => `---\nstatus: implemented\ndate: 2026-10-20\nraised-by: human\ndecided-by: human\ncreated: 2026-10-20\n${scope ? `paths: [${JSON.stringify(scope)}]\n` : ''}---\n\n# ADR: ${n} Choice\n\n## Problem\nStorage.\n\n## Decision\nUse SQLite.\n\n## Alternatives considered\nJSON.\n\n## Consequences\nLocal files.\n`;
-const proposal = (extra = '') => `---\nstatus: proposed\ndate: 2026-10-20\ncreated: 2026-10-20\n---\n\n# ADR: Choice\n\n## Problem\nStorage.\n\n## Proposal\nUse SQLite.\n\n## Alternatives considered\nJSON.\n\n## Acceptance criteria\n\n## Risks\n\n${extra}`;
+const proposal = (extra = '') => `---\nstatus: proposed\ndate: 2026-10-20\ncreated: 2026-10-20\n---\n\n# ADR: Choice\n\n## Problem\nStorage.\n\n## Proposal\nUse SQLite.\n\n## Alternatives considered\nJSON.\n\n## Acceptance criteria\nSessions survive restart.\n\n## Risks\nNative dependency.\n\n${extra}`;
 function putDecision(root: string, n: number, scope?: string): string {
   const path = join(root, `adr/implemented/${n}-choice.md`);
   fs.writeFileSync(path, decision(n, scope)); return path;
@@ -73,11 +73,18 @@ describe('visible Markdown and promotion', () => {
     expect(fs.readdirSync(join(root, 'adr/implemented'))).toEqual(['.gitkeep']);
   });
 
-  it('keeps the existing content gate: empty optional-content sections still pass', () => {
+  it('fails a proposal whose Acceptance criteria and Risks stay template comments', () => {
     const root = repo(); putProposal(root);
-    expect(validateCommand(root).valid).toBe(true);
-    implementCommand('Choice', root, 'agent', 'human');
-    expect(validateCommand(root).valid).toBe(true);
+    // The filled proposal fixture is the passing half; this keeps the empty
+    // sections behind the same written-content gate as Problem and Proposal.
+    const content = proposal()
+      .replace('## Acceptance criteria\nSessions survive restart.', '## Acceptance criteria\n<!-- what done means -->')
+      .replace('## Risks\nNative dependency.', '## Risks\n<!-- what could go wrong -->');
+    fs.writeFileSync(join(root, 'adr/proposed/2026-10-20-choice.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Acceptance criteria" must contain written content');
+    expect(result.output).toContain('section "## Risks" must contain written content');
   });
 });
 
@@ -177,6 +184,26 @@ describe('movement gates and staged rollback', () => {
     );
     expect(fs.readdirSync(join(root, 'adr/archived'))).toEqual(['.gitkeep']);
     expect(fs.existsSync(path)).toBe(true);
+  });
+
+  it('keeps the staged archived file when its bytes no longer match this move', () => {
+    const root = repo(); const path = putDecision(root, 1);
+    const stagedPath = join(root, 'adr/archived/1-choice.md');
+    // The rollback race: while this command is stuck removing its source,
+    // another writer stages its own move under the same archived name. The
+    // staged bytes then no longer belong to this move and must survive it.
+    vi.mocked(fs.rmSync).mockImplementation((name, ...args) => {
+      if (String(name) === path) {
+        actualFs.writeFileSync(stagedPath, 'another writer staged a different record\n');
+        throw new Error('EACCES removing source');
+      }
+      return actualFs.rmSync(name, ...args);
+    });
+    expect(() => archiveCommand('1', 'no longer needed', root)).toThrow(
+      /staged adr\/archived\/1-choice\.md, but removing the implemented source failed.*left in place/s,
+    );
+    expect(fs.existsSync(stagedPath)).toBe(true);
+    expect(fs.readFileSync(stagedPath, 'utf8')).toBe('another writer staged a different record\n');
   });
 });
 

@@ -74,7 +74,7 @@ every record's text. --format html keeps this full atlas; --out <path> writes
 it to a file instead of stdout. Example: adrkit atlas --format html --out adr.html.
 --map explicitly selects the standalone decision map (HTML by default).
 With --map, --format chooses mermaid, dot, text, or html; --tag filters to one
-theme and --formal-only drops mined edges. Example: adrkit atlas --map --out map.html.
+tag keyword and --formal-only drops mined edges. Example: adrkit atlas --map --out map.html.
 A non-HTML format without --map or --record is rejected, not routed to a map.
 --map and --record are mutually exclusive. --record <name> selects that
 record's deliberation tree, with HTML as its default; --format html|mermaid|text

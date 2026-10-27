@@ -124,6 +124,14 @@ export interface AdrRecord {
   paths?: string[];
   number?: number;
   sections: AdrSection[];
+  /**
+   * Visible prose between the title and the first `## ` section, when any
+   * exists. The parser ignores it when naming sections and the implement
+   * rewrite drops it, so carriers of this field must warn before a lifecycle
+   * move silently loses it (the context comment propose injects here is an
+   * HTML comment and never counts).
+   */
+  introProse?: string;
   /** Front matter keys outside the canonical set; validate reports them. */
   frontMatterExtras?: string[];
 }
@@ -496,6 +504,7 @@ export function parseAdrText(text: string, filePath: string): AdrRecord {
 
   const sections: AdrSection[] = [];
   let current: AdrSection | null = null;
+  const intro: string[] = [];
   for (const scanned of markdownLines(body.slice(3).join('\n'))) {
     const line = scanned.raw;
     if (!scanned.code && scanned.visible.startsWith('## ')) {
@@ -514,6 +523,10 @@ export function parseAdrText(text: string, filePath: string): AdrRecord {
       current = { heading, body: trailing.trim().length > 0 ? `${trailing}\n` : '' };
     } else if (current !== null) {
       current.body += `${line}\n`;
+    } else {
+      // Nothing is collected into a section here, but visible prose a reader
+      // can see must not vanish silently on a lifecycle move: remember it.
+      intro.push(line);
     }
   }
   if (current !== null) sections.push(current);
@@ -543,6 +556,9 @@ export function parseAdrText(text: string, filePath: string): AdrRecord {
   if (extras.length > 0) parsed.frontMatterExtras = extras;
   if (numberMatch !== null) {
     parsed.number = Number(numberMatch[1]);
+  }
+  if (hasMeaningfulBody(intro.join('\n'))) {
+    parsed.introProse = intro.join('\n').trim();
   }
   return parsed;
 }
