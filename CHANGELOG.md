@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.29.0
+
+### Minor Changes
+
+- fe8b6b0: Weight the random theme default toward Signal: omitting `--theme`, or passing `--theme random`, now rolls Folio 30% and Signal 70% once at generation (ADR 42). Refine the Signal archive desk with shuffled files, exhaustion reset, and a native modal left reader that keeps keyboard focus out of the background. Preserve Folio's first-screen layout, hide map legends on narrow screens, and display record and question numbers without leading zeros. Keep installed visualization guidance and templates in sync.
+
+### Patch Changes
+
+- c32f1c7: Give the Signal theme card its own voice in the gallery: the card title now uses the same monospace stack as the Signal atlas hero (weight 600) instead of a heavy generic sans, sized to keep the pair with Folio's italic serif balanced.
+- 3a04a9b: Turn off the mobile browser's native tap highlight across the generated atlas, decision map and deliberation tree pages: tapping the archive desk files, map nodes and other full-bleed controls no longer flashes the whole element with the default translucent overlay on touch devices. Tap feedback comes from the page's own states.
+- 4421052: Reserve the theme gallery screenshots' true aspect ratio: the published gallery reads each PNG's intrinsic size from its header and declares it as the image's width and height, so the preview cards no longer jump into place when the images decode on a phone.
+- af9f29b: Make the Signal hero archive answer a buried file's click: it now tugs toward the exit and settles back into the stack instead of flashing a barely visible highlight, teaching that only the top sheet leaves the deck. Reduced motion keeps the opacity flash.
+
 ## 0.28.0
 
 ### Minor Changes
