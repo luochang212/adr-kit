@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.30.0
+
+### Minor Changes
+
+- a575b1c: Harden the lifecycle guards surfaced by a whole-repo review. The pre-commit hook now blocks a staged deletion of a numbered decision — a rename that keeps the number still passes — and points at `adrkit archive`/`adrkit supersede` instead. `adrkit validate` requires written content in `## Consequences` for implemented and archived records and in `## Acceptance criteria` and `## Risks` for proposals, matching the "fresh templates fail until filled" promise. `adrkit implement` warns when prose between the title and the first section is dropped by the promotion rewrite. Reference mining ignores a word that merely contains ADR (such as `MADR-12`), so mentioning a format no longer blocks promotion with a misleading dangling-reference error. Writing the same unnumbered record name concurrently now fails with "record already exists" instead of silently overwriting the other draft. Archive staging also uses exclusive creation: a competing move cannot replace an already staged or completed archive, including an identical one, so a failed move cannot roll back another move's only copy. The rollback content check additionally preserves intervening manual edits; it is not an ownership test or a guarantee against arbitrary filesystem races.
+  
+  `adrkit reject` checks the rejected record's requirements, so declining a proposal does not require completing its acceptance criteria or risks. Existing notes are preserved.
+  
+  Breaking validation change after 0.29.0: previously valid empty sections now fail with a named written-content error. Run `adrkit validate --all` and have the author fill in the actual consequences, acceptance criteria, and risks. This requires substantive input rather than a mechanical migration; do not invent placeholder prose. Explain any archived edits in their commit. The bilingual upgrade and record-format references describe the new requirements.
+
 ## 0.29.0
 
 ### Minor Changes
