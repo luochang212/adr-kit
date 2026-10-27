@@ -77,6 +77,14 @@ for (const { language, file } of SITE_PREVIEW_PAGES) {
     for (const { theme, file: target } of SITE_PAGES.filter(entry => entry.language === language)) {
       await expect(page.locator(`.${theme} .open`)).toHaveAttribute('href', target);
       expect(await page.locator(`.${theme} .preview img`).evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
+      // The declared reservation must match the intrinsic ratio, or the cards
+      // shift the moment the image decodes. img.width reads the rendered
+      // width, so the reservation comes from the content attributes.
+      const reserved = await page.locator(`.${theme} .preview img`).evaluate(img => ({
+        declared: Number(img.getAttribute('width')) / Number(img.getAttribute('height')),
+        intrinsic: img.naturalWidth / img.naturalHeight,
+      }));
+      expect(reserved.declared).toBeCloseTo(reserved.intrinsic, 3);
       await page.locator(`.${theme} .open`).click();
       await expect(page.locator('html')).toHaveAttribute('data-atlas-theme', theme);
       await page.goBack();

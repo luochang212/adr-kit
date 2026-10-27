@@ -104,15 +104,26 @@ export async function renderAtlasPages({ theme = 'folio', outDir = defaultOutDir
   };
 }
 
+/** Intrinsic size from the PNG IHDR header, so a reservation can never drift
+ *  from the file it reserves space for. */
+export function pngDimensions(path) {
+  const png = readFileSync(path);
+  return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
+}
+
+/** One gallery screenshot: an inlined data URI sized from its own header. */
+export function screenshotFor(theme, language) {
+  const path = join(root, `assets/decision-atlas-${theme}${language === 'zh' ? '.zh' : ''}.png`);
+  return { src: 'data:image/png;base64,' + readFileSync(path).toString('base64'), ...pngDimensions(path) };
+}
+
 /** Build all public previews before removing obsolete generated HTML files. */
 export async function buildSiteAtlases({ outDir = defaultOutDir } = {}) {
   const results = [];
   for (const theme of SITE_THEMES) results.push(await renderAtlasPages({ theme, outDir }));
   const favicon = 'data:image/svg+xml;base64,' + readFileSync(join(root, 'assets/favicon-light.svg')).toString('base64');
   for (const { language, file } of SITE_PREVIEW_PAGES) {
-    const screenshots = Object.fromEntries(SITE_THEMES.map(theme => [theme,
-      'data:image/png;base64,' + readFileSync(join(root, `assets/decision-atlas-${theme}${language === 'zh' ? '.zh' : ''}.png`)).toString('base64'),
-    ]));
+    const screenshots = Object.fromEntries(SITE_THEMES.map(theme => [theme, screenshotFor(theme, language)]));
     writeFileSync(join(outDir, file), renderThemePreview({
       language, pages: SITE_PAGES, screenshots, favicon,
     }));

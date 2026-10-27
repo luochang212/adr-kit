@@ -1,4 +1,7 @@
-/** Static theme gallery; the actual atlases keep their shared offline template. */
+/** Static theme gallery; the actual atlases keep their shared offline template.
+ *  Each screenshot arrives with its intrinsic size and is declared as the
+ *  img's width and height: a reservation that drifts from the PNG's true
+ *  ratio shifts the cards the moment the image decodes. */
 export function renderThemePreview({ language, pages, screenshots, favicon }) {
   const en = language === 'en';
   const copy = en ? {
@@ -32,11 +35,12 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
     const name = theme === 'folio' ? 'Folio' : 'Signal';
     const label = copy.themes[theme];
     const href = pages.find(page => page.theme === theme && page.language === language).file;
+    const shot = screenshots[theme];
     return `<article id="${theme}" class="theme-card ${theme}" aria-labelledby="${theme}-title">
       <div class="card-meta"><span class="index">0${i + 1}</span><span>${label}</span></div>
       <div class="card-heading"><h2 id="${theme}-title">${name}</h2></div>
       <a class="preview" href="${href}" aria-label="${copy.preview} ${name}">
-        <img src="${screenshots[theme]}" alt="${name} ${en ? 'decision atlas screenshot' : '决策档案截图'}" width="1440" height="960">
+        <img src="${shot.src}" alt="${name} ${en ? 'decision atlas screenshot' : '决策档案截图'}" width="${shot.width}" height="${shot.height}">
       </a>
       <div class="card-actions"><a class="open" href="${href}">${copy.open} ${name}<span aria-hidden="true">↗</span></a>
       </div>
