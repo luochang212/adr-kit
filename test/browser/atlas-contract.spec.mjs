@@ -124,6 +124,16 @@ test('signal: shuffles every file without duplication and deals a fresh round on
 });
 
 test('signal: back cards respond without shifting, opening or consuming files', async ({ page, fixturePages }) => {
+  await page.addInitScript(() => {
+    // Record the tug animation so the gate can await it instead of racing a sampling loop.
+    window.__tug = null;
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (keyframes, options) {
+      const animation = animate.apply(this, [keyframes, options]);
+      if (this.dataset?.depth && this.dataset.depth !== '0') window.__tug = animation;
+      return animation;
+    };
+  });
   await page.goto(fixturePages['signal-en-stack']);
   const colors = await page.locator('.archive-card').evaluateAll(cards => cards.map(card => getComputedStyle(card.querySelector('.archive-sheet')).backgroundColor));
   expect(new Set(colors).size).toBe(1);
@@ -142,11 +152,26 @@ test('signal: back cards respond without shifting, opening or consuming files', 
   await expect.poll(() => back.evaluate(el => getComputedStyle(el.querySelector('.archive-sheet')).backgroundColor)).not.toBe(before.color);
   await expect(back).toHaveCSS('transform', before.transform);
   expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest('.archive-card')?.dataset.depth, point)).toBe('2');
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.mouse.click(point.x, point.y);
   await expect(back).toHaveClass(/is-tapped/);
   await expect(page.locator('#reader')).not.toBeVisible();
   await expect(back).toHaveCSS('transform', before.transform);
+  expect(await page.locator('.archive-card').evaluateAll(cards => cards.map(card => card.dataset.record))).toEqual(['5', '4', '3']);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.mouse.click(point.x, point.y);
+  // The tug lifts the buried file toward the exit and settles it back on rest.
+  const tugged = await page.evaluate(async () => {
+    const card = document.querySelector('.archive-card[data-depth="2"]');
+    const rest = getComputedStyle(card).transform;
+    const animation = window.__tug;
+    if (!animation) return { ran: false, settled: false };
+    await animation.finished.catch(() => {});
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return { ran: true, settled: getComputedStyle(card).transform === rest };
+  });
+  expect(tugged).toEqual({ ran: true, settled: true });
+  await expect(page.locator('#reader')).not.toBeVisible();
   expect(await page.locator('.archive-card').evaluateAll(cards => cards.map(card => card.dataset.record))).toEqual(['5', '4', '3']);
   await page.locator('.archive-card[data-depth="1"]').focus();
   await page.keyboard.press('Enter');

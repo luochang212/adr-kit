@@ -1799,7 +1799,7 @@ const closeReader=()=>{if(!reader.open||reader.classList.contains('closing'))ret
     }
     return files;
   }
-  let remaining = shuffledFiles(), extracting = false;
+  let remaining = shuffledFiles(), extracting = false, tugMotion = null;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const cardFor = r => {
     const card = make('button', 'archive-card');
@@ -1859,10 +1859,25 @@ const closeReader=()=>{if(!reader.open||reader.classList.contains('closing'))ret
     const card = event.target.closest('.archive-card');
     if (!card || extracting || reader.open) return;
     if (card.dataset.depth !== '0') {
-      if (!reducedMotion.matches) {
+      // A buried file tugs toward the exit and settles back: only the top
+      // sheet leaves the stack. Reduced motion keeps the opacity flash.
+      if (reducedMotion.matches) {
         card.classList.remove('is-tapped');
         void card.offsetWidth;
         card.classList.add('is-tapped');
+      } else if (typeof card.animate === 'function') {
+        tugMotion?.cancel();
+        const rest = getComputedStyle(card).transform;
+        const pose = rest === 'none' ? new DOMMatrix() : new DOMMatrix(rest);
+        const shifted = (dx, dy) => new DOMMatrix([pose.a, pose.b, pose.c, pose.d, pose.e + dx, pose.f + dy]).toString();
+        const tug = card.animate([
+          { transform: pose.toString(), easing: 'cubic-bezier(.2,.7,.3,1)' },
+          { transform: shifted(5, -9), offset: .42, easing: 'cubic-bezier(.55,0,.7,.4)' },
+          { transform: shifted(0, 2), offset: .64, easing: 'cubic-bezier(.2,.6,.35,1)' },
+          { transform: pose.toString() },
+        ], { duration: 480 });
+        tugMotion = tug;
+        tug.finished.catch(() => {}).finally(() => { if (tugMotion === tug) tugMotion = null; });
       }
       return;
     }

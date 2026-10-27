@@ -460,6 +460,12 @@ test(`signal / ${language}: hero retains hierarchy and fits desktop and mobile`,
     await expect(page.locator('.archive-summary-label').first()).toHaveText(language === 'en' ? 'DECISION EXTRACT' : '决策摘录');
     const excerpt = decisionExcerpt(firstNumber, await firstCard.getAttribute('data-lifecycle'));
     await expect(page.locator('.archive-excerpt').first()).toContainText(excerpt.slice(0, 60));
+    // A buried file tugs but never leaves the stack: the reader stays closed
+    // and the deck keeps all three sheets.
+    await page.locator('.archive-card[data-depth="1"] .archive-id').click();
+    await expect(page.locator('#reader')).not.toBeVisible();
+    await expect(page.locator('.archive-card')).toHaveCount(3);
+    await expect(page.locator('.archive-card[data-depth="1"]')).toHaveCount(1);
     await expect(page.locator('.page-hero .stats-band')).toHaveCount(1);
     await expect(page.locator('.hero-baseline')).toHaveCount(0);
     if (width === 1440) {
