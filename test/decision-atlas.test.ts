@@ -112,6 +112,15 @@ describe('decision atlas rendering', () => {
     expect(page).not.toContain('old stats');
   });
 
+  it.each([
+    ['en', 'folio'], ['zh', 'folio'], ['en', 'signal'], ['zh', 'signal'],
+  ] as const)('shows localized date-group counts in %s / %s', (language, theme) => {
+    const page = render(live, template, language, theme);
+    const counts = [...page.matchAll(/<text class="date-count"[^>]*>([^<]*)<\/text>/g)]
+      .map(match => match[1]);
+    expect(counts).toEqual(language === 'en' ? ['2 records', '1 record'] : ['2 条', '1 条']);
+  });
+
   it('links map nodes to in-page anchors and pins records to the build commit', () => {
     const page = render(live);
     expect(page).toContain('id="adr-1"');

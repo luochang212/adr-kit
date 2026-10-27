@@ -16,7 +16,8 @@ Use this order, without adding a theme-selection step for the user:
 3. For a new atlas without a clear preference, use `--theme random`, also the
    CLI default. Do not infer a preference from project category, identity or OS.
 
-`src/core/atlas-theme.ts` makes an equal-probability choice once at generation.
+`src/core/atlas-theme.ts` makes a weighted choice once at generation: Folio 30%
+and Signal 70% (ADR 42).
 The resulting HTML stores a concrete identity. Refreshes and OS appearance
 changes do not select again. There is no in-page switch. `--theme` applies only
 to the full atlas; maps and deliberation trees reject it.
@@ -32,8 +33,9 @@ publishes a theme gallery at `index.html` (Chinese) and `en.html`; Folio uses `f
 Astro's prebuild writes both gallery languages and all four atlas pages before
 obsolete generated HTML is removed. The gallery uses the README screenshots
 and links to the actual theme pages; it does not add a theme switch to an atlas.
-The homepage links to the gallery; both READMEs link each theme in the reader's
-language. These public examples do not change the CLI's random default or add
+The homepage opens Signal directly in the reader's language. Both READMEs retain
+the theme gallery entry and link each named theme in the reader's language.
+These public examples do not change the CLI's random default or add
 an in-page theme switch. The browser gate checks all published routes and also
 uses isolated per-theme fixtures for behavioral checks.
 
@@ -69,8 +71,9 @@ formats and character escapes keep their required fixed-width components.
 Presentation differences are intentional: Folio has editorial typography and
 hero actions. Signal opens with a large project heading, a bilingual statement,
 and a stack of up to three actual records, shuffled at the start of each round; active and
-archived records retain their status. The stack uses landscape folder covers on desktop and near-square covers on
-mobile with exposed numbered tabs, the same dark slate paper color on every file;
+archived records retain their status. The stack uses landscape folder covers on desktop and near-square covers where
+mobile space permits; narrow covers may grow taller to preserve readable contents.
+Covers have exposed numbered tabs, the same dark slate paper color on every file;
 there are no edge glows. Asymmetric offsets and opposing rotations expose
 numbered tabs and corners. Shadows vary by height: the bottom sheet stays close
 to the desk, the middle casts a compact shadow, and the top casts a longer,
@@ -108,7 +111,11 @@ keeping the space above and below statistics balanced; the density lower rule
 aligns with the viewport bottom. Only shorter windows tighten vertical spacing;
 type sizes, horizontal proportions and density chart height stay unchanged.
 Mobile stays natural. Short/mobile viewports may scroll
-through taller content. Page entrance and count-up effects stay inside the
+through taller content. Browser checks enforce exact first-screen alignment on
+desktop windows at least 800px tall; shorter windows retain the content grouping,
+full density chart, reachable actions and no horizontal overflow. Reader scroll
+restoration is measured after its trigger is brought into view and focused.
+Page entrance and count-up effects stay inside the
 hero; subsequent sections, density bars and directory cards appear normally.
 Both themes keep the source link in the reader header — Folio as
 a quiet padded control, Signal as its original text link. Colors, card

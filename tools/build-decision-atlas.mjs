@@ -114,7 +114,7 @@ export async function buildSiteAtlases({ outDir = defaultOutDir } = {}) {
       'data:image/png;base64,' + readFileSync(join(root, `assets/decision-atlas-${theme}${language === 'zh' ? '.zh' : ''}.png`)).toString('base64'),
     ]));
     writeFileSync(join(outDir, file), renderThemePreview({
-      language, pages: SITE_PAGES, screenshots, favicon, commit: commit(), repositoryUrl: repositoryUrl(),
+      language, pages: SITE_PAGES, screenshots, favicon,
     }));
   }
   const keep = new Set(SITE_HTML_FILES);

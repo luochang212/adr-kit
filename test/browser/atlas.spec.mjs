@@ -61,7 +61,19 @@ for (const { language, file } of SITE_PREVIEW_PAGES) {
     await page.goto(pathToFileURL(join(process.cwd(), 'site/public/decisions', file)).href);
     await expect(page).toHaveTitle(/ADR Kit/);
     await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('footer a')).toHaveCount(0);
+    await expect(page.locator('footer')).toHaveText(language === 'en'
+      ? 'ADR KitDecision atlas' : 'ADR Kit决策档案');
     await expect(page.locator('.theme-card')).toHaveCount(2);
+    await expect(page.locator('[hreflang]')).toHaveCount(1);
+    await expect(page.locator('header .language')).toHaveAttribute('href', language === 'en' ? 'index.html' : 'en.html');
+    await expect(page.locator('main a[hreflang]')).toHaveCount(0);
+    await expect(page.getByText(/中文预览|English preview/)).toHaveCount(0);
+    await expect(page.locator('.intro p')).toHaveText(language === 'en'
+      ? 'The same complete history. Two ways to explore it.'
+      : '同一段完整历史，两种探索方式。');
+    await expect(page.locator('.card-heading a, a.card-heading, .preview-label')).toHaveCount(0);
+    await expect(page.locator('.card-copy')).toHaveCount(0);
     for (const { theme, file: target } of SITE_PAGES.filter(entry => entry.language === language)) {
       await expect(page.locator(`.${theme} .open`)).toHaveAttribute('href', target);
       expect(await page.locator(`.${theme} .preview img`).evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
@@ -69,13 +81,81 @@ for (const { language, file } of SITE_PREVIEW_PAGES) {
       await expect(page.locator('html')).toHaveAttribute('data-atlas-theme', theme);
       await page.goBack();
     }
-    for (const width of [1280, 375]) {
-      await page.setViewportSize({ width, height: 900 });
+    for (const width of [1280, 1920, 768, 375, 320]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.evaluate(() => scrollTo(0, 0));
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      for (const img of await page.locator('.preview img').all()) {
+        const ratios = await img.evaluate(image => ({
+          source: image.naturalWidth / image.naturalHeight,
+          displayed: image.clientWidth / image.clientHeight,
+        }));
+        expect(ratios.displayed).toBeCloseTo(ratios.source, 2);
+      }
       const boxes = await page.locator('.theme-card').evaluateAll(cards => cards.map(card => ({ x: card.offsetLeft, y: card.offsetTop })));
-      if (width === 375) expect(boxes[1].y).toBeGreaterThan(boxes[0].y);
-      else expect(boxes[1].y).toBe(boxes[0].y);
+      if (width < 760) {
+        expect(boxes[1].x).toBeGreaterThan(boxes[0].x);
+        await page.locator('.mobile-nav a[href="#signal"]').click();
+        await expect(page.locator('.signal .open')).toBeInViewport();
+        await page.locator('.mobile-nav a[href="#folio"]').click();
+      }
+      if (width === 1280 || width === 375) {
+        await test.info().attach(`gallery-${language}-${width}`, {
+          body: await page.screenshot({ fullPage: true }), contentType: 'image/png',
+        });
+      }
+      if (width >= 768) {
+        for (const theme of ['folio', 'signal']) {
+          const coverage = await page.locator('.' + theme).evaluate(card =>
+            card.querySelector('.preview').offsetWidth / card.clientWidth);
+          expect(coverage).toBeGreaterThan(.6);
+        }
+        expect(await page.evaluate(() => document.documentElement.scrollHeight), 'one screen at ' + width).toBeLessThanOrEqual(801);
+        // The gallery is a choice of two previews; both should be visible
+        // before scrolling on a typical desktop, not buried below the hero.
+        for (const preview of await page.locator('.card-actions').all()) {
+          const box = await preview.boundingBox();
+          expect(box.y + box.height).toBeLessThanOrEqual(800);
+        }
+      }
     }
+    for (const [width, height] of [[1366, 768], [1280, 720], [375, 667]]) {
+      await page.setViewportSize({ width, height });
+      expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(height + 1);
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.evaluate(() => document.documentElement.style.fontSize = '200%');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expect(page.locator('.open')).toHaveCount(2);
+    for (const img of await page.locator('.preview img').all()) {
+      await expect(img).toBeVisible();
+      expect(await img.evaluate(el => el.clientWidth)).toBeGreaterThan(100);
+    }
+    await page.evaluate(() => document.documentElement.style.removeProperty('font-size'));
+    await page.setViewportSize({ width: 1280, height: 350 });
+    for (const img of await page.locator('.preview img').all()) {
+      await expect(img).toBeVisible();
+      expect(await img.evaluate(el => el.clientWidth)).toBeGreaterThan(100);
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    for (const preview of await page.locator('.preview').all()) {
+      await page.mouse.move(0, 0);
+      const before = await preview.evaluate(el => ({
+        shadow: getComputedStyle(el).boxShadow,
+        border: getComputedStyle(el).borderColor,
+        transform: getComputedStyle(el).transform,
+      }));
+      await preview.hover();
+      const after = await preview.evaluate(el => ({
+        shadow: getComputedStyle(el).boxShadow,
+        border: getComputedStyle(el).borderColor,
+        transform: getComputedStyle(el).transform,
+      }));
+      expect(after.shadow).not.toBe(before.shadow);
+      expect(after.border).toBe(before.border);
+      expect(after.transform).toBe(before.transform);
+    }
+
     const accessibility = await new AxeBuilder({ page }).analyze();
     expect(accessibility.violations).toEqual([]);
   });
@@ -107,15 +187,18 @@ test(`${theme}: locks the page scrollbar behind the open reader`, async ({ page 
   // and the reserved gutter keeps the toggle from shifting the layout.
   await expect(root).toHaveCSS('scrollbar-gutter', 'stable');
   await expect(root).not.toHaveCSS('overflow-y', 'hidden');
-  const scrollY = await page.evaluate(() => {
-    scrollTo({ top: document.documentElement.scrollHeight / 2, behavior: 'instant' });
-    return window.scrollY;
-  });
-  await page.locator('.decision-card').first().click();
+  const card = page.locator('.decision-card').first();
+  // Navigation to the trigger belongs before the baseline: click/focus can
+  // legitimately scroll an offscreen card into view on another platform.
+  await card.scrollIntoViewIfNeeded();
+  await card.focus();
+  const scrollY = await page.evaluate(() => window.scrollY);
+  await card.click();
   await expect(page.locator('#reader')).toBeVisible();
   await expect(root).toHaveCSS('overflow-y', 'hidden');
   await page.locator('#reader').evaluate(el => { el.scrollTop = 120; });
   await expect(page.locator('#reader')).toHaveCSS('overflow-y', 'auto');
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
   await page.keyboard.press('Escape');
   await expect(page.locator('#reader')).not.toBeVisible();
   await expect(root).not.toHaveCSS('overflow-y', 'hidden');
@@ -344,8 +427,21 @@ test(`signal / ${language}: hero retains hierarchy and fits desktop and mobile`,
       expect(file.ratio).toBeGreaterThan(1.35);
       expect(layout.ledgerLeft - layout.headingRight).toBeLessThanOrEqual(48);
     } else if (width <= 760) {
-      expect(file.ratio).toBeGreaterThan(.9);
-      expect(file.ratio).toBeLessThan(1.15);
+      // Narrow covers may grow vertically to fit their contents. Check the
+      // readable surface rather than forcing a platform-dependent ratio.
+      const surface = page.locator('.archive-card[data-depth="0"] .archive-sheet');
+      const content = await surface.evaluate(sheet => {
+        const box = sheet.getBoundingClientRect();
+        const title = sheet.querySelector('.archive-title').getBoundingClientRect();
+        const footer = sheet.querySelector('.archive-card-bottom').getBoundingClientRect();
+        return {
+          fits: sheet.scrollHeight <= sheet.clientHeight + 1,
+          horizontal: sheet.scrollWidth <= sheet.clientWidth + 1,
+          titleInside: title.top >= box.top && title.bottom <= box.bottom,
+          footerInside: footer.top >= title.bottom && footer.bottom <= box.bottom,
+        };
+      });
+      expect(content).toEqual({ fits: true, horizontal: true, titleInside: true, footerInside: true });
     }
     expect(file.shadowColor).not.toBe(file.sheetColor);
     await expect(page.locator('.archive-card')).toHaveCount(3);
@@ -402,16 +498,23 @@ for (const theme of ['folio', 'signal']) test(`${theme}: hero ends at the first-
         offset: el.getBoundingClientRect().top - el.closest('.page-hero').getBoundingClientRect().top,
       }));
       if (width > 760) {
-        expect(layout.hero).toBeCloseTo(height, 0);
+        if (height >= 800) expect(layout.hero).toBeCloseTo(height, 0);
         const densityBottom = await page.locator('#overview-view').evaluate(el => el.getBoundingClientRect().bottom);
-        expect(densityBottom).toBeCloseTo(height, 0);
+        expect(densityBottom).toBeCloseTo(layout.hero, 0);
         await expect(page.locator('#density-chart')).toHaveCSS('height', '180px');
       }
       expect(content.offset).toBe(0);
     }
-    if (theme === 'signal' && width > 760) expect(layout.hero).toBeCloseTo(height, 0);
+    if (theme === 'signal' && width > 760 && height >= 800) expect(layout.hero).toBeCloseTo(height, 0);
     else expect(layout.hero).toBeGreaterThanOrEqual(height);
     await expect(page.locator('.stats-inner')).not.toContainText('含');
+    expect(await page.locator('.page-hero').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    if (theme === 'folio' && width > 760 && height < 800) {
+      const action = page.locator('.hero-actions .primary-link');
+      await action.scrollIntoViewIfNeeded();
+      await expect(action).toBeInViewport();
+      await expect(action).toBeVisible();
+    }
   }
 });
 

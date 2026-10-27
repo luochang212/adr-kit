@@ -173,10 +173,9 @@ const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
       </div>
       <p class="graph__caption">{t('graph.caption')}</p>
     </div>
-    {/* The site serves English at the root and Chinese under /zh/; the atlas
-        pages follow that split, with index.html in Chinese and en.html in
-        English. Link the reader's own language. */}
-    <a class="graph__atlas reveal" href={`${import.meta.env.BASE_URL}/decisions/${lang === 'en' ? 'en.html' : 'index.html'}`}>
+    {/* Open the flagship Signal preview in the reader's language:
+        signal.en.html for English, signal.html for Chinese. */}
+    <a class="graph__atlas reveal" href={`${import.meta.env.BASE_URL}/decisions/${lang === 'en' ? 'signal.en.html' : 'signal.html'}`}>
       <span class="graph__atlas-copy">
         <span class="graph__atlas-eyebrow">{t('graph.atlas.eyebrow')}</span>
         <span class="graph__atlas-title">{t('graph.atlas.title')}</span>

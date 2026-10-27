@@ -190,11 +190,12 @@ when command output changes. `tools/build-decision-atlas.mjs` regenerates
 `SITE_PAGES` in that script publishes both themes in both languages: Folio at
 `folio.html` / `folio.en.html`, Signal at `signal.html` / `signal.en.html`.
 `SITE_PREVIEW_PAGES` adds the theme gallery at `index.html` / `en.html`. These pages
-are generated, ignored by Git and pinned to the build commit. The build writes
+are generated and ignored by Git; the four atlas pages are pinned to the build commit. The build writes
 all six before removing obsolete generated HTML. The four atlases share one template and
 translation table (ADR 34), so they stay outside the `ui.ts` copy rule. The
-homepage's atlas link lives in `Graph.astro` and opens the theme gallery; each README links
-both named previews in its own language. Both themes follow
+homepage's atlas link lives in `Graph.astro` and opens Signal in the current language;
+each README keeps the theme gallery entry and both named previews in its own language.
+Both themes follow
 `docs/atlas-themes.md`: behavior is shared and presentation is separate. Theme
 changes must keep the common browser gate passing in both themes and languages,
 including unavailable-module activation and insight height budgets; the gate

@@ -74,6 +74,8 @@ layout and build organization are the agent's implementation choices.
 The public entry now presents a bilingual theme gallery at `index.html` /
 `en.html`; Folio's atlas routes are `folio.html` / `folio.en.html`, while
 Signal's routes are unchanged. `SITE_PREVIEW_PAGES` owns the two gallery routes
-and `SITE_PAGES` retains the four atlases. The homepage opens the gallery;
-README theme names still open their named previews. This route/presentation
+and `SITE_PAGES` retains the four atlases. The homepage now opens Signal directly
+in the reader's language, following the maintainer's choice to make the flagship
+experience the primary entrance (ADR 42). Both READMEs retain the gallery entry;
+their theme names still open the named previews. This route/presentation
 adjustment preserves the publication and CLI selection decisions above.
