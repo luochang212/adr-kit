@@ -261,6 +261,14 @@ for (const language of ['zh', 'en']) {
       await expect(row.locator('.record-pill')).toHaveCount(count);
     }
     await expect(page.locator('.ctx-relations>div')).toHaveCount(visibleRows);
+    // The English label "Referenced by" is longer than the zh labels the fixed
+    // column was sized for; a label must stay on one line in every language.
+    const wrapped = await page.locator('.ctx-relations dt').evaluateAll(labels => labels.map(dt => {
+      const style = getComputedStyle(dt);
+      const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.4;
+      return dt.getBoundingClientRect().height > lineHeight * 1.5;
+    }));
+    expect(wrapped.some(Boolean)).toBe(false);
     const reference = page.locator('.ctx-relations button.record-pill').first();
     const number = (await reference.textContent()).replace('ADR ', '');
     await reference.click();
@@ -613,13 +621,18 @@ for (const theme of ['folio', 'signal']) {
           await expect(rows.nth(index).locator('.record-pill')).toHaveCount(counts[index]);
         }
         const boxes = await rows.evaluateAll(elements => elements.map(el => {
-          const { x, y, height } = el.getBoundingClientRect();
-          return { x, y, height, overflow: el.scrollWidth > el.clientWidth };
+          // The row wrapper is display:contents; the label and value carry the
+          // geometry the fixed label column used to provide.
+          const label = el.querySelector('dt').getBoundingClientRect();
+          const value = el.querySelector('dd');
+          const box = value.getBoundingClientRect();
+          return { x: label.x, y: label.y, height: label.height, valueX: box.x, overflow: value.scrollWidth > value.clientWidth };
         }));
         expect(boxes.every(box => !box.overflow)).toBe(true);
         if (boxes.length === 2) {
           expect(boxes[1].y).toBeGreaterThanOrEqual(boxes[0].y + boxes[0].height);
           expect(boxes[1].x).toBeCloseTo(boxes[0].x, 0);
+          expect(boxes[1].valueX).toBeCloseTo(boxes[0].valueX, 0);
         }
         await expect(page.locator('.reader-head #reader-source')).toBeVisible();
         await page.locator('#close-reader').click();
