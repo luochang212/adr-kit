@@ -14,7 +14,8 @@ const BRAND_MARK = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden=
 
 /** Shared compact shell for both offline viewers. */
 export const CANVAS_STYLE = String.raw`
-:root { font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color: #233c36; background: #f6f8f5; }
+/* Suppress the mobile browser's native tap highlight; touch feedback comes from the page's own states. */
+:root { font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color: #233c36; background: #f6f8f5; -webkit-tap-highlight-color: transparent; }
 * { box-sizing: border-box; }
 body { margin: 0; }
 main { position: relative; }

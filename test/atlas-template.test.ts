@@ -31,6 +31,10 @@ describe('decision-atlas template mirrors the shared contract', () => {
     expect(template).toContain('if (nodes.length === 0) return;');
   });
 
+  it('turns off the native mobile tap highlight at the root', () => {
+    expect(template).toMatch(/:root \{[^}]*-webkit-tap-highlight-color:\s*transparent/);
+  });
+
   it('carries every translation key, so the table holds no dead entries', () => {
     for (const [zh] of ATLAS_EN) {
       expect(template.includes(zh), `translation key "${zh}" no longer appears in the template`).toBe(true);
