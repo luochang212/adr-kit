@@ -88,7 +88,10 @@ export function frontMatter(fields: Record<string, FrontMatterValue>): string {
 }
 
 export function proposalTemplate(title: string, context?: string): string {
-  return `${frontMatter({ status: 'proposed', date: todayStamp(), created: todayStamp() })}
+  // One stamp for both lifecycle dates: crossing midnight between two calls
+  // would make `created` later than `date`, which validation rejects.
+  const stamp = todayStamp();
+  return `${frontMatter({ status: 'proposed', date: stamp, created: stamp })}
 # ADR: ${title}
 
 ${contextBlock(context)}## Problem
@@ -130,10 +133,11 @@ export function decisionTemplate(
   decidedBy: DecidedBy,
   raisedBy: RaisedBy,
 ): string {
+  const stamp = todayStamp();
   const fields: Record<string, string | number> = {
     status: 'implemented',
-    date: todayStamp(),
-    created: todayStamp(),
+    date: stamp,
+    created: stamp,
     'raised-by': raisedBy,
     'decided-by': decidedBy,
   };

@@ -38,7 +38,7 @@ export interface DecisionAtlasOptions {
   /** Name the page gives the project. */
   projectName: string;
   /** Page copy language; generated slot values and the static chrome follow it. */
-  language?: AtlasLanguage;
+  language: AtlasLanguage;
   /** Choose a visual composition once; omitted selection rolls randomly. */
   theme?: AtlasThemeSelection;
 }
@@ -80,9 +80,21 @@ function replaceRecordsSlot(template: string, value: string): string {
   return replaceSlot(template, '/* atlas:records */', '/* /atlas:records */', value, 'records');
 }
 
+/**
+ * The payload's title, without the stable number the page shows separately in
+ * its own chip. The parser keeps the "N " prefix in `record.title` (the H1
+ * carries it), while the template's cards, reader, and sample data expect the
+ * bare title; emitting the prefix here would draw the number twice.
+ */
+function payloadTitle(record: AdrRecord): string {
+  return record.title.replace(/^\d+\s+/, '');
+}
+
 /** Rebuild the readable body from the parsed sections, without front matter. */
 function markdownBody(record: AdrRecord): string {
-  const heading = `\n# ADR: ${record.number} ${record.title}\n`;
+  // `record.title` is the exact H1 text (including "N "), so rebuilding the
+  // heading from it never duplicates the number.
+  const heading = `\n# ADR: ${record.title}\n`;
   const sections = record.sections
     .map((entry) => `\n## ${entry.heading}\n\n${entry.body.trim()}\n`)
     .join('');
@@ -175,7 +187,7 @@ function replacementsNote(archived: AdrRecord[], language: AtlasLanguage): strin
  */
 export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   const { template, graph, commit, projectName } = options;
-  const language = options.language ?? 'zh';
+  const language = options.language;
   const theme = selectAtlasTheme(options.theme);
   const en = language === 'en';
   const repositoryUrl = options.repositoryUrl.replace(/\/$/, '');
@@ -192,10 +204,24 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   const archived = records.filter((record) => record.folder === 'archived');
 
   const numberByPath = new Map(graph.nodes.map((node) => [node.path, node.number]));
+  // The map's own words are generated after the template translation, so the
+  // atlas supplies them here instead of relying on the static chrome table.
+  const mapLabels = en
+    ? {
+        ariaLabel: 'Decision map',
+        archived: 'archived',
+        supersededBy: (number: number) => `superseded by ${number}`,
+      }
+    : {
+        ariaLabel: '决策地图',
+        archived: '已归档',
+        supersededBy: (number: number) => `被 ADR ${number} 替代`,
+      };
   const drawing = renderDecisionMapSvg(graph, {
     recordHref: (recordPath) => `#adr-${numberByPath.get(recordPath)}`,
     nodeId: (number) => `adr-${number}`,
     dateCount: (count) => (en ? `${count} record${count === 1 ? '' : 's'}` : `${count} 条`),
+    labels: mapLabels,
   });
 
   const payload: AtlasRecord[] = records.map((record) => ({
@@ -210,7 +236,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     tags: record.tags ?? [],
     paths: record.paths ?? [],
     number: record.number!,
-    title: record.title,
+    title: payloadTitle(record),
     body: markdownBody(record),
     path: relativePath(record),
     lifecycle: record.folder,
@@ -275,6 +301,10 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   // Folio keeps the original opening's content, statistics and density together.
   // Move the existing section, including its replaceable note, rather than
   // maintaining a second density component for the hero.
+  // Folio moves the whole overview section into the hero. The non-greedy match
+  // assumes that section has no nested <section>; if it ever gains one, give it
+  // a dedicated slot instead of widening this regex. The browser gate covers
+  // the resulting hero and density layout.
   const density = theme === 'folio'
     ? page.match(/<section class="atlas-section" id="overview-view">[\s\S]*?<\/section>/)?.[0]
     : undefined;

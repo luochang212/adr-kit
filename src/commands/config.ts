@@ -11,8 +11,10 @@ export function configCommand(cwd: string): string {
   if (config.context !== undefined && config.context.trim().length > 0) {
     lines.push('context:', config.context.trim(), '');
   }
-  if (config.tools !== undefined && config.tools.length > 0) {
-    lines.push(`tools: ${config.tools.join(', ')}`, '');
+  if (config.tools !== undefined) {
+    // An empty list is the explicit opt-out, not "unset": hiding it would
+    // leave the reader unable to tell the two states apart.
+    lines.push(`tools: ${config.tools.length > 0 ? config.tools.join(', ') : '(none)'}`, '');
   }
   lines.push(`workflows: ${workflows.join(', ')}`, '');
   lines.push(`rules: ${JSON.stringify(config.rules ?? {})}`);

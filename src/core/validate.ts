@@ -106,6 +106,16 @@ function pathsIssues(root: string, path: string, record: AdrRecord): ValidationI
       issues.push({ path, message: `path "${entry}" must use forward slashes` });
       continue;
     }
+    // A directory-looking scope with a trailing slash is a glob for the literal
+    // "src/" name, so it validates (the prefix exists) and then never matches a
+    // file. Point at the pattern that does what the author meant.
+    if (entry.endsWith('/')) {
+      issues.push({
+        path,
+        message: `path "${entry}" must not end with "/"; use "${entry}**" to scope a directory`,
+      });
+      continue;
+    }
     const prefix = staticPrefix(entry);
     if (prefix.length > 0 && !existsSync(join(root, prefix))) {
       issues.push({

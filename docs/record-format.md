@@ -72,8 +72,15 @@ must end at an implemented decision without missing targets or cycles.
 `archive` moves an implemented decision with `archived` and
 `archive-reason`, leaving its status implemented as historical state.
 Archived records retain stable numbers. Optional `tags` are non-empty,
-unique lowercase kebab-case keywords; optional `## Deliberation` preserves
-the deliberation tree. `adrkit validate` checks all four directories and rejects
+unique lowercase kebab-case keywords. Optional `## Deliberation` preserves
+the design tree behind a decision as a nested Markdown list:
+`- Q: <question> [settled]` and `- <option> [rejected] (recommended) — <reason>`,
+with a follow-up nested under the node that raised it. `-`, `*`, and `+` are
+all accepted as bullet markers; `[settled]`, `[rejected]`, and `[open]` are
+the states, `(recommended)` marks the recommendation, and the text after the
+em dash is the reason. Fenced examples and HTML comments are not nodes.
+`adrkit atlas --record <name>` renders the tree; a section with content but no
+list item is reported with the expected shape instead of drawn as empty. `adrkit validate` checks all four directories and rejects
 duplicate numbers, malformed dates, mismatched folder/status pairs, records
 outside the four folders, and dangling ADR references: a record body may
 reference decisions as `ADR-12`, `ADR 4`, or `ADR12`, and a reference to a
@@ -91,8 +98,10 @@ lifecycle posture; archived records are frozen history and are not searched
 by default, and a record without `paths` never matches, because scope retrieval is
 not full-text search. The field survives every lifecycle move and the
 proposal-to-decision promotion. `adrkit validate` rejects an empty or
-duplicate entry, an absolute path, a `..` segment, a backslash, and an
-entry whose static directory anchor does not exist in the repository
+duplicate entry, an absolute path, a `..` segment, a backslash, a trailing
+slash (a directory scope is `src/**`; `src/` matches only the literal name,
+so it would validate and then never match a file), and an entry whose static
+directory anchor does not exist in the repository
 (the complete directory components before the first wildcard, or the full
 literal path when there is no wildcard; `src/cli*.ts` checks `src`). This is the drift check that fails a scope stranded by
 a rename. Archived records are checked the same way; a stale path is a

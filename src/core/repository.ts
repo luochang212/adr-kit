@@ -18,6 +18,8 @@ export const FOLDERS: AdrFolder[] = ['proposed', 'implemented', 'rejected', 'arc
 export interface InitResult {
   root: string;
   created: string[];
+  /** True when an existing adr/ tree was completed instead of created. */
+  repaired?: boolean;
 }
 
 function initConfig(tools: string[], workflows?: string[]): string {
@@ -109,32 +111,68 @@ resolve incomplete-search diagnostics; no match does not mean no constraints.
 Run adrkit validate to check the repository.
 `;
 
+/**
+ * Whether an existing adr/ directory is an unfinished ADR Kit tree that init
+ * may complete: empty (init stopped before its first folder) or carrying at
+ * least one lifecycle folder. Anything else is a foreign directory, and init
+ * keeps refusing rather than adding repository files to it.
+ */
+function repairableAdrRoot(adrRoot: string): boolean {
+  let entries: string[];
+  try {
+    entries = readdirSync(adrRoot);
+  } catch {
+    return false;
+  }
+  if (entries.length === 0) return true;
+  return FOLDERS.some((folder) => existsSync(join(adrRoot, folder)));
+}
+
+/**
+ * Create a repository, or complete a partially initialized one. A missing
+ * config.yaml is the state an interrupted init or a bad merge leaves behind:
+ * the records are intact, but every command refuses to discover the root.
+ * Repair writes only missing pieces, so records, an edited README, and any
+ * file a user added all survive.
+ */
 export function initRepository(targetDir: string, tools: string[] = [], workflows?: string[]): InitResult {
   const root = resolve(targetDir);
   const adrRoot = join(root, ADR_DIR);
-  if (existsSync(adrRoot)) {
+  const config = configPath(root);
+  const existing = existsSync(adrRoot);
+  if (existing && (existsSync(config) || !repairableAdrRoot(adrRoot))) {
     throw new Error(`an ADR Kit repository already exists at ${adrRoot}`);
   }
 
   const created: string[] = [];
-  mkdirSync(adrRoot, { recursive: true });
-  created.push(ADR_DIR);
+  if (!existing) {
+    mkdirSync(adrRoot, { recursive: true });
+    created.push(ADR_DIR);
+  }
   for (const folder of FOLDERS) {
     const path = join(adrRoot, folder);
-    mkdirSync(path, { recursive: true });
-    writeFileSync(join(path, '.gitkeep'), '');
-    created.push(`${ADR_DIR}/${folder}`);
+    if (!existsSync(path)) {
+      mkdirSync(path, { recursive: true });
+      created.push(`${ADR_DIR}/${folder}`);
+    }
+    const keep = join(path, '.gitkeep');
+    if (!existsSync(keep)) writeFileSync(keep, '');
   }
 
-  const config = configPath(root);
-  writeFileSync(config, initConfig(tools, workflows));
-  created.push(`${ADR_DIR}/${CONFIG_FILE}`);
+  if (!existsSync(config)) {
+    writeFileSync(config, initConfig(tools, workflows));
+    created.push(`${ADR_DIR}/${CONFIG_FILE}`);
+  }
 
   const readme = join(adrRoot, 'README.md');
-  writeFileSync(readme, INIT_README);
-  created.push(`${ADR_DIR}/README.md`);
+  if (!existsSync(readme)) {
+    writeFileSync(readme, INIT_README);
+    created.push(`${ADR_DIR}/README.md`);
+  }
 
-  return { root, created };
+  const result: InitResult = { root, created };
+  if (existing) result.repaired = true;
+  return result;
 }
 
 export function adrRoot(root: string): string {

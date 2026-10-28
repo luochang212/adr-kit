@@ -1154,6 +1154,18 @@ describe('paths scope validation', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 
+  it('rejects a trailing slash that would match nothing', () => {
+    const root = makeRepo();
+    mkdirSync(join(root, 'src'));
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-dir.md'),
+      decision('1 Dir', { ...ACCEPTED, paths: '["src/"]' }),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('path "src/" must not end with "/"; use "src/**"');
+  });
+
   it('accepts a scope with no checkable literal head', () => {
     const root = makeRepo();
     writeFileSync(

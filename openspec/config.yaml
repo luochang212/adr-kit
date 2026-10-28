@@ -1,3 +1,5 @@
+# FROZEN: OpenSpec is historical in this repository; see openspec/README.md.
+# The authoritative decisions live in adr/ (ADR 18, 30, 33, 36).
 schema: spec-driven
 
 # Project context (optional)

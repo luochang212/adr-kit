@@ -674,6 +674,14 @@ describe('completionCommand', () => {
     expect(completionCommand('fish')).toContain('-l raised-by -x -a "human agent"');
   });
 
+  it('describes every atlas value option instead of printing undefined', () => {
+    const zsh = completionCommand('zsh');
+    expect(zsh).not.toContain('undefined');
+    expect(zsh).toContain("'--record=[the record whose deliberation tree to render]:record:'");
+    expect(zsh).toContain("'--format=[output format for the selected object]:format:'");
+    expect(zsh).toContain("'--lang=[atlas page language: en or zh]:lang:'");
+  });
+
   it('declares the value-taking options as taking a value', () => {
     // Registering `--tag`, `--tools`, `--workflows`, `--by`, or `--reason` as a
     // flag makes each shell offer the option list where the CLI expects a

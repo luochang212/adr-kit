@@ -2,12 +2,12 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { readConfig, requireRoot } from '../core/config.js';
 import { folderPath, writeRecord } from '../core/repository.js';
-import { todayStamp } from '../core/adr.js';
+import { assertSingleLineTitle, parseAdrText, todayStamp } from '../core/adr.js';
 import { PATHS_TIP, proposalTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
 
 export function proposeCommand(title: string, cwd: string): string {
-  const trimmed = title.trim();
+  const trimmed = assertSingleLineTitle(title.trim());
   if (trimmed.length === 0) {
     throw new Error('title must not be empty');
   }
@@ -22,6 +22,9 @@ export function proposeCommand(title: string, cwd: string): string {
     throw new Error(`proposal already exists: adr/proposed/${fileName}`);
   }
   const content = proposalTemplate(trimmed, readConfig(root).context);
+  // Same guard as record: the parser is the format contract, so refuse to
+  // create a file it cannot read back.
+  parseAdrText(content, path);
   writeRecord(root, 'proposed', fileName, content);
   return [
     `created adr/proposed/${fileName}`,

@@ -1,3 +1,6 @@
+> **Frozen history — not current authority.** This spec predates decisions that
+> replaced it; see `openspec/README.md` and `adr/`. Do not implement it.
+
 ## Purpose
 
 Generate a visual relationship graph of the decisions in an ADR Kit

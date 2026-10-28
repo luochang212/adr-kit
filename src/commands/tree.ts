@@ -1,4 +1,4 @@
-import { section } from '../core/adr.js';
+import { hasMeaningfulBody, section } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import {
   parseDeliberation,
@@ -27,9 +27,17 @@ export function treeCommand(query: string, cwd: string, flags: TreeFormatFlags =
 
   const root = requireRoot(cwd);
   const record = resolveRecord(root, query);
-  const nodes = parseDeliberation(section(record, 'Deliberation'));
+  const body = section(record, 'Deliberation');
+  if (body === undefined) {
+    throw new Error(`"${record.title}" has no "## Deliberation" section to render`);
+  }
+  const nodes = parseDeliberation(body);
   if (nodes.length === 0) {
-    throw new Error(`"${record.title}" has no "## Deliberation" tree to render`);
+    // A section that exists but carries prose, a comment, or another bullet
+    // style is not the same failure as a missing section, and the remedy differs.
+    throw new Error(hasMeaningfulBody(body)
+      ? `"${record.title}" has content under "## Deliberation" but no "- " outline to render; see docs/record-format.md`
+      : `"${record.title}" has an empty "## Deliberation" section; add a nested "- " outline`);
   }
   if (format === 'html') {
     return renderDeliberationHtml(nodes, record.title);

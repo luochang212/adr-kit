@@ -54,9 +54,9 @@ Without `--out`, stdout contains only the artifact.
 `-h, --help` prints help; `-V, --version` prints the version. Unsupported
 options fail rather than being ignored. Positional arguments follow each
 command's synopsis: `record`, `propose`, and `note` join unquoted shell words
-into one title or text, so quoting is optional; every other command takes at
-most the positional arguments its synopsis shows, and extras fail rather than
-being ignored. Command output and error messages are English only; `--lang`
+into one title or text, so quoting is optional, and a record title must stay on
+one line; every other command takes at most the positional arguments its
+synopsis shows, and extras fail rather than being ignored. Command output and error messages are English only; `--lang`
 affects only the atlas page. `--raised-by` says who introduced
 a shipped choice; `--decided-by` says whose judgment settled it. Both are
 declarations, not CLI inferences. `--reason` is required for rejection and
@@ -182,6 +182,17 @@ archived records are not read. A count of active records without `paths:` is
 advisory even when other records match: use `adrkit list` to judge their relevance.
 Successful retrieval is a scope shortlist, not evidence that code complies or
 that all architectural constraints were found. Read relevant records in full.
+
+## Repairing a partial repository
+
+`adrkit init` also completes a partially initialized tree. When `adr/` exists
+but `adr/config.yaml` is missing (an interrupted init, a bad merge, or a
+deleted file), it restores only the missing config, lifecycle folders, and
+README, leaving records and edited files untouched. Selected integrations are
+also completed: missing commands, skills, and resources are created, while
+existing files are reported as `preserved`. Run `adrkit update` separately to
+refresh those files. Every command then works again. An existing `adr/` with a
+config, or a directory holding unrelated files, is still refused.
 
 ## Concurrent decision writes
 

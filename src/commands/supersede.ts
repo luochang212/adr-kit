@@ -47,11 +47,13 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   if (recordIssues.length > 0) {
     throw new Error(`"${query}" is not valid; fix it before superseding:\n${formatIssues(recordIssues)}`);
   }
+  // Same one-stamp rule as archive: the two fields describe one moment.
+  const stamp = todayStamp();
   const patch: Record<string, string | number> = {
     status: 'superseded',
-    date: todayStamp(),
+    date: stamp,
     'superseded-by': replacement.number,
-    archived: todayStamp(),
+    archived: stamp,
     'archive-reason': `superseded by ADR ${replacement.number}`,
   };
   retireRecord(root, record, patch);

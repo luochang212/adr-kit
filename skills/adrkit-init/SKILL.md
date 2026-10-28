@@ -7,7 +7,7 @@ description: Use when initializing ADR Kit in a repository or when the agent can
 
 Installing ADR Kit wires a repository's decision memory into the surfaces agents read, against two failure modes: mid-task drift from long-term decisions, and forgetting settled choices until they bite.
 
-Run `adrkit init [path]` for a new repository, or `adrkit update` if `adr/` exists. Confirm the four lifecycle folders: `proposed/`, `implemented/`, `rejected/`, and `archived/`. They are a context budget as well as a lifecycle: `implemented/` is current authority, `proposed/` is intent, `rejected/` is anti-pattern memory, and `archived/` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
+Run `adrkit init [path]` for a new repository, or to repair an existing `adr/` whose `config.yaml` is missing. Repair fills missing files and preserves existing records and integrations. Use `adrkit update` to refresh integrations in an initialized repository. Confirm the four lifecycle folders: `proposed/`, `implemented/`, `rejected/`, and `archived/`. They are a context budget as well as a lifecycle: `implemented/` is current authority, `proposed/` is intent, `rejected/` is anti-pattern memory, and `archived/` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
 
 Record language follows the repository: match the language of existing records, or the user's language when the repository has no records yet, and keep that language for both titles and bodies rather than switching per conversation.
 

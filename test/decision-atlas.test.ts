@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import type { AdrRecord } from '../src/core/adr.js';
+import { parseAdrText, type AdrRecord } from '../src/core/adr.js';
 import { FAVICON_DATA_URI, LIGHT_FAVICON_DATA_URI } from '../src/core/brand.js';
 import { ATLAS_SLOTS, renderDecisionAtlas } from '../src/core/decision-atlas.js';
 import { buildDecisionGraph } from '../src/core/graph.js';
@@ -40,7 +40,7 @@ function record(
   } as AdrRecord;
 }
 
-function render(records: AdrRecord[], page = template, language?: 'en' | 'zh', theme: 'folio' | 'signal' = 'folio'): string {
+function render(records: AdrRecord[], page = template, language: 'en' | 'zh' = 'zh', theme: 'folio' | 'signal' = 'folio'): string {
   return renderDecisionAtlas({
     template: page,
     records,
@@ -121,6 +121,15 @@ describe('decision atlas rendering', () => {
     expect(counts).toEqual(language === 'en' ? ['2 records', '1 record'] : ['2 条', '1 条']);
   });
 
+  it.each([
+    ['en', 'superseded by 1', 'aria-label="Decision map"'],
+    ['zh', '被 ADR 1 替代', 'aria-label="决策地图"'],
+  ] as const)('localizes the generated map lifecycle text in %s', (language, meta, aria) => {
+    const page = render(live, template, language);
+    expect(page).toContain(meta);
+    expect(page).toContain(aria);
+  });
+
   it('links map nodes to in-page anchors and pins records to the build commit', () => {
     const page = render(live);
     expect(page).toContain('id="adr-1"');
@@ -132,6 +141,43 @@ describe('decision atlas rendering', () => {
       expect.objectContaining({ number: 2, lifecycle: 'implemented' }),
       expect.objectContaining({ number: 3, lifecycle: 'archived', body: expect.stringContaining('SECRET ARCHIVE BODY') }),
     ]);
+  });
+
+  it('takes the number out of the payload title and keeps one H1 in the body', () => {
+    // The parser's title keeps its "N " prefix, while the page shows the number
+    // separately. A hand-built fixture with a bare title hides that difference,
+    // so this fixture goes through the real parser.
+    const parsed = parseAdrText(`---
+status: implemented
+date: 2026-10-01
+raised-by: human
+decided-by: human
+created: 2026-10-01
+---
+
+# ADR: 7 Real parsed title
+
+## Problem
+
+Body.
+
+## Decision
+
+Body.
+
+## Alternatives considered
+
+- Other.
+
+## Consequences
+
+Body.
+`, 'adr/implemented/7-real-parsed-title.md');
+    parsed.folder = 'implemented';
+    const payload = recordsFrom(render([parsed]))[0] as { title: string; body: string };
+    expect(payload.title).toBe('Real parsed title');
+    expect(payload.body.startsWith('\n# ADR: 7 Real parsed title\n')).toBe(true);
+    expect(payload.body).not.toContain('# ADR: 7 7 ');
   });
 
   it('publishes archived bodies in full while retaining their reason', () => {

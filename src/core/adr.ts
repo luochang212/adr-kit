@@ -56,6 +56,18 @@ export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks'
 export const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /**
+ * A record title is written verbatim after `# ADR: `, so a line break would
+ * split the heading and leave a file the parser cannot read. Reject it at the
+ * input boundary; the template parse check in the creator is the backstop.
+ */
+export function assertSingleLineTitle(title: string): string {
+  if (/[\r\n]/.test(title)) {
+    throw new Error('title must be a single line; remove the line break');
+  }
+  return title;
+}
+
+/**
  * Today's date as `YYYY-MM-DD` in local time. The single source of the date:
  * it feeds the `date` front matter field that every record carries and the
  * `YYYY-MM-DD-` prefix of proposal file names, so the two always agree.
@@ -217,19 +229,36 @@ interface MarkdownLine {
  * One linear scan for content and heading checks. Comments cross line and
  * section boundaries; fence contents are literal, including HTML markers.
  * Masking comments preserves columns so removing one cannot invent a heading.
+ * Outline consumers may opt into indented fences for examples nested in lists;
+ * record heading/content checks retain the top-level indentation rules.
  */
-export function* markdownLines(body: string): Generator<MarkdownLine> {
-  let fence: Fence | undefined;
+export function* markdownLines(body: string, options: { indentedFences?: boolean } = {}): Generator<MarkdownLine> {
+  const indentedFences = options.indentedFences === true;
+  const listIndents: number[] = [];
+  let fence: (Fence & { containerIndent: number }) | undefined;
   let comment = false;
   for (const raw of body.split(/\r?\n/)) {
+    // Outline indentation follows the deliberation parser's two-space tabs.
+    const expanded = indentedFences ? raw.replace(/\t/g, '  ') : raw;
+    const indent = expanded.match(/^ */)![0].length;
+    if (fence !== undefined && expanded.trim().length > 0 && indent < fence.containerIndent) {
+      // An unclosed nested fence ends with its list item. Reprocess this line
+      // so a sibling option or an independent question cannot disappear.
+      fence = undefined;
+    }
     if (fence !== undefined) {
-      if (closesFence(raw, fence)) fence = undefined;
+      if (closesFence(expanded.slice(fence.containerIndent), fence)) fence = undefined;
       yield { raw, visible: raw, code: true };
       continue;
     }
-    const opener = comment ? undefined : openingFence(raw);
+    let containerIndent = 0;
+    if (indentedFences && !comment && /^ *(`{3,}|~{3,})/.test(expanded)) {
+      while (listIndents.length > 0 && listIndents[listIndents.length - 1]! > indent) listIndents.pop();
+      containerIndent = listIndents[listIndents.length - 1] ?? 0;
+    }
+    const opener = comment ? undefined : openingFence(expanded.slice(containerIndent));
     if (opener !== undefined) {
-      fence = opener;
+      fence = { ...opener, containerIndent };
       yield { raw, visible: raw, code: true };
       continue;
     }
@@ -271,6 +300,13 @@ export function* markdownLines(body: string): Generator<MarkdownLine> {
           index = end;
         }
       }
+    }
+    if (indentedFences && visible.trim().length > 0) {
+      const outline = visible.replace(/\t/g, '  ');
+      const outlineIndent = outline.match(/^ */)![0].length;
+      while (listIndents.length > 0 && listIndents[listIndents.length - 1]! > outlineIndent) listIndents.pop();
+      const bullet = outline.match(/^ *[-*+] +/);
+      if (bullet !== null) listIndents.push(bullet[0].length);
     }
     yield { raw, visible, code: false };
   }

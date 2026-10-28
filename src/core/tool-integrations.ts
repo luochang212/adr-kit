@@ -5,9 +5,9 @@ import { dirname, join, relative } from 'node:path';
 /**
  * What a write did to the file: `created` when it did not exist, `rewrote`
  * when it existed with different content, `unchanged` when the content was
- * already byte-identical.
+ * already byte-identical, and `preserved` when repair kept an existing file.
  */
-export type IntegrationOutcome = 'created' | 'rewrote' | 'unchanged';
+export type IntegrationOutcome = 'created' | 'rewrote' | 'unchanged' | 'preserved';
 
 export interface ToolIntegration {
   tool: string;
@@ -105,7 +105,7 @@ export const WORKFLOWS: Workflow[] = [
 
 Installing ADR Kit wires a repository's decision memory into the surfaces agents read, against two failure modes: mid-task drift from long-term decisions, and forgetting settled choices until they bite.
 
-Run \`adrkit init [path]\` for a new repository, or \`adrkit update\` if \`adr/\` exists. Confirm the four lifecycle folders: \`proposed/\`, \`implemented/\`, \`rejected/\`, and \`archived/\`. They are a context budget as well as a lifecycle: \`implemented/\` is current authority, \`proposed/\` is intent, \`rejected/\` is anti-pattern memory, and \`archived/\` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
+Run \`adrkit init [path]\` for a new repository, or to repair an existing \`adr/\` whose \`config.yaml\` is missing. Repair fills missing files and preserves existing records and integrations. Use \`adrkit update\` to refresh integrations in an initialized repository. Confirm the four lifecycle folders: \`proposed/\`, \`implemented/\`, \`rejected/\`, and \`archived/\`. They are a context budget as well as a lifecycle: \`implemented/\` is current authority, \`proposed/\` is intent, \`rejected/\` is anti-pattern memory, and \`archived/\` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
 
 Record language follows the repository: match the language of existing records, or the user's language when the repository has no records yet, and keep that language for both titles and bodies rather than switching per conversation.
 
@@ -420,7 +420,16 @@ ${workflow.body}
 }
 
 /** Write one integration file and report what the write actually did. */
-function writeIntegrationFile(path: string, content: string, tool: string): ToolIntegration {
+function writeIntegrationFile(path: string, content: string, tool: string, preserveExisting: boolean): ToolIntegration {
+  if (preserveExisting) {
+    try {
+      writeFileSync(path, content, { flag: 'wx' });
+      return { tool, path, outcome: 'created' };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      return { tool, path, outcome: 'preserved' };
+    }
+  }
   const previous = existsSync(path) ? readFileSync(path, 'utf8') : undefined;
   writeFileSync(path, content);
   const outcome: IntegrationOutcome =
@@ -445,7 +454,9 @@ export function writeToolIntegrations(
   root: string,
   tools: IntegrationTarget[],
   workflows: string[] = WORKFLOW_NAMES,
+  options: { preserveExisting?: boolean } = {},
 ): ToolIntegration[] {
+  const preserveExisting = options.preserveExisting === true;
   const written: ToolIntegration[] = [];
   const selected = WORKFLOWS.filter((workflow) =>
     workflows.includes(workflow.name.replace(/^adrkit-/, '')),
@@ -466,6 +477,7 @@ description: ${workflow.description}
 ${commandBody(workflow)}
 `,
           tool,
+          preserveExisting,
         ),
       );
     }
@@ -473,11 +485,11 @@ ${commandBody(workflow)}
       for (const workflow of selected) {
         const skillPath = join(root, dirs.skills, workflow.name, 'SKILL.md');
         mkdirSync(dirname(skillPath), { recursive: true });
-        written.push(writeIntegrationFile(skillPath, skillFrontmatter(workflow), tool));
+        written.push(writeIntegrationFile(skillPath, skillFrontmatter(workflow), tool, preserveExisting));
         for (const resource of workflow.resources ?? []) {
           const resourcePath = join(dirname(skillPath), resource);
           mkdirSync(dirname(resourcePath), { recursive: true });
-          written.push(writeIntegrationFile(resourcePath, workflowResource(workflow, resource), tool));
+          written.push(writeIntegrationFile(resourcePath, workflowResource(workflow, resource), tool, preserveExisting));
         }
       }
     }

@@ -1,3 +1,4 @@
+import { markdownLines } from './adr.js';
 import { renderCardTree } from './deliberation-html.js';
 import { wrapText } from './view-text.js';
 
@@ -41,7 +42,9 @@ interface ParsedNode {
   reason?: string;
 }
 
-const BULLET = /^(\s*)-\s+(.*?)\s*$/;
+// Markdown's three bullet markers are interchangeable to a reader, so accepting
+// only "-" made a "*" outline parse as no tree at all.
+const BULLET = /^(\s*)[-*+]\s+(.*?)\s*$/;
 const STATUS = /\[(settled|rejected|open)\]\s*(?:\([^)]*\)\s*)*$/i;
 const RECOMMENDED = /\(recommended\)\s*$/i;
 const TYPE = /^([QA]):\s+/i;
@@ -102,8 +105,11 @@ export function parseDeliberation(body: string | undefined): DeliberationNode[] 
   if (body === undefined) return [];
   const roots: DeliberationNode[] = [];
   const stack: Array<{ indent: number; node: DeliberationNode }> = [];
-  for (const raw of body.split(/\r?\n/)) {
-    const match = raw.match(BULLET);
+  for (const line of markdownLines(body, { indentedFences: true })) {
+    // Fenced examples and commented-out lines are not nodes: the scan that
+    // decides what a reader can see decides what the tree contains.
+    if (line.code) continue;
+    const match = line.visible.match(BULLET);
     if (match === null) continue;
     const indent = match[1]!.replace(/\t/g, '  ').length;
     const parsed = parseNodeText(match[2]!);

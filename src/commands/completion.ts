@@ -11,6 +11,9 @@ const OPTION_DESCRIPTIONS: Record<string, string> = {
   '--reason': 'why this record changes lifecycle',
   '--tag': 'filter to one theme',
   '--out': 'write the output to this file',
+  '--record': 'the record whose deliberation tree to render',
+  '--format': 'output format for the selected object',
+  '--lang': 'atlas page language: en or zh',
   '--tools': 'AI tools to install integrations for',
   '--workflows': 'workflows to install',
   '--theme': 'atlas theme: folio, signal, or random',
@@ -29,7 +32,10 @@ function zshSpec(option: string): string {
     return `'${option}=[${OPTION_DESCRIPTIONS[option]}]:declared by:(${DECIDED_BY_VALUES.join(' ')})'`;
   }
   if (takesValue(option)) {
-    return `'${option}=[${OPTION_DESCRIPTIONS[option]}]:${option.slice(2)}:'`;
+    // A missing entry must not print "undefined": fall back to the option name,
+    // which still reads as a label in the menu.
+    const description = OPTION_DESCRIPTIONS[option] ?? option.slice(2);
+    return `'${option}=[${description}]:${option.slice(2)}:'`;
   }
   return option;
 }

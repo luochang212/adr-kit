@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
 import { implementCommand } from '../src/commands/implement.js';
+import { atlasCommand } from '../src/commands/atlas.js';
 import { configCommand } from '../src/commands/config.js';
 import { recordCommand } from '../src/commands/record.js';
 import { initCommand } from '../src/commands/init.js';
@@ -803,6 +804,26 @@ describe('list output', () => {
   });
 });
 
+describe('deliberation rendering diagnostics', () => {
+  it('names a missing section, a non-outline body, and an empty section apart', () => {
+    const root = makeRepo();
+    recordCommand('Choose storage', root, 'human', 'human');
+    const path = listRecords(root)[0]!.path;
+    const base = readFileSync(path, 'utf8');
+
+    expect(() => atlasCommand(root, { record: '1', format: 'text' }))
+      .toThrow(/no "## Deliberation" section/);
+
+    writeFileSync(path, base + '\n## Deliberation\n\nWe discussed storage at length.\n');
+    expect(() => atlasCommand(root, { record: '1', format: 'text' }))
+      .toThrow(/no "- " outline/);
+
+    writeFileSync(path, base + '\n## Deliberation\n\n<!-- todo -->\n');
+    expect(() => atlasCommand(root, { record: '1', format: 'text' }))
+      .toThrow(/empty "## Deliberation" section/);
+  });
+});
+
 describe('CLI deliberation HTML export', () => {
   it('prints an offline document for a real record without rewriting the source', () => {
     const root = makeRepo();
@@ -1099,6 +1120,28 @@ describe('integration drift: installed-with stamp and notice', () => {
   });
 });
 
+describe('validation through the CLI', () => {
+  it('reports a trailing-slash paths scope', () => {
+    const root = makeRepo();
+    recordCommand('Choice', root, 'agent', 'agent');
+    const path = listRecords(root)[0]!.path;
+    writeFileSync(
+      path,
+      readFileSync(path, 'utf8').replace('created: ', 'paths: ["src/"]\ncreated: '),
+    );
+    mkdirSync(join(root, 'src'));
+    expect(validateCommand(root).output).toContain('path "src/" must not end with "/"');
+  });
+});
+
+describe('config output', () => {
+  it('shows an explicit tools opt-out instead of omitting the key', () => {
+    const root = makeRepo();
+    updateCommand(root, 'none');
+    expect(configCommand(root)).toContain('tools: (none)');
+  });
+});
+
 describe('relevant command', () => {
   /** A minimal parseable record: front matter, title, no sections needed. */
   function recordWith(
@@ -1185,6 +1228,19 @@ ${reason}${scope}---
   });
 });
 
+
+describe('invalid titles cannot corrupt the inventory', () => {
+  it.each(['record', 'propose'] as const)('%s refuses a line break and writes nothing', (command) => {
+    const root = makeRepo();
+    const create = command === 'record'
+      ? () => recordCommand('bad\ntitle', root, 'agent', 'agent')
+      : () => proposeCommand('bad\ntitle', root);
+    expect(create).toThrow(/single line/);
+    expect(allRecords(root)).toHaveLength(0);
+    // The inventory still reads: the failure never reached the filesystem.
+    expect(listCommand(root)).toContain('no ADRs yet');
+  });
+});
 
 describe('commented proposal sections', () => {
   it('refuses to promote an invisible proposal and preserves its source', () => {

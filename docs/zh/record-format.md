@@ -58,7 +58,12 @@ implemented 记录上校验该形式：以 `ADR N later` 开头的尾注段落�
 必须无缺失、无环，终点是 implemented 决策。`archive` 为不再指导工作的
 implemented 决策写 `archived` 和 `archive-reason`；原 `status` 保留
 implemented，表示历史上的交付状态。编号始终稳定。可选 `tags` 必须为不重复
-的小写 kebab-case；可选 `## Deliberation` 保留 deliberation tree。`adrkit validate`
+的小写 kebab-case。可选 `## Deliberation` 以嵌套 Markdown 列表保存决策背后的
+推敲树：`- Q: <问题> [settled]` 与 `- <选项> [rejected] (recommended) — <理由>`，
+后续问题嵌在提出它的节点下。`-`、`*`、`+` 都可作为项目符号；`[settled]`、
+`[rejected]`、`[open]` 是状态，`(recommended)` 标记推荐项，破折号后的文字是
+理由；围栏示例与 HTML 注释不算节点。`adrkit atlas --record <name>` 渲染该树；
+章节有内容却没有列表项时会按期望形状报错，而不是画一棵空树。`adrkit validate`
 检查四个目录，拒绝编号重复、日期错误、目录与状态不匹配、四个目录之外的记录，以及悬空引用：记录正文可以用 `ADR-12`、`ADR 4` 或 `ADR12` 引用决策，指向不存在的编号会让整仓校验失败。
 
 可选 `paths` 把记录限定到它管辖的文件。它与 `tags` 是不同的轴：tags 按
@@ -69,7 +74,8 @@ YAML flow 写法中需要引号（`paths: ["**/*.ts"]`）。`adrkit relevant
 <path>...` 按阅读姿态列出管辖给定文件或目录的记录；归档记录是冻结历史、
 默认不检索，没有 `paths` 的记录永不匹配，因为范围检索不是全文搜索。该字段
 在每次生命周期转移和提案晋升时保留。`adrkit validate` 拒绝空条目、重复
-条目、绝对路径、含 `..` 的条目、反斜杠，以及静态目录锚点在仓库中不存在的条目（第一个通配符之前的完整目录组件；
+条目、绝对路径、含 `..` 的条目、反斜杠、尾斜杠（目录范围请写 `src/**`；
+`src/` 只匹配字面名字，会通过校验却永不命中文件），以及静态目录锚点在仓库中不存在的条目（第一个通配符之前的完整目录组件；
 无通配符时为完整路径，`src/cli*.ts` 检查 `src`）。这项检查防止重命名后范围悬空。归档记录也按同样规则检查；失效路径是一次
 普通的迁移修复。
 

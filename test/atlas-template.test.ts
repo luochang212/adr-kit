@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { CANVAS_STYLE } from '../src/core/canvas-view.js';
 import { RELATION_STYLE, RELATION_SCRIPT } from '../src/core/relation-focus.js';
 import { SHARE_SCRIPT, SHARE_STYLE } from '../src/core/share.js';
-import { ATLAS_EN } from '../src/core/atlas-i18n.js';
+import { ATLAS_EN, translateAtlasMarkup } from '../src/core/atlas-i18n.js';
 
 // The shipped example is the site build's frontend: build-decision-atlas.mjs
 // fills its slots, so the shared canvas contract it embeds must stay byte-equal
@@ -33,6 +33,23 @@ describe('decision-atlas template mirrors the shared contract', () => {
 
   it('turns off the native mobile tap highlight at the root', () => {
     expect(template).toMatch(/:root \{[^}]*-webkit-tap-highlight-color:\s*transparent/);
+  });
+
+  it('leaves no Chinese behind in the translated static chrome', () => {
+    // The English page is produced by global string replacement, so one
+    // unmatched literal (or a single-character key cutting through a word)
+    // would ship mixed copy. Record data is injected after translation, so the
+    // sample records block is excluded; everything else must be English.
+    const open = '/* atlas:records */';
+    const close = '/* /atlas:records */';
+    const start = template.indexOf(open);
+    const end = template.indexOf(close);
+    // A moved marker must fail here, not silently scan the wrong region.
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const chrome = template.slice(0, start) + template.slice(end + close.length);
+    const chinese = translateAtlasMarkup(chrome).match(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g) ?? [];
+    expect(chinese, 'add the missing copy to ATLAS_EN, or keep the chrome ASCII').toEqual([]);
   });
 
   it('carries every translation key, so the table holds no dead entries', () => {

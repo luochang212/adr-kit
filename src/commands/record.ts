@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { DecidedBy, RaisedBy } from '../core/adr.js';
+import { assertSingleLineTitle, parseAdrText, type DecidedBy, type RaisedBy } from '../core/adr.js';
 import { readConfig, requireRoot } from '../core/config.js';
 import { gitHead } from '../core/git.js';
 import { folderPath, nextDecisionNumber, writeRecord } from '../core/repository.js';
@@ -17,7 +17,7 @@ export function recordCommand(
   decidedBy: DecidedBy,
   raisedBy: RaisedBy,
 ): string {
-  const trimmed = title.trim();
+  const trimmed = assertSingleLineTitle(title.trim());
   if (trimmed.length === 0) {
     throw new Error('title must not be empty');
   }
@@ -39,6 +39,9 @@ export function recordCommand(
     decidedBy,
     raisedBy,
   );
+  // Never write a file the parser cannot read: the title check above covers
+  // the known input, and this keeps a future template change from doing worse.
+  parseAdrText(content, path);
   writeRecord(root, 'implemented', fileName, content);
   return `created adr/implemented/${fileName}\n\nfill in the shipped decision and validate it with:\n  adrkit validate ${number}\n\n${PATHS_TIP}`;
 }

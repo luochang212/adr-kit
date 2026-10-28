@@ -192,7 +192,8 @@ function nodeMarkup(
   placed: Placed,
   colors: Map<string, string>,
   recordHref: (recordPath: string) => string,
-  nodeId?: (number: number) => string,
+  nodeId: ((number: number) => string) | undefined,
+  labels: DecisionMapLabels,
 ): string {
   const { node, x, y, height, lines } = placed;
   const classes = ['node'];
@@ -211,7 +212,7 @@ function nodeMarkup(
   parts.push('<rect x="' + x + '" y="' + y + '" width="' + CARD_W + '" height="' + height + '" rx="12" stroke="' + stroke + '"/>');
   parts.push('<text class="num" x="' + (x + PAD_X) + '" y="' + metaY + '">#' + node.number + '</text>');
   const meta = node.archived
-    ? (node.supersededBy === undefined ? 'archived' : 'superseded by ' + node.supersededBy)
+    ? (node.supersededBy === undefined ? labels.archived : labels.supersededBy(node.supersededBy))
     : node.created;
   parts.push('<text class="meta" x="' + (x + CARD_W - PAD_X) + '" y="' + metaY + '" text-anchor="end">' + escapeHtml(meta) + '</text>');
   lines.forEach((line, index) => {
@@ -230,6 +231,23 @@ function nodeMarkup(
   return parts.join('');
 }
 
+/**
+ * The drawing's own words. The standalone map leaves them English; the
+ * decision atlas passes the page language, because these strings are generated
+ * after the template's static chrome has been translated.
+ */
+export interface DecisionMapLabels {
+  ariaLabel: string;
+  archived: string;
+  supersededBy: (number: number) => string;
+}
+
+const DEFAULT_LABELS: DecisionMapLabels = {
+  ariaLabel: 'Decision map',
+  archived: 'archived',
+  supersededBy: (number) => 'superseded by ' + number,
+};
+
 export interface DecisionMapSvgOptions {
   /** Resolve a record path to the link its node points at. */
   recordHref?: (recordPath: string) => string;
@@ -237,6 +255,8 @@ export interface DecisionMapSvgOptions {
   dateCount?: (count: number) => string;
   /** Optional DOM id for a node group, so an in-page link can target it. */
   nodeId?: (number: number) => string;
+  /** Lifecycle wording; defaults to English for the standalone map. */
+  labels?: DecisionMapLabels;
 }
 
 export interface DecisionMapDrawing {
@@ -256,6 +276,7 @@ export function renderDecisionMapSvg(
   options: DecisionMapSvgOptions = {},
 ): DecisionMapDrawing {
   const recordHref = options.recordHref ?? ((recordPath) => recordPath);
+  const labels = options.labels ?? DEFAULT_LABELS;
   const { placed, columns, width, height } = layout(graph);
   const colors = tagColors(placed.map((entry) => entry.node));
   const byNumber = new Map(placed.map((entry) => [entry.node.number, entry]));
@@ -308,7 +329,7 @@ export function renderDecisionMapSvg(
   const viewW = Math.round(box.maxX - box.minX) + MAP_MARGIN * 2;
   const viewH = Math.round(box.maxY - box.minY) + MAP_MARGIN * 2;
   const svg: string[] = [
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + viewX + ' ' + viewY + ' ' + viewW + ' ' + viewH + '" width="' + viewW + '" height="' + viewH + '" role="group" aria-label="Decision map">',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + viewX + ' ' + viewY + ' ' + viewW + ' ' + viewH + '" width="' + viewW + '" height="' + viewH + '" role="group" aria-label="' + escapeHtml(labels.ariaLabel) + '">',
     '<defs>',
     '<marker id="arrow-supersede" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#294d3e"/></marker>',
     '<marker id="arrow-reference" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b6c7ba"/></marker>',
@@ -324,7 +345,7 @@ export function renderDecisionMapSvg(
     }
   }
   svg.push(...edges);
-  for (const entry of placed) svg.push(nodeMarkup(entry, colors, recordHref, options.nodeId));
+  for (const entry of placed) svg.push(nodeMarkup(entry, colors, recordHref, options.nodeId, labels));
   svg.push('</svg>');
 
   const deliberated = graph.nodes.filter((node) => node.hasDeliberation).length;

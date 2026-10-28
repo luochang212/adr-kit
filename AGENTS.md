@@ -156,6 +156,10 @@ over a patch rather than share the working tree.
   is irreducibly dependency-shaped.
 - Every behavior change gets a test in `test/`. Command tests create real
   repositories in a temp directory and assert on files and command output.
+- `openspec/` is frozen history, not a second spec system: the current rules
+  live in `adr/` and `docs/`. `openspec/specs/` predates ADR 30, 33, and 36 and
+  must not drive implementation; `openspec/changes/archive/` is retained only
+  because records cite it as deliberation evidence.
 - Design for the future, not for compatibility: ADR Kit is pre-stable and ships
   breaking changes deliberately — forward-compatibility shims, deprecation
   windows, grandfather markers, and migration commands are not carried, and no

@@ -913,7 +913,7 @@ describe('graph HTML map', () => {
     const html = graphCommand(root, { html: true });
     expect(html).toContain('data-adr="1" data-has-deliberation="false"');
     expect(html).toContain('data-adr="2" data-has-deliberation="true"');
-    expect(() => treeCommand('1', root, { html: true })).toThrow(/no "## Deliberation" tree/);
+    expect(() => treeCommand('1', root, { html: true })).toThrow(/no "- " outline/);
     expect(treeCommand('2', root, { html: true })).toContain('<!doctype html>');
   });
 

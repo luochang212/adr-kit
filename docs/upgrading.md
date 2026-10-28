@@ -22,6 +22,14 @@ Archived records change only through a deliberate, explained commit.
 
 Newest first. Each note names what changed and what to do.
 
+### After 0.30.0
+
+`paths` entries may no longer end with `/`. A scope such as `src/` validated
+but could never match a file, so validation now rejects it; write `src/**` to
+scope a directory. That is the only validation tightening in this release. The
+atlas title, Chinese map labels, completion, and config output fixes need no
+migration.
+
 ### After 0.29.0
 
 Validation tightened: `Consequences` must contain written content in

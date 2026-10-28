@@ -25,9 +25,12 @@ export function archiveCommand(query: string, reason: string, cwd: string): stri
   if (existsSync(join(folderPath(root, 'archived'), record.fileName))) {
     throw new Error(`archived record already exists: adr/archived/${record.fileName}`);
   }
+  // One stamp for both fields: a second call can cross midnight and write a
+  // record that immediately fails its own "archived matches date" invariant.
+  const stamp = todayStamp();
   retireRecord(root, record, {
-    date: todayStamp(),
-    archived: todayStamp(),
+    date: stamp,
+    archived: stamp,
     'archive-reason': reason.trim(),
   });
   return `archived adr/implemented/${record.fileName} as adr/archived/${record.fileName}`;

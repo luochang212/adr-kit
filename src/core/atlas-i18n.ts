@@ -91,9 +91,12 @@ export const ATLAS_EN: Array<[string, string]> = [
   ['否决', 'Rejected'],
   ['生效', 'active'],
   ['归档', 'archived'],
-  ['无', 'None'],
-  ['人', 'Human'],
-  ['次', 'refs'],
+  // These two are quoted runtime literals in the template. Keeping the quotes
+  // in the key stops one character from rewriting future prose ("引用次数"
+  // would otherwise become "引用refs数"); any unmatched text then fails the
+  // chrome guard test instead of shipping mixed copy.
+  ["'人'", "'Human'"],
+  ["'次'", "'refs'"],
   // Runtime string concatenation joins labels with the full-width comma; the
   // English page gets the half-width form from the same table.
   ['，', ', '],

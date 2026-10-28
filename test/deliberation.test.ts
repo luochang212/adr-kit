@@ -72,6 +72,67 @@ describe('parseDeliberation', () => {
     expect(parseDeliberation('just prose')).toEqual([]);
   });
 
+  it('accepts * and + bullets the way Markdown does', () => {
+    const nodes = parseDeliberation('* Q: Where? [settled]\n  + A: Here [settled] (recommended)');
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]!.children).toHaveLength(1);
+    expect(nodes[0]!.children[0]!.text).toBe('Here');
+  });
+
+  it('never reads a bullet inside fenced code or an HTML comment', () => {
+    const nodes = parseDeliberation(
+      '- Q: Real [settled]\n\n```\n- A: Example only\n```\n\n<!--\n- A: Commented out\n-->',
+    );
+    expect(nodes[0]!.children).toHaveLength(0);
+    expect(renderDeliberationText(nodes)).not.toContain('Example only');
+    expect(renderDeliberationText(nodes)).not.toContain('Commented out');
+  });
+
+  it.each(['```', '~~~'])('ignores %s examples nested under an option', (marker) => {
+    const nodes = parseDeliberation([
+      '- Q: Real [settled]',
+      '  - A: Chosen [settled]',
+      `    ${marker}md`,
+      '    - Q: Example only [open]',
+      '    <!-- literal unclosed comment inside code',
+      `    ${marker}`,
+      '    - Q: Real follow-up [open]',
+      '  - A: Alternative [rejected]',
+    ].join('\n'));
+    expect(nodes[0]!.children.map((node) => node.text)).toEqual(['Chosen', 'Alternative']);
+    expect(nodes[0]!.children[0]!.children.map((node) => node.text)).toEqual(['Real follow-up']);
+    expect(renderDeliberationText(nodes)).not.toContain('Example only');
+  });
+
+  it('ends an unclosed nested fence when its containing list item ends', () => {
+    const nodes = parseDeliberation([
+      '- Q: Real [settled]',
+      '  - A: Chosen [settled]',
+      '',
+      '    ```md',
+      '    - Q: Example only [open]',
+      '',
+      '  - A: Alternative [rejected]',
+      '- Q: Independent [open]',
+    ].join('\n'));
+    expect(nodes.map((node) => node.text)).toEqual(['Real', 'Independent']);
+    expect(nodes[0]!.children.map((node) => node.text)).toEqual(['Chosen', 'Alternative']);
+    expect(nodes[0]!.children[0]!.children).toEqual([]);
+  });
+
+  it('measures closing fence indentation relative to its containing list item', () => {
+    const nodes = parseDeliberation([
+      '- Q: Real [settled]',
+      '  - A: Chosen [settled]',
+      '      ```md',
+      '        ```',
+      '    - Q: Still example [open]',
+      '    ```',
+      '    - Q: Real follow-up [open]',
+    ].join('\n'));
+    expect(nodes[0]!.children[0]!.children.map((node) => node.text)).toEqual(['Real follow-up']);
+  });
+
   it('never splits the reason on a hyphen, so a hyphen cannot hide the state', () => {
     // Only the em dash separates the reason. A ` - ` in the text is prose, so
     // it cannot cut `[settled]` and `(recommended)` into the reason.
@@ -580,9 +641,26 @@ describe('treeCommand', () => {
     expect(treeCommand('1', root, { html: true })).toContain('<h1>1 Use SQLite</h1>');
   });
 
+  it('does not export a fenced example as a real nested question', () => {
+    const root = makeRepo();
+    writeRecord(root, [
+      '- Q: Real [settled]',
+      '  - A: Chosen [settled]',
+      '    ```md',
+      '    - Q: Example only [open]',
+      '    ```',
+      '    - Q: Real follow-up [open]',
+    ].join('\n'));
+    const output = treeCommand('1', root, { text: true });
+    expect(output).toContain('Real follow-up [open]');
+    expect(output).not.toContain('Example only');
+  });
+
   it('fails clearly when the record has no tree', () => {
     const root = makeRepo();
     writeRecord(root, 'no bullet list here');
-    expect(() => treeCommand('1', root, { text: true })).toThrow('has no "## Deliberation" tree');
+    // A section that exists but carries no outline is a different remedy from
+    // a missing section, so the message says which one it found.
+    expect(() => treeCommand('1', root, { text: true })).toThrow(/no "- " outline/);
   });
 });

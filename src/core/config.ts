@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { isMap, isSeq, parseDocument, type Document, type YAMLMap } from 'yaml';
 
@@ -35,14 +35,42 @@ export function findRoot(startDir: string): string | undefined {
   }
 }
 
+/**
+ * The nearest ancestor whose adr/ directory exists, even when config.yaml does
+ * not. Discovery still requires the config file; this only lets the error name
+ * the real condition, because an interrupted init or a bad merge leaves the
+ * records behind while every command would otherwise say "no repository".
+ */
+function findAdrDirectory(startDir: string): string | undefined {
+  let current = resolve(startDir);
+  for (;;) {
+    const candidate = join(current, ADR_DIR);
+    try {
+      if (statSync(candidate).isDirectory()) return candidate;
+    } catch {
+      // Absent, or a file that merely shares the name: keep walking up.
+    }
+    const parent = dirname(current);
+    if (parent === current) return undefined;
+    current = parent;
+  }
+}
+
 export function requireRoot(startDir: string): string {
   const root = findRoot(startDir);
-  if (root === undefined) {
+  if (root !== undefined) return root;
+  const adrDir = findAdrDirectory(startDir);
+  if (adrDir !== undefined) {
+    // The advice must be actionable: init is the repair path now, so naming it
+    // is honest even though the same command refused this state in the past.
     throw new Error(
-      `no ADR Kit repository found from "${startDir}" (run "adrkit init" first)`,
+      `found ${adrDir} but ${CONFIG_FILE} is missing; ` +
+        `run "adrkit init ${dirname(adrDir)}" to repair it`,
     );
   }
-  return root;
+  throw new Error(
+    `no ADR Kit repository found from "${startDir}" (run "adrkit init" first)`,
+  );
 }
 
 export function configPath(root: string): string {

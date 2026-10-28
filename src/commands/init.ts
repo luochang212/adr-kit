@@ -15,17 +15,22 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
   const workflows = parseWorkflows(workflowsValue);
   // `undefined` keeps the config key absent: only an explicit subset is
   // recorded, and an absent key means every workflow.
-  const { root, created } = initRepository(
+  const { root, created, repaired } = initRepository(
     targetDir,
     tools,
     workflowsValue === undefined ? undefined : workflows,
   );
   const lines = created.map((path) => `  created ${path}`);
-  const integrations = writeToolIntegrations(root, tools, workflows);
+  if (repaired === true) {
+    lines.push('  existing records and edited files were left untouched');
+  }
+  const integrations = writeToolIntegrations(root, tools, workflows, { preserveExisting: repaired === true });
   writeInstalledWithConfig(root, VERSION);
   const note = standingOrdersNote(root, integrations) ?? standingOrdersDriftNote(root);
   return [
-    `ADR Kit initialized at ${root}`,
+    repaired === true
+      ? `Repaired the ADR Kit repository at ${root}`
+      : `ADR Kit initialized at ${root}`,
     ...lines,
     ...integrationSummary(root, integrations),
     ...(note === undefined ? [] : ['', note]),

@@ -1,5 +1,9 @@
 # Peer ADR tools: what they do and what this project borrows
 
+> Historical note (2026-10-29): command names below describe the 2026-09-21
+> snapshot. `adrkit graph` and `adrkit tree` were later consolidated into
+> `adrkit atlas --map` and `adrkit atlas --record` (ADR 33, ADR 36).
+
 Two public projects ship under the same name and target the same audience:
 [`rvdbreemen/adr-kit`](https://github.com/rvdbreemen/adr-kit) and
 [`kschlt/adr-kit`](https://github.com/kschlt/adr-kit). Both are Python and both
