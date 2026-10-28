@@ -419,6 +419,62 @@ test(`${theme}: large text reflows without document overflow or unreachable read
   await expect(page.locator('#reader')).not.toBeVisible();
 });
 
+test(`${theme}: opening the reader focuses the dialog, not the source link`, async ({ page }) => {
+  await page.goto(artifact('en', theme));
+  await page.locator('.decision-card:not(.archived-card)').first().click();
+  await expect(page.locator('#reader')).toBeVisible();
+  // The dialog itself takes the initial focus: on the source link it would
+  // announce the link to screen readers before the title, and paint a focus
+  // ring the reader never asked for the moment a touch device opens it.
+  expect(await page.evaluate(() => ({ id: document.activeElement.id, tag: document.activeElement.tagName })))
+    .toEqual({ id: 'reader', tag: 'DIALOG' });
+});
+
+test(`${theme}: keyboard focus rings follow the theme accent`, async ({ page }) => {
+  await page.goto(artifact('en', theme));
+  // Record 15 has no relation pills, so the reader holds exactly four tab
+  // stops and the walk below stays short and stable across themes.
+  await page.locator('.decision-card[data-record="15"]').click();
+  await expect(page.locator('#reader')).toBeVisible();
+  // Walk focus with the keyboard until the source link holds it, so
+  // :focus-visible matches through the engine's own heuristics. Pressing
+  // before checking keeps the input modality on the keyboard even when the
+  // dialog autofocus already landed there.
+  for (let steps = 0; steps < 8; steps++) {
+    await page.keyboard.press('Tab');
+    if (await page.evaluate(() => document.activeElement?.id) === 'reader-source') break;
+  }
+  expect(await page.evaluate(() => document.activeElement?.id)).toBe('reader-source');
+  const ring = await page.locator('#reader-source').evaluate(el => {
+    const cs = getComputedStyle(el);
+    return { style: cs.outlineStyle, color: cs.outlineColor };
+  });
+  // Folio keeps its ink-purple ring; Signal's accent cyan must not be
+  // shadowed by the shared base rule's folio purple.
+  expect(ring).toEqual(theme === 'signal'
+    ? { style: 'solid', color: 'rgb(34, 211, 238)' }
+    : { style: 'solid', color: 'rgb(119, 80, 165)' });
+});
+
+test(`${theme}: touch taps leave no focus ring on the source link`, async ({ page }) => {
+  await page.goto(artifact('en', theme));
+  await page.locator('.decision-card[data-record="15"]').click();
+  await expect(page.locator('#reader')).toBeVisible();
+  // WebKit matches :focus-visible on tapped links, so the ring would stick
+  // after every tap; under a coarse pointer the source link keeps its focus
+  // ring for keyboards and fine pointers only. Touch emulation is what makes
+  // Chromium's (pointer: coarse) media query match.
+  const session = await page.context().newCDPSession(page);
+  await session.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  await session.send('Emulation.setEmulatedMedia', { features: [{ name: 'pointer', value: 'coarse' }] });
+  for (let steps = 0; steps < 8; steps++) {
+    await page.keyboard.press('Tab');
+    if (await page.evaluate(() => document.activeElement?.id) === 'reader-source') break;
+  }
+  expect(await page.evaluate(() => document.activeElement?.id)).toBe('reader-source');
+  expect(await page.locator('#reader-source').evaluate(el => getComputedStyle(el).outlineStyle)).toBe('none');
+});
+
 }
 
 for (const language of ['en', 'zh']) {

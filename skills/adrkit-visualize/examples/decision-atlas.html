@@ -91,11 +91,18 @@ main { overflow: auto; background-image: radial-gradient(#d8e1d9 0.8px,transpare
 
 /* Suppress the mobile browser's native tap highlight; touch feedback comes from the page's own states. */
 :root { font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color: #233c36; background: #f6f8f5; -webkit-tap-highlight-color: transparent; }
+/* The base focus ring stays overridable: theme blocks re-declare focus styles
+   at full priority, so this folio ink must not out-rank their accents. */
+:where(button, summary, main, a):focus-visible { outline: 2px solid #7750a5; outline-offset: -2px; }
+/* WebKit matches :focus-visible on tapped links, so the reader's source link
+   would keep a ring after every touch; keyboards and fine pointers keep it. */
+@media (pointer: coarse) {
+  #reader-source:focus-visible { outline: none; }
+}
 * { box-sizing: border-box; }
 body { margin: 0; }
 main { position: relative; }
 button, summary { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible, summary:focus-visible, main:focus-visible, a:focus-visible { outline: 2px solid #7750a5; outline-offset: -2px; }
 .viewer-bar { position: relative; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 8px 16px; min-height: 52px; background: #fff; border-bottom: 1px solid #e1e7e1; }
 .viewer-heading { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
 .viewer-brand { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650; white-space: nowrap; padding-right: 12px; border-right: 1px solid #dce4dc; color: inherit; text-decoration: none; }
@@ -247,6 +254,9 @@ body { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org
 body.interactive { display: block; height: auto; min-height: 100dvh; overflow: visible; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 button, input { font-family: inherit; }
+/* Folio's own ink-purple ring at full priority: the overridable base rule
+   must not let the accent below change the established focus appearance. */
+button:focus-visible, summary:focus-visible, main:focus-visible, a:focus-visible { outline: 2px solid #7750a5; outline-offset: -2px; }
 :where(button,a,input,select,summary):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 [hidden], .workspace[hidden] { display: none; }
 .eyebrow { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; color: var(--accent); font: 500 .6875rem/1.6 var(--font-mono); letter-spacing: .1em; }
@@ -1776,7 +1786,9 @@ function readerLines(markdown){
 }
 
 function read(number,fromArchive=false){const r=records.find(r=>r.number===Number(number));if(!r)return;const source=document.querySelector('#reader-source');source.hidden=!r.source;if(r.source)source.href=r.source;document.querySelector('#reader-title').textContent=r.title;const meta=document.querySelector('#reader-meta');meta.replaceChildren();meta.append(make('span','meta-num','ADR '+String(r.number)),make('span','meta-status '+r.lifecycle,statusName[r.lifecycle]||r.lifecycle));document.querySelector('#reader-tags').textContent=(r.tags||[]).map(t=>'#'+t).join('  ');const body=document.querySelector('#reader-body');body.classList.remove('swap');body.replaceChildren();let buffer=[],list=null,listType=null,code=null;const flush=()=>{if(buffer.length){const p=document.createElement('p');p.textContent=buffer.join('\n');body.append(p);buffer=[];}};
-for(const line of readerLines(r.body.replace(/^\s*# ADR:.*\n/,''))){if(line.startsWith(String.fromCharCode(96,96,96))){flush();list=null;listType=null;if(code){body.append(code);code=null;}else code=document.createElement('pre');continue;}if(code){code.textContent+=line+'\n';continue;}const heading=line.match(/^(#{2,6}) /);const numbered=line.match(/^\s*(\d+)\. /);if(heading){flush();list=null;listType=null;const h=document.createElement(heading[1].length===2?'h3':'h4');h.textContent=line.slice(heading[0].length);body.append(h);}else if(/^\s*[-+*] /.test(line)||numbered){flush();const tag=numbered?'ol':'ul';if(!list||listType!==tag){list=document.createElement(tag);listType=tag;if(numbered)list.start=Number(numbered[1]);body.append(list);}const li=document.createElement('li');li.textContent=line.replace(numbered?/^\s*\d+\. /:/^\s*[-+*] /,'');li.style.marginInlineStart=(line.match(/^ */)[0].length*5)+'px';list.append(li);}else if(!line.trim()){flush();list=null;listType=null;}else if(list&&list.lastElementChild){list.lastElementChild.textContent+=' '+line.trim();}else{list=null;listType=null;buffer.push(line);}}flush();if(code)body.append(code);nodes.forEach(n=>n.classList.toggle('selected',n.dataset.adr===String(r.number)));showContext(r);const wasOpen=reader.open;const left=fromArchive&&archiveDesktop.matches;if(wasOpen&&reader.classList.contains('archive-left')!==left){archiveMotion?.cancel();reader.close();reader.classList.remove('archive-open','from-archive','closing');}reader.classList.toggle('archive-left',left);reader.dataset.origin=fromArchive?'archive':'other';if(!reader.open)reader.showModal();reader.scrollTop=0;if(wasOpen){const bodyEl=document.querySelector('#reader-body');bodyEl.classList.remove('swap');void bodyEl.offsetWidth;bodyEl.classList.add('swap');}}
+for(const line of readerLines(r.body.replace(/^\s*# ADR:.*\n/,''))){if(line.startsWith(String.fromCharCode(96,96,96))){flush();list=null;listType=null;if(code){body.append(code);code=null;}else code=document.createElement('pre');continue;}if(code){code.textContent+=line+'\n';continue;}const heading=line.match(/^(#{2,6}) /);const numbered=line.match(/^\s*(\d+)\. /);if(heading){flush();list=null;listType=null;const h=document.createElement(heading[1].length===2?'h3':'h4');h.textContent=line.slice(heading[0].length);body.append(h);}else if(/^\s*[-+*] /.test(line)||numbered){flush();const tag=numbered?'ol':'ul';if(!list||listType!==tag){list=document.createElement(tag);listType=tag;if(numbered)list.start=Number(numbered[1]);body.append(list);}const li=document.createElement('li');li.textContent=line.replace(numbered?/^\s*\d+\. /:/^\s*[-+*] /,'');li.style.marginInlineStart=(line.match(/^ */)[0].length*5)+'px';list.append(li);}else if(!line.trim()){flush();list=null;listType=null;}else if(list&&list.lastElementChild){list.lastElementChild.textContent+=' '+line.trim();}else{list=null;listType=null;buffer.push(line);}}flush();if(code)body.append(code);nodes.forEach(n=>n.classList.toggle('selected',n.dataset.adr===String(r.number)));showContext(r);const wasOpen=reader.open;const left=fromArchive&&archiveDesktop.matches;if(wasOpen&&reader.classList.contains('archive-left')!==left){archiveMotion?.cancel();reader.close();reader.classList.remove('archive-open','from-archive','closing');}reader.classList.toggle('archive-left',left);reader.dataset.origin=fromArchive?'archive':'other';// showModal drops the initial focus on the first focusable child, the source
+// link; the dialog itself holds focus so screen readers meet the title first.
+if(!reader.open){reader.showModal();reader.focus();}reader.scrollTop=0;if(wasOpen){const bodyEl=document.querySelector('#reader-body');bodyEl.classList.remove('swap');void bodyEl.offsetWidth;bodyEl.classList.add('swap');}}
 
 
 world.addEventListener('click', event => {

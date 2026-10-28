@@ -122,7 +122,7 @@ describe('reader typography', () => {
     runInNewContext(`${make}\n${inline}\n${read}\nread(1);\ndocument.querySelectorAll().forEach(inlineText);`, {
       document, records, statusName: { implemented: '生效' }, nodes: [],
       showContext() {},
-      reader: { open: false, showModal() {}, scrollTop: 0, dataset: {}, classList: { add() {}, remove() {}, toggle() {} } },
+      reader: { open: false, showModal() {}, focus() {}, scrollTop: 0, dataset: {}, classList: { add() {}, remove() {}, toggle() {} } },
     });
     return lookup;
   }
