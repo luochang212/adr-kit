@@ -120,7 +120,7 @@ The embedded outline described in the Problem was later removed after a
 worth-fix review: the reader renders the appendix as part of the record body,
 and the card tree remains `atlas --record --diagram`.
 
-## Later changes
+### Later changes
 
 **Amended by ADR 36:** `--map` explicitly selects every map export; format alone
 never selects it. All three objects default to HTML, trees accept
@@ -128,3 +128,7 @@ never selects it. All three objects default to HTML, trees accept
 positionals and names object/format in file receipts. The single-command and
 rendering decisions above remain active; the earlier routing examples describe
 the command surface before ADR 36.
+
+**Amended by ADR 43:** the replacements are named in `docs/upgrading.md` and
+the READMEs' Stability note; the README upgrade section named above no longer
+exists.

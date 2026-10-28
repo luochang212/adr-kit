@@ -154,3 +154,10 @@ from this repository.
 - **Simpler commands and data.** The seal transaction, manifest parsing,
   identity inventory, and special validation paths are gone; `graph` and
   `tree` work on any current-format archive.
+
+### Later changes
+
+**Amended by ADR 43:** the manifest-removal migration note now lives in
+`docs/upgrading.md` and the READMEs' Stability note; the README upgrade
+section this trade-off named is gone. The duty to state the migration where
+users meet it is unchanged.

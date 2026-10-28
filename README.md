@@ -62,23 +62,6 @@ adr/
 
 An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern as a durable terminal: keep it, and remove it only when another record owns the warning it blocks. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active. Both moves write the archived record as ordinary Git-tracked history; there is no separate seal or manifest. `adrkit validate` checks it like any other record, and Git records later changes.
 
-## Upgrades
-
-Validation tightening after 0.29.0: `Consequences` must contain written content
-in implemented and archived decisions; proposals must also fill `Acceptance
-criteria` and `Risks`. Empty headings, HTML comments, and fenced examples do
-not satisfy these requirements. Run `adrkit validate --all` and have the author
-supply missing substance; this is not a mechanical migration, and placeholder
-prose is not a remedy. Explain any archived edits in their commit. Rejecting a
-proposal still requires only its problem, proposal, alternatives, and a reason;
-an abandoned implementation plan need not be completed.
-
-ADR Kit is pre-stable and breaks on purpose: a release may change the record format or the command surface, and nothing promises forward compatibility. Records written by an older release are not guaranteed to keep passing validation, and not every break has a mechanical migration. Upgrading is the supported path: run `adrkit update` to refresh the installed integrations, then `adrkit validate --all` in your repositories, where validation errors name what changed. The standing orders tell your agent to upgrade the package, migrate active records where the change is mechanical, and report a record it cannot carry over instead of forcing a rewrite; archived records change only through a deliberate, explained commit. An `adr/archived/MANIFEST.json` written by 0.23.0 or earlier is no longer read; delete it.
-
-That section in `AGENTS.md` is yours: its optional `<!-- adrkit: standing-orders <id> -->` generation marker declares which template you reconciled it against, not identical text. Translation, shortening, and local edits are allowed. Keep project-specific obligations outside the section. An old marker produces a note in `init`, `update`, `list`, `instructions`, and `relevant`: compare with the current `adrkit-init` template and reconcile changes before updating the marker. Unmarked sections now stay quiet, including older installations; retain or add the current marker after reconciliation to opt into future template-change notes. A missing section still produces the separate init/update note.
-
-Breaking visualization change: trees selected by `--record <name>` now default to HTML and support `--format html`; `--diagram` is removed. Extra positional arguments to `atlas` are rejected; use `--record <name>`. `atlas --format html` now writes the full atlas. Map exports in any format must explicitly add `--map`; non-HTML formats without a selected map or record are rejected. The visualization commands are now one: `adrkit atlas` (the map is `--map --format html`, one decision's tree is `--record <N>`); `adrkit graph` and `adrkit tree` are gone. The npm package is `adr-kit` and the CLI is `adrkit` (there is no `adrkit` package on npm). The CLI requires Node.js 22.22 or later; earlier Node.js lines are no longer supported. Breaking CLI change: every command now rejects extra positional arguments instead of ignoring them, except that `record`, `propose`, and `note` join unquoted shell words into one title or text. `validate` takes either a record name or `--all`, not both.
-
 ## Tell your agent
 
 Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. When a task targets specific files, `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern them. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and link an unshipped replacement to the old decision, keeping that authority active until the replacement ships; resolve it with `adrkit supersede --by` in the delivery change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code. When code implements a decision, cite it in a comment with `@adr <number>`; `adrkit validate` fails when the citation is stale.
@@ -207,6 +190,10 @@ per-record and repository-wide check lists live in the
 [CLI reference](docs/cli.md#validation-coverage).
 
 See [record format](docs/record-format.md), [workflow](docs/workflow.md), and [CLI reference](docs/cli.md).
+
+## Stability
+
+ADR Kit is pre-stable and breaks on purpose: a release may change the record format or the command surface, and nothing promises forward compatibility. Records written by an older release are not guaranteed to keep passing validation, and not every break has a mechanical migration. Upgrading is the supported path: `adrkit update`, then `adrkit validate --all` in your repositories, where validation errors name what changed; archived records change only through a deliberate, explained commit. Per-release upgrade notes live in [the upgrade guide](docs/upgrading.md), and every change is listed in the [changelog](CHANGELOG.md).
 
 ## Sources of inspiration
 

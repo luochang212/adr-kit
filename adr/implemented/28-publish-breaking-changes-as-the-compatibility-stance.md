@@ -90,3 +90,12 @@ say plainly what is not — stayed implicit while the premise did the arguing.
 3. The stance now lives in prose rather than being enforced by a version
    policy; a future release that wants a compatibility promise must add the
    machinery, not just the sentence.
+
+### Later changes
+
+**Amended by ADR 43:** the running break notes moved from the README upgrade
+section to `docs/upgrading.md` and `docs/zh/upgrading.md`, and both READMEs
+keep a short Stability note carrying the stance above, placed after the Record
+format section. The surfaces are now the record-format reference, the README
+stability note and the upgrade guide, and the standing orders; the
+announcement duty is unchanged.

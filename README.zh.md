@@ -62,20 +62,6 @@ adr/
 
 未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号，因此移除一条多余的否决不会腾出可复用的编号）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都把归档记录当作普通的 Git 跟踪历史；既没有封存仪式，也没有单独的封存清单。`adrkit validate` 像检查其他记录一样检查它，后续修改由 Git 记录。
 
-## 升级
-
-0.29.0 之后的校验收紧：已实施与归档决策的 `Consequences` 必须有实际正文；
-提案还须填写 `Acceptance criteria` 和 `Risks`。空标题、HTML 注释和围栏
-示例均不满足这些要求。运行 `adrkit validate --all`，由作者补齐缺失的实质
-内容；这不是机械迁移，不能靠占位文字通过校验。修改归档须在提交中说明原因。
-否决提案仍只要求问题、方案、备选和否决理由，无需补完已经放弃的实施计划。
-
-ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容。旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先运行 `adrkit update` 刷新已安装集成，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在。常设指令会让 agent 升级包、在变更可机械迁移时迁移未归档记录，并如实报告无法迁移的记录而不是硬改；归档记录只通过有意且说明原因的提交修改。0.23.0 及更早版本写下的 `adr/archived/MANIFEST.json` 已不再读取，直接删除即可。
-
-`AGENTS.md` 中的该段归你所有：可选的代际标记 `<!-- adrkit: standing-orders <id> -->` 表示已与哪一代模板核对，不保证正文完全一致。允许翻译、缩写和本地修改；项目专属要求放在该段之外。旧标记会让 `init`、`update`、`list`、`instructions` 和 `relevant` 提示：先与当前 `adrkit-init` 模板比较、处理变化，再更新标记。无标记的段落现在保持安静，包括旧安装；核对后保留或添加当前标记，即可选择接收以后的模板变化提醒。缺少整段规则时，init/update 仍会给出独立提醒。
-
-可视化的破坏性变更：`--record <name>` 选择的树现在默认输出 HTML，也支持 `--format html`；`--diagram` 已移除。`atlas` 的多余位置参数会报错，选记录请用 `--record <name>`。`atlas --format html` 现在输出完整档案；所有格式的地图导出都必须显式添加 `--map`，未选择地图或单条记录时使用非 HTML 格式会报错。可视化命令已收敛为一个：`adrkit atlas`（地图用 `--map --format html`，单条决策的树用 `--record <N>`）；`adrkit graph` 与 `adrkit tree` 已移除。npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。CLI 的破坏性变更：所有命令现在拒绝多余位置参数而不是忽略；`record`、`propose`、`note` 例外，它们把未加引号的 shell 词拼接为一个标题或文本。`validate` 只接受记录名或 `--all` 之一，不能同时给出。
-
 ## 告诉 Agent
 
 Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md`。任务开始时先运行 `adrkit list`。四个目录是一份上下文预算：完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，未交付的完整替代先链接意图并保留旧权威，交付时在同次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate` 失败。
@@ -199,6 +185,10 @@ export function scope() { /* ... */ }
 [CLI 参考](docs/zh/cli.md#校验覆盖面)。
 
 详见[记录格式](docs/zh/record-format.md)、[工作流](docs/zh/workflow.md)与[CLI 参考](docs/zh/cli.md)。
+
+## 稳定性
+
+ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令面，不承诺前向兼容。旧版本写下的记录不保证继续通过校验，也不是每次破坏都有机械迁移方案。升级是受支持的路径：先 `adrkit update`，再在仓库运行 `adrkit validate --all`，校验错误会指出变化所在；归档记录只通过有意且说明原因的提交修改。各版本升级说明见[升级指南](docs/zh/upgrading.md)，全部变更见[更新日志](CHANGELOG.md)。
 
 ## 灵感来源
 

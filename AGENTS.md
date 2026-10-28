@@ -161,7 +161,8 @@ over a patch rather than share the working tree.
   windows, grandfather markers, and migration commands are not carried, and no
   release promises that old records or integrations keep working. External
   adopters exist, so a break is a user-facing decision: say so where users meet
-  it (the record format, the README upgrade section, the standing orders),
+  it (the record format, the README stability note and the upgrade guide, the
+  standing orders),
   migrate active records where the change is mechanical, state plainly when a
   record cannot be carried over, and never rewrite archived records silently
   (ADR 30).
