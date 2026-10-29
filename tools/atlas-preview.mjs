@@ -98,9 +98,9 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
   .folio .card-heading { margin-inline-start:-.5rem; transform:rotate(-5deg); margin-block:.3rem -.2rem; }
   .signal .card-heading { margin-inline-start:0; margin-block:.4rem .75rem; }
   .folio .preview { margin-inline-start:2rem; max-inline-size:calc(100% - 2rem); inline-size:min(calc(100% - 2rem),max(12rem,calc((100dvh - 25rem)*1.5))); transform:rotate(2deg); margin-block:calc(var(--title-size)*-.5) 1.6rem; }
-  .signal .preview { inline-size:min(100%,max(12rem,calc((100dvh - 25rem)*1.5))); margin-inline-start:-.5rem; transform:rotate(-3deg); margin-block:calc(var(--title-size)*-.425) 1.6rem; --shadow-color:#35423c; --shadow-x:.7rem; --shadow-y:.9rem; --shadow-spread:-.3rem; }
+  .signal .preview { inline-size:min(calc(100% - 2.25rem),max(12rem,calc((100dvh - 25rem)*1.5))); margin-inline-start:1.75rem; transform:rotate(-3deg); margin-block:calc(var(--title-size)*-.425) 1.6rem; --shadow-color:#35423c; --shadow-x:.7rem; --shadow-y:.9rem; --shadow-spread:-.3rem; }
   .folio .card-actions { margin-inline-start:2rem; }
-  .signal .card-actions { margin-inline-start:-.5rem; }
+  .signal .card-actions { margin-inline-start:1.75rem; }
   .mobile-nav { display:none; }
   .signal .open span { color:#101d1b; }
   .intro h1 { font-weight:750; }
