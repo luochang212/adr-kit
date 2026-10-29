@@ -66,7 +66,7 @@ const live = [
     number: 1,
     title: 'Choose <SQLite> & sessions',
     created: '2026-10-01',
-    tags: ['storage'],
+    description: 'Read when changing session storage.',
     paths: ['src/storage.ts'],
     sections: [{ heading: 'Problem', body: '\nSessions leaked.\n' }, { heading: 'Decision', body: '\nUse SQLite.\n' }],
     commit: 'def5678',
@@ -75,7 +75,7 @@ const live = [
     number: 2,
     title: 'Scope the session store',
     created: '2026-10-01',
-    tags: ['storage'],
+    description: 'Read when changing session storage.',
     sections: [{ heading: 'Problem', body: '\nADR-1 needed a boundary.\n' }, { heading: 'Decision', body: '\nOne store.\n' }],
   }),
   record({
@@ -150,6 +150,7 @@ describe('decision atlas rendering', () => {
     const parsed = parseAdrText(`---
 status: implemented
 date: 2026-10-01
+description: Read when changing the storage choice exercised by this fixture.
 raised-by: human
 decided-by: human
 created: 2026-10-01

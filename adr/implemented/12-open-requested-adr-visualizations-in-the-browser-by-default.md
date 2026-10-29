@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-22
+description: "Read when delivering a requested visualization and deciding whether to open it in a browser."
 raised-by: human
 decided-by: human
 created: 2026-09-22
 commit: 02536cc
-tags: [visualization, agent-integration]
 paths:
   - skills/adrkit-visualize/SKILL.md
   - src/core/tool-integrations.ts
@@ -73,3 +73,5 @@ above are unchanged.
 decision's card tree runs as `atlas --record <name> --diagram` and the
 whole-set map as `atlas --format html`. The browser-open default, file link,
 opt-out, and fallback above are unchanged.
+
+**Amended by ADR 44:** The retained map now distinguishes current and archived records through lifecycle styling rather than tag tinting. Browser delivery, offline views and canvas behavior are unchanged.

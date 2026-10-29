@@ -1,14 +1,11 @@
 ---
 status: implemented
 date: 2026-10-25
+description: "Read when selecting atlas themes or changing the shared behavior and distribution of Folio and Signal."
 raised-by: human
 decided-by: human
 created: 2026-10-25
 commit: 246c65d
-tags:
-  - visualization
-  - website
-  - themes
 paths:
   - src/core/atlas-theme.ts
   - src/core/decision-atlas.ts

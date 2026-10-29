@@ -42,7 +42,7 @@ export const ATLAS_EN: Array<[string, string]> = [
   ['画布横向范围索引', 'Canvas range index'],
   ['当前约束请查看生效记录。', 'Current constraints are in the active records.'],
   ['归档历史，已由 ADR ', 'Archived history, superseded by ADR '],
-  ['编号、标题、正文或标签', 'Number, title, body, or tag'],
+  ['编号、标题、描述或正文', 'Number, title, description, or body'],
   ['决策关系与来源', 'Decision relations and source'],
   ['谁提出，谁决定？', 'Who raised it, who decided?'],
   ['被反复引用的决策', 'Most-referenced decisions'],

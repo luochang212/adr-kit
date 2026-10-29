@@ -44,7 +44,7 @@ export function isRaisedBy(value: unknown): value is RaisedBy {
 export type AdrFolder = 'proposed' | 'implemented' | 'rejected' | 'archived';
 
 /** Canonical front matter field order; only fields that exist are written. */
-export const FRONT_MATTER_ORDER = ['status', 'date', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'archived', 'archive-reason', 'tags', 'paths'] as const;
+export const FRONT_MATTER_ORDER = ['status', 'date', 'description', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'archived', 'archive-reason', 'paths'] as const;
 
 /** File name of a numbered record in implemented/ or archived/: `N-slug.md`. */
 export const NUMBERED_FILE_NAME_PATTERN = /^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/;
@@ -124,12 +124,12 @@ export interface AdrRecord {
   archived?: string;
   /** Why a shipped record no longer needs to be active guidance. */
   archiveReason?: string;
-  /** Optional kebab-case theme keywords; validate checks the shape. */
-  tags?: string[];
+  /** A sentence explaining the decision's subject and when it is relevant. */
+  description?: string;
   /**
    * Optional repository-relative globs naming the files this record governs.
-   * The retrieval axis `adrkit relevant` matches against: unlike tags (a
-   * theme), a scope answers "which decisions govern this file?". Minimal
+   * The retrieval axis `adrkit relevant` matches against: a scope answers
+   * "which decisions govern this file?". Minimal
    * glob semantics (`**` crosses separators, `*` within a segment, `?` one
    * character); validate checks the shape and that the static directory anchor
    * (or full literal path) exists, in every folder alike.
@@ -450,13 +450,9 @@ export function parseAdrText(text: string, filePath: string): AdrRecord {
     created = createdField;
   }
 
-  let tags: string[] | undefined;
-  const tagsField = fields['tags'];
-  if (tagsField !== undefined) {
-    if (!Array.isArray(tagsField) || !tagsField.every((tag) => typeof tag === 'string')) {
-      throw new AdrFormatError('tags must be a list of strings', filePath);
-    }
-    tags = tagsField as string[];
+  const description = fields['description'];
+  if (description !== undefined && typeof description !== 'string') {
+    throw new AdrFormatError('description must be a string', filePath);
   }
 
   let paths: string[] | undefined;
@@ -584,7 +580,7 @@ export function parseAdrText(text: string, filePath: string): AdrRecord {
   if (raisedBy !== undefined) parsed.raisedBy = raisedBy;
   if (decidedBy !== undefined) parsed.decidedBy = decidedBy;
   if (created !== undefined) parsed.created = created;
-  if (tags !== undefined) parsed.tags = tags;
+  if (description !== undefined) parsed.description = description;
   if (paths !== undefined) parsed.paths = paths;
   if (rejectionReason !== undefined) parsed.rejectionReason = rejectionReason;
   if (supersededBy !== undefined) parsed.supersededBy = supersededBy;

@@ -29,7 +29,7 @@ interface DecisionOptions {
   /** Defaults to `date`; graph grouping uses this. */
   created?: string;
   supersededBy?: number;
-  tags?: string[];
+  description?: string;
   /** Extra prose dropped into ## Decision; where ADR-N references live. */
   decisionBody?: string;
   /** Appended as a ## Deliberation appendix. */
@@ -40,11 +40,10 @@ interface DecisionOptions {
 
 function writeDecision(root: string, number: number, title: string, options: DecisionOptions): void {
   const superseded = options.supersededBy === undefined ? '' : `\nsuperseded-by: ${options.supersededBy}`;
-  const tags = options.tags === undefined ? '' : `\ntags: [${options.tags.join(', ')}]`;
   const created = options.omitCreated === true ? '' : `\ncreated: ${options.created ?? options.date}`;
   const content = `---
 status: ${options.status ?? 'implemented'}
-date: ${options.date}${created}${superseded}${tags}
+date: ${options.date}\ndescription: ${options.description ?? "Read when changing this fixture decision."}${created}${superseded}
 ---
 
 # ADR: ${number} ${title}
@@ -139,6 +138,9 @@ describe('graphCommand formats', () => {
   end
 
   n2 -.-> n1
+
+  classDef active stroke:#0e7490,color:#0e7490
+  class n1,n2 active
 
   click n1 "adr/implemented/1-first.md"
   click n2 "adr/implemented/2-second.md"`);
@@ -235,6 +237,7 @@ describe('graphCommand formats', () => {
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -359,7 +362,6 @@ describe('cli atlas surface', () => {
     { map: true, record: '1' },
     { map: true, record: '1', format: 'text' },
     { map: true, lang: 'zh' },
-    { format: 'html', tag: 'storage' },
     { formalOnly: true },
   ])('rejects invalid object combinations before writing: %j', (options) => {
     const root = makeRepo();
@@ -451,7 +453,7 @@ describe('cli atlas surface', () => {
   });
 });
 
-describe('created grouping, tags, and tree output', () => {
+describe('created grouping, descriptions, and tree output', () => {
   it('groups by created date, not the status date', () => {
     const root = makeRepo();
     writeDecision(root, 1, 'Founding', { date: '2026-08-19', created: '2026-08-17' });
@@ -463,13 +465,13 @@ describe('created grouping, tags, and tree output', () => {
 
   it('emits an exact terminal tree with --text', () => {
     const root = makeRepo();
-    writeDecision(root, 1, 'Old', { date: '2026-08-19', created: '2026-08-17', status: 'superseded', supersededBy: 3, tags: ['adr'] });
-    writeDecision(root, 2, 'Base', { date: '2026-08-17', tags: ['execution'] });
+    writeDecision(root, 1, 'Old', { date: '2026-08-19', created: '2026-08-17', status: 'superseded', supersededBy: 3, description: 'Read when changing this fixture decision.' });
+    writeDecision(root, 2, 'Base', { date: '2026-08-17', description: 'Read when changing this fixture decision.' });
     writeDecision(root, 3, 'New', { date: '2026-08-19', created: '2026-08-19', decisionBody: 'Builds on ADR-1.' });
     expect(graphCommand(root, { text: true })).toBe(`Decisions
 ├── 2026-08-17 (2)
-│   ├── 1 Old  [superseded by 3; adr]
-│   └── 2 Base  [execution]
+│   ├── 1 Old  [superseded by 3]
+│   └── 2 Base
 └── 2026-08-19 (1)
     └── 3 New`);
   });
@@ -481,6 +483,7 @@ describe('created grouping, tags, and tree output', () => {
     writeFileSync(join(dir, '1-retired.md'), `---
 status: implemented
 date: 2026-08-17
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-17
 archived: 2026-08-17
 archive-reason: current behavior has another authoritative owner
@@ -509,39 +512,27 @@ c
     └── 1 Retired  [archived]`);
   });
 
-  it('filters to one theme with --tag in every format', () => {
+  it('colors current decisions consistently and distinguishes archived history', () => {
     const root = makeRepo();
-    writeDecision(root, 1, 'Sandbox', { date: '2026-08-17', tags: ['execution', 'sandbox'] });
-    writeDecision(root, 2, 'Frontend', { date: '2026-08-17', tags: ['frontend'] });
-    writeDecision(root, 3, 'Uses sandbox', { date: '2026-08-19', decisionBody: 'Builds on ADR-1.', tags: ['execution'] });
-    const graph = buildDecisionGraph(listRecords(root), { tag: 'execution' });
-    expect(graph.nodes.map((node) => node.number)).toEqual([1, 3]);
-    expect(graph.referenceEdges).toEqual([{ from: 3, to: 1 }]);
-    const tree = graphCommand(root, { text: true, tag: 'execution' });
-    expect(tree).not.toContain('2 Frontend');
-  });
-
-  it('colors active nodes by their first tag in mermaid', () => {
-    const root = makeRepo();
-    writeDecision(root, 1, 'Sandbox', { date: '2026-08-17', tags: ['execution'] });
-    writeDecision(root, 2, 'Frontend', { date: '2026-08-17', tags: ['frontend'] });
-    writeDecision(root, 3, 'Retired', { date: '2026-08-17', status: 'superseded', supersededBy: 1, tags: ['execution'] });
+    writeDecision(root, 1, 'Sandbox', { date: '2026-08-17' });
+    writeDecision(root, 2, 'Frontend', { date: '2026-08-17' });
+    writeDecision(root, 3, 'Retired', { date: '2026-08-17', status: 'superseded', supersededBy: 1 });
     const output = graphCommand(root, {});
-    expect(output).toContain('classDef tag-0 stroke:#0e7490,color:#0e7490');
-    expect(output).toContain('classDef tag-1 stroke:#b45309,color:#b45309');
-    expect(output).toContain('class n1 tag-0');
-    expect(output).toContain('class n2 tag-1');
-    // superseded nodes stay gray: no tag class for n3
-    expect(output).not.toContain('n3 tag-');
+    expect(output).toContain('classDef active stroke:#0e7490,color:#0e7490');
+    expect(output).toContain('class n1,n2 active');
     expect(output).toContain('class n3 retired');
+    const html = graphCommand(root, { html: true });
+    expect(html).toContain('stroke="#0e7490"');
+    expect(html).toContain('class="node superseded"');
+    expect(html).not.toContain('class="tag"');
   });
 
-  it('carries created and tags into the graph model', () => {
+  it('carries created and description into the graph model', () => {
     const root = makeRepo();
-    writeDecision(root, 1, 'First', { date: '2026-08-19', created: '2026-08-17', tags: ['execution'] });
+    writeDecision(root, 1, 'First', { date: '2026-08-19', created: '2026-08-17', description: 'Read when changing this fixture decision.' });
     const graph = buildDecisionGraph(listRecords(root), {});
     expect(graph.nodes[0]?.created).toBe('2026-08-17');
-    expect(graph.nodes[0]?.tags).toEqual(['execution']);
+    expect(graph.nodes[0]?.description).toBe('Read when changing this fixture decision.');
   });
 
   it('reports a record with no created date instead of substituting its status date', () => {
@@ -590,9 +581,9 @@ describe('graph output file', () => {
 describe('graph HTML map', () => {
   it('emits one offline document with nodes, edges, and deliberation markers', () => {
     const root = makeRepo();
-    writeDecision(root, 1, 'Grilled', { date: '2026-08-17', tags: ['core'], deliberation: '- Q: Which store? [settled]\n  - A: SQLite [settled]' });
-    writeDecision(root, 2, 'Plain', { date: '2026-08-17', tags: ['api'], decisionBody: 'Builds on ADR-1.' });
-    writeDecision(root, 3, 'Retired', { date: '2026-08-18', status: 'superseded', supersededBy: 2, tags: ['core'] });
+    writeDecision(root, 1, 'Grilled', { date: '2026-08-17', description: 'Read when changing this fixture decision.', deliberation: '- Q: Which store? [settled]\n  - A: SQLite [settled]' });
+    writeDecision(root, 2, 'Plain', { date: '2026-08-17', description: 'Read when changing this fixture decision.', decisionBody: 'Builds on ADR-1.' });
+    writeDecision(root, 3, 'Retired', { date: '2026-08-18', status: 'superseded', supersededBy: 2, description: 'Read when changing this fixture decision.' });
     const html = graphCommand(root, { html: true });
     expect(html.startsWith('<!doctype html>')).toBe(true);
     expect(html).toContain('<svg');
@@ -715,33 +706,13 @@ describe('graph HTML map', () => {
     }
   });
 
-  it('keeps the tag run clear of the deliberation marker and the card edge', () => {
+  it('keeps deliberation markers without a category footer', () => {
     const root = makeRepo();
-    writeDecision(root, 1, 'Wide', {
-      date: '2026-08-17',
-      tags: ['deliberation', 'visualization', 'agent-integration'],
-      deliberation: '- Q: Which store? [settled]\n  - A: SQLite [settled]',
-    });
-    writeDecision(root, 2, 'Short', { date: '2026-08-17', tags: ['core'] });
+    writeDecision(root, 1, 'Grilled', { date: '2026-08-17', deliberation: '- Q: Store? [settled]\n  - A: SQLite [settled]' });
     const html = graphCommand(root, { html: true });
-    const runs = (html.match(/<text class="tag"[^>]*>[^<]*<\/text>/g) ?? []).map((run) => run.replace(/<[^>]+>/g, ''));
-    expect(runs).toHaveLength(2);
-    // The deliberation marker is the card's pale green fill, not a footer
-    // element, so both runs get the card's whole 216px of inner width. At the
-    // font these views resolve to — about 4.74px per Latin character at 10px —
-    // the run has to fit that width.
-    expect(runs[0]!.length * 4.74).toBeLessThanOrEqual(216);
-    expect(runs[1]!.length * 4.74).toBeLessThanOrEqual(216);
-    // Every tagged card clips its run, so a wider fallback font cannot paint
-    // over the card edge.
-    expect(html.match(/<clipPath id="tags-\d+"/g)).toHaveLength(2);
-    // The tint is the marker, spelled out by the legend.
     expect(html).toMatch(/\.node\.has-deliberation rect \{\s*fill: #edf6ef/);
-    expect(html).not.toContain('>deliberation</text>');
-    // The run fills the row up to the card's edge before it cuts.
-    expect(runs[0]).toContain('…');
-    expect(runs[0]!.startsWith('#deliberation')).toBe(true);
-    expect(runs[1]).toBe('#core');
+    expect(html).toContain('data-has-deliberation="true"');
+    expect(html).not.toContain('class="tag"');
   });
 
   /** Every point along every drawn edge, sampled from the cubic in its path. */

@@ -1,6 +1,7 @@
 ---
 status: implemented
 date: 2026-10-16
+description: "Read when choosing the project instruction file or installing the Claude Code integration exception."
 raised-by: human
 decided-by: human
 created: 2026-10-16

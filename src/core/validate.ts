@@ -24,7 +24,6 @@ export interface ValidationIssue {
 const DECISION_REQUIRED = ['Problem', 'Decision', 'Alternatives considered', 'Consequences'];
 const PROPOSED_REQUIRED = ['Problem', 'Proposal', 'Alternatives considered', 'Acceptance criteria', 'Risks'];
 
-const TAG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function calendarDateIsValid(year: number, month: number, day: number): boolean {
   const date = new Date(year, month - 1, day);
@@ -50,25 +49,6 @@ function createdIssues(path: string, record: AdrRecord): ValidationIssue[] {
   }
   if (record.date < created) {
     issues.push({ path, message: 'created must not be after the status date' });
-  }
-  return issues;
-}
-
-function tagsIssues(path: string, tags: string[]): ValidationIssue[] {
-  const issues: ValidationIssue[] = [];
-  if (tags.length === 0) {
-    issues.push({ path, message: 'tags must not be empty' });
-    return issues;
-  }
-  const seen = new Set<string>();
-  for (const tag of tags) {
-    if (!TAG_PATTERN.test(tag)) {
-      issues.push({ path, message: `tag "${tag}" must be lowercase kebab-case` });
-    }
-    if (seen.has(tag)) {
-      issues.push({ path, message: `duplicate tag "${tag}"` });
-    }
-    seen.add(tag);
   }
   return issues;
 }
@@ -195,7 +175,11 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   const dateError = dateIssue(record);
   if (dateError !== undefined) issues.push({ path, message: dateError });
   issues.push(...createdIssues(path, record));
-  if (record.tags !== undefined) issues.push(...tagsIssues(path, record.tags));
+  if (record.description === undefined || record.description.trim().length === 0) {
+    issues.push({ path, message: 'front matter must include a non-empty "description" explaining when to read the record' });
+  } else if (/[\r\n]/.test(record.description)) {
+    issues.push({ path, message: 'description must be a single line' });
+  }
   issues.push(...pathsIssues(root, path, record));
 
   const numbered = record.folder === 'implemented' || record.folder === 'archived';

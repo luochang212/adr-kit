@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-10-19
+description: "Read when linking code to decisions and validating whether those citations remain active and correctly scoped."
 raised-by: agent
 decided-by: agent
 created: 2026-10-19
 commit: 5ebda92
-tags: [agent-integration, governance]
 paths:
   - src/core/markers.ts
   - src/core/validate.ts

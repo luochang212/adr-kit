@@ -26,6 +26,7 @@ function decision(title: string, fields: Record<string, string | number>): strin
   for (const [key, value] of Object.entries(fields)) {
     entries.push([key, value]);
     if (key === 'date') {
+      if (!('description' in fields)) entries.push(['description', 'Read when changing the storage boundary.']);
       if (!('raised-by' in fields)) entries.push(['raised-by', 'human']);
       if (!('decided-by' in fields)) entries.push(['decided-by', 'human']);
       if (!('created' in fields)) entries.push(['created', value]);
@@ -85,6 +86,7 @@ describe('validateCommand', () => {
     const content = `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 raised-by: human
 decided-by: human
 created: 2026-08-19
@@ -119,6 +121,7 @@ Body.
     const content = `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 raised-by: human
 decided-by: human
 created: 2026-08-19
@@ -153,6 +156,7 @@ Body.
     const content = `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -190,6 +194,7 @@ Use SQLite.
     const content = `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -223,6 +228,7 @@ Body.
     const content = `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -472,6 +478,7 @@ Amended by ADR 2: the second entry lost its opening.
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 ---
 
 # ADR: 1 First
@@ -520,69 +527,22 @@ Body.
     expect(result.output).toContain('created contains an invalid calendar date');
   });
 
-  it('flags malformed, duplicate, and empty tags', () => {    const root = makeRepo();
-    writeFileSync(
-      join(folderPath(root, 'implemented'), '1-first.md'),
-      `---
-status: implemented
-date: 2026-08-19
-created: 2026-08-19
-tags: [Execution Layer, sandbox, sandbox]
----
-
-# ADR: 1 First
-
-## Problem
-
-Body.
-
-## Decision
-
-Body.
-
-## Alternatives considered
-
-- **Other**: rejected.
-
-## Consequences
-
-Body.
-`,
-    );
-    writeFileSync(
-      join(folderPath(root, 'implemented'), '2-second.md'),
-      `---
-status: implemented
-date: 2026-08-19
-created: 2026-08-19
-tags: []
----
-
-# ADR: 2 Second
-
-## Problem
-
-Body.
-
-## Decision
-
-Body.
-
-## Alternatives considered
-
-- **Other**: rejected.
-
-## Consequences
-
-Body.
-`,
-    );
+  it.each([undefined, '', '   ', 'First line\nSecond line'])('rejects missing, empty or multiline descriptions (%s)', (description) => {
+    const root = makeRepo();
+    const text = decision('1 First', ACCEPTED);
+    const path = join(folderPath(root, 'implemented'), '1-first.md');
+    writeFileSync(path, text.replace(/^description:.*\n/m, description === undefined ? '' : `description: ${JSON.stringify(description)}\n`));
     const result = validateCommand(root);
     expect(result.valid).toBe(false);
-    expect(result.output).toContain('tag "Execution Layer" must be lowercase kebab-case');
-    expect(result.output).toContain('duplicate tag "sandbox"');
-    expect(result.output).toContain('tags must not be empty');
+    expect(result.output).toContain(description?.includes('\n') ? 'description must be a single line' : 'non-empty "description"');
   });
+
+  it('rejects removed tags instead of retaining a compatibility field', () => {
+    const root = makeRepo();
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), decision('1 First', ACCEPTED).replace('---\n\n# ADR:', 'tags: [storage]\n---\n\n# ADR:'));
+    expect(validateCommand(root).output).toContain('unknown front matter field "tags"');
+  });
+
 });
 
 describe('closed lifecycle inventory', () => {
@@ -711,6 +671,7 @@ describe('implemented Consequences subheadings', () => {
     writeFileSync(proposal.path, `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -823,6 +784,7 @@ describe('written content and comment handling', () => {
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -864,6 +826,7 @@ Some risk.
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -1054,6 +1017,7 @@ describe('decided-by', () => {
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 

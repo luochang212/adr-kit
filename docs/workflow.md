@@ -54,7 +54,7 @@ snapshot, not a new CLI format or a mandatory layout.
 Creating, shipping, and reviewing are one governance loop:
 
 - **Before creating** a proposal or record, search the active records for the
-  same choice or mechanism. Judge overlap from content, not titles or tags.
+  same choice or mechanism. Judge overlap from content, not titles alone.
   Extend a duplicate; link an unshipped full replacement as intent and keep
   the old decision active until the replacement ships, then resolve it through
   `adrkit supersede --by` in that delivery change; link a partial overlap
@@ -81,7 +81,7 @@ are a context budget: read the relevant `implemented/` records in full; check
 the relevant `proposed/` records for intent and the relevant `rejected/`
 records for the bad cases they warn against; treat `archived/` as frozen
 history and read it only when a task explicitly cites it. Relevance requires more than
-title matching: inspect tags, paths, relationships, and task scope; when a
+title matching: inspect descriptions, paths, relationships, and task scope; when a
 task targets specific files, `adrkit relevant <path>` retrieves the records
 whose `paths:` scopes govern them. Check
 records against current code, explain changed assumptions, and mention

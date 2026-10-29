@@ -9,9 +9,9 @@ ADR Kit 用 YAML front matter 加 Markdown 正文，并按生命周期分目录�
 | `adr/rejected/` | `rejected` | `YYYY-MM-DD-slug.md` | 正式否决（反例库） |
 | `adr/archived/` | `implemented` 或 `superseded` | `N-slug.md` | 冻结历史 |
 
-front matter 的规范顺序是 `status`、`date`、`raised-by`、
+front matter 的规范顺序是 `status`、`date`、`description`、`raised-by`、
 `decided-by`、`created`、`commit`、`superseded-by`、`reason`、
-`archived`、`archive-reason`、`tags`、`paths`，只写适用字段。`date` 在每次生命周期
+`archived`、`archive-reason`、`paths`，只写适用字段。`date` 在每次生命周期
 转移时由机器写入；`created` 保留出生日期；`archived` 是归档日期，
 进入冻结历史时与 `date` 相同。
 头部后必须空一行，再写 `# ADR: <标题>`；已编号决策为
@@ -57,8 +57,7 @@ implemented 记录上校验该形式：以 `ADR N later` 开头的尾注段落�
 `superseded-by: N` 及归档元数据，再将旧编号记录移至 `archived/`。替代链
 必须无缺失、无环，终点是 implemented 决策。`archive` 为不再指导工作的
 implemented 决策写 `archived` 和 `archive-reason`；原 `status` 保留
-implemented，表示历史上的交付状态。编号始终稳定。可选 `tags` 必须为不重复
-的小写 kebab-case。可选 `## Deliberation` 以嵌套 Markdown 列表保存决策背后的
+implemented，表示历史上的交付状态。编号始终稳定。每条记录必须有非空的单行 `description`，说明主题和适用情境；描述不代替正文阅读。旧 `tags` 字段已移除，校验会报告未知字段。可选 `## Deliberation` 以嵌套 Markdown 列表保存决策背后的
 推敲树：`- Q: <问题> [settled]` 与 `- <选项> [rejected] (recommended) — <理由>`，
 后续问题嵌在提出它的节点下。`-`、`*`、`+` 都可作为项目符号；`[settled]`、
 `[rejected]`、`[open]` 是状态，`(recommended)` 标记推荐项，破折号后的文字是
@@ -66,8 +65,7 @@ implemented，表示历史上的交付状态。编号始终稳定。可选 `tags
 章节有内容却没有列表项时会按期望形状报错，而不是画一棵空树。`adrkit validate`
 检查四个目录，拒绝编号重复、日期错误、目录与状态不匹配、四个目录之外的记录，以及悬空引用：记录正文可以用 `ADR-12`、`ADR 4` 或 `ADR12` 引用决策，指向不存在的编号会让整仓校验失败。
 
-可选 `paths` 把记录限定到它管辖的文件。它与 `tags` 是不同的轴：tags 按
-主题分类，`paths` 回答「哪些决策管辖这个文件？」。条目为不重复的仓库相对
+可选 `paths` 把记录限定到它管辖的文件。描述说明适用情境，`paths` 回答「哪些决策管辖这个文件？」。条目为不重复的仓库相对
 glob，使用正斜杠；`**` 跨目录分隔符，`*` 不跨目录，`?` 匹配单个字符，
 其余字节按字面匹配（不支持大括号展开与字符类）；以 `*` 开头的条目在
 YAML flow 写法中需要引号（`paths: ["**/*.ts"]`）。`adrkit relevant

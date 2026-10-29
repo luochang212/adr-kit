@@ -1,6 +1,7 @@
 ---
 status: superseded
 date: 2026-10-27
+description: "Historical single-theme website publication policy, superseded by bilingual previews of both themes in ADR 41."
 raised-by: human
 decided-by: human
 created: 2026-10-25
@@ -8,10 +9,6 @@ commit: 8dc58f5
 superseded-by: 41
 archived: 2026-10-27
 archive-reason: superseded by ADR 41
-tags:
-  - visualization
-  - website
-  - themes
 paths:
   - tools/build-decision-atlas.mjs
   - test/browser/atlas.spec.mjs

@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-22
+description: "Read when detecting whether a record has a renderable deliberation tree without introducing a record taxonomy."
 raised-by: human
 decided-by: human
 created: 2026-09-22
 commit: b79fff0
-tags: [deliberation, record-format, agent-integration]
 paths:
   - src/core/deliberation.ts
   - src/core/graph.ts

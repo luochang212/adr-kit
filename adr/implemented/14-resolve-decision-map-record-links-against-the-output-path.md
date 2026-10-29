@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-22
+description: "Read when writing decision maps to a file and resolving record links relative to the output location."
 raised-by: human
 decided-by: human
 created: 2026-09-22
 commit: 059da29
-tags: [visualization, decision-graph, delivery]
 paths:
   - src/commands/graph.ts
   - src/core/graph-html.ts

@@ -36,6 +36,7 @@ function cite(number: number): string {
 function decision(paths: readonly string[]): string {  return `---
 status: implemented
 date: 2026-10-22
+description: Read when changing the storage choice exercised by this fixture.
 raised-by: human
 decided-by: human
 created: 2026-10-22

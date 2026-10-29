@@ -9,9 +9,9 @@ ADR Kit stores Markdown with YAML front matter in four lifecycle directories:
 | `adr/rejected/` | `rejected` | `YYYY-MM-DD-slug.md` | Declined proposal (anti-pattern memory) |
 | `adr/archived/` | `implemented` or `superseded` | `N-slug.md` | Frozen history |
 
-The canonical front matter order is `status`, `date`, `raised-by`,
+The canonical front matter order is `status`, `date`, `description`, `raised-by`,
 `decided-by`, `created`, `commit`, `superseded-by`, `reason`,
-`archived`, `archive-reason`, `tags`, `paths`. Only applicable fields appear.
+`archived`, `archive-reason`, `paths`. Only applicable fields appear.
 `date` is machine-stamped at every lifecycle move; `created` preserves the
 record's birth date. `archived` is the archival date and matches `date`
 when a record enters frozen history.
@@ -71,8 +71,7 @@ metadata before moving the old numbered decision to `archived/`. The chain
 must end at an implemented decision without missing targets or cycles.
 `archive` moves an implemented decision with `archived` and
 `archive-reason`, leaving its status implemented as historical state.
-Archived records retain stable numbers. Optional `tags` are non-empty,
-unique lowercase kebab-case keywords. Optional `## Deliberation` preserves
+Archived records retain stable numbers. Every record requires a non-empty single-line `description` explaining its subject and when it is relevant. It helps select records and does not replace reading their bodies. The former `tags` field is removed and fails validation as unknown. Optional `## Deliberation` preserves
 the design tree behind a decision as a nested Markdown list:
 `- Q: <question> [settled]` and `- <option> [rejected] (recommended) — <reason>`,
 with a follow-up nested under the node that raised it. `-`, `*`, and `+` are
@@ -87,7 +86,7 @@ reference decisions as `ADR-12`, `ADR 4`, or `ADR12`, and a reference to a
 number that does not exist fails repository-wide validation.
 
 Optional `paths` scope a record to the files it governs. This is a different axis
-from `tags`: tags classify by theme, `paths` answer "which decisions govern
+from `description`: descriptions explain applicability, while `paths` answer "which decisions govern
 this file?". Entries are unique repository-relative globs with forward
 slashes; `**` crosses directory separators, `*` stays within one segment,
 `?` matches one character, and every other byte is literal (no brace

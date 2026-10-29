@@ -1,12 +1,10 @@
 ---
 status: implemented
 date: 2026-10-23
+description: "Read when changing atlas footer attribution, commit provenance, or navigation links."
 raised-by: human
 decided-by: human
 created: 2026-10-23
-tags:
-  - visualization
-  - website
 paths:
   - src/core/decision-atlas.ts
   - tools/build-decision-atlas.mjs

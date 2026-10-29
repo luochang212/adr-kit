@@ -1,13 +1,10 @@
 ---
 status: implemented
 date: 2026-10-27
+description: "Read when publishing or linking the bilingual website previews of both named atlas themes."
 raised-by: human
 decided-by: human
 created: 2026-10-26
-tags:
-  - visualization
-  - website
-  - themes
 paths:
   - tools/build-decision-atlas.mjs
   - test/browser/atlas.spec.mjs

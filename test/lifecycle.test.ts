@@ -28,6 +28,7 @@ function fillProposal(root: string, title: string): string {
   writeFileSync(proposal.path, `---
 status: proposed
 date: ${todayStamp()}
+description: Read when changing the storage choice exercised by this fixture.
 created: ${todayStamp()}
 ---
 
@@ -60,6 +61,7 @@ function fillDecision(root: string, number: number): void {
   const record = listRecords(root).find((candidate) => candidate.number === number);
   if (record === undefined) throw new Error('decision missing');
   const content = readFileSync(record.path, 'utf8')
+    .replace('description: ""', 'description: Read when changing session persistence.')
     .replace('<!-- What problem or opportunity does this decision address? -->', 'Storage must survive restarts.')
     .replace(/<!-- The decision that shipped[\s\S]*?-->/, 'Use SQLite.')
     .replace(/<!-- Each genuine alternative and why it lost\. Keep this section: it is the\n     part of a decision record that prevents re-litigating old choices\. -->/, 'JSON files complicate queries.')

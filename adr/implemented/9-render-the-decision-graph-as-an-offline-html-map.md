@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-22
+description: "Read when changing the offline decision map, its relationship edges, record links, or visual state markers."
 raised-by: human
 decided-by: human
 created: 2026-09-22
 commit: c4c58fe
-tags: [visualization, decision-graph, agent-integration]
 paths:
   - src/core/graph-html.ts
   - src/core/graph-view.ts
@@ -97,6 +97,8 @@ model are unchanged.
 **Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`; the map
 runs as `atlas --format html` and is embedded in the atlas page by default.
 The map, its grouping, and the two-level model above are unchanged.
+
+**Amended by ADR 44:** Map category tinting and tag footers are removed. Current nodes share an accent; archived nodes retain gray dashed styling and explicit lifecycle text. Relationships, offline rendering and record links are unchanged.
 
 ## Deliberation
 

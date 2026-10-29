@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-10-23
+description: "Read when generating bilingual atlas pages from one shared template and translation table."
 raised-by: human
 decided-by: human
 created: 2026-10-23
 commit: 309204c
-tags: [visualization, website]
 paths:
   - tools/build-decision-atlas.mjs
   - src/core/atlas-i18n.ts

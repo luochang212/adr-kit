@@ -23,10 +23,6 @@ svg {
   font-size: 14px;
   font-weight: 600
 }
-.node .tag {
-  fill: #7c8a80;
-  font-size: 10px
-}
 .node.has-deliberation rect {
   fill: #edf6ef
 }

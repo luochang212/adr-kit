@@ -1,11 +1,10 @@
 import { RELATION_STYLE, RELATION_SCRIPT } from './relation-focus.js';
 import { FAVICON_DATA_URI } from './brand.js';
 import type { DecisionGraph, GraphNode } from './graph.js';
-import { TAG_COLORS } from './graph.js';
 import { MAP_STYLE } from './graph-view.js';
 import { CANVAS_STYLE, CANVAS_SCRIPT, canvasHeaderHTML, canvasDockHTML } from './canvas-view.js';
 import { SHARE_SCRIPT, SHARE_STYLE } from './share.js';
-import { escapeHtml, wrapText, estimateTextWidth } from './view-text.js';
+import { escapeHtml, wrapText } from './view-text.js';
 
 // @adr 9, 11 — the offline decision map and the canvas contract it shares
 // with the deliberation tree.
@@ -14,7 +13,6 @@ const PAD_X = 16;
 const PAD_Y = 14;
 const META_H = 16;
 const TITLE_H = 18;
-const FOOTER_H = 14;
 const GAP = 6;
 const LINE_CHARS = 30;
 const COL_GAP = 96;
@@ -23,19 +21,8 @@ const TOP = 72;
 const LEFT = 28;
 const BOTTOM = 30;
 
-/**
- * The card's footer font size. A decision with a deliberation tree is marked by
- * the card's own pale green fill, not by anything in this row, so the tag run
- * gets the card's whole inner width.
- */
-const FOOTER_FONT = 10;
-/** Drawing-box margin: room for the stroke width and the arrowheads. */
+/** Drawing-box margin: room for strokes and arrowheads. */
 const MAP_MARGIN = 16;
-
-/** Width of footer text as the card layout budgets it. */
-function footerWidth(text: string): number {
-  return estimateTextWidth(text, FOOTER_FONT);
-}
 
 /** The graph title keeps its "N " prefix; the card shows the number separately. */
 function displayTitle(node: GraphNode): string {
@@ -77,8 +64,7 @@ function layout(graph: DecisionGraph): { placed: Placed[]; columns: Column[]; wi
     let y = TOP;
     for (const node of nodes) {
       const lines = wrapText(displayTitle(node), LINE_CHARS);
-      const footer = node.tags.length > 0 || node.hasDeliberation ? GAP + FOOTER_H : 0;
-      const height = PAD_Y * 2 + META_H + GAP + lines.length * TITLE_H + footer;
+      const height = PAD_Y * 2 + META_H + GAP + lines.length * TITLE_H;
       placed.push({ node, x, y, height, lines });
       y += height + NODE_GAP;
     }
@@ -87,18 +73,6 @@ function layout(graph: DecisionGraph): { placed: Placed[]; columns: Column[]; wi
   }
   const width = columns.length === 0 ? 320 : x - COL_GAP + LEFT;
   return { placed, columns, width, height: bottom + BOTTOM };
-}
-
-/** Assign each first tag a stable color, in order of first appearance. */
-function tagColors(nodes: GraphNode[]): Map<string, string> {
-  const colors = new Map<string, string>();
-  for (const node of nodes) {
-    if (node.archived) continue;
-    const tag = node.tags[0];
-    if (tag === undefined || colors.has(tag)) continue;
-    colors.set(tag, TAG_COLORS[colors.size % TAG_COLORS.length]!);
-  }
-  return colors;
 }
 
 /** A drawn edge: its path plus the box the curve itself spans. */
@@ -168,29 +142,8 @@ function edgeCurve(from: Placed, to: Placed, sourceY: number, targetY: number, l
   };
 }
 
-/**
- * The `#a  #b` run for up to three tags, filled up to `maxWidth`: it is cut at
- * the last character that still fits beside the marker, so a truncated row
- * reaches the marker instead of stopping a whole tag short of it. An ellipsis
- * marks what was left out — a fourth tag, or the rest of the cut tag.
- */
-function fitTagRun(tags: string[], maxWidth: number): string {
-  const run = tags.slice(0, 3).map((tag) => '#' + tag).join('  ');
-  const more = tags.length > 3;
-  if (!more && footerWidth(run) <= maxWidth) return run;
-  let cut = '';
-  for (const char of run) {
-    const next = (cut + char).trimEnd();
-    if (footerWidth(next + '…') > maxWidth) break;
-    cut += char;
-  }
-  const kept = cut.trimEnd();
-  return (kept === '' ? run.slice(0, 1) : kept) + '…';
-}
-
 function nodeMarkup(
   placed: Placed,
-  colors: Map<string, string>,
   recordHref: (recordPath: string) => string,
   nodeId: ((number: number) => string) | undefined,
   labels: DecisionMapLabels,
@@ -199,16 +152,14 @@ function nodeMarkup(
   const classes = ['node'];
   if (node.archived) classes.push('superseded');
   if (node.hasDeliberation) classes.push('has-deliberation');
-  const firstTag = node.tags[0];
-  const stroke = node.archived
-    ? '#c2cabf'
-    : (firstTag === undefined ? '#dce4dc' : (colors.get(firstTag) ?? '#dce4dc'));
+  const stroke = node.archived ? '#c2cabf' : '#0e7490';
   const metaY = y + PAD_Y + META_H - 5;
   const titleY = y + PAD_Y + META_H + GAP + TITLE_H - 6;
   const parts: string[] = [];
   parts.push('<a href="' + escapeHtml(recordHref(node.path)) + '">');
   const id = nodeId?.(node.number);
   parts.push('<g' + (id === undefined ? '' : ' id="' + escapeHtml(id) + '"') + ' class="' + classes.join(' ') + '" data-adr="' + node.number + '" data-has-deliberation="' + String(node.hasDeliberation) + '">');
+  if (node.description) parts.push('<title>' + escapeHtml(node.description) + '</title>');
   parts.push('<rect x="' + x + '" y="' + y + '" width="' + CARD_W + '" height="' + height + '" rx="12" stroke="' + stroke + '"/>');
   parts.push('<text class="num" x="' + (x + PAD_X) + '" y="' + metaY + '">#' + node.number + '</text>');
   const meta = node.archived
@@ -218,14 +169,6 @@ function nodeMarkup(
   lines.forEach((line, index) => {
     parts.push('<text class="title" x="' + (x + PAD_X) + '" y="' + (titleY + index * TITLE_H) + '">' + escapeHtml(line) + '</text>');
   });
-  if (node.tags.length > 0) {
-    const footerY = titleY + (lines.length - 1) * TITLE_H + GAP + FOOTER_H - 2;
-    // The clip is the SVG counterpart of an HTML card's edge: a run the fallback
-    // font renders wider than budgeted is cut, never drawn over the card border.
-    const budget = CARD_W - PAD_X * 2;
-    parts.push('<clipPath id="tags-' + node.number + '"><rect x="' + (x + PAD_X) + '" y="' + (footerY - 10) + '" width="' + budget + '" height="14"/></clipPath>');
-    parts.push('<text class="tag" x="' + (x + PAD_X) + '" y="' + footerY + '" clip-path="url(#tags-' + node.number + ')">' + escapeHtml(fitTagRun(node.tags, budget)) + '</text>');
-  }
   parts.push('</g>');
   parts.push('</a>');
   return parts.join('');
@@ -278,7 +221,6 @@ export function renderDecisionMapSvg(
   const recordHref = options.recordHref ?? ((recordPath) => recordPath);
   const labels = options.labels ?? DEFAULT_LABELS;
   const { placed, columns, width, height } = layout(graph);
-  const colors = tagColors(placed.map((entry) => entry.node));
   const byNumber = new Map(placed.map((entry) => [entry.node.number, entry]));
   const edges: string[] = [];
   const routes = [
@@ -345,7 +287,7 @@ export function renderDecisionMapSvg(
     }
   }
   svg.push(...edges);
-  for (const entry of placed) svg.push(nodeMarkup(entry, colors, recordHref, options.nodeId, labels));
+  for (const entry of placed) svg.push(nodeMarkup(entry, recordHref, options.nodeId, labels));
   svg.push('</svg>');
 
   const deliberated = graph.nodes.filter((node) => node.hasDeliberation).length;

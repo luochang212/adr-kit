@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-22
+description: "Read when changing pan, zoom, fit, keyboard controls, or gestures shared by offline visualizations."
 raised-by: human
 decided-by: human
 created: 2026-09-22
 commit: 651c064
-tags: [visualization, agent-integration, interaction]
 paths:
   - src/core/canvas-view.ts
   - src/core/graph-html.ts

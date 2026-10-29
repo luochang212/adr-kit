@@ -1,6 +1,7 @@
 ---
 status: superseded
 date: 2026-10-22
+description: "Historical agent repair guidance tied to archive sealing, superseded by the Git-history model in ADR 30."
 raised-by: human
 decided-by: human
 created: 2026-10-21

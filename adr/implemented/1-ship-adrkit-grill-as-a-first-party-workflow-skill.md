@@ -1,14 +1,17 @@
 ---
 status: implemented
 date: 2026-09-20
+description: "Read when changing the first-party grilling workflow, its installation, or its boundary with the CLI."
 raised-by: human
 decided-by: human
 created: 2026-09-20
 commit: 83ac493
-tags: [skills, agent-integration, decision-process]
 paths:
-  - skills/adrkit-grill/SKILL.md
+  - skills/*/SKILL.md
   - src/core/tool-integrations.ts
+  - tools/build-workflow-skills.mjs
+  - test/skill-build.test.ts
+  - package.json
 ---
 
 # ADR: 1 ship adrkit-grill as a first-party workflow skill
@@ -26,9 +29,10 @@ and how to keep the ADR importance bar.
 
 ## Decision
 
-Ship an adapted `adrkit-grill` workflow skill: `skills/adrkit-grill/SKILL.md`,
-mirrored into `WORKFLOWS` in `src/core/tool-integrations.ts` (canonical order
-after `init`, before `propose`), installed by every `adrkit init`/`update` and
+Ship an adapted `adrkit-grill` workflow skill: declared in `WORKFLOWS` in
+`src/core/tool-integrations.ts` and exported by `npm run build` to
+`skills/adrkit-grill/SKILL.md` (canonical order after `init`, before `propose`),
+installed by every `adrkit init`/`update` and
 selectable via `--workflows`. The design-tree/frontier method is kept and
 credited to mattpocock/skills (MIT). The session feeds the record: root
 questions map to `## Problem`, rejected frontier options to
@@ -60,6 +64,10 @@ stays conversational, in the skill layer.
   `docs/cli.md` updated; minor bump via changeset.
 - `test/integrations.test.ts` enforces the byte-exact mirror plus content
   assertions for the method, the attribution, and the CLI endpoints.
+- Workflow text and descriptions are authored only in `WORKFLOWS`. Build exports
+  the committed Markdown through the same renderer used by installation; the
+  exact-match test detects stale outputs. Supporting resources remain
+  hand-authored, and the upstream pin retains its manual review process.
 - Grill sessions end in `adrkit record`/`adrkit propose` with `decided-by`
   declared from the session: `human` when the user's answers set the
   direction, `agent` when every recommendation was adopted without

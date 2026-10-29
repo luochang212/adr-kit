@@ -9,7 +9,6 @@ const OPTION_DESCRIPTIONS: Record<string, string> = {
   '--decided-by': 'whose judgment settled the decision',
   '--raised-by': 'who raised the decision',
   '--reason': 'why this record changes lifecycle',
-  '--tag': 'filter to one theme',
   '--out': 'write the output to this file',
   '--record': 'the record whose deliberation tree to render',
   '--format': 'output format for the selected object',

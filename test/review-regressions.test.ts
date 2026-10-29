@@ -25,8 +25,8 @@ function repo(): string {
   const root = fs.mkdtempSync(join(tmpdir(), 'adrkit-review-'));
   roots.push(root); initRepository(root); return root;
 }
-const decision = (n: number, scope?: string) => `---\nstatus: implemented\ndate: 2026-10-20\nraised-by: human\ndecided-by: human\ncreated: 2026-10-20\n${scope ? `paths: [${JSON.stringify(scope)}]\n` : ''}---\n\n# ADR: ${n} Choice\n\n## Problem\nStorage.\n\n## Decision\nUse SQLite.\n\n## Alternatives considered\nJSON.\n\n## Consequences\nLocal files.\n`;
-const proposal = (extra = '') => `---\nstatus: proposed\ndate: 2026-10-20\ncreated: 2026-10-20\n---\n\n# ADR: Choice\n\n## Problem\nStorage.\n\n## Proposal\nUse SQLite.\n\n## Alternatives considered\nJSON.\n\n## Acceptance criteria\nSessions survive restart.\n\n## Risks\nNative dependency.\n\n${extra}`;
+const decision = (n: number, scope?: string) => `---\nstatus: implemented\ndate: 2026-10-20\ndescription: Read when changing local storage constraints.\nraised-by: human\ndecided-by: human\ncreated: 2026-10-20\n${scope ? `paths: [${JSON.stringify(scope)}]\n` : ''}---\n\n# ADR: ${n} Choice\n\n## Problem\nStorage.\n\n## Decision\nUse SQLite.\n\n## Alternatives considered\nJSON.\n\n## Consequences\nLocal files.\n`;
+const proposal = (extra = '') => `---\nstatus: proposed\ndate: 2026-10-20\ndescription: Read when changing local storage constraints.\ncreated: 2026-10-20\n---\n\n# ADR: Choice\n\n## Problem\nStorage.\n\n## Proposal\nUse SQLite.\n\n## Alternatives considered\nJSON.\n\n## Acceptance criteria\nSessions survive restart.\n\n## Risks\nNative dependency.\n\n${extra}`;
 function putDecision(root: string, n: number, scope?: string): string {
   const path = join(root, `adr/implemented/${n}-choice.md`);
   fs.writeFileSync(path, decision(n, scope)); return path;

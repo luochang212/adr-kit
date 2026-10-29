@@ -42,6 +42,13 @@ Requires Node.js 22.22 or later. The npm package is `adr-kit`; the command it in
 npm install -g adr-kit
 cd your-project
 adrkit init
+```
+
+Initialization installs workflow skills into `.agents/`; use `adrkit init --tools claude` for additional `.claude/` copies. Read the installed `adrkit-init` skill and merge its "Reading architecture decisions" section into `AGENTS.md`, preserving existing project rules. The CLI leaves `AGENTS.md` for you to edit. See [Tell your agent](#tell-your-agent) for the ongoing workflow.
+
+For an initialized project, use `adrkit update` when integrations need refreshing. On later sessions, start with `adrkit list` and read relevant decisions; setup does not need repeating. `adrkit instructions` shows the next workflow step and reminds you when installed integrations are missing their `AGENTS.md` rules.
+
+```bash
 adrkit propose "Use SQLite for session storage"
 # Fill the proposal; after the work ships:
 adrkit implement "Use SQLite for session storage" --raised-by human --decided-by human
@@ -66,6 +73,8 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. When a task targets specific files, `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern them. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and link an unshipped replacement to the old decision, keeping that authority active until the replacement ships; resolve it with `adrkit supersede --by` in the delivery change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code. When code implements a decision, cite it in a comment with `@adr <number>`; `adrkit validate` fails when the citation is stale.
 
+
+`adrkit show <name>` displays the complete main record without its optional `## Deliberation` appendix. Read the source file at the printed path when you need the original deliberation.
 
 For a change already in progress, use `adrkit relevant --base <git-ref>` for the
 exact base-to-working-tree change (including non-ignored untracked files), or
@@ -120,7 +129,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help
@@ -132,16 +141,18 @@ By default, integrations install into `.agents/`. Pass `--tools claude` for addi
 
 ## Record format
 
+Every record requires a one-sentence `description` explaining when to read it. The former `tags` field and `atlas --tag` filter are removed; maps use lifecycle styling. Existing records need an authored description, not a conversion of their old labels. See [upgrading](docs/upgrading.md).
+
 A shipped decision is `adr/implemented/N-slug.md`:
 
 ```markdown
 ---
 status: implemented
 date: 2026-09-25
+description: Read when changing session persistence or database deployment constraints.
 raised-by: human
 decided-by: human
 created: 2026-09-24
-tags: [storage]
 ---
 
 # ADR: 1 Use SQLite for session storage
@@ -163,7 +174,7 @@ tags: [storage]
 ...
 ```
 
-Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `tags` remain the thematic classification; no class directory is needed. Optional `paths: [src/core/**]` scopes a record to the files it governs: repository-relative globs where `**` crosses directories, `*` stays within one segment, and `?` matches one character. `adrkit relevant <path>...` lists the records whose scopes govern a file or directory, grouped by lifecycle posture; records without `paths` never match, because scope retrieval is not full-text search. `adrkit validate` checks all four folders, rejects records outside them, and requires each entry's static directory anchor (or full literal path) to exist, so a rename fails validation instead of silently stranding the scope. A trailing slash is rejected too: `src/` would validate and then never match a file, so write `src/**` to scope a directory. Archived records are ordinary records too: the same format, path, and reference checks apply, and a later format migration is a normal Git commit. Fresh templates intentionally fail until filled.
+Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. The CLI stamps `date` on lifecycle moves; `created` preserves the birth date. `raised-by` and `decided-by` declare who introduced and settled a shipped choice, not who ran the command or authorized deployment. The CLI cannot verify shipping or provenance. `description` is a required single-line sentence explaining when to read the record; titles name the choice, and descriptions help agents discover its applicability. Optional `paths: [src/core/**]` scopes a record to the files it governs: repository-relative globs where `**` crosses directories, `*` stays within one segment, and `?` matches one character. `adrkit relevant <path>...` lists the records whose scopes govern a file or directory, grouped by lifecycle posture; records without `paths` never match, because scope retrieval is not full-text search. `adrkit validate` checks all four folders, rejects records outside them, and requires each entry's static directory anchor (or full literal path) to exist, so a rename fails validation instead of silently stranding the scope. A trailing slash is rejected too: `src/` would validate and then never match a file, so write `src/**` to scope a directory. Archived records are ordinary records too: the same format, path, and reference checks apply, and a later format migration is a normal Git commit. Fresh templates intentionally fail until filled.
 
 `adrkit implement` folds a proposal's `## Acceptance criteria` and `## Risks` into present-tense `### Verification` and `### Trade-offs` under `## Consequences`; implemented records must not keep the old H3 names under Consequences. The command warns when it folds content because the CLI cannot rewrite prose. Amendments from later decisions collect in a `### Later changes` subsection at the end of Consequences, each entry opening `**Amended by ADR N:**`; `adrkit validate` enforces the form.
 
@@ -207,6 +218,8 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+Edit workflow text and descriptions in `src/core/tool-integrations.ts`, then run `npm run build` to regenerate the committed `skills/*/SKILL.md` files. Supporting resources remain hand-authored. See [skill sources](skills/README.md).
 
 ## License
 

@@ -1,11 +1,10 @@
 ---
 status: implemented
 date: 2026-10-23
+description: "Read when changing homepage language selection among explicit choice, saved preference, and browser languages."
 raised-by: agent
 decided-by: human
 created: 2026-10-23
-tags:
-  - website
 paths:
   - site/src/layouts/Base.astro
   - test/site-language.test.ts

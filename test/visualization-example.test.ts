@@ -118,7 +118,7 @@ describe('reader typography', () => {
     const start = page.indexOf('function readerLines(');
     const read = page.slice(start, page.indexOf('world.addEventListener', start));
     const inline = page.slice(page.indexOf('function inlineInto'), page.indexOf('function showContext'));
-    const records = [{ number: 1, title: 'Record', lifecycle: 'implemented', tags: [], source: '', body }];
+    const records = [{ number: 1, title: 'Record', lifecycle: 'implemented', description: 'Read when changing session storage.', source: '', body }];
     runInNewContext(`${make}\n${inline}\n${read}\nread(1);\ndocument.querySelectorAll().forEach(inlineText);`, {
       document, records, statusName: { implemented: '生效' }, nodes: [],
       showContext() {},

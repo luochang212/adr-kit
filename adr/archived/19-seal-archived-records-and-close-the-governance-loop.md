@@ -1,6 +1,7 @@
 ---
 status: superseded
 date: 2026-10-22
+description: "Historical archive sealing and governance mechanism, replaced by ordinary Git history in ADR 30."
 raised-by: human
 decided-by: human
 created: 2026-09-25
@@ -8,10 +9,6 @@ commit: 5bb940e
 superseded-by: 30
 archived: 2026-10-22
 archive-reason: superseded by ADR 30
-tags:
-  - archive-integrity
-  - agent-integration
-  - governance
 paths:
   - adr/archived/**
   - src/core/retire.ts

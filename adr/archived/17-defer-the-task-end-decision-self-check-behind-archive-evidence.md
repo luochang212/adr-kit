@@ -1,6 +1,7 @@
 ---
 status: superseded
 date: 2026-10-22
+description: "Historical task-end recording reminder, replaced by the opt-in commit-time hook in ADR 32."
 raised-by: agent
 decided-by: human
 created: 2026-09-24
@@ -8,9 +9,6 @@ commit: e999c3a
 superseded-by: 32
 archived: 2026-10-22
 archive-reason: superseded by ADR 32
-tags:
-  - agent-integration
-  - decision-process
 paths:
   - src/core/tool-integrations.ts
   - src/commands/instructions.ts

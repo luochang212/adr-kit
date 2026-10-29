@@ -4,6 +4,13 @@ Run from anywhere inside a project; ADR Kit discovers the nearest `adr/`.
 Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 The npm package is `adr-kit`; the command it installs is `adrkit`.
 
+Use `adrkit init` for a new project and `adrkit update` when an initialized
+project needs its integrations refreshed. Later sessions start with `adrkit list`
+and relevant decision reading. `adrkit instructions` also reminds you to merge
+the standing orders into `AGENTS.md` when integrations are installed but the
+rules are missing; an explicit `--tools none` opt-out stays quiet. The CLI never
+rewrites `AGENTS.md`.
+
 | Command | Purpose |
 | --- | --- |
 | `adrkit init [path] [--tools <list>] [--workflows <list>]` | Create four lifecycle directories, config, README, and integrations |
@@ -16,14 +23,14 @@ The npm package is `adr-kit`; the command it installs is `adrkit`.
 | `adrkit supersede <old> --by <new>` | Replace and archive a fully superseded implemented decision |
 | `adrkit list` | List records grouped by lifecycle |
 | `adrkit relevant [<path>... | --base <git-ref> | --staged]` | Retrieve scoped records for explicit paths, an exact base-to-working-tree change, or staged files; input modes are exclusive |
-| `adrkit show <name>` | Show a record by title, filename, slug, or ADR number |
+| `adrkit show <name>` | Show a record's main content, omitting `## Deliberation`, by title, filename, slug, or ADR number |
 | `adrkit status` | Count lifecycle folders and report validity |
 | `adrkit instructions` | Show pending proposals and the next valid action |
 | `adrkit validate [name] [--all]` | Validate one record or the whole repository, including its closed lifecycle inventory |
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
 | `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, then show which active decisions govern the staged files |
-| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | Write the decision atlas; no flags writes the full atlas (English chrome by default, `--lang zh` for Chinese), `--record` is one deliberation tree, and `--map` selects the decision map. `--format` sets the selected object's format; the full atlas supports only HTML |
+| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--formal-only]` | Write the decision atlas; no flags writes the full atlas (English chrome by default, `--lang zh` for Chinese), `--record` is one deliberation tree, and `--map` selects the decision map. `--format` sets the selected object's format; the full atlas supports only HTML |
 | `adrkit completion <bash\|zsh\|fish>` | Print shell completion |
 | `adrkit version` | Print version |
 | `adrkit help` | Print help |
@@ -35,8 +42,7 @@ For a new atlas without a clear visual preference, the agent should prefer `--th
 `adrkit atlas --format html --out adr.html` writes the full atlas, just like
 omitting `--format`. To generate only the decision map, use
 `adrkit atlas --map --out map.html` (HTML by default), or add
-`--format mermaid|dot|text|html`. Map filters `--tag` and `--formal-only`
-require `--map`; `--map` and `--record` are mutually exclusive. `--lang`
+`--format mermaid|dot|text|html`. The `--formal-only` filter requires `--map`; `--map` and `--record` are mutually exclusive. `--lang`
 applies to the full atlas, including explicit `--format html`.
 
 Breaking change: old `atlas --format <format>` map exports now require
@@ -87,7 +93,7 @@ Per record, in every mode, including archived records.
 - Front matter: parseable canonical layout, no unknown fields; `created`
   present, a real calendar date, and not after the status date; `commit`
   (when present) a git hash.
-- `tags` (when present): non-empty, lowercase kebab-case, no duplicates.
+- `description`: required, non-empty, single-line text explaining when to read the record.
 - `paths` (when present): non-empty, repository-relative, forward slashes,
   no `..`, no duplicates, and every static directory anchor (or full literal
   path) still exists in the repository.

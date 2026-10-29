@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-20
+description: "Read when changing what a grilling session must record or how the adapted upstream method is kept in sync."
 raised-by: human
 decided-by: human
 created: 2026-09-20
 commit: fbfea95
-tags: [grilling, governance, upstream]
 paths:
   - skills/adrkit-grill/SKILL.md
   - src/core/tool-integrations.ts

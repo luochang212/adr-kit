@@ -580,18 +580,18 @@ describe('installed evidence-based co-design', () => {
   });
 });
 
-describe('skills/ stays in sync with the tool integration templates', () => {
+describe('committed workflow skill exports', () => {
   const skillsDir = fileURLToPath(new URL('../skills/', import.meta.url));
 
-  it('every template mirrors its skill file exactly', () => {
+  it('committed skill files match the current workflow definitions and format', () => {
     for (const workflow of WORKFLOWS) {
       const path = join(skillsDir, workflow.name, 'SKILL.md');
       const expected = `---\nname: ${workflow.name}\ndescription: ${workflow.description}\n---\n\n${workflow.body}\n`;
-      expect(readFileSync(path, 'utf8'), workflow.name).toBe(expected);
+      expect(readFileSync(path, 'utf8'), `${workflow.name}: generated skill is stale; edit WORKFLOWS in src/core/tool-integrations.ts and run npm run build`).toBe(expected);
     }
   });
 
-  it('every skill directory has a matching template', () => {
+  it('committed skill directories match the workflow inventory', () => {
     const dirs = readdirSync(skillsDir, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
@@ -683,7 +683,7 @@ describe('completionCommand', () => {
   });
 
   it('declares the value-taking options as taking a value', () => {
-    // Registering `--tag`, `--tools`, `--workflows`, `--by`, or `--reason` as a
+    // Registering `--out`, `--tools`, `--workflows`, `--by`, or `--reason` as a
     // flag makes each shell offer the option list where the CLI expects a
     // value. zsh needs the `=` and an argument slot, fish needs `-x`.
     const zsh = completionCommand('zsh');
@@ -691,9 +691,9 @@ describe('completionCommand', () => {
     expect(zsh).toContain("'--workflows=[workflows to install]:workflows:'");
     expect(zsh).toContain("'--by=[the decision that replaces this one]:by:'");
     expect(zsh).toContain("'--reason=[why this record changes lifecycle]:reason:'");
-    expect(zsh).toContain("'--tag=[filter to one theme]:tag:'");
+    expect(zsh).toContain("'--out=[write the output to this file]:out:'");
     const fish = completionCommand('fish');
-    for (const option of ['tools', 'workflows', 'by', 'reason', 'tag']) {
+    for (const option of ['tools', 'workflows', 'by', 'reason', 'out']) {
       expect(fish, option).toMatch(
         new RegExp(`__fish_seen_subcommand_from \\w+" -l ${option} -x`),
       );
@@ -743,8 +743,8 @@ describe('completionCommand', () => {
       expect(answer(`(adrkit val)`, 1)).toBe('validate');
       // A value option consumes the next word, so the option list must not
       // come back where the CLI is waiting for a value.
-      expect(answer(`(adrkit atlas '')`, 2)).toContain('--tag');
-      expect(answer(`(adrkit atlas --tag '')`, 3)).toBe('');
+      expect(answer(`(adrkit atlas '')`, 2)).toContain('--out');
+      expect(answer(`(adrkit atlas --out '')`, 3)).toBe('');
       expect(answer(`(adrkit atlas --theme '')`, 3)).toBe('folio signal random');
       expect(answer(`(adrkit atlas --theme s)`, 3)).toBe('signal');
       expect(answer(`(adrkit list --theme '')`, 3)).toBe('');
@@ -776,7 +776,7 @@ describe('completionCommand', () => {
         // and leaves the buffer alone instead of repeating the option list.
         // (Valueless options are pinned by the string assertions above: this
         // harness only observes insertion for options that take an argument.)
-        ['adrkit atlas --tag ', 'adrkit atlas --tag'],
+        ['adrkit atlas --out ', 'adrkit atlas --out'],
         ['adrkit init --tools ', 'adrkit init --tools'],
       ];
       // zpty provides the real ZLE context required by _arguments. Ctrl-X
@@ -826,7 +826,7 @@ describe('completionCommand', () => {
       expect(answer('adrkit propose SQLite --decided-by ')).not.toContain('human');
       // `-x` on a value option suppresses both the option list and file
       // candidates, since the CLI expects a value the shell cannot enumerate.
-      expect(answer('adrkit atlas --tag ')).not.toContain('--dot');
+      expect(answer('adrkit atlas --out ')).not.toContain('--dot');
       expect(answer('adrkit init --tools ')).not.toContain('--workflows');
     },
   );

@@ -46,7 +46,7 @@ ${text}
 `;
 }
 
-/** A front matter value: scalars plus the `tags` list. */
+/** A front matter value: scalars plus the `paths` list. */
 type FrontMatterValue = string | number | string[];
 
 /**
@@ -91,7 +91,7 @@ export function proposalTemplate(title: string, context?: string): string {
   // One stamp for both lifecycle dates: crossing midnight between two calls
   // would make `created` later than `date`, which validation rejects.
   const stamp = todayStamp();
-  return `${frontMatter({ status: 'proposed', date: stamp, created: stamp })}
+  return `${frontMatter({ status: 'proposed', date: stamp, description: '', created: stamp })}
 # ADR: ${title}
 
 ${contextBlock(context)}## Problem
@@ -137,6 +137,7 @@ export function decisionTemplate(
   const fields: Record<string, string | number> = {
     status: 'implemented',
     date: stamp,
+    description: '',
     created: stamp,
     'raised-by': raisedBy,
     'decided-by': decidedBy,
@@ -224,11 +225,8 @@ export function proposalToDecision(
     'raised-by': raisedBy,
     'decided-by': decidedBy,
   };
-  // Tags are a writer's keywords, not a lifecycle field: the promotion must
-  // not quietly drop the ones the draft carried. A paths: scope is the same
-  // kind of writer declaration — the files a record governs outlive the
-  // promotion and must travel with it.
-  if (proposal.tags !== undefined) fields.tags = proposal.tags;
+  // Discovery text and file scopes survive promotion unchanged.
+  if (proposal.description !== undefined) fields.description = proposal.description;
   if (proposal.paths !== undefined) fields.paths = proposal.paths;
   if (commit !== undefined) fields.commit = commit;
   let output = `${frontMatter(fields)}
@@ -285,7 +283,7 @@ export function droppedSections(proposal: AdrRecord): string[] {
  * back a field this version does not understand would hide a version mismatch
  * instead of surfacing it. `validate` reports those keys, so the record is
  * fixed before any lifecycle move rewrites it. A canonical field the move does
- * not patch is carried over in full, including the `tags` list — a lifecycle
+ * not patch is carried over in full, including the description and `paths` list — a lifecycle
  * move must never lose a field the writer set.
  */
 export function stampLifecycleMove(content: string, patch: Record<string, FrontMatterValue>): string {

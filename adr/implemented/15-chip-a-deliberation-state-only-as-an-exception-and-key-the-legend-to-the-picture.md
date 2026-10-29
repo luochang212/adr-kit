@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-22
+description: "Read when adding badges, states, statistics, or legend entries to decision visualizations."
 raised-by: human
 decided-by: human
 created: 2026-09-22
 commit: 02536cc
-tags: [visualization, deliberation-tree, information-density]
 paths:
   - src/core/deliberation.ts
   - src/core/deliberation-html.ts

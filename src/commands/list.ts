@@ -32,6 +32,7 @@ export function listCommand(cwd: string): string {
         ? `  [superseded by ${record.supersededBy}]`
         : '';
       lines.push(`  ${displayName(record)}${supersededNote}  (${relativePath(record)})`);
+      if (record.description?.trim()) lines.push(`    ${record.description}`);
     }
     lines.push('');
   }

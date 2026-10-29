@@ -46,6 +46,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y zsh fish
       - run: npm ci
       - run: npm run typecheck
+      # Check committed skill exports before build can regenerate stale files.
       - run: npm test
       - run: npm run build
       # The repository dogfoods its own records (AGENTS.md calls validation

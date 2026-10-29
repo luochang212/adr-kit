@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-20
+description: "Read when changing decision provenance declarations or how a decision preserves its deliberation."
 raised-by: human
 decided-by: human
 created: 2026-09-20
 commit: 78fc95f
-tags: [provenance, grilling, record-format]
 paths:
   - src/core/adr.ts
   - src/core/validate.ts

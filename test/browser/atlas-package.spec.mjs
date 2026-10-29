@@ -50,6 +50,7 @@ test('packed CLI and init/update reproduce both atlas themes in another reposito
       writeFileSync(join(consumer, `adr/implemented/${number}-file.md`), `---
 status: implemented
 date: 2026-10-26
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-10-26
 ---
 

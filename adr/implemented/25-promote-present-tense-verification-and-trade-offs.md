@@ -1,14 +1,11 @@
 ---
 status: implemented
 date: 2026-10-18
+description: "Read when promoting proposal acceptance criteria and risks into verified facts and trade-offs of a shipped decision."
 raised-by: agent
 decided-by: agent
 created: 2026-10-18
 commit: d202911
-tags:
-  - record-format
-  - lifecycle
-  - agent-integration
 paths:
   - src/core/adr.ts
   - src/core/templates.ts

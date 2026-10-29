@@ -30,6 +30,7 @@ function repo(): string {
 const decision = (n: number): string => `---
 status: implemented
 date: 2026-01-01
+description: Read when changing the storage choice exercised by this fixture.
 raised-by: human
 decided-by: human
 created: 2026-01-01

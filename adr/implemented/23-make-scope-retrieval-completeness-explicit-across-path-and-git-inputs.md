@@ -1,14 +1,11 @@
 ---
 status: implemented
 date: 2026-10-14
+description: "Read when retrieving decisions from paths or Git changes and reporting incomplete scope coverage."
 raised-by: human
 decided-by: agent
 created: 2026-10-14
 commit: f768729
-tags:
-  - retrieval
-  - git
-  - context-integrity
 paths:
   - src/core/relevant.ts
   - src/core/glob.ts

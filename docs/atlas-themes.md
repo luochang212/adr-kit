@@ -59,6 +59,10 @@ scripts to add or repair a theme.
 | Omit an empty reference direction; omit the relation list and its lower border/padding when both directions are empty | Shared context renderer and corresponding theme styles; browser checks include 0/0, 0/12, 12/0, 1/12 and reopening records |
 | Distribute both themes and agent policy via init/update and npm package resources | `test/integrations.test.ts`; `test/browser/atlas-package.spec.mjs` installs a local tarball outside the source tree, checks both integration targets and update, then generates and exercises the bilingual Signal desk with that package's CLI |
 
+Record descriptions supply directory summaries, reader introductions and local-search text.
+Maps use a single accent for current decisions and gray dashed styling with
+explicit lifecycle text for archived records; no maintained category or tag palette is used.
+
 Both themes hide the decision map's on-screen legend at viewport widths up to
 760px to preserve canvas space. Map controls, pan/zoom and record opening remain
 available; the desktop legend continues to follow the data present.

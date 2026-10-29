@@ -36,6 +36,7 @@ function implementDecision(
   writeFileSync(join(root, 'adr', 'proposed', draft.fileName), `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -86,10 +87,11 @@ describe('supersedeCommand', () => {
     expect(lines[2]).toBe(`date: ${todayStamp()}`);
     // decided-by survives the retirement untouched: the field says who made
     // the decision, not who last rewrote the file.
-    expect(lines[3]).toBe('raised-by: human');
-    expect(lines[4]).toBe('decided-by: human');
-    expect(lines[5]).toBe('created: 2026-08-19');
-    expect(lines[6]).toBe('superseded-by: 2');
+    expect(lines[3]).toContain('description:');
+    expect(lines[4]).toBe('raised-by: human');
+    expect(lines[5]).toBe('decided-by: human');
+    expect(lines[6]).toBe('created: 2026-08-19');
+    expect(lines[7]).toBe('superseded-by: 2');
 
     const result = validateCommand(root);
     expect(result.valid).toBe(true);
@@ -171,12 +173,12 @@ describe('supersedeCommand', () => {
   });
 });
 
-describe('tags across the lifecycle', () => {
-  const TAGGED_DRAFT = `---
+describe('description across the lifecycle', () => {
+  const DESCRIBED_DRAFT = `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
-tags: [storage, execution-layer]
 ---
 
 # ADR: Use SQLite
@@ -202,29 +204,27 @@ It works.
 Some risk.
 `;
 
-  it('carries the tags a draft declares into the implemented decision', () => {
+  it('carries the description a draft declares into the implemented decision', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
     const draft = listProposals(root)[0];
     if (draft === undefined) throw new Error('draft not found');
-    writeFileSync(join(root, 'adr', 'proposed', draft.fileName), TAGGED_DRAFT);
+    writeFileSync(join(root, 'adr', 'proposed', draft.fileName), DESCRIBED_DRAFT);
     implementCommand('Use SQLite', root, 'human', 'human');
     const record = readFileSync(join(root, 'adr', 'implemented', '1-use-sqlite.md'), 'utf8');
-    expect(record).toContain('tags:');
-    expect(record).toContain('- storage');
-    expect(record).toContain('- execution-layer');
+    expect(record).toContain('description: Read when changing the storage choice exercised by this fixture.');
     expect(validateCommand(root).valid).toBe(true);
   });
 
-  it('keeps tags when a decision is superseded', () => {
+  it('keeps description when a decision is superseded', () => {
     const root = makeRepo();
     implementDecision(root, 'Use SQLite');
     implementDecision(root, 'Use Postgres');
     const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
-    writeFileSync(path, readFileSync(path, 'utf8').replace(/^(created:.*)$/m, '$1\ntags: [storage]'));
+    writeFileSync(path, readFileSync(path, 'utf8').replace(/^description:.*$/m, 'description: Read when replacing session storage.'));
     supersedeCommand('1', '2', root);
     const retired = readFileSync(join(root, 'adr', 'archived', '1-use-sqlite.md'), 'utf8');
-    expect(retired).toContain('- storage');
+    expect(retired).toContain('description: Read when replacing session storage.');
     expect(validateCommand(root).valid).toBe(true);
   });
 });
@@ -233,6 +233,7 @@ describe('decided-by across the lifecycle', () => {
   const DRAFT = `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -366,14 +367,14 @@ describe('supersede target and record integrity', () => {
     expect(() => supersedeCommand('1', '2', root)).toThrow(/must be an implemented decision/);
   });
 
-  it('preserves tags and provenance across the retirement', () => {
+  it('preserves description and provenance across the retirement', () => {
     const root = makeRepo();
     implementDecision(root, 'Use SQLite');
     implementDecision(root, 'Use Postgres');
     const path = join(root, 'adr', 'implemented', '1-use-sqlite.md');
     writeFileSync(
       path,
-      readFileSync(path, 'utf8').replace('decided-by: human', 'decided-by: human\ntags: [storage, data]'),
+      readFileSync(path, 'utf8').replace(/^description:.*$/m, 'description: Read when changing data storage.'),
     );
 
     supersedeCommand('1', '2', root);
@@ -382,6 +383,6 @@ describe('supersede target and record integrity', () => {
     expect(after).toContain('raised-by: human');
     expect(after).toContain('decided-by: human');
     expect(after).toContain('superseded-by: 2');
-    expect(parseAdrFile(archivedPath).tags).toEqual(['storage', 'data']);
+    expect(parseAdrFile(archivedPath).description).toBe('Read when changing data storage.');
   });
 });

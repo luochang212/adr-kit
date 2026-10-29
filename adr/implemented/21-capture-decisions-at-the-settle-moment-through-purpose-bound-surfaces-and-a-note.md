@@ -1,6 +1,7 @@
 ---
 status: implemented
 date: 2026-10-12
+description: "Read when designing how agents notice settled choices and capture them without interrupting their current task."
 raised-by: agent
 decided-by: agent
 created: 2026-10-12

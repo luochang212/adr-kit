@@ -1,6 +1,7 @@
 ---
 status: superseded
 date: 2026-09-25
+description: "Historical frontier-round labels, superseded by structural dependency nesting in ADR 7."
 raised-by: human
 decided-by: human
 created: 2026-09-21
@@ -8,7 +9,6 @@ commit: e816e44
 superseded-by: 7
 archived: 2026-09-25
 archive-reason: superseded by ADR 7
-tags: [grilling, deliberation, record-format]
 ---
 
 # ADR: 6 record frontier rounds in the deliberation tree

@@ -1,6 +1,7 @@
 ---
 status: superseded
 date: 2026-09-25
+description: "Historical annotated deliberation grammar, superseded by the offline card-tree format in ADR 8."
 raised-by: human
 decided-by: human
 created: 2026-09-21
@@ -8,7 +9,6 @@ commit: e816e44
 superseded-by: 8
 archived: 2026-09-25
 archive-reason: superseded by ADR 8
-tags: [grilling, deliberation, visualization, record-format]
 ---
 
 # ADR: 5 adopt the annotated deliberation grammar and a rendered tree view

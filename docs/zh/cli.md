@@ -3,6 +3,11 @@
 可在项目任意子目录运行；ADR Kit 向上寻找最近的 `adr/`。
 记录位于 `proposed/`、`implemented/`、`rejected/`、`archived/`。
 
+新项目使用 `adrkit init`，已有项目需要刷新集成时使用 `adrkit update`。
+后续会话从 `adrkit list` 和相关决策阅读开始。已安装集成但缺少常驻规则时，
+`adrkit instructions` 也会提醒将规则合并到 `AGENTS.md`；显式选择
+`--tools none` 的项目保持安静。CLI 不会改写 `AGENTS.md`。
+
 | 命令 | 作用 |
 | --- | --- |
 | `adrkit init [path] [--tools <list>] [--workflows <list>]` | 创建四个生命周期目录、配置、README 和集成 |
@@ -15,14 +20,14 @@
 | `adrkit supersede <old> --by <new>` | 完整替代并归档旧决策 |
 | `adrkit list` | 按生命周期列出记录 |
 | `adrkit relevant [<path>... | --base <git-ref> | --staged]` | 检索作用域记录：显式路径、指定提交到工作区的变化或暂存区文件；三种输入互斥 |
-| `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录 |
+| `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录主体，省略 `## Deliberation` |
 | `adrkit status` | 显示各目录数量与校验状态 |
 | `adrkit instructions` | 显示待办提案与下一步 |
 | `adrkit validate [name] [--all]` | 校验单条记录或整个仓库（含闭合的生命周期清单） |
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
 | `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错则失败，否则列出管辖这些改动的生效决策 |
-| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--tag <tag>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record` 是单条决策的 deliberation tree（卡片视图），`--map` 显式选择决策地图；`--format` 只设置已选对象的格式，完整档案只支持 HTML |
+| `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record` 是单条决策的 deliberation tree（卡片视图），`--map` 显式选择决策地图；`--format` 只设置已选对象的格式，完整档案只支持 HTML |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |
 | `adrkit version` | 输出版本 |
 | `adrkit help` | 输出帮助 |
@@ -34,7 +39,7 @@
 地图必须显式指定：`adrkit atlas --map --out map.html` 默认输出 HTML 地图，
 可加 `--format mermaid|dot|text|html`。不带 `--map` 的
 `adrkit atlas --format html --out adr.html` 输出完整决策档案。
-`--tag`、`--formal-only` 要求 `--map`；`--map` 与 `--record` 互斥。
+`--formal-only` 要求 `--map`；`--map` 与 `--record` 互斥。
 `--lang` 仅用于完整档案，也允许配合显式 `--format html`。
 
 这是破坏性变更：旧地图导出命令须增加 `--map`。未显式指定地图或单条记录时，
@@ -75,7 +80,7 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
 
 - Front matter：可解析的规范布局，无未知字段；`created` 必填、为真实
   日历日期、不晚于状态日期；`commit`（存在时）必须是 git hash。
-- `tags`（存在时）：非空、小写 kebab-case、不重复。
+- `description`：必填、非空的单行文本，说明什么情况下值得阅读。
 - `paths`（存在时）：非空、仓库相对、正斜杠、不含 `..`、不重复，且每个
   静态目录锚点（无通配符时为完整路径）在仓库中仍然存在。
 - 小节：按状态要求的必备标题齐全、不重复，且每个必备小节都有实际内容：

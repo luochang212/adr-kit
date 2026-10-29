@@ -26,6 +26,18 @@ import { validateCommand } from './commands/validate.js';
 
 const HELP = `adrkit ${VERSION} - A lightweight ADR workflow for humans and agents (npm package: adr-kit)
 
+Getting started:
+  1. Run adrkit init in your project to create adr/ and install workflow skills.
+     Skills default to .agents/; --tools claude adds .claude/ copies.
+     For an initialized project, use adrkit update when integrations need refreshing.
+  2. Read the installed adrkit-init skill and merge its
+     "Reading architecture decisions" section into AGENTS.md, preserving
+     existing project rules. The CLI leaves AGENTS.md for you to edit.
+  3. On later sessions, run adrkit list and read relevant decisions in full
+     at task start; setup does not need repeating.
+     Record architectural choices whose rationale should guide future work.
+  Guide: https://github.com/luochang212/adr-kit#tell-your-agent
+
 Records live in adr/proposed/, adr/implemented/, adr/rejected/, or adr/archived/.
 An unshipped proposal stays proposed until implementation. record and
 implement require two declarations. --raised-by records who put the decision on
@@ -60,7 +72,7 @@ Usage:
   adrkit config                              Print the current configuration
   adrkit hook <install|uninstall|run>
                                            Manage the pre-commit decision check
-  adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+  adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--formal-only]
                                            Write the decision atlas; --map selects the decision map, --record selects one deliberation tree
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version
@@ -73,8 +85,7 @@ self-contained HTML page with the decision map, a browsable directory, and
 every record's text. --format html keeps this full atlas; --out <path> writes
 it to a file instead of stdout. Example: adrkit atlas --format html --out adr.html.
 --map explicitly selects the standalone decision map (HTML by default).
-With --map, --format chooses mermaid, dot, text, or html; --tag filters to one
-tag keyword and --formal-only drops mined edges. Example: adrkit atlas --map --out map.html.
+With --map, --format chooses mermaid, dot, text, or html; --formal-only drops mined edges. Example: adrkit atlas --map --out map.html.
 A non-HTML format without --map or --record is rejected, not routed to a map.
 --map and --record are mutually exclusive. --record <name> selects that
 record's deliberation tree, with HTML as its default; --format html|mermaid|text
@@ -272,7 +283,6 @@ export function main(argv: string[]): void {
             lang: values.lang,
             theme: values.theme,
             formalOnly: values['formal-only'],
-            tag: values.tag,
           }),
         );
         return;

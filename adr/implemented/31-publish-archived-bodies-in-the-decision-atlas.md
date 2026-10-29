@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-10-22
+description: "Read when deciding how much archived record content to publish in the human-facing atlas."
 raised-by: human
 decided-by: human
 created: 2026-10-22
 commit: 147b36a
-tags: [visualization, website]
 paths:
   - src/core/decision-atlas.ts
   - skills/adrkit-visualize/**

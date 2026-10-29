@@ -67,6 +67,7 @@ describe('instructionsCommand', () => {
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -112,6 +113,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -167,6 +169,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -197,7 +200,7 @@ Body.
     // Readiness is per draft and lives in the marker: the complete one is ready
     // to accept, the one missing a section is not.
     expect(output).toMatch(new RegExp(`✓ ${plugin.fileName}\\s+validated - ready after shipping`));
-    expect(output).toMatch(new RegExp(`✗ ${sqlite.fileName}\\s+missing required section`));
+    expect(output).toMatch(new RegExp(`✗ ${sqlite.fileName}\\s+front matter must include a non-empty "description" explaining when to read the record`));
   });
 
   it('prioritizes pending proposals over unrelated validation issues', () => {
@@ -213,6 +216,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 

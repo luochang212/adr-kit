@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-10-22
+description: "Read when retiring decisions, migrating archived formats, or deciding what Git history already guarantees."
 raised-by: human
 decided-by: human
 created: 2026-10-22
 commit: "7679402"
-tags: [archive-integrity, governance, compatibility]
 paths:
   - adr/archived/**
   - src/core/validate.ts

@@ -373,6 +373,13 @@ for (const language of ['zh', 'en']) {
   test(`${theme} / ${language}: search, history, record navigation and scrolling over the map`, async ({ page }) => {
     await page.goto(artifact(language, theme));
     const count = await page.locator('.decision-card').count();
+    await page.locator('#directory-search').fill('translated or edited project rules');
+    await expect(page.locator('.decision-card')).toHaveCount(1);
+    await expect(page.locator('.decision-card')).toHaveAttribute('data-record', '35');
+    await page.locator('.decision-card').click();
+    await expect(page.locator('#reader-description')).toContainText('translated or edited project rules');
+    await page.locator('#close-reader').click();
+    await expect(page.locator('#reader')).not.toBeVisible();
     await page.locator('#directory-search').fill('#31');
     await expect(page.locator('.decision-card')).toHaveCount(1);
     await expect(page.locator('.decision-card')).toHaveAttribute('data-record', '31');

@@ -38,6 +38,7 @@ function renderAdr(options: {
 const VALID = `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -80,6 +81,7 @@ describe('parseAdrFile', () => {
     const record = parseAdrFile(write('record.md', `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -205,6 +207,7 @@ Body.
     const record = parseAdrFile(write('record.md', `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -233,6 +236,7 @@ Body.
     const record = parseAdrFile(write('record.md', `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -276,8 +280,8 @@ describe('writtenHeadings', () => {
   });
 });
 
-describe('created and tags', () => {
-  it('parses created and tags from the front matter', () => {
+describe('created and description', () => {
+  it('parses created and description from the front matter', () => {
     const record = parseAdrFile(
       write(
         '1-x.md',
@@ -287,14 +291,14 @@ describe('created and tags', () => {
             status: 'implemented',
             date: '2026-08-19',
             created: '2026-08-17',
-            tags: ['execution-layer', 'sandbox'],
+            description: 'Read when changing execution isolation.',
           },
           sections: [{ heading: 'Problem', body: 'Body.\n' }],
         }),
       ),
     );
     expect(record.created).toBe('2026-08-17');
-    expect(record.tags).toEqual(['execution-layer', 'sandbox']);
+    expect(record.description).toBe('Read when changing execution isolation.');
   });
 
   it('rejects a malformed created field', () => {
@@ -312,19 +316,19 @@ describe('created and tags', () => {
     ).toThrow(/created must be a "YYYY-MM-DD" string/);
   });
 
-  it('rejects a non-list tags field', () => {
+  it('rejects a non-string description', () => {
     expect(() =>
       parseAdrFile(
         write(
           '1-x.md',
           renderAdr({
             title: '1 Use SQLite',
-            fields: { status: 'implemented', date: '2026-08-19', tags: 'sandbox' },
+            fields: { status: 'implemented', date: '2026-08-19', description: ['sandbox'] },
             sections: [{ heading: 'Problem', body: 'Body.\n' }],
           }),
         ),
       ),
-    ).toThrow(/tags must be a list of strings/);
+    ).toThrow(/description must be a string/);
   });
 });
 

@@ -1,6 +1,7 @@
 ---
 status: implemented
 date: 2026-09-23
+description: "Read when parsing written Markdown content or protecting record readers from non-regular files."
 raised-by: agent
 decided-by: human
 created: 2026-09-23

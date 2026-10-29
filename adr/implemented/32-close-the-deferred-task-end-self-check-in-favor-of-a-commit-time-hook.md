@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-10-22
+description: "Read when adding commit-time decision checks and separating objective validation from judgment about missing records."
 raised-by: human
 decided-by: human
 created: 2026-10-22
 commit: 147b36a
-tags: [agent-integration, governance, capture]
 paths:
   - src/core/hook.ts
   - src/commands/hook.ts

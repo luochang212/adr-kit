@@ -1,6 +1,7 @@
 ---
 status: implemented
 date: 2026-10-12
+description: "Read when defining which repository files a decision governs and detecting stale file scopes."
 raised-by: agent
 decided-by: human
 created: 2026-10-12
@@ -139,3 +140,7 @@ ADR 23 extends the retrieval consumer with exact Git-base and staged inputs,
 explicit incomplete-search diagnostics and unscoped coverage counts. It retains
 the optional paths field, minimal glob dialect, drift check and lifecycle reading
 postures defined here; no second retrieval model or record field is introduced.
+
+### Later changes
+
+**Amended by ADR 44:** The tags classification axis is removed and a required applicability description is shown during discovery. Paths remain the deterministic governance scope; descriptions do not turn path matching into semantic search.

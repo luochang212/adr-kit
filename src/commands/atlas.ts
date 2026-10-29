@@ -32,7 +32,6 @@ export interface AtlasOptions {
   /** Output format for the selected object; the full atlas supports HTML only. */
   format?: string;
   formalOnly?: boolean;
-  tag?: string;
   /** Page copy language: `en` (default) or `zh`. */
   lang?: string;
   /** Full-atlas visual composition: folio, signal, or random (default). */
@@ -145,8 +144,8 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
     if (!(TREE_FORMATS as readonly string[]).includes(format)) {
       throw new Error(`a deliberation tree supports only ${TREE_FORMATS.join(', ')}`);
     }
-    if (options.tag !== undefined || options.formalOnly === true) {
-      throw new Error('--tag and --formal-only require --map');
+    if (options.formalOnly === true) {
+      throw new Error('--formal-only requires --map');
     }
     const output = treeCommand(options.record, cwd, { [format]: true });
     return writeTarget(output, cwd, options.out, 'deliberation tree', format);
@@ -155,7 +154,6 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
   if (options.map === true) {
     const flags = {
       formalOnly: options.formalOnly,
-      tag: options.tag,
       out: options.out,
     };
     return graphCommand(cwd, format === 'mermaid' ? { ...flags, mermaid: true }
@@ -167,8 +165,8 @@ export function atlasCommand(cwd: string, options: AtlasOptions = {}): string {
   if (format !== 'html') {
     throw new Error(`the decision atlas supports only --format html; use --map --format ${format} for the decision map`);
   }
-  if (options.tag !== undefined || options.formalOnly === true) {
-    throw new Error('--tag and --formal-only require --map');
+  if (options.formalOnly === true) {
+    throw new Error('--formal-only requires --map');
   }
   const theme = selectAtlasTheme(options.theme);
   const records = listRecords(root, ['implemented', 'archived']);

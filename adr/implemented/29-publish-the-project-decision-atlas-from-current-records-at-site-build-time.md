@@ -1,14 +1,11 @@
 ---
 status: implemented
 date: 2026-10-22
+description: "Read when generating and publishing the project decision atlas from repository records during site builds."
 raised-by: human
 decided-by: agent
 created: 2026-10-21
 commit: a2a2462
-tags:
-  - visualization
-  - website
-  - delivery
 paths:
   - src/core/decision-atlas.ts
   - src/core/graph-html.ts
@@ -127,3 +124,4 @@ empty-body verification above are historical.
 footer — replacing the Chinese-only showcase above; the `ui.ts` copy rule
 stays inapplicable.
 
+**Amended by ADR 44:** Atlas payloads carry descriptions instead of tags. Directory summaries, reader introductions and local search use the description; shared generation, source links and commit provenance remain unchanged.

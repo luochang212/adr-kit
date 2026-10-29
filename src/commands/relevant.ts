@@ -54,6 +54,7 @@ export function relevantCommand(
     lines.push(`${label} — ${GROUP_HINTS[label.toLowerCase() as keyof typeof GROUP_HINTS]}`, '');
     for (const { record, pattern } of matches) {
       lines.push(`  ${displayName(record)}  [${pattern}]  (${relativePath(record)})`);
+      if (record.description?.trim()) lines.push(`    ${record.description}`);
     }
     lines.push('');
   }

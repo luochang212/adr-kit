@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-10-22
+description: "Read when exposing visualization capabilities through the single atlas command rather than separate entry points."
 raised-by: human
 decided-by: human
 created: 2026-10-22
 commit: 09a43d9
-tags: [visualization, cli, agent-integration]
 paths:
   - src/commands/atlas.ts
   - src/commands/graph.ts
@@ -132,3 +132,5 @@ the command surface before ADR 36.
 **Amended by ADR 43:** the replacements are named in `docs/upgrading.md` and
 the READMEs' Stability note; the README upgrade section named above no longer
 exists.
+
+**Amended by ADR 44:** The atlas --tag filter is removed without an alias. The single atlas entry point and its explicit map/tree exports remain unchanged.

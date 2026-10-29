@@ -42,6 +42,13 @@ ADR 保留的是这些难以从代码中还原、却会持续影响未来工作�
 npm install -g adr-kit
 cd your-project
 adrkit init
+```
+
+初始化会将工作流技能安装到 `.agents/`；使用 `adrkit init --tools claude` 可额外生成 `.claude/` 副本。阅读已安装的 `adrkit-init` 技能，将其中的 "Reading architecture decisions" 规则合并到 `AGENTS.md`，保留现有项目规则。`AGENTS.md` 由你编辑，CLI 不会改写它。后续工作流见[告诉 Agent](#告诉-agent)。
+
+已有项目需要刷新集成时使用 `adrkit update`。后续会话直接从 `adrkit list` 和相关决策阅读开始，无需重复配置。`adrkit instructions` 显示下一步，并在已安装集成但缺少 `AGENTS.md` 规则时提醒补齐。
+
+```bash
 adrkit propose "使用 SQLite 存储会话"
 # 填写提案，实际交付后：
 adrkit implement "使用 SQLite 存储会话" --raised-by human --decided-by human
@@ -66,6 +73,8 @@ adr/
 
 Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md`。任务开始时先运行 `adrkit list`。四个目录是一份上下文预算：完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，未交付的完整替代先链接意图并保留旧权威，交付时在同次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate` 失败。
 
+
+`adrkit show <name>` 展示完整记录主体，省略可选的 `## Deliberation` 附录。需要原始推演时，读取输出路径对应的源文件。
 
 实际变更可用 `adrkit relevant --base <git-ref>` 检索指定提交到工作区的变化
 （含未忽略的未跟踪文件），或用 `adrkit relevant --staged` 只看暂存区。
@@ -118,7 +127,7 @@ adrkit validate [name] [--all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--tag <tag>] [--formal-only]
+adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help
@@ -130,16 +139,18 @@ adrkit help
 
 ## 记录格式
 
+每条记录必填一句 `description`，说明什么情况下值得阅读。旧 `tags` 字段和 `atlas --tag` 筛选已移除；地图按生命周期区分样式。旧记录需要补写描述，不能把标签机械转换成描述。详见[升级说明](docs/zh/upgrading.md)。
+
 已交付决策在 `adr/implemented/N-slug.md`：
 
 ```markdown
 ---
 status: implemented
 date: 2026-09-25
+description: Read when changing session persistence or database deployment constraints.
 raised-by: human
 decided-by: human
 created: 2026-09-24
-tags: [storage]
 ---
 
 # ADR: 1 使用 SQLite 存储会话
@@ -161,7 +172,7 @@ tags: [storage]
 ...
 ```
 
-提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`tags` 提供主题分类，不额外引入类别目录。可选 `paths: [src/core/**]` 把记录限定到它管辖的文件：仓库相对路径 glob，`**` 跨目录、`*` 不跨目录、`?` 匹配单字符。`adrkit relevant <path>...` 按阅读姿态列出管辖某文件或目录的记录；范围检索不是全文搜索，没有 `paths` 的记录永不匹配。`adrkit validate` 检查全部四个目录、拒绝目录之外的记录，并要求每个条目的静态目录锚点（无通配符时为完整路径）存在，重命名后校验会失败，范围不会悄悄悬空。尾斜杠也会被拒绝：`src/` 能通过校验却永不命中文件，目录范围请写 `src/**`。归档记录也是普通记录：同样适用格式、路径与引用校验，之后的格式迁移就是一次普通的 Git 提交。新模板未填完时按预期失败。
+提案按日期命名，使用 `Problem`、`Proposal`、`Alternatives considered`、`Acceptance criteria`、`Risks`。`date` 在每次生命周期转移时由 CLI 写入；`created` 保留创建日期。`raised-by` 与 `decided-by` 分别声明谁提出、谁定下已交付选择，不表示谁运行命令或批准部署。CLI 不能验证交付或来源。`description` 是必填的单行描述，说明什么情况下值得阅读；标题说明选择，描述帮助判断适用性。可选 `paths: [src/core/**]` 把记录限定到它管辖的文件：仓库相对路径 glob，`**` 跨目录、`*` 不跨目录、`?` 匹配单字符。`adrkit relevant <path>...` 按阅读姿态列出管辖某文件或目录的记录；范围检索不是全文搜索，没有 `paths` 的记录永不匹配。`adrkit validate` 检查全部四个目录、拒绝目录之外的记录，并要求每个条目的静态目录锚点（无通配符时为完整路径）存在，重命名后校验会失败，范围不会悄悄悬空。尾斜杠也会被拒绝：`src/` 能通过校验却永不命中文件，目录范围请写 `src/**`。归档记录也是普通记录：同样适用格式、路径与引用校验，之后的格式迁移就是一次普通的 Git 提交。新模板未填完时按预期失败。
 
 `adrkit implement` 会把提案的 `## Acceptance criteria` 与 `## Risks` 折叠为 `## Consequences` 下的现在时 `### Verification` 与 `### Trade-offs`；implemented 记录不得在 Consequences 下保留旧 H3 标题。CLI 不能改写正文，因此折叠时会输出提醒。后续决策的修订收录在 `## Consequences` 末尾的 `### Later changes` 小节，每条以 `**Amended by ADR N:**` 开头；`adrkit validate` 校验该形式。
 
@@ -202,6 +213,8 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+修改 workflow 正文与描述时，只编辑 `src/core/tool-integrations.ts`，再运行 `npm run build` 生成并提交 `skills/*/SKILL.md`。支持资源仍直接维护。详见[技能源文件说明](skills/README.md)。
 
 ## 许可证
 

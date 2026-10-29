@@ -177,9 +177,15 @@ describe('the option spec table is the whole CLI surface', () => {
     expect(help).toContain('adrkit -V, --version');
   });
 
-  it('describes --tag in terms of tags, not themes', () => {
-    // The help wraps at 80 columns, so the phrase may span lines.
-    expect(helpText().replace(/\s+/g, ' ')).toContain('--tag filters to one tag keyword');
+  it('rejects the removed --tag flag before creating an atlas', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['atlas', '--map', '--tag', 'storage', '--out', 'old.html']);
+    expect(process.exitCode).toBe(1);
+    expect(errors.mock.calls.flat().join(' ')).toContain('--tag');
+    expect(existsSync(join(root, 'old.html'))).toBe(false);
+    expect(helpText()).not.toContain('--tag');
   });
 });
 

@@ -13,7 +13,6 @@ export interface GraphFormatFlags {
   text?: boolean;
   html?: boolean;
   formalOnly?: boolean;
-  tag?: string;
   /** Write the output here instead of returning it. */
   out?: string;
 }
@@ -61,7 +60,6 @@ export function graphCommand(cwd: string, flags: GraphFormatFlags): string {
   }
   const graph = buildDecisionGraph(listRecords(root), {
     formalOnly: flags.formalOnly,
-    tag: flags.tag,
   });
   const format = formats[0] ?? 'mermaid';
   const output = format === 'dot' ? dotGraph(graph)

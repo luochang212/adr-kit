@@ -51,6 +51,7 @@ function fillDraft(root: string): string {
   const content = `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -116,6 +117,8 @@ describe('initCommand', () => {
   it('refuses to initialize twice', () => {
     const root = makeRepo();
     expect(() => initCommand(root)).toThrow(/already exists/);
+    expect(() => initCommand(root)).toThrow('adrkit update');
+    expect(() => initCommand(root)).toThrow('adrkit list');
   });
 
   it('does not label implemented as current truth in the generated README', () => {
@@ -135,11 +138,11 @@ describe('initCommand', () => {
     expect(readme).toContain('adrkit supersede');
   });
 
-  it('documents the created and tags fields in the generated README', () => {
+  it('documents the created and description fields in the generated README', () => {
     const root = makeRepo();
     const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
     expect(readme).toContain('created: YYYY-MM-DD');
-    expect(readme).toContain('tags: [frontend]');
+    expect(readme).toContain('A required description');
     expect(readme).toContain('never re-stamped');
   });
 
@@ -167,9 +170,10 @@ describe('decided-by declaration', () => {
     );
     expect(lines[1]).toBe('status: implemented');
     expect(lines[2]).toBe(`date: ${todayStamp()}`);
-    expect(lines[3]).toBe('raised-by: human');
-    expect(lines[4]).toBe('decided-by: human');
-    expect(lines[5]).toBe(`created: ${todayStamp()}`);
+    expect(lines[3]).toBe('description: ""');
+    expect(lines[4]).toBe('raised-by: human');
+    expect(lines[5]).toBe('decided-by: human');
+    expect(lines[6]).toBe(`created: ${todayStamp()}`);
   });
 
   it('records an autonomous decision as agent', () => {
@@ -553,6 +557,7 @@ describe('cli --all flag', () => {
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -581,6 +586,7 @@ Fast lookups.
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -623,6 +629,7 @@ created: 2026-08-19
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 raised-by: human
 decided-by: human
 created: 2026-08-19
@@ -669,6 +676,49 @@ Body.
 });
 
 describe('record and show', () => {
+  it.each(['\n', '\r\n'])('omits deliberation without changing source or later sections (%j)', (newline) => {
+    const root = makeRepo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    const path = join(root, 'adr/implemented/1-use-sqlite.md');
+    const main = readFileSync(path, 'utf8').trimEnd();
+    const appendix = '\n\n## Deliberation <!-- optional reference -->\n\n'
+      + '- Q: Which storage?\n  - A: SQLite [settled]\n\n### Evidence\n\nPrivate design notes.\n';
+    const later = '\n## References\n\nKeep this later section.\n';
+    const source = (main + appendix + later).replace(/\n/g, newline);
+    writeFileSync(path, source);
+    const shown = showCommand('1', root);
+    expect(shown).toContain('adr/implemented/1-use-sqlite.md');
+    expect(shown).toContain(main.replace(/\n/g, newline));
+    expect(shown).not.toContain('## Deliberation');
+    expect(shown).not.toContain('Private design notes.');
+    expect(shown).toContain(later.trimEnd().replace(/\n/g, newline));
+    expect(readFileSync(path, 'utf8')).toBe(source);
+  });
+
+  it('preserves deliberation headings in fenced examples, comments, and subsections', () => {
+    const root = makeRepo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    const path = join(root, 'adr/implemented/1-use-sqlite.md');
+    const examples = '\n\n### Deliberation\n\nAn ordinary subsection.\n'
+      + '\n````markdown\n## Deliberation\n```\n## Still an example\n````\n'
+      + '\n~~~markdown\n## Deliberation\n~~~\n'
+      + '\n<!--\n## Deliberation\n-->\n\nKeep the final paragraph.\n';
+    const source = readFileSync(path, 'utf8').trimEnd() + examples;
+    writeFileSync(path, source);
+    expect(showCommand('1', root)).toContain(source.trimEnd());
+  });
+
+  it('omits a terminal deliberation appendix from a proposal', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const path = pendingDraftPath(root);
+    const main = readFileSync(path, 'utf8').trimEnd();
+    writeFileSync(path, main + '\n\n## Deliberation\n\n- A: SQLite [settled]\n');
+    const shown = showCommand('Use SQLite', root);
+    expect(shown).toContain(main);
+    expect(shown).not.toContain('## Deliberation');
+  });
+
   it('creates an implemented decision directly', () => {
     const root = makeRepo();
     recordCommand('Use SQLite', root, 'human', 'human');
@@ -896,6 +946,23 @@ const SET_STAMP = (version: string) => (text: string) =>
 const ADD_OLD_STAMP = SET_STAMP('0.9.0');
 const DROP_STAMP = (text: string) => text.replace(/^installed-with:.*\n/m, '');
 
+describe('decision descriptions in discovery', () => {
+  it('exposes the authored description in inventory and scope results and preserves it on promotion', () => {
+    const root = makeRepo();
+    mkdirSync(join(root, 'src'));
+    writeFileSync(join(root, 'src', 'store.ts'), 'export {};');
+    proposeCommand('Use SQLite', root);
+    const path = fillDraft(root);
+    const sentence = 'Read before changing database durability guarantees.';
+    writeFileSync(path, readFileSync(path, 'utf8').replace(/^description:.*$/m, `description: ${sentence}`).replace(/^(created:.*)$/m, '$1\npaths: [src/store.ts]'));
+    expect(listCommand(root)).toContain(sentence);
+    expect(relevantCommand(['src/store.ts'], root).output).toContain(sentence);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    expect(listRecords(root)[0]?.description).toBe(sentence);
+    expect(validateCommand(root).valid).toBe(true);
+  });
+});
+
 describe('standing-orders note', () => {
   const SECTION =
     '## Reading architecture decisions\n\nAt the start of a coding task, run adrkit list.\n';
@@ -914,6 +981,7 @@ describe('standing-orders note', () => {
     expect(out).toContain('note: AGENTS.md does not carry the standing orders');
     expect(out).toContain('Reading architecture decisions');
     expect(out).toContain(join('.agents', 'skills', 'adrkit-init', 'SKILL.md'));
+    expect(out).not.toContain('step 4');
   });
 
   it('init stays quiet once AGENTS.md carries the section', () => {
@@ -967,6 +1035,39 @@ describe('standing-orders note', () => {
     const out = initCommand(freshDir('adrkit-note-'), 'none');
     expect(out).not.toContain('note: AGENTS.md does not carry');
   });
+
+  it('instructions detects unfinished setup without editing project rules', () => {
+    const root = makeRepo();
+    expect(instructionsCommand(root)).toContain('note: AGENTS.md does not carry');
+    expect(existsSync(join(root, 'AGENTS.md'))).toBe(false);
+    const rules = '# Project rules\n\nKeep our conventions.\n';
+    writeFileSync(join(root, 'AGENTS.md'), rules);
+    proposeCommand('Storage choice', root);
+    const output = instructionsCommand(root);
+    expect(output).toContain('1 proposal pending');
+    expect(output).toContain('validation issues');
+    expect(output).toContain('note: AGENTS.md does not carry');
+    expect(output).toContain(join('.agents', 'skills', 'adrkit-init', 'SKILL.md'));
+    expect(output).not.toContain('step 4');
+    expect(readFileSync(join(root, 'AGENTS.md'), 'utf8')).toBe(rules);
+    writeFileSync(join(root, 'AGENTS.md'), `${rules}\n${SECTION}`);
+    expect(instructionsCommand(root)).not.toContain('note: AGENTS.md does not carry');
+  });
+
+  it('instructions respects integrations opt-out even with leftover skill files', () => {
+    const root = makeRepo();
+    editConfig(root, (text) => text.replace('tools: [ agents ]', 'tools: []'));
+    expect(instructionsCommand(root)).not.toContain('note: AGENTS.md does not carry');
+  });
+
+  it('instructions uses a README fallback when the init workflow was not selected', () => {
+    const root = freshDir('adrkit-subset-');
+    initCommand(root, undefined, 'record');
+    const output = instructionsCommand(root);
+    expect(output).toContain('note: AGENTS.md does not carry');
+    expect(output).toContain('see the adr-kit README');
+    expect(output).not.toContain(join('adrkit-init', 'SKILL.md'));
+  });
 });
 
 describe('standing-orders template marker', () => {
@@ -1010,7 +1111,8 @@ describe('standing-orders template marker', () => {
     ];
     for (const output of outputs) {
       expect(output).toContain('different template generation');
-      expect(output).toContain(`step 4 of ${join('.agents', 'skills', 'adrkit-init', 'SKILL.md')}`);
+      expect(output).toContain(`"Reading architecture decisions" section in ${join('.agents', 'skills', 'adrkit-init', 'SKILL.md')}`);
+      expect(output).not.toContain('step 4');
       expect(output).toContain('compare the section');
       expect(output).toContain('reconcile any changes, then update the generation marker');
     }
@@ -1058,8 +1160,9 @@ describe('integration drift: installed-with stamp and notice', () => {
     expect(instructionsCommand(root)).toMatch(/older - upgrade adr-kit to at least 99\.0\.0/);
   });
 
-  it('no note when the stamp matches the running version', () => {
+  it('no note when the stamp matches and setup is complete', () => {
     const root = makeRepo();
+    writeFileSync(join(root, 'AGENTS.md'), standingOrdersSection());
     expect(listCommand(root)).not.toContain('note:');
     expect(instructionsCommand(root)).not.toContain('note:');
   });
@@ -1158,6 +1261,7 @@ describe('relevant command', () => {
       `---
 status: ${folder === 'archived' ? 'implemented' : folder}
 date: 2026-10-12
+description: Read when changing the storage choice exercised by this fixture.
 ${reason}${scope}---
 
 # ADR: ${title}
@@ -1247,7 +1351,7 @@ describe('commented proposal sections', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
     const path = fillDraft(root);
-    const hidden = readFileSync(path, 'utf8').replace('## Problem', '<!--\n## Problem') + '-->\n';
+    const hidden = readFileSync(path, 'utf8').replace('description: ""', 'description: Read when changing the fixture storage boundary.').replace('## Problem', '<!--\n## Problem') + '-->\n';
     writeFileSync(path, hidden);
     expect(validateCommand(root).output).toContain('missing required section "## Problem"');
     expect(() => implementCommand('Use SQLite', root, 'agent', 'human')).toThrow('proposal is not ready');

@@ -22,11 +22,21 @@ Archived records change only through a deliberate, explained commit.
 
 Newest first. Each note names what changed and what to do.
 
-### After 0.30.0
+### After 0.30.0: show omits deliberation
+
+`adrkit show <name>` now omits the optional `## Deliberation` section while retaining the rest of the record. Read the file at the printed source path for the original deliberation. Scripts that need the complete source must read that file instead of capturing `show`. Records and atlas rendering need no migration.
+
+### After 0.30.0: descriptions replace tags
+
+Remove `tags` from every record and write a non-empty single-line `description` explaining the subject and circumstances in which it should be read. Titles name the choice; descriptions help select records. Fresh templates leave the field blank and fail validation until it is authored. Existing labels cannot reliably supply a description, so an upgrade needs author judgment; report records whose applicability cannot be established. This repository deliberately migrates archived front matter in the same change while preserving archived bodies; use an explained migration commit for your archives too.
+
+Remove `--tag` from map commands. The option has no replacement filter or alias. Current decisions share one accent and archived decisions retain gray dashed styling and explicit lifecycle text. Relationships, dates, sources and full archived bodies remain available. Refresh integrations with `adrkit update`, then run `adrkit validate --all`.
+
+### After 0.30.0: path scope correction
 
 `paths` entries may no longer end with `/`. A scope such as `src/` validated
 but could never match a file, so validation now rejects it; write `src/**` to
-scope a directory. That is the only validation tightening in this release. The
+scope a directory. The
 atlas title, Chinese map labels, completion, and config output fixes need no
 migration.
 

@@ -40,6 +40,7 @@ function decision(title: string, fields: Record<string, string | number>): strin
   for (const [key, value] of Object.entries(fields)) {
     entries.push([key, value]);
     if (key === 'date') {
+      if (!('description' in fields)) entries.push(['description', 'Read when changing the storage boundary.']);
       if (!('raised-by' in fields)) entries.push(['raised-by', 'human']);
       if (!('decided-by' in fields)) entries.push(['decided-by', 'human']);
       if (!('created' in fields)) entries.push(['created', value]);

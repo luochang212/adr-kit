@@ -1,13 +1,11 @@
 ---
 status: implemented
 date: 2026-10-27
+description: "Read when changing the generation-time random theme distribution or its explicit-selection override."
 raised-by: human
 decided-by: human
 created: 2026-10-27
 commit: fa0159b
-tags:
-  - visualization
-  - themes
 paths:
   - src/core/atlas-theme.ts
   - skills/adrkit-visualize/**

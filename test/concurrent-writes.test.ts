@@ -109,6 +109,7 @@ describe('concurrent decision writes', () => {
       writeFileSync(join(dir, file), `---
 status: proposed
 date: 2026-10-20
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-10-20
 ---
 

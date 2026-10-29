@@ -1,6 +1,7 @@
 ---
 status: implemented
 date: 2026-09-25
+description: "Read when deciding which lifecycle records agents should read, check, retain, or leave out of routine context."
 raised-by: human
 decided-by: human
 created: 2026-09-25
@@ -130,3 +131,5 @@ link to this one.
 manifest and `validate --base` were removed. The four-folder contract and the
 reading policy above are unchanged; statements in this record that describe
 the seal are historical.
+
+**Amended by ADR 44:** Descriptions replace thematic tags; folder-based context priority and rejection retention remain unchanged.

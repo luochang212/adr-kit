@@ -1,12 +1,10 @@
 ---
 status: implemented
 date: 2026-10-23
+description: "Read when reconciling translated or edited project rules with a new standing-orders template generation."
 raised-by: human
 decided-by: human
 created: 2026-10-23
-tags:
-  - agent-integration
-  - governance
 paths:
   - AGENTS.md
   - src/core/tool-integrations.ts
@@ -73,8 +71,10 @@ rewriting it (ADR 24).
 
 Generation tracking is opt-in: an unmarked section is quiet; an old marker
 produces a note; a current marker is quiet even with local edits. Missing
-standing orders retain their separate init/update note. The old-generation
-note asks the reader to compare and reconcile changes before re-stamping.
+standing orders retain their separate init/update note; `instructions` also
+reports the omission when integrations are installed and not explicitly opted
+out. The old-generation note asks the reader to compare and reconcile changes
+before re-stamping.
 
 The init workflow, code comments, bilingual upgrade guidance and homepage FAQ
 explain the same contract. The canonical section body and hash input are
@@ -113,7 +113,8 @@ and ownership boundaries; neither record is superseded.
 - Command tests exercise init, update, list, instructions and relevant for
   unmarked, old, current, edited and translated sections. Init/update preserve
   AGENTS.md bytes; absent or unrelated instructions retain the missing-section
-  note.
+  note in init/update and, for installed integrations, instructions. Explicit
+  integration opt-outs stay quiet.
 - Workflow/template mirrors remain synchronized. The local dogfood marker
   remains current, and README guidance explains the deliberate change for old
   unmarked installations.

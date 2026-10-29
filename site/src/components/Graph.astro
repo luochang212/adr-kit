@@ -7,7 +7,7 @@ const t = useTranslations(lang);
 
 // The diagram mirrors the real full-graph topology of a production
 // repository (15 decisions, 4 creation-date groups, one formal supersede
-// edge, mined ADR-N reference edges, per-tag node tinting). Titles here are
+// edge, mined ADR-N reference edges, lifecycle node styling). Titles here are
 // generalized one-liners, not the private repo's actual wording. Geometry is
 // computed at build time below — regenerate the edge list with
 // `adrkit atlas --map --format mermaid` in that repo when the example ages.
@@ -44,23 +44,6 @@ const titles: Record<number, string> = lang === 'zh' ? {
   14: '14 Execution security model',
   15: '15 Proxy & key isolation',
 };
-
-// first tag per decision (drives the stroke tint, like the CLI's classDefs)
-const tagOf: Record<number, string> = {
-  1: 'adr', 2: 'agent-base', 3: 'agent-base', 4: 'sandbox', 5: 'sandbox',
-  6: 'frontend', 7: 'frontend', 8: 'deploy', 9: 'credentials', 10: 'api',
-  11: 'adr', 12: 'execution', 13: 'execution', 14: 'execution', 15: 'execution',
-};
-const TAG_COLORS = ['#0e7490', '#b45309', '#6d28d9', '#15803d', '#be123c', '#4f46e5'];
-const tagSeen: string[] = [];
-const tagColor: Record<string, string> = {};
-for (const n of Object.keys(tagOf).map(Number)) {
-  const tag = tagOf[n];
-  if (!(tag in tagColor)) {
-    tagColor[tag] = TAG_COLORS[tagSeen.length % TAG_COLORS.length];
-    tagSeen.push(tag);
-  }
-}
 
 // --- layout (build time) ---
 const NW = 220, NH = 38, PITCH = 51, COLGAP = 46, GW = 250, GY = 44, TOP = 90;
@@ -165,7 +148,7 @@ const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
 
           {Object.entries(pos).map(([n, p]) => (
             <g class="graph__nodebox" data-id={n}>
-              <rect x={p.x} y={p.y} width={NW} height={NH} rx="7" style={`stroke: ${tagColor[tagOf[Number(n)]]}`}></rect>
+              <rect x={p.x} y={p.y} width={NW} height={NH} rx="7" style={`stroke: ${Number(n) === 1 ? '#999999' : '#0e7490'}`}></rect>
               <text x={p.cx} y={p.cy + 4.5} text-anchor="middle">{titles[Number(n)]}</text>
             </g>
           ))}

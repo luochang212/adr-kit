@@ -62,7 +62,6 @@ export const OPTION_SPECS = [
   { name: 'record', type: 'string', takesValue: true, commands: ['atlas'] },
   { name: 'format', type: 'string', takesValue: true, commands: ['atlas'] },
   { name: 'formal-only', type: 'boolean', commands: ['atlas'] },
-  { name: 'tag', type: 'string', takesValue: true, commands: ['atlas'] },
   { name: 'tools', type: 'string', takesValue: true, commands: ['init', 'update'] },
   { name: 'workflows', type: 'string', takesValue: true, commands: ['init', 'update'] },
   { name: 'out', type: 'string', takesValue: true, commands: ['atlas'] },

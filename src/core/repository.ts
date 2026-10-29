@@ -91,7 +91,7 @@ every archived record does.
 The canonical header includes status, date, and created: YYYY-MM-DD (the
 birth date, never re-stamped). Numbered records declare raised-by: human | agent
 and decided-by: human | agent; these are provenance declarations, not proof
-of approval. Optional tags: [frontend] classify records by theme; optional
+of approval. A required description explains when to read the record; optional
 paths: [src/payments/**] scope a record to the files it governs.
 
 Use adrkit propose for unshipped work, adrkit implement after it ships, and
@@ -141,7 +141,12 @@ export function initRepository(targetDir: string, tools: string[] = [], workflow
   const config = configPath(root);
   const existing = existsSync(adrRoot);
   if (existing && (existsSync(config) || !repairableAdrRoot(adrRoot))) {
-    throw new Error(`an ADR Kit repository already exists at ${adrRoot}`);
+    throw new Error(
+      `an ADR Kit repository already exists at ${adrRoot}` +
+      (existsSync(config)
+        ? '; run "adrkit list" to read existing decisions, or "adrkit update" to refresh integrations'
+        : ''),
+    );
   }
 
   const created: string[] = [];

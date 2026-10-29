@@ -53,7 +53,7 @@ interface AtlasRecord {
   commit?: string;
   'superseded-by'?: number;
   'archive-reason'?: string;
-  tags: string[];
+  description: string;
   paths: string[];
   number: number;
   title: string;
@@ -233,7 +233,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     commit: record.commit,
     'superseded-by': record.supersededBy,
     'archive-reason': record.archiveReason,
-    tags: record.tags ?? [],
+    description: record.description ?? '',
     paths: record.paths ?? [],
     number: record.number!,
     title: payloadTitle(record),

@@ -1,6 +1,7 @@
 ---
 status: implemented
 date: 2026-10-21
+description: "Read when changing public formats or commands and explaining breaking upgrades to adopters."
 raised-by: human
 decided-by: human
 created: 2026-10-21

@@ -1,11 +1,11 @@
 ---
 status: implemented
 date: 2026-09-25
+description: "Read when deciding whether a choice belongs in a proposal, active record, rejection, or archive and when to assign its number."
 raised-by: human
 decided-by: human
 created: 2026-09-24
 commit: 9cfada4
-tags: [record-lifecycle, agent-integration, governance]
 paths:
   - adr/**
   - src/commands/propose.ts
@@ -142,3 +142,7 @@ intent to check, anti-pattern to check, and lowest-value history read only when
 a task cites it — and made "kept every formal rejection" a durable terminal:
 a rejection is removed only when another record owns its warning, never for
 appearing stale. The four-folder lifecycle itself is unchanged.
+
+### Later changes
+
+**Amended by ADR 44:** Descriptions replace theme tags as discovery metadata. The four lifecycle folders, numbering and shipping boundaries are unchanged.

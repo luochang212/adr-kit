@@ -1,6 +1,7 @@
 ---
 status: implemented
 date: 2026-10-29
+description: "Read when placing stability promises and release-specific upgrade instructions in project documentation."
 raised-by: human
 decided-by: human
 created: 2026-10-29

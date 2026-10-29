@@ -36,6 +36,7 @@ describe('regressions', () => {
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -70,6 +71,7 @@ Body.
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 raised-by: human
 decided-by: human
 created: 2026-08-19
@@ -105,6 +107,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -142,6 +145,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -176,6 +180,7 @@ Body.
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -216,6 +221,7 @@ Body.
       `---
 status: proposed
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -258,6 +264,7 @@ Native dependency.
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -295,6 +302,7 @@ Body.
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 created: 2026-08-19
 ---
 
@@ -387,6 +395,7 @@ describe('non-regular record paths', () => {
       `---
 status: implemented
 date: 2026-08-19
+description: Read when changing the storage choice exercised by this fixture.
 raised-by: human
 decided-by: human
 created: 2026-08-19
@@ -443,7 +452,7 @@ describe('cli option surface', () => {
     const root = makeRepo();
     const list = runCli(['list', '--tag', 'frontend'], root);
     expect(list.exitCode).toBe(1);
-    expect(list.errors.join('\n')).toContain('does not take --tag');
+    expect(list.errors.join('\n')).toContain("Unknown option '--tag'");
 
     const validate = runCli(['validate', '--out', 'out.html'], root);
     expect(validate.exitCode).toBe(1);

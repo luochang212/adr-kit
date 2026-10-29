@@ -1,13 +1,10 @@
 ---
 status: implemented
 date: 2026-10-23
+description: "Read when selecting the atlas, map, or record tree and validating their output-format combinations."
 raised-by: human
 decided-by: human
 created: 2026-10-23
-tags:
-  - visualization
-  - cli
-  - agent-integration
 paths:
   - src/commands/atlas.ts
   - src/commands/graph.ts
@@ -111,3 +108,7 @@ active. ADR 13's explicit workflow subsets and ADR 14's link rules are unchanged
 - Loaded agent instructions can remain stale after an executable upgrade.
   Current CLI errors and defaults establish the contract; no compatibility
   aliases or repository-specific prompt workarounds are carried.
+
+### Later changes
+
+**Amended by ADR 44:** The --tag option is removed. Only --formal-only remains as a map-only filter; object selection and output encoding remain independent.
