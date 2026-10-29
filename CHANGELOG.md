@@ -1,5 +1,64 @@
 # Changelog
 
+## 0.31.0
+
+### Minor Changes
+
+- d4b36e7: Replace free-form decision tags with a required, single-line `description` explaining when a record is relevant. Inventory and scope results show the description, lifecycle moves preserve it, and atlas directories, readers and search use it.
+  
+  Breaking: remove `tags` from records and author their descriptions, including archived records in an explained migration commit. The `atlas --tag` filter is removed without an alias. Maps now distinguish current decisions from archived history through lifecycle colors, text and dashed styling, with no category palette to maintain. Fresh templates intentionally fail validation until the description and required sections are filled.
+  
+  Clarify first-time setup, integration refresh and later-session reading in the README and CLI help. The instructions command now reminds installed integrations to merge missing standing orders into AGENTS.md while respecting explicit opt-outs and preserving user-owned files.
+- 56fcf86: Harden the lifecycle and the atlas output after the 2026-10-29 whole-repository
+  review.
+  
+  - The full atlas payload's `title` no longer repeats the ADR number, and its
+    body keeps exactly one `# ADR: N <title>` line, so directory cards and the
+    reader stop showing the number twice.
+  - The Chinese atlas localizes the generated map's lifecycle text
+    (`被 ADR N 替代`, `已归档`), the remaining controls and legend, and their
+    `aria-label` values instead of leaving English inside the translated page.
+  - `record` and `propose` reject a title containing a line break and parse the
+    generated file before writing it, so a bad title can no longer leave an
+    unreadable record that makes `list` and `relevant` fail.
+  - `init` repairs a repository whose `adr/config.yaml` is missing (an
+    interrupted init or a bad merge): it restores the missing config, lifecycle
+    folders, and README instead of refusing, and the "no repository" error names
+    the missing config and the repair command. Repair preserves existing
+    integration commands, skills, and resources, creating only missing files;
+    use `update` explicitly to refresh existing integrations. A repair that kept
+    files leaves `installed-with` absent and explicitly prompts for `update`,
+    rather than claiming the preserved files were written by the current version.
+  - Each lifecycle move takes one date stamp, so `date`, `created`, and
+    `archived` cannot straddle midnight and contradict each other.
+  - `paths` scopes reject a trailing slash: `src/` validated but never matched.
+    Use `src/**` to scope a directory. Breaking for records that carry such a
+    scope.
+  - `## Deliberation` now accepts `*` and `+` bullets, ignores fenced examples and
+    HTML comments (including fences indented within the outline), and reports a
+    missing section, an empty section, and a non-outline body as different errors.
+  - Required sections no longer count fenced code as written content: a section
+    whose only content is a code example fails like a comment-only section,
+    matching the documented 0.29.0 rule.
+  - Validation rejects a top-level `## Later changes` section and a
+    `**Amended by ADR N:**` block outside the documented `### Later changes`
+    subsection; ADR 34 and ADR 41 are migrated to the documented form.
+    Amendment paragraphs immediately followed by a code fence retain their
+    validation: previously the fence discarded the paragraph, allowing misplaced
+    notes through and incorrectly reporting valid entries as empty.
+  - Mermaid map exports written with `--out` resolve their click links against
+    the output location, matching ADR 14's contract for every linked format.
+  - Atlas source links normalize `ssh://`, `git+ssh://`, `git://`, and the
+    `github:owner/repo` shorthand as browser URLs.
+  - zsh completion no longer prints `undefined` for `--record`, `--format`, or
+    `--lang`, and `adrkit config` shows an explicit `tools: (none)` opt-out.
+
+### Patch Changes
+
+- 857c851: Split the README upgrade section (ADR 43): the READMEs keep a short Stability note after the Record format section, and the per-release upgrade notes moved to `docs/upgrading.md` and `docs/zh/upgrading.md`. The compatibility stance of ADR 28 is unchanged.
+- d4b36e7: Generate the committed workflow skill Markdown during builds from the existing TypeScript definitions, using the same renderer as CLI installation. Contributors edit workflow text once; installed skills and commands retain their existing content and behavior.
+- d4b36e7: Show the complete main record without the optional Deliberation section. The printed source path provides access to the full original; scripts requiring the appendix must read that file. Preserve fenced examples, comments, later sections, and original source files.
+
 ## 0.30.0
 
 ### Minor Changes
