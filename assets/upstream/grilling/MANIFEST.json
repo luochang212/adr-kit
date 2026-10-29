@@ -1,10 +1,10 @@
 {
   "repo": "mattpocock/skills",
   "path": "skills/productivity/grilling",
-  "commit": "95249b0b49782349740fd9b8c6ce32b4e59e497a",
-  "pinned": "2026-10-10",
+  "commit": "7739eaed7f8f3915437a8def198a6d0d7206dbc7",
+  "pinned": "2026-10-29",
   "files": {
-    "SKILL.md": "befdff1e27a1dfe2a294d5871169ac1afe16d983911daa4f32627514a48c1e15",
+    "SKILL.md": "a146842ed93ca43d833550fa9adf02e58cb63c83fea9d4b4522995b82242d4e2",
     "agents/openai.yaml": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b"
   }
 }
