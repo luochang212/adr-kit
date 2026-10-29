@@ -18,7 +18,9 @@ review.
   folder, or README) instead of refusing, and the "no repository" error names
   the missing config and the repair command. Repair preserves existing
   integration commands, skills, and resources, creating only missing files;
-  use `update` explicitly to refresh existing integrations.
+  use `update` explicitly to refresh existing integrations. A repair that kept
+  files leaves `installed-with` absent and explicitly prompts for `update`,
+  rather than claiming the preserved files were written by the current version.
 - Each lifecycle move takes one date stamp, so `date`, `created`, and
   `archived` cannot straddle midnight and contradict each other.
 - `paths` scopes reject a trailing slash: `src/` validated but never matched.

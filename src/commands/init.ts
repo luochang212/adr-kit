@@ -25,7 +25,10 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
     lines.push('  existing records and edited files were left untouched');
   }
   const integrations = writeToolIntegrations(root, tools, workflows, { preserveExisting: repaired === true });
-  writeInstalledWithConfig(root, VERSION);
+  // Preserved files have an unknown writer version. Leave the stamp absent
+  // and prompt here; later commands cannot compare versions without a stamp.
+  const keptExisting = repaired === true && integrations.some((entry) => entry.outcome === 'preserved');
+  if (!keptExisting) writeInstalledWithConfig(root, VERSION);
   const note = standingOrdersNote(root, integrations) ?? standingOrdersDriftNote(root);
   return [
     repaired === true
@@ -33,6 +36,9 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
       : `ADR Kit initialized at ${root}`,
     ...lines,
     ...integrationSummary(root, integrations),
+    ...(keptExisting
+      ? ['', 'note: existing integration files were kept; run "adrkit update" to refresh them']
+      : []),
     ...(note === undefined ? [] : ['', note]),
     '',
     'Next:',

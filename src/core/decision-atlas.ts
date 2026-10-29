@@ -298,13 +298,12 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
   page = page.replace(/<style data-atlas-style="(folio|signal)"(?: media="not all")?>/g,
     (_, name: string) => `<style data-atlas-style="${name}"${name === theme ? '' : ' media="not all"'}>`);
   page = replaceHtmlSlot(page, 'title', `<title>${escapeHtml(projectName)} · ${en ? 'Decision atlas' : '决策档案'}</title>`);
-  // Folio keeps the original opening's content, statistics and density together.
-  // Move the existing section, including its replaceable note, rather than
-  // maintaining a second density component for the hero.
-  // Folio moves the whole overview section into the hero. The non-greedy match
-  // assumes that section has no nested <section>; if it ever gains one, give it
-  // a dedicated slot instead of widening this regex. The browser gate covers
-  // the resulting hero and density layout.
+  // Folio keeps the original opening's content, statistics, and density
+  // together: move the existing overview section, including its replaceable
+  // note, into the hero instead of maintaining a second density component. The
+  // non-greedy match assumes that section has no nested <section>; if it ever
+  // gains one, give it a dedicated slot instead of widening this regex. The
+  // browser gate covers the resulting hero and density layout.
   const density = theme === 'folio'
     ? page.match(/<section class="atlas-section" id="overview-view">[\s\S]*?<\/section>/)?.[0]
     : undefined;

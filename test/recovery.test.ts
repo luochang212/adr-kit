@@ -43,8 +43,13 @@ describe('repairing a partial ADR Kit repository', () => {
     }
     expect(readFileSync(join(root, missing), 'utf8')).toContain('# ADR Kit Validate');
     expect(output).toContain(`created ${missing}`);
+    // A repair that kept files must not claim it wrote them: no stamp, and an
+    // explicit instruction to refresh.
+    expect(output).toContain('existing integration files were kept; run "adrkit update"');
+    expect(readFileSync(join(root, 'adr/config.yaml'), 'utf8')).not.toContain('installed-with:');
     // Refresh remains explicit: update still replaces generated integrations.
     updateCommand(root);
+    expect(readFileSync(join(root, 'adr/config.yaml'), 'utf8')).toContain('installed-with:');
     for (const path of edited) expect(readFileSync(join(root, path), 'utf8')).not.toBe('user edits\n');
   });
 

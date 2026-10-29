@@ -190,9 +190,14 @@ but `adr/config.yaml` is missing (an interrupted init, a bad merge, or a
 deleted file), it restores only the missing config, lifecycle folders, and
 README, leaving records and edited files untouched. Selected integrations are
 also completed: missing commands, skills, and resources are created, while
-existing files are reported as `preserved`. Run `adrkit update` separately to
-refresh those files. Every command then works again. An existing `adr/` with a
-config, or a directory holding unrelated files, is still refused.
+existing files are reported as `preserved`. Pass the same `--tools` and
+`--workflows` you used originally; the restored config records the flags this
+command received. A repair that kept any integration file leaves
+`installed-with` absent and prompts you to run `adrkit update` to refresh it.
+This avoids claiming that preserved files were written by the current version;
+without the stamp, later commands do not emit a version-drift notice.
+Every command then works again. An existing `adr/` with a config,
+or a directory holding unrelated files, is still refused.
 
 ## Concurrent decision writes
 
