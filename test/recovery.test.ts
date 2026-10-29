@@ -24,14 +24,14 @@ describe('repairing a partial ADR Kit repository', () => {
     const root = temp();
     initCommand(root, 'claude');
     const edited = [
-      '.agents/skills/adrkit-record/SKILL.md',
-      '.agents/commands/adrkit-record.md',
-      '.agents/skills/adrkit-visualize/examples/decision-atlas.html',
-      '.claude/skills/adrkit-record/SKILL.md',
-      '.claude/commands/adrkit-record.md',
+      join('.agents', 'skills', 'adrkit-record', 'SKILL.md'),
+      join('.agents', 'commands', 'adrkit-record.md'),
+      join('.agents', 'skills', 'adrkit-visualize', 'examples', 'decision-atlas.html'),
+      join('.claude', 'skills', 'adrkit-record', 'SKILL.md'),
+      join('.claude', 'commands', 'adrkit-record.md'),
     ];
     for (const path of edited) writeFileSync(join(root, path), 'user edits\n');
-    const missing = '.agents/skills/adrkit-validate/SKILL.md';
+    const missing = join('.agents', 'skills', 'adrkit-validate', 'SKILL.md');
     rmSync(join(root, missing));
     rmSync(join(root, 'adr/config.yaml'));
 
