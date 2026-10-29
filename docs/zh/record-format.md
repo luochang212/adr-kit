@@ -58,7 +58,7 @@ implemented 记录上校验该形式：以 `ADR N later` 开头的尾注段落�
 必须无缺失、无环，终点是 implemented 决策。`archive` 为不再指导工作的
 implemented 决策写 `archived` 和 `archive-reason`；原 `status` 保留
 implemented，表示历史上的交付状态。编号始终稳定。每条记录必须有非空的单行 `description`，说明主题和适用情境；描述不代替正文阅读。旧 `tags` 字段已移除，校验会报告未知字段。可选 `## Deliberation` 以嵌套 Markdown 列表保存决策背后的
-推敲树：`- Q: <问题> [settled]` 与 `- <选项> [rejected] (recommended) — <理由>`，
+deliberation tree：`- Q: <问题> [settled]` 与 `- <选项> [rejected] (recommended) — <理由>`，
 后续问题嵌在提出它的节点下。`-`、`*`、`+` 都可作为项目符号；`[settled]`、
 `[rejected]`、`[open]` 是状态，`(recommended)` 标记推荐项，破折号后的文字是
 理由；围栏示例与 HTML 注释不算节点。`adrkit atlas --record <name>` 渲染该树；

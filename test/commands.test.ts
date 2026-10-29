@@ -344,17 +344,19 @@ describe('propose and implement', () => {
   });
 
   it('steers a new caller to declare, in both the init and propose output', () => {
-    // These lines are the agent's steer at the moment it creates work. Naming
-    // only `human` would invite an agent to label its own judgment as human,
-    // which is the one thing the declaration exists to prevent.
+    // These lines are the agent's steer at the moment it creates work. Init's
+    // sample is deliberately concrete. Propose's suggestion is tied to the
+    // proposal just created, so it must keep both declarations open instead of
+    // inviting an agent to label its own judgment as human.
     const dir = mkdtempSync(join(tmpdir(), 'adrkit-steer-'));
     tempDirs.push(dir);
     const init = initCommand(dir);
     expect(init).toContain('--raised-by human');
     expect(init).toContain('--decided-by human');
     const proposed = proposeCommand('Use SQLite', dir);
-    expect(proposed).toContain('--raised-by human');
-    expect(proposed).toContain('--decided-by human');
+    expect(proposed).toContain('--raised-by <human|agent>');
+    expect(proposed).toContain('--decided-by <human|agent>');
+    expect(proposed).not.toContain('--raised-by human');
     expect(proposed).toContain('When the work ships');
   });
 

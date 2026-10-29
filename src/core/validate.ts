@@ -136,7 +136,7 @@ function sectionIssues(
   }
   for (const heading of meaningful) {
     const body = sections.find((section) => section.heading === heading)?.body;
-    if (!hasMeaningfulBody(body)) {
+    if (!hasMeaningfulBody(body, { proseOnly: true })) {
       issues.push({ path, message: `section "## ${heading}" must contain written content` });
     }
   }
@@ -151,7 +151,10 @@ function sectionIssues(
 }
 
 function alternativesIssue(path: string, sections: AdrSection[]): ValidationIssue[] {
-  if (!hasMeaningfulBody(sections.find((section) => section.heading === 'Alternatives considered')?.body)) {
+  if (!hasMeaningfulBody(
+    sections.find((section) => section.heading === 'Alternatives considered')?.body,
+    { proseOnly: true },
+  )) {
     return [
       {
         path,
@@ -242,6 +245,12 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   }
 
   if (record.folder === 'implemented') {
+    if (record.sections.some((section) => section.heading === 'Later changes')) {
+      issues.push({
+        path,
+        message: 'amendments must use "### Later changes" under "## Consequences", not a top-level "## Later changes" section',
+      });
+    }
     const consequences = record.sections.find((section) => section.heading === 'Consequences');
     if (consequences !== undefined) {
       for (const heading of writtenHeadings(consequences.body, 3)) {
@@ -346,6 +355,11 @@ function laterChangesIssues(path: string, body: string): ValidationIssue[] {
         path,
         message: 'amendment note is trailing prose; move it under "### Later changes" opening "**Amended by ADR N:**"',
       });
+    } else if (AMENDED_BY_PATTERN.test(block)) {
+      issues.push({
+        path,
+        message: 'amendment note is outside "### Later changes"; move it under that subsection in "## Consequences"',
+      });
     }
   }
   return issues;
@@ -357,6 +371,7 @@ function textBlocks(lines: Array<{ visible: string; code: boolean }>): string[] 
   let current: string[] = [];
   for (const line of lines) {
     if (line.code) {
+      if (current.length > 0) blocks.push(current.join('\n'));
       current = [];
       continue;
     }

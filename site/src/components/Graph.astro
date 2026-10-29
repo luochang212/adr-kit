@@ -113,7 +113,7 @@ const svgH = Math.max(...boxes.map((b) => b.h)) + GY + 26;
           class="graph__svg"
           viewBox={`0 0 ${svgW} ${svgH}`}
           role="img"
-          aria-label="Decision map from a real repository: fifteen decisions in four creation-date groups, one formal supersede edge, and dashed arrows for the references between decisions"
+          aria-label={t('graph.aria')}
         >
           <defs>
             <marker id="g-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">

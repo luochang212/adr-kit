@@ -67,7 +67,8 @@ records that no longer guide work.
 
 Full atlas themes: --theme folio (paper/editorial), --theme signal (dark/instrumental),
 or --theme random (also the default). Random selection happens once at generation,
-with equal probability. No system appearance detection or page switch.
+rolling Folio 30% and Signal 70% and favoring Signal. No system appearance detection
+or page switch.
 Theme selection is not supported for --map or --record.
 
 Agents should default to random for a new atlas without an explicit visual

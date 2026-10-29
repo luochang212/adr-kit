@@ -171,10 +171,20 @@ export function section(record: AdrRecord, heading: string): string | undefined 
  * ten seconds, and multi-megabyte payloads never returned). An unterminated
  * comment swallows the rest of the section, which is CommonMark's reading of a
  * comment block that runs to its end of context.
+ *
+ * `proseOnly` excludes fenced code as well. The record format requires written
+ * prose in its required sections, while a visible code example still counts as
+ * content when deciding whether a lifecycle move would lose material (the
+ * `introProse` warning). The two questions need different answers, so the
+ * caller states which one it is asking.
  */
-export function hasMeaningfulBody(body: string | undefined): boolean {
+export function hasMeaningfulBody(
+  body: string | undefined,
+  options: { proseOnly?: boolean } = {},
+): boolean {
   if (body === undefined) return false;
   for (const line of markdownLines(body)) {
+    if (options.proseOnly === true && line.code) continue;
     if (line.visible.trim().length > 0) return true;
   }
   return false;

@@ -26,7 +26,7 @@ rewrites `AGENTS.md`.
 | `adrkit show <name>` | Show a record's main content, omitting `## Deliberation`, by title, filename, slug, or ADR number |
 | `adrkit status` | Count lifecycle folders and report validity |
 | `adrkit instructions` | Show pending proposals and the next valid action |
-| `adrkit validate [name] [--all]` | Validate one record or the whole repository, including its closed lifecycle inventory |
+| `adrkit validate [<name> \| --all]` | Validate one record, or the whole repository with its closed lifecycle inventory; a name and `--all` are exclusive |
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
 | `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, then show which active decisions govern the staged files |
@@ -84,9 +84,10 @@ optional: only the ones that exist are checked.
 
 ## Validation coverage
 
-`adrkit validate <name>` checks one record. `--all` adds the corpus checks
-below. Validation is supposed to fail on fresh records until their required
-sections are filled in.
+`adrkit validate <name>` checks one record. `adrkit validate` (or `--all`)
+checks the whole repository, including the corpus checks below; a record name
+and `--all` are mutually exclusive. Validation is supposed to fail on fresh
+records until their required sections are filled in.
 
 Per record, in every mode, including archived records.
 
@@ -117,7 +118,7 @@ Per record, in every mode, including archived records.
   paragraph continuing an entry does not.
 - Supersession chains resolve without cycles to an implemented decision;
   no backlink from the successor is required.
-Repository-wide (`--all`), additionally:
+Repository-wide (no name, or `--all`), additionally:
 
 - The four lifecycle folders are the whole inventory: unknown folders,
   records at the `adr/` root, and nested folders fail. `adr/config.yaml`

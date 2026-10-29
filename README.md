@@ -125,7 +125,7 @@ adrkit relevant [<path>... | --base <git-ref> | --staged]
 adrkit show <name>
 adrkit status
 adrkit instructions
-adrkit validate [name] [--all]
+adrkit validate [<name> | --all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
-import { atlasCommand } from '../src/commands/atlas.js';
+import { atlasCommand, normalizeRepositoryUrl } from '../src/commands/atlas.js';
 import { graphCommand } from '../src/commands/graph.js';
 import { treeCommand } from '../src/commands/tree.js';
 import { initCommand } from '../src/commands/init.js';
@@ -543,6 +543,20 @@ c
   });
 });
 
+describe('atlas repository URL normalization', () => {
+  it.each([
+    ['git+https://github.com/example/demo.git', 'https://github.com/example/demo'],
+    ['git@github.com:example/demo.git', 'https://github.com/example/demo'],
+    ['git+ssh://git@github.com/example/demo.git', 'https://github.com/example/demo'],
+    ['ssh://git@github.com/example/demo.git', 'https://github.com/example/demo'],
+    ['git://github.com/example/demo.git', 'https://github.com/example/demo'],
+    ['github:example/demo', 'https://github.com/example/demo'],
+    ['https://github.com/example/demo.git/', 'https://github.com/example/demo'],
+  ])('normalizes %s', (input, expected) => {
+    expect(normalizeRepositoryUrl(input)).toBe(expected);
+  });
+});
+
 describe('graph output file', () => {
   it('resolves record links from the directory the map lands in', () => {
     const root = fixtureRepo();
@@ -575,6 +589,21 @@ describe('graph output file', () => {
     expect(graphCommand(root, { out: target })).toBe('wrote decision map (mermaid) to ' + target);
     expect(readFileSync(target, 'utf8').startsWith('flowchart LR')).toBe(true);
     expect(() => graphCommand(root, { html: true, out: 'missing/map.html' })).toThrow(/does not exist/);
+  });
+
+  it('resolves Mermaid click links against the output location too', () => {
+    const root = fixtureRepo();
+    mkdirSync(join(root, 'reports'), { recursive: true });
+    const inside = join(root, 'reports', 'map.mmd');
+    graphCommand(root, { out: inside });
+    expect(readFileSync(inside, 'utf8')).toContain('click n1 "../adr/archived/1-old.md"');
+
+    const dir = mkdtempSync(join(tmpdir(), 'adrkit-mmd-out-'));
+    tempDirs.push(dir);
+    const outside = join(dir, 'map.mmd');
+    graphCommand(root, { out: outside });
+    const record = join(realpathSync(root), 'adr', 'archived', '1-old.md');
+    expect(readFileSync(outside, 'utf8')).toContain('click n1 "' + pathToFileURL(record).href + '"');
   });
 });
 

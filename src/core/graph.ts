@@ -154,7 +154,10 @@ function dateGroups(nodes: GraphNode[]): Map<string, GraphNode[]> {
  * Active nodes use one accent (border + text, no fill);
  * superseded nodes keep the gray retired style instead.
  */
-export function mermaidGraph(graph: DecisionGraph): string {
+export function mermaidGraph(
+  graph: DecisionGraph,
+  recordHref: (recordPath: string) => string = (recordPath) => recordPath,
+): string {
   const header: string[] = ['flowchart LR'];
   for (const [date, nodes] of dateGroups(graph.nodes)) {
     header.push(`  subgraph D${date.replaceAll('-', '')}["${date} (${nodes.length})"]`);
@@ -194,7 +197,9 @@ export function mermaidGraph(graph: DecisionGraph): string {
     '  classDef active stroke:#0e7490,color:#0e7490',
     `  class ${active.join(',')} active`,
   ];
-  const clicks = graph.nodes.map((node) => `  click n${node.number} "${node.path}"`);
+  const clicks = graph.nodes.map(
+    (node) => `  click n${node.number} "${recordHref(node.path)}"`,
+  );
 
   const blocks = [header, formal, references, activeStyle, style, clicks, linkStyles].filter(
     (block) => block.length > 0,

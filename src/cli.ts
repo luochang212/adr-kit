@@ -65,7 +65,7 @@ Usage:
   adrkit show <name>                         Show a record
   adrkit status                              Show lifecycle counts and validity
   adrkit instructions                        Print the next workflow step
-  adrkit validate [name] [--all]
+  adrkit validate [<name> | --all]
                                            Validate one record or the whole repo
   adrkit update [--tools <list>] [--workflows <list>]
                                            Rewrite AI tool integrations

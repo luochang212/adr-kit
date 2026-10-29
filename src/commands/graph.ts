@@ -62,10 +62,14 @@ export function graphCommand(cwd: string, flags: GraphFormatFlags): string {
     formalOnly: flags.formalOnly,
   });
   const format = formats[0] ?? 'mermaid';
+  // Both linked formats resolve record links against the output location;
+  // dot and text carry no links. Without --out the caller is redirecting
+  // stdout, which ADR 14 expects to happen only inside the repository.
+  const href = format === 'html' || format === 'mermaid' ? recordHref(root, target) : undefined;
   const output = format === 'dot' ? dotGraph(graph)
     : format === 'text' ? textTree(graph)
-    : format === 'html' ? renderDecisionMapHtml(graph, 'Decision map', recordHref(root, target))
-    : mermaidGraph(graph);
+    : format === 'html' ? renderDecisionMapHtml(graph, 'Decision map', href)
+    : mermaidGraph(graph, href);
   if (target === undefined) return output;
   writeFileSync(target, output);
   return `wrote decision map (${format}) to ${target}`;

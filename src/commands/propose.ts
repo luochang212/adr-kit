@@ -16,12 +16,13 @@ export function proposeCommand(title: string, cwd: string): string {
   }
   const root = requireRoot(cwd);
   const slug = slugify(trimmed);
-  const fileName = `${todayStamp()}-${slug}.md`;
+  const stamp = todayStamp();
+  const fileName = `${stamp}-${slug}.md`;
   const path = join(folderPath(root, 'proposed'), fileName);
   if (existsSync(path)) {
     throw new Error(`proposal already exists: adr/proposed/${fileName}`);
   }
-  const content = proposalTemplate(trimmed, readConfig(root).context);
+  const content = proposalTemplate(trimmed, readConfig(root).context, stamp);
   // Same guard as record: the parser is the format contract, so refuse to
   // create a file it cannot read back.
   parseAdrText(content, path);
@@ -30,7 +31,7 @@ export function proposeCommand(title: string, cwd: string): string {
     `created adr/proposed/${fileName}`,
     '',
     'When the work ships, record its outcome with',
-    `  adrkit implement "${trimmed}" --raised-by human --decided-by human`,
+    `  adrkit implement "${trimmed}" --raised-by <human|agent> --decided-by <human|agent>`,
     'or reject the proposal with',
     `  adrkit reject "${trimmed}" --reason "<why>"`,
     '',

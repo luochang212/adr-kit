@@ -40,7 +40,7 @@ ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令
 
 ### 可视化收敛（ADR 33、ADR 36）
 
-`adrkit atlas` 是唯一的可视化命令：`adrkit atlas` 输出完整档案，`--map` 选择决策地图，`--record <N>` 渲染单条决策的商议树。树默认输出 HTML，也支持 `--format html`；`--diagram` 已移除，`adrkit graph` 与 `adrkit tree` 已删除，`atlas` 的多余位置参数会报错，所有格式的地图导出都必须显式添加 `--map`。
+`adrkit atlas` 是唯一的可视化命令：`adrkit atlas` 输出完整档案，`--map` 选择决策地图，`--record <N>` 渲染单条决策的 deliberation tree。树默认输出 HTML，也支持 `--format html`；`--diagram` 已移除，`adrkit graph` 与 `adrkit tree` 已删除，`atlas` 的多余位置参数会报错，所有格式的地图导出都必须显式添加 `--map`。
 
 ### 包名、命令与运行时
 

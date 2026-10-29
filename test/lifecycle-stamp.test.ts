@@ -93,13 +93,18 @@ describe('a lifecycle move takes one date', () => {
     expect(text.match(/^date: (.+)$/m)?.[1]).toBe(text.match(/^created: (.+)$/m)?.[1]);
   });
 
-  it('stamps date and created once when proposing', () => {
+  it('stamps the proposal file name and front matter once', () => {
     const root = repo();
 
     proposeCommand('Choice', root);
 
+    // The injected clock advances on every call. A second stamp would put
+    // 10-02 in the front matter while the file name stayed at 10-01.
     const text = readFileSync(join(root, 'adr/proposed/2026-10-01-choice.md'), 'utf8');
-    expect(text.match(/^date: (.+)$/m)?.[1]).toBe(text.match(/^created: (.+)$/m)?.[1]);
+    const date = text.match(/^date: (.+)$/m)?.[1];
+    const created = text.match(/^created: (.+)$/m)?.[1];
+    expect(date).toBe('2026-10-01');
+    expect(created).toBe(date);
   });
 
   it('writes the same date and archived day when superseding', () => {

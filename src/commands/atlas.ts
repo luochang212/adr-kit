@@ -59,13 +59,21 @@ function writeTarget(output: string, cwd: string, out: string | undefined, objec
   return `wrote ${object} (${format}) to ${target}`;
 }
 
-/** `git@host:owner/repo.git` or `git+https://…` to a browser URL without `.git`. */
-function normalizeRepositoryUrl(value: string): string {
+/**
+ * A package.json or Git remote URL to a browser URL without `.git`.
+ * Handles the forms real manifests use: `git+https://…`, `git@host:owner/repo`,
+ * `ssh://git@host/owner/repo`, `git://host/owner/repo`, and the
+ * `github:owner/repo` shorthand. The trailing slash is removed before `.git`
+ * so `….git/` also normalizes.
+ */
+export function normalizeRepositoryUrl(value: string): string {
   return value
     .replace(/^git\+/, '')
+    .replace(/^github:/, 'https://github.com/')
     .replace(/^git@([^:]+):/, 'https://$1/')
-    .replace(/\.git$/, '')
-    .replace(/\/$/, '');
+    .replace(/^(?:ssh|git):\/\/(?:git@)?([^/]+)\//, 'https://$1/')
+    .replace(/\/+$/, '')
+    .replace(/\.git$/, '');
 }
 
 /** The repository's browser URL: package metadata first, then the origin remote. */

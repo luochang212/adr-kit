@@ -23,7 +23,7 @@
 | `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录主体，省略 `## Deliberation` |
 | `adrkit status` | 显示各目录数量与校验状态 |
 | `adrkit instructions` | 显示待办提案与下一步 |
-| `adrkit validate [name] [--all]` | 校验单条记录或整个仓库（含闭合的生命周期清单） |
+| `adrkit validate [<name> \| --all]` | 校验单条记录，或整个仓库（含闭合的生命周期清单）；名称与 `--all` 互斥 |
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
 | `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错则失败，否则列出管辖这些改动的生效决策 |
@@ -73,8 +73,9 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
 
 ## 校验覆盖面
 
-`adrkit validate <名称>` 校验单条记录；`--all` 追加下述整仓检查。新记录在
-必填小节填完之前按预期失败。
+`adrkit validate <名称>` 校验单条记录；`adrkit validate`（或 `--all`）校验整个
+仓库，包括下述整仓检查；记录名与 `--all` 互斥。新记录在必填小节填完之前按
+预期失败。
 
 每条记录、所有模式都检查，归档记录也一样。
 
@@ -98,7 +99,7 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
   开头；以 `ADR N later` 开头的尾注段落、丢失开头的条目，或首条合法条目之前
   的普通正文会失败，承接上一条的普通段落不受影响。
 - 替代链无环且最终指向 implemented 决策；后继无需反向引用。
-整仓（`--all`）额外检查：
+整仓校验（无名称或 `--all`）额外检查：
 
 - 四个生命周期目录就是全部清单：未知目录、`adr/` 根下的记录、嵌套目录
   都会失败；`adr/config.yaml` 存在且已知字段类型正确。

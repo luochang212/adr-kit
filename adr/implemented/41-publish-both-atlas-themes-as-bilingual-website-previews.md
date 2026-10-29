@@ -66,7 +66,7 @@ layout and build organization are the agent's implementation choices.
 - The website build renders four atlas pages instead of two; behavior remains shared,
   so this adds generated artifacts rather than a second implementation.
 
-## Later changes
+### Publication update
 
 The public entry now presents a bilingual theme gallery at `index.html` /
 `en.html`; Folio's atlas routes are `folio.html` / `folio.en.html`, while

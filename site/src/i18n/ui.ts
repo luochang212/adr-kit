@@ -55,6 +55,9 @@ const ui = {
       'One command turns the adr/ directory into a live map of your decisions: grouped by date, styled by lifecycle, linked by the references between them. The map is one self-contained HTML file with a pan-and-zoom canvas, and any view — the map, or one decision\u2019s deliberation tree — saves as a shareable image.',
     'graph.caption': 'Real repository topology; titles generalized. Long dashes indicate replacement.',
     'graph.supersede': 'ADR 1 is superseded by ADR 11',
+    'graph.aria':
+      'Decision map from a real repository: fifteen decisions in four creation-date groups, one formal supersede edge, and dashed arrows for the references between decisions',
+    'demo.aria': 'adrkit demo transcript',
     'graph.atlas.eyebrow': 'Live decision atlas',
     'graph.atlas.title': 'See how ADR Kit itself evolved',
     'graph.atlas.lead':
@@ -139,6 +142,9 @@ const ui = {
     'graph.lead': '一条命令，把 adr/ 目录变成全部决策的地图：按日期分组、按生效与归档状态区分、引用连成线。地图是单个自包含的 HTML 文件，画布可拖拽缩放；无论决策地图还是单条决策的 deliberation tree，任意视图都能一键存成图片。',
     'graph.caption': '结构取自真实仓库，标题已做泛化。长虚线表示替代关系。',
     'graph.supersede': 'ADR 1 被 ADR 11 替代',
+    'graph.aria':
+      '来自真实仓库的决策地图：十五个决策分为四个创建日期组，一条正式的替代边，以及表示决策间引用的虚线箭头',
+    'demo.aria': 'adrkit 命令演示',
     'graph.atlas.eyebrow': '在线决策档案',
     'graph.atlas.title': '看看 ADR Kit 自己如何演进',
     'graph.atlas.lead':

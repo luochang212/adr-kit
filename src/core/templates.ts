@@ -87,10 +87,14 @@ export function frontMatter(fields: Record<string, FrontMatterValue>): string {
   return `---\n${stringify(ordered)}---\n`;
 }
 
-export function proposalTemplate(title: string, context?: string): string {
-  // One stamp for both lifecycle dates: crossing midnight between two calls
-  // would make `created` later than `date`, which validation rejects.
-  const stamp = todayStamp();
+export function proposalTemplate(
+  title: string,
+  context?: string,
+  stamp: string = todayStamp(),
+): string {
+  // One stamp for both lifecycle dates and the caller's file name: crossing
+  // midnight between two calls would make `created` later than `date`, and
+  // would split the dated file name from the front matter.
   return `${frontMatter({ status: 'proposed', date: stamp, description: '', created: stamp })}
 # ADR: ${title}
 

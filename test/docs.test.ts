@@ -43,6 +43,18 @@ describe('bilingual lifecycle documentation', () => {
     }
   });
 
+  it('uses the ADR 33 deliberation-tree term in Chinese docs', () => {
+    for (const file of [
+      'README.zh.md',
+      'docs/zh/cli.md',
+      'docs/zh/record-format.md',
+      'docs/zh/upgrading.md',
+      'docs/zh/workflow.md',
+    ]) {
+      expect(read(file), file).not.toMatch(/推敲树|商议树/);
+    }
+  });
+
   it('documents the promoted Consequences subsections in both languages', () => {
     for (const file of [
       'README.md',
@@ -80,6 +92,10 @@ describe('agent-facing front door', () => {
       expect(COMMANDS as readonly string[]).toContain(match[1]);
     }
     expect(document).not.toContain('adr/.drafts/');
+    // ADR 42 replaced the even roll; the agent-facing file is a front door.
+    expect(document).toContain('Folio 30%');
+    expect(document).toContain('Signal 70%');
+    expect(document).not.toContain('equal probability');
   });
 
   it('site stats count the installed workflow skills in both languages', () => {

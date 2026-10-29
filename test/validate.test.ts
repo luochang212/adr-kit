@@ -116,6 +116,30 @@ Body.
     expect(result.output).toContain('must contain at least one written alternative');
   });
 
+  it('does not count a fenced code block as written content in Consequences', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.',
+      '## Consequences\n\n```ts\nconst choice = 1;\n```',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('section "## Consequences" must contain written content');
+  });
+
+  it('does not count a fenced code block as a written alternative', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Alternatives considered\n\n- **Other**: rejected.',
+      '## Alternatives considered\n\n```md\n- **Other**: rejected.\n```',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('must contain at least one written alternative');
+  });
+
   it('fails an implemented record whose Consequences keeps only the template comment', () => {
     const root = makeRepo();
     const content = `---
@@ -283,6 +307,48 @@ changed.
       decision('3 Third', { ...ACCEPTED, date: '2026-08-21', created: '2026-08-21' }),
     );
     expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('rejects an amendment note placed outside the Later changes subsection', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      '## Consequences\n\nBody.\n\n**Amended by ADR 1:** changed.\n',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('amendment note is outside "### Later changes"');
+  });
+
+  it.each([
+    ['outside Later changes', '', '**Amended by ADR 1:** changed.', 'amendment note is outside "### Later changes"'],
+    ['valid entry', '### Later changes\n\n', '**Amended by ADR 1:** changed.', undefined],
+    ['missing entry opening', '### Later changes\n\n', 'Amended by ADR 1: changed.', 'must open "**Amended by ADR N:**"'],
+  ])('preserves amendment prose immediately before a fence: %s', (_name, heading, entry, error) => {
+    const root = makeRepo();
+    // A fence can interrupt a paragraph without a blank line. Keep that prose
+    // for validation while excluding the example itself from amendment entries.
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      `## Consequences\n\nBody.\n\n${heading}${entry}\n\`\`\`ts\nconst changed = 1;\n\`\`\`\n`,
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(error === undefined);
+    if (error !== undefined) expect(result.output).toContain(error);
+  });
+
+  it('rejects a top-level Later changes section', () => {
+    const root = makeRepo();
+    const content = decision('1 First', ACCEPTED).replace(
+      '## Consequences\n\nBody.\n',
+      '## Consequences\n\nBody.\n\n## Later changes\n\n**Amended by ADR 1:** changed.\n',
+    );
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), content);
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('top-level "## Later changes"');
   });
 
   it('rejects the old trailing-prose amendment note', () => {

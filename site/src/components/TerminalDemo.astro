@@ -1,8 +1,9 @@
 ---
-import type { Lang } from '../i18n/ui';
+import { useTranslations, type Lang } from '../i18n/ui';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
+const t = useTranslations(lang);
 
 // The transcript mirrors real CLI output, verified line-by-line against
 // the shipped CLI. A proposal is scripted as filled before implementation.
@@ -50,7 +51,7 @@ const transcriptHtml = lines
     <span class="term__dot"></span><span class="term__dot"></span><span class="term__dot"></span>
     <span class="term__title">terminal</span>
   </div>
-  <pre class="term__body" aria-label="adrkit demo transcript"><code set:html={transcriptHtml}></code></pre>
+  <pre class="term__body" aria-label={t('demo.aria')}><code set:html={transcriptHtml}></code></pre>
   <script type="application/json" id="term-data" set:html={JSON.stringify(lines)}></script>
 </div>
 
