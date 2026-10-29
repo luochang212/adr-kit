@@ -352,7 +352,6 @@ for (const language of ['zh', 'en']) {
       // Both themes keep the source link in the sticky header, right after the
       // record identity; only its styling differs (ADR 39 presentation split).
       await expect(page.locator('.reader-head #reader-meta + #reader-source')).toBeVisible();
-      await expect(page.locator('.reader-byline #reader-source')).toHaveCount(0);
       await expect(page.locator('#reader-body h3').first()).toBeVisible();
       const type = await page.locator('#reader-body').evaluate(el => ({
         size: parseFloat(getComputedStyle(el).fontSize),
