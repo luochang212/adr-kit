@@ -97,15 +97,15 @@ export function standingOrdersSection(): string {
 
 const RECORDING_GUIDANCE = `## Is this worth recording?
 
-ADR Kit is the agent's notebook, not a log of everything it changes. Use judgment; choosing not to record is a valid outcome. Respect an explicit user request to preserve a choice, but do not turn it into a rule to record every similar edit.
+Preserve important context missing from existing sources. Honor explicit user requests to preserve a choice without making similar edits record-worthy.
 
-Before creating or shaping a record, ask yourself:
+Before creating or shaping a record, ask:
 
-1. **What would be lost?** Identify a constraint, reason, or genuine trade-off that code, tests, and existing documentation do not reliably explain. A requirement mentioned only in a user conversation is especially easy to lose; an implementation result alone is not enough.
-2. **What would forgetting cost?** Name a plausible future mistake and its consequences. Weigh importance and breadth of impact; a local decision with severe consequences can qualify too. Do not invent a hypothetical disaster to justify a record.
-3. **What should survive?** Preserve the stable choice, its boundary, and why it matters. Weigh longevity and resistance to becoming stale separately: a long-lived page can have constantly changing spacing. Let code, configuration, tests, or an existing document own volatile facts.
+1. **What would be lost?** Find a constraint, reason, or genuine trade-off that code, tests, and existing documentation do not reliably explain, especially context held only in a user conversation. An implementation result alone is insufficient.
+2. **What would forgetting cost?** Identify a plausible future mistake and its consequences. Weigh importance and breadth of impact; a local decision with severe consequences can qualify. Do not invent disasters to justify recording.
+3. **What should survive?** Preserve the stable choice, boundary, and reason. Consider longevity and resistance to becoming stale separately; leave volatile facts to code, configuration, tests, or existing docs.
 
-These are judgment dimensions, not a score or an all-must-pass checklist. If there is no meaningful information to preserve beyond existing sources, skip the record. Do not add a justification field, ask the user to approve every skip, or create a note merely to defer that conclusion. A note is candidate memory, not an obligation to produce an ADR.
+Use judgment, not a score or an all-must-pass checklist. If nothing meaningful would be lost, skip without a justification field, user approval, or deferred note. Notes are candidates, not commitments to ADRs.
 
 | Usually leave to existing sources | Potentially worth preserving |
 | --- | --- |
@@ -113,7 +113,7 @@ These are judgment dimensions, not a score or an all-must-pass checklist. If the
 | Adjusted a button's spacing or shadow; styles and visual checks own the result | A durable accessibility constraint limits future visual changes, and its reason is otherwise hidden |
 | Selected a library; the manifest already shows which one | A deployment restriction explains why an otherwise attractive library or runtime mechanism is unsuitable |
 
-Judge the actual information, not these topic names. During maintenance, an existing record is not precedent for recording similar edits. A change inside its implementation freedom needs no ADR update unless a claim the record actually makes becomes false. Keep required paths and references valid. If volatile details force repeated synchronization, report the specific burden and suggest trimming those details to their existing owner or archiving the record when its distinct rationale no longer guides work. Do not silently rewrite the choice, ignore an explicit constraint, delete a record, or archive it without authorization.
+Judge information, not topic names; an existing record is not precedent for recording similar edits. Update only claims made false by a change; keep required paths and references valid. If volatile details force repeated synchronization, report the burden and suggest moving details to their existing owner or authorized archival when the rationale no longer guides work. Do not silently rewrite choices, ignore constraints, delete a record, or archive it without authorization.
 `;
 
 // Author workflow text here. npm run build exports skills/<name>/SKILL.md;
