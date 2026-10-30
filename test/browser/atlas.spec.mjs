@@ -68,6 +68,10 @@ for (const { language, file } of SITE_PREVIEW_PAGES) {
     await expect(page.locator('[hreflang]')).toHaveCount(1);
     await expect(page.locator('header .language')).toHaveAttribute('href', language === 'en' ? 'index.html' : 'en.html');
     await expect(page.locator('main a[hreflang]')).toHaveCount(0);
+    for (const selector of ['html', '.stage']) {
+      await expect(page.locator(selector)).toHaveCSS('scrollbar-width', 'thin');
+      await expect(page.locator(selector)).not.toHaveCSS('scrollbar-color', 'auto');
+    }
     await expect(page.getByText(/中文预览|English preview/)).toHaveCount(0);
     await expect(page.locator('.intro p')).toHaveText(language === 'en'
       ? 'The same complete history. Two ways to explore it.'
@@ -101,6 +105,9 @@ for (const { language, file } of SITE_PREVIEW_PAGES) {
       await page.setViewportSize({ width, height: 800 });
       await page.evaluate(() => scrollTo(0, 0));
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const header = await page.locator('header').boundingBox();
+      expect(header.x).toBeCloseTo(0, 1);
+      expect(header.x + header.width).toBeCloseTo(await page.evaluate(() => document.documentElement.clientWidth), 1);
       for (const img of await page.locator('.preview img').all()) {
         const ratios = await img.evaluate(image => ({
           source: image.naturalWidth / image.naturalHeight,
@@ -110,6 +117,9 @@ for (const { language, file } of SITE_PREVIEW_PAGES) {
       }
       const boxes = await page.locator('.theme-card').evaluateAll(cards => cards.map(card => ({ x: card.offsetLeft, y: card.offsetTop })));
       if (width < 760) {
+        await page.locator('.stage').hover();
+        await page.mouse.wheel(300, 0);
+        await expect.poll(() => page.locator('.stage').evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
         expect(boxes[1].x).toBeGreaterThan(boxes[0].x);
         await page.locator('.mobile-nav a[href="#signal"]').click();
         await expect(page.locator('.signal .open')).toBeInViewport();
@@ -174,6 +184,10 @@ for (const { language, file } of SITE_PREVIEW_PAGES) {
 
     const accessibility = await new AxeBuilder({ page }).analyze();
     expect(accessibility.violations).toEqual([]);
+    await page.emulateMedia({ forcedColors: 'active' });
+    for (const selector of ['html', '.stage']) {
+      await expect(page.locator(selector)).toHaveCSS('scrollbar-color', 'auto');
+    }
   });
 }
 
@@ -236,6 +250,42 @@ test(`${theme}: mobile map hides the legend while keeping controls and records u
   }
 });
 for (const language of ['zh', 'en']) {
+  test(`${theme} / ${language}: page and reader scrollbars follow the theme and remain usable`, async ({ page }) => {
+    await page.goto(artifact(language, theme));
+    const root = page.locator('html');
+    await expect(root).not.toHaveCSS('scrollbar-color', 'auto');
+    await expect(root).toHaveCSS('scrollbar-width', 'thin');
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.mouse.move(100, 150);
+      await page.mouse.wheel(0, 300);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    }
+    await page.locator('.decision-card[data-record="11"]').click();
+    const reader = page.locator('#reader');
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 800 });
+      await expect(reader).toBeVisible();
+      // The dialog is a separate scroll container, outside .atlas-page.
+      await expect(reader).not.toHaveCSS('scrollbar-color', 'auto');
+      await expect(reader).toHaveCSS('scrollbar-width', 'thin');
+      if (width <= 760 || theme === 'folio') {
+        await expect(page.locator('.chapter-links')).toHaveCSS('scrollbar-width', 'none');
+      } else {
+        expect(await page.locator('.chapter-links').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      }
+      await reader.evaluate(el => { el.scrollTop = 0; });
+      await reader.hover();
+      await page.mouse.wheel(0, 300);
+      await expect.poll(() => reader.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+    }
+    // Native high-contrast colors must retain control over the scrollbar.
+    await page.emulateMedia({ forcedColors: 'active' });
+    await expect(root).toHaveCSS('scrollbar-color', 'auto');
+    await expect(reader).toHaveCSS('scrollbar-color', 'auto');
+    await expect(reader).not.toHaveCSS('scrollbar-width', 'none');
+  });
   test(`${theme} / ${language}: reader groups provenance separately from navigable references`, async ({ page }) => {
     await page.goto(artifact(language, theme));
     await page.locator('.decision-card[data-record="11"]').click();

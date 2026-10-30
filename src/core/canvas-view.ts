@@ -16,6 +16,14 @@ const BRAND_MARK = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden=
 export const CANVAS_STYLE = String.raw`
 /* Suppress the mobile browser's native tap highlight; touch feedback comes from the page's own states. */
 :root { font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color: #233c36; background: #f6f8f5; -webkit-tap-highlight-color: transparent; }
+/* Style existing scrollbars without creating scroll regions or forcing them visible.
+   Standard properties retain the platform's overlay/auto-hide behavior. */
+html, main, .viewer-panel, #reader {
+  --scrollbar-thumb: var(--muted, #64756c);
+  --scrollbar-track: transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
 /* The base focus ring stays overridable: theme blocks re-declare focus styles
    at full priority, so this folio ink must not out-rank their accents. */
 :where(button, summary, main, a):focus-visible { outline: 2px solid #7750a5; outline-offset: -2px; }

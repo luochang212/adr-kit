@@ -121,6 +121,13 @@ full density chart, reachable actions and no horizontal overflow. Reader scroll
 restoration is measured after its trigger is brought into view and focused.
 Page entrance and count-up effects stay inside the
 hero; subsequent sections, density bars and directory cards appear normally.
+Existing scrollbars use thin native bars in the surrounding palette: atlas
+viewports/readers, gallery pages and mobile preview rails, viewer information
+panels, and script-free map/tree content. Styling does not create scroll regions
+or reveal hidden chapter-navigation bars. Platform auto-hide preferences and
+forced-colors behavior remain native; there is no page-owned hide timer.
+Browser tests cover both themes and languages, mobile scrolling, and the
+interactive/script-free viewers (ADRs 11, 39 and 41).
 Both themes keep the source link in the reader header — Folio as
 a quiet padded control, Signal as its original text link. Colors, card
 treatment, responsive breakpoints and visual density may

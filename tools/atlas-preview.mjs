@@ -54,13 +54,18 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
 <link rel="icon" type="image/svg+xml" href="${favicon}">
 <style>
   :root { color-scheme:light; --paper:#eeeade; --ink:#23251f; --muted:#5d6056; --accent:#b63620; --rule:#c6c5b8; --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; --serif:Georgia,"Songti SC","STSong",serif; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-family:var(--sans); color:var(--ink); background:var(--paper); }
+  html, .stage {
+    --scrollbar-thumb:var(--muted); --scrollbar-track:transparent;
+    scrollbar-color:var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width:thin;
+  }
   * { box-sizing:border-box; }
   body { margin:0; min-block-size:100dvh; display:flex; flex-direction:column; }
   a { color:inherit; text-underline-offset:.3em; }
   a:focus-visible { outline:3px solid var(--accent); outline-offset:5px; }
   ::selection { background:var(--accent); color:var(--paper); }
   .shell { inline-size:min(100% - 4rem,100rem); margin-inline:auto; }
-  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; padding-block:.6rem; border-block-end:1px solid var(--rule); }
+  header { inline-size:100%; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; padding:.6rem 2rem; border-block-end:1px solid var(--rule); }
   .brand { display:flex; flex-wrap:wrap; align-items:baseline; gap:.8rem; font-size:.76rem; }
   .brand strong { font-size:1.05rem; font-weight:700; letter-spacing:-.045em; }
   .brand-divider { color:var(--accent); }
@@ -107,6 +112,7 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
   footer strong { text-transform:uppercase; letter-spacing:.08em; }
   @media (max-width:47.5rem) {
     .shell { inline-size:calc(100% - 2.5rem); }
+    header { padding-inline:1.25rem; }
     .intro { display:block; padding-block:.75rem; }
     .intro p { margin-block-start:.45rem; }
     .mobile-nav { display:flex; gap:1.5rem; align-items:center; margin-block-start:.5rem; font-size:.75rem; }
@@ -127,7 +133,7 @@ export function renderThemePreview({ language, pages, screenshots, favicon }) {
   @media (prefers-reduced-motion:reduce) { .preview,.open span { transition:none; } .open:is(:hover,:focus-visible) span { transform:none; } }
 </style></head>
 <body>
-<header class="shell"><div class="brand"><strong>ADR KIT</strong><span class="brand-divider" aria-hidden="true">/</span><span>${copy.brand}</span></div><a class="language" href="${en ? 'index.html' : 'en.html'}" lang="${en ? 'zh-CN' : 'en'}" hreflang="${en ? 'zh-CN' : 'en'}">${en ? '中文' : 'English'} <span aria-hidden="true">&nbsp;↗</span></a></header>
+<header><div class="brand"><strong>ADR KIT</strong><span class="brand-divider" aria-hidden="true">/</span><span>${copy.brand}</span></div><a class="language" href="${en ? 'index.html' : 'en.html'}" lang="${en ? 'zh-CN' : 'en'}" hreflang="${en ? 'zh-CN' : 'en'}">${en ? '中文' : 'English'} <span aria-hidden="true">&nbsp;↗</span></a></header>
 <main><div class="intro shell"><h1><span>${copy.heading}</span> <em>${copy.emphasis}</em></h1><p>${copy.note}</p><nav class="mobile-nav" aria-label="${copy.stage}"><a href="#folio">Folio ↗</a><a href="#signal">Signal ↗</a><span>${en ? 'Swipe to explore →' : '左右滑动 →'}</span></nav></div>
 <section class="stage" aria-label="${copy.stage}">${cards}</section></main>
 <footer class="shell"><strong>ADR Kit</strong><span>${copy.brand}</span></footer>
