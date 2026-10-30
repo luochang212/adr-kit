@@ -55,6 +55,8 @@ adrkit implement "Use SQLite for session storage" --raised-by human --decided-by
 adrkit validate
 ```
 
+ADR Kit is an agent's notebook, not a change log. Preserve important constraints and reasons that code, tests, and existing docs cannot reliably explain, especially context held only in conversation. Weigh importance, impact breadth, longevity, resistance to becoming stale, and hiddenness; these are judgment dimensions, not a score. Routine upgrades and visual tweaks usually need no record, and existing records do not make similar edits record-worthy. Grilling uses the same judgment. See [when to record](docs/workflow.md#when-to-record).
+
 For an architectural choice already shipped, use `adrkit record "<title>" --raised-by human --decided-by human` instead. Mid-task, when a choice is worth capturing but not worth the record's shape yet, `adrkit note "<one line>"` parks a timestamped line in `adr/notes.md`. The line is outside the lifecycle, ignored by `adrkit validate`, counted by `adrkit list` and `adrkit instructions` until it is shaped or deleted.
 
 ```text
@@ -137,7 +139,7 @@ adrkit help
 
 By default, integrations install into `.agents/`. Pass `--tools claude` for additional `.claude/` copies, or `--tools none` to install none. `--workflows` selects a subset such as `init,propose,implement,validate`.
 
-`adrkit hook install` opts a clone into a pre-commit check: it blocks a staged record or `@adr` citation that is objectively invalid, and a staged deletion of a numbered decision (a rename that keeps the number still passes), then names the active decisions governing the staged files and asks for a record when the change settles one. `adrkit hook uninstall` removes only the hook adr-kit wrote; `git commit --no-verify` bypasses it once.
+`adrkit hook install` opts a clone into a pre-commit check: it blocks a staged record or `@adr` citation that is objectively invalid, and a staged deletion of a numbered decision (a rename that keeps the number still passes), then names the active decisions governing the staged files and reminds the agent to preserve important context missing from existing sources; routine edits need no record or note. `adrkit hook uninstall` removes only the hook adr-kit wrote; `git commit --no-verify` bypasses it once.
 
 ## Record format
 
@@ -178,7 +180,7 @@ Proposals use dated filenames and `Problem`, `Proposal`, `Alternatives considere
 
 `adrkit implement` folds a proposal's `## Acceptance criteria` and `## Risks` into present-tense `### Verification` and `### Trade-offs` under `## Consequences`; implemented records must not keep the old H3 names under Consequences. The command warns when it folds content because the CLI cannot rewrite prose. Amendments from later decisions collect in a `### Later changes` subsection at the end of Consequences, each entry opening `**Amended by ADR N:**`; `adrkit validate` enforces the form.
 
-An implemented record may refresh factual paths, symbols, or defaults, but not rewrite the choice or rationale into another decision. A changed choice needs a new record and relationship. Full supersession stamps `superseded-by: N` and moves the old record to `archived/`. Archived records keep their numbers and are historical, not current authority. The decision map includes numbered history; `## Deliberation` optionally preserves the deliberation tree.
+An implemented record may refresh factual paths, symbols, or defaults, but not rewrite the choice or rationale into another decision. Changes within the recorded choice's implementation freedom need no update unless an actual claim becomes false; a changed recorded choice needs a new record and relationship. Full supersession stamps `superseded-by: N` and moves the old record to `archived/`. Archived records keep their numbers and are historical, not current authority. The decision map includes numbered history; `## Deliberation` optionally preserves the deliberation tree.
 
 ### Code cites the decision it follows
 

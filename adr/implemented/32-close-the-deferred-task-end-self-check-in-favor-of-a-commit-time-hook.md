@@ -120,3 +120,7 @@ prose carries no enforcement.
   message names the remedy — reinstall, uninstall, or `git commit --no-verify`
   — instead of surfacing a bare module-loader error.
 - Windows relies on Git for Windows' POSIX shell; the script is plain `sh`.
+
+### Later changes
+
+**Amended by ADR 45:** ADR 45 changes the grilling rule this record explicitly left untouched: a session now uses information-value selection and can end without a record. The hook reminder now points to important context missing from existing sources and allows skipping routine edits; it updates only claims that become false. The opt-in installation and objective-only failure boundary remain unchanged; the hook does not judge record value.

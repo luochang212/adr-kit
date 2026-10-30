@@ -35,6 +35,9 @@ records that no longer guide work.
 
 ## Key facts
 
+- Preserve important constraints and reasons missing from code, tests and existing docs;
+  routine upgrades and visual tweaks usually need no record. Existing records are not
+  precedent for recording similar edits. Grilling uses the same selection judgment.
 - The four folders are a context budget: read `implemented/` in full, check
   `proposed/` for intent and `rejected/` for anti-patterns, and leave `archived/`
   alone unless a task cites history.

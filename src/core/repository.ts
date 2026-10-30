@@ -59,6 +59,13 @@ This directory is the repository's memory against two agent failure modes:
 drifting from long-term decisions while deep in a task, and forgetting settled
 choices until they resurface as inconsistencies.
 
+Use this as an agent notebook, not a change log. Preserve important reasons
+or constraints that code, tests, and existing documents cannot reliably explain.
+Weigh importance, impact breadth, longevity, resistance to becoming stale, and
+how hidden the context is. Routine upgrades and visual tweaks usually need no
+record. Skipping is valid; notes are candidates, not obligations. Use the
+propose/record workflows for the selection questions and examples.
+
 Records follow the lifecycle folders proposed/, implemented/, rejected/, and
 archived/. The folders are a context budget as well as a lifecycle:
 implemented/ is current authority and is read in full; proposed/ is intent and
@@ -78,8 +85,10 @@ Git-tracked records: adrkit validate checks them like the rest of the
 inventory, and Git history shows any later change.
 
 Never delete a numbered decision: its stable N may be referenced elsewhere.
-Implemented records may refresh factual paths, symbols, and defaults, but a
-changed choice needs a new record. Archive or supersede rather than erase it.
+Implemented records may refresh facts they actually claim; changes within a
+decision's implementation freedom need no update. Existing records are not
+precedent for recording similar edits. A changed recorded choice needs a new
+record. Archive or supersede rather than erase it.
 
 If a numbered record was created by mistake before anything cites it, removing
 it is a Git operation, not a lifecycle move: git rm it in a commit that also

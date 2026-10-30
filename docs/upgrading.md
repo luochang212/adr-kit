@@ -22,6 +22,18 @@ Archived records change only through a deliberate, explained commit.
 
 Newest first. Each note names what changed and what to do.
 
+### After 0.31.0: selective agent memory
+
+Refresh skills with `adrkit update`, then reconcile your user-owned `AGENTS.md`
+section against the current `adrkit-init` template before updating its marker.
+Grilling no longer requires every settled choice to become a record: the same
+information-value judgment now applies to direct capture and grilling. Preserve
+a full session tree with a qualifying record, or summarize in conversation when
+none qualifies. Existing records are not precedent for routine upgrade or visual
+adjustment records. No record format migration or automatic retirement is added;
+review burdensome records with their owner rather than deleting or archiving them
+without authorization. See [when to record](workflow.md#when-to-record).
+
 ### After 0.30.0: show omits deliberation
 
 `adrkit show <name>` now omits the optional `## Deliberation` section while retaining the rest of the record. Read the file at the printed source path for the original deliberation. Scripts that need the complete source must read that file instead of capturing `show`. Records and atlas rendering need no migration.

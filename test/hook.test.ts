@@ -162,7 +162,12 @@ describe('pre-commit hook management', () => {
     expect(result.output).toContain('Governed by active decisions');
     expect(result.output).toContain('[1] Test decision');
     expect(result.output).toContain('[src/a.ts]');
-    expect(result.output).toContain('record it ("adrkit record")');
+    expect(result.output).toContain('important constraints or reasons would otherwise be lost');
+    expect(result.output).toContain('"adrkit propose" (unshipped)');
+    expect(result.output).toContain('"adrkit record" (shipped)');
+    expect(result.output).toContain('"adrkit note" (candidate)');
+    expect(result.output).toContain('Routine edits need no record or note');
+    expect(result.output).toContain('Changes within implementation freedom need no ADR update');
   });
 
   it('passes with a prompt when no record scopes the staged files', () => {
@@ -172,6 +177,7 @@ describe('pre-commit hook management', () => {
     const result = hookRunCommand(root);
     expect(result.ok).toBe(true);
     expect(result.output).toContain('No active record scopes the staged files');
+    expect(result.output).toContain('Routine edits need no record or note');
   });
 
   it('fails on an invalid staged record', () => {

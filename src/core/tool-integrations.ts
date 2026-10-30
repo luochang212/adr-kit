@@ -51,7 +51,7 @@ export interface Workflow {
  * both sides.
  */
 export const STANDING_ORDERS_PURPOSE =
-  '`adr/` exists because agents over-focus on the current task and forget settled decisions: reading it at task start counters the drift, and recording when a choice settles counters the forgetting.';
+  '`adr/` exists because agents over-focus on the current task and forget settled decisions: reading it at task start counters the drift, and preserving important context before it is lost counters the forgetting.';
 
 /** Heading of the standing-orders section the init workflow asks agents to paste. */
 export const STANDING_ORDERS_HEADING = '## Reading architecture decisions';
@@ -62,11 +62,11 @@ export const STANDING_ORDERS_HEADING = '## Reading architecture decisions';
  */
 const STANDING_ORDERS_BODY = `${STANDING_ORDERS_PURPOSE} At the start of a coding, design, or review task, if \`adr/\` exists, run \`adrkit list\`. The four folders are a context budget: read the relevant \`implemented/\` records in full with \`adrkit show <N>\` or their files; check the relevant \`proposed/\` records for intent and the relevant \`rejected/\` records for the bad cases they warn against (a rejection is durable: it leaves only when another record owns its warning); treat \`archived/\` as frozen history and read it only when a task explicitly cites it. Do not judge relevance by title alone: inspect descriptions, paths, relationships, and task scope; when a task targets specific files, \`adrkit relevant <path>\` retrieves the records whose \`paths:\` scopes govern them. For actual Git changes, use \`adrkit relevant --base <review-base>\` or \`adrkit relevant --staged\`; supplement scope matches with inventory reading for unscoped decisions and resolve incomplete-search diagnostics. Compare constraints with current code; explain conflicts or changed assumptions before choosing a different approach. Mention relevant ADR numbers and verify affected behavior. Re-read on a new or resumed task, or when scope changes. Read a \`## Deliberation\` appendix only when its decision is in play.
 
-Before creating a record, compare it with the active records covering the same choice or mechanism: extend a duplicate; when the active record's mechanism is itself unsound, weigh removing it rather than patching it; for an unshipped full replacement, link its intent and keep the old authority active, then use \`adrkit supersede --by\` in the same change that ships and records the replacement; link a partial overlap while the older record stays active. When shipping or reviewing, keep each active record's realization facts — paths, names, defaults — aligned with shipped code; a changed choice is a new record with an explicit relationship, not a rewrite of old rationale. Archived records are ordinary Git-tracked history, never edited silently, and not read by default.
+Before creating a record, compare it with the active records covering the same choice or mechanism: extend a duplicate; when the active record's mechanism is itself unsound, weigh removing it rather than patching it; for an unshipped full replacement, link its intent and keep the old authority active, then use \`adrkit supersede --by\` in the same change that ships and records the replacement; link a partial overlap while the older record stays active. When shipping or reviewing, keep the realization facts an active record actually claims aligned with shipped code; a changed recorded choice is a new record with an explicit relationship, not a rewrite of old rationale. Archived records are ordinary Git-tracked history, never edited silently, and not read by default.
 
-Records cost time to write, read, and maintain, and stale records can mislead; record only when preserving the rationale is worth that cost. For example, routing all writes through one boundary to preserve validation and auditing can merit an ADR: a later direct write may look locally correct while bypassing those guarantees. Routine fixes and local renames usually need none when code and tests adequately explain them.
+ADR Kit is the agent's notebook, not a change log. Record an ADR when an architectural choice carries important information that code, tests, and existing documentation cannot reliably preserve. Weigh importance, impact breadth, longevity, resistance to becoming stale, and how hidden the constraint or rationale is, especially when it exists only in a user conversation. These are judgment dimensions, not a score or five mandatory conditions. Ask what would be lost, what forgetting would cost, and what stable choice and reason should survive. Routine upgrades and visual adjustments usually belong to Git, configuration, styles, or tests; a hidden offline-deployment or accessibility constraint may merit a record. Preserve genuine reasons and alternatives, not invented template filler. Skipping a record is valid; no declaration or user approval is required for each skip. Respect explicit user requests to preserve a choice without extending them to all similar edits.
 
-Record an ADR when an architectural choice constrains future work and its lasting rationale or genuine trade-offs are not adequately explained by code, tests, and existing documentation. A behavior change alone does not qualify. Record genuine alternatives and trade-offs, not invented template filler. A grilling session records every choice it settles, but unshipped outcomes remain proposals. Use \`adrkit propose\` for unshipped work, \`adrkit implement\` after it ships, and \`adrkit record\` for an already-shipped decision. \`raised-by\` declares who introduced the choice; \`decided-by\` declares whose judgment settled it. The CLI neither infers nor verifies shipping or provenance.
+An existing record is not precedent for recording similar edits. Changes within its implementation freedom need no ADR update unless a claim it actually makes becomes false; keep required paths and references valid. If volatile details force repeated synchronization, report the burden and suggest trimming details to their existing owner or authorized archival. Do not silently rewrite a choice, ignore an explicit constraint, delete records, or archive them without authorization. Grilling uses the same selection judgment: discussion alone does not require a record. Preserve the complete tree with a qualifying record; if none qualifies, summarize in conversation and create none. Use \`adrkit propose\` for unshipped work, \`adrkit implement\` after it ships, and \`adrkit record\` for an already-shipped decision. \`raised-by\` declares who introduced the choice; \`decided-by\` declares whose judgment settled it. The CLI neither infers nor verifies shipping or provenance.
 
 Records outlive the format that wrote them. The npm package is \`adr-kit\`; the command it installs is \`adrkit\`, so install and upgrade with \`npm install -g adr-kit\`. The former \`tags\` field is removed: remove it and author a one-sentence \`description\` explaining when to read each record; labels do not supply that sentence mechanically. When \`adrkit validate\` reports unknown fields, missing sections, or parse errors on records an older release wrote, treat it as format drift rather than damage: upgrade the \`adr-kit\` package to the latest stable release, migrate the active records to the current format where the change is mechanical, and report any record that cannot be carried over instead of forcing a rewrite; then re-run \`adrkit validate --all\`. Archived records are ordinary Git-tracked history: validate checks them by the current rules; a later format change is a normal migration commit.
 
@@ -95,6 +95,27 @@ export function standingOrdersSection(): string {
   return `${STANDING_ORDERS_HEADING}\n\n${STANDING_ORDERS_BODY}\n\n${STANDING_ORDERS_MARKER}`;
 }
 
+const RECORDING_GUIDANCE = `## Is this worth recording?
+
+ADR Kit is the agent's notebook, not a log of everything it changes. Use judgment; choosing not to record is a valid outcome. Respect an explicit user request to preserve a choice, but do not turn it into a rule to record every similar edit.
+
+Before creating or shaping a record, ask yourself:
+
+1. **What would be lost?** Identify a constraint, reason, or genuine trade-off that code, tests, and existing documentation do not reliably explain. A requirement mentioned only in a user conversation is especially easy to lose; an implementation result alone is not enough.
+2. **What would forgetting cost?** Name a plausible future mistake and its consequences. Weigh importance and breadth of impact; a local decision with severe consequences can qualify too. Do not invent a hypothetical disaster to justify a record.
+3. **What should survive?** Preserve the stable choice, its boundary, and why it matters. Weigh longevity and resistance to becoming stale separately: a long-lived page can have constantly changing spacing. Let code, configuration, tests, or an existing document own volatile facts.
+
+These are judgment dimensions, not a score or an all-must-pass checklist. If there is no meaningful information to preserve beyond existing sources, skip the record. Do not add a justification field, ask the user to approve every skip, or create a note merely to defer that conclusion. A note is candidate memory, not an obligation to produce an ADR.
+
+| Usually leave to existing sources | Potentially worth preserving |
+| --- | --- |
+| Upgraded adr-kit to a new version; Git and the lockfile retain the event | A user-only constraint requires tools to work without public-network access, governing future dependencies and upgrades |
+| Adjusted a button's spacing or shadow; styles and visual checks own the result | A durable accessibility constraint limits future visual changes, and its reason is otherwise hidden |
+| Selected a library; the manifest already shows which one | A deployment restriction explains why an otherwise attractive library or runtime mechanism is unsuitable |
+
+Judge the actual information, not these topic names. During maintenance, an existing record is not precedent for recording similar edits. A change inside its implementation freedom needs no ADR update unless a claim the record actually makes becomes false. Keep required paths and references valid. If volatile details force repeated synchronization, report the specific burden and suggest trimming those details to their existing owner or archiving the record when its distinct rationale no longer guides work. Do not silently rewrite the choice, ignore an explicit constraint, delete a record, or archive it without authorization.
+`;
+
 // Author workflow text here. npm run build exports skills/<name>/SKILL.md;
 // test/integrations.test.ts checks that the committed outputs are current.
 export const WORKFLOWS: Workflow[] = [
@@ -119,7 +140,7 @@ After installation, continue the original task; initializing ADR Kit is not itse
   },
   {
     name: "adrkit-grill",
-    description: "Use when a decision is still being shaped, or the user asks to grill a plan; interrogate the design against the active records until no branch is silently assumed, and record every settled choice.",
+    description: "Use when the user asks to grill a plan or an important decision needs interrogation; explore the design against active records, then preserve only outcomes worth recording.",
     body: `# ADR Kit Grill
 
 Grilling is the co-design checkpoint an agent deep in a task will otherwise skip: it forces the conversation between the plan and the long-term decisions before anything settles.
@@ -139,7 +160,9 @@ Ground factual observations in code you inspected (file:line or a symbol), a sou
 
 ## Recording
 
-Record every choice the session settles; the session is the importance signal. Usually one primary record holds the tree, but split choices that can be superseded independently. An unshipped outcome goes to \`adrkit propose\`, even when the direction is settled. Fill \`## Problem\`, \`## Proposal\`, \`## Alternatives considered\`, \`## Acceptance criteria\`, and \`## Risks\` from actual answers. Keep the tree in an optional \`## Deliberation\` appendix: prefix questions \`Q:\`, options \`A:\`, tag nodes \`[settled]\`, \`[rejected]\`, or \`[open]\`, nest a follow-up beneath what raised it, mark the recommended option, and give rejected options a reason.
+${RECORDING_GUIDANCE}
+
+Apply the same selection judgment after grilling; discussion alone does not require a record. If no outcome qualifies, summarize the conclusions in conversation and create no record. When an outcome qualifies, preserve the complete session tree in its Deliberation appendix, including local choices as context rather than separate ongoing obligations. Usually one primary record holds the tree; split only qualifying choices that can be superseded independently. An unshipped outcome goes to \`adrkit propose\`, even when the direction is settled. Fill \`## Problem\`, \`## Proposal\`, \`## Alternatives considered\`, \`## Acceptance criteria\`, and \`## Risks\` from actual answers. Keep the tree in an optional \`## Deliberation\` appendix: prefix questions \`Q:\`, options \`A:\`, tag nodes \`[settled]\`, \`[rejected]\`, or \`[open]\`, nest a follow-up beneath what raised it, mark the recommended option, and give rejected options a reason.
 
 State who raised and settled the unshipped choice in prose; proposal front matter has no provenance fields. If the choice has already shipped, use \`adrkit record\` with truthful \`--raised-by\` and \`--decided-by\` declarations. Compare each settled choice with the active records before recording: a full replacement of an implemented decision is recorded and then resolved with \`adrkit supersede --by\` in the same change, a partial replacement keeps the older record active and links both, and a duplicate extends the existing record. Judge overlap from content; the CLI cannot infer it from titles alone. Run \`adrkit validate <name>\` after filling the record. Report which outcomes are proposals, not implemented guidance; \`adrkit implement\` is reserved for work that actually ships.`,
   },
@@ -246,10 +269,12 @@ When the user requests HTML visualization, open the generated file in the defaul
   },
   {
     name: "adrkit-propose",
-    description: "Use when you catch yourself settling a choice future work must live with — a dependency, format, boundary, or default — and adr/ does not already own it; the work is unshipped and the direction may be open or settled.",
+    description: "Use when an unshipped choice has important constraints or reasons that existing sources do not preserve, especially context held only in conversation; assess whether it merits a proposal.",
     body: `# ADR Kit Propose
 
-A proposal is drift insurance: the cheapest durable home for a choice future tasks must inherit, written before the context that raised it evaporates.
+A proposal preserves important context for an unshipped choice before that context evaporates.
+
+${RECORDING_GUIDANCE}
 
 Before writing, run \`adrkit list\` and search the active records — read relevant implemented records in full, and check proposed records for intent and rejected ones for the bad cases they warn against — for anything covering the same choice, mechanism, or rejected alternative. Read \`adr/notes.md\` too — its unshaped lines are the likeliest raw material for this record. Judge overlap from record content, not titles alone; the CLI cannot infer it. Classify what you find:
 
@@ -264,10 +289,10 @@ Then run \`adrkit propose "<title>"\`; it creates a dated, unnumbered file in \`
   },
   {
     name: "adrkit-note",
-    description: "Use when you notice a choice future work must live with but cannot shape a record right now — park it as one line in the buffer and keep moving; the buffer is counted until shaped.",
+    description: "Use when important context may be lost during a task and cannot yet be shaped; capture one candidate line, without committing to a future ADR.",
     body: `# ADR Kit Note
 
-The note buffer is the one-line legal action at the settle moment: capture first, shape later — the quality gate stays with propose, grill, and record.
+The note buffer preserves important context that may otherwise disappear while work continues. Capture only potentially useful missing context; routine upgrade events and visual tweaks need no note. Before shaping a note, use the recording judgment in propose or record. A note may be discarded when it has no independent value; it is not a promise to create an ADR.
 
 Run \`adrkit note "<one line>"\`; it appends a timestamped line to \`adr/notes.md\`, creating the file on first use. The buffer is a plain file outside the lifecycle — no front matter, no template, no number — and \`adrkit validate\` ignores it: notes are debt, not authority, and never a fifth lifecycle folder. Shape one when the moment allows — \`adrkit propose\` and \`adrkit grill\` read the buffer as candidate material, and \`adrkit record\` takes an already-shipped choice straight from it — and delete a line that shaped nothing. \`adrkit list\` and \`adrkit instructions\` count the unshaped lines so the debt stays visible.
 
@@ -276,16 +301,18 @@ When a source is already available, retain a PR/discussion link, commit, or attr
   },
   {
     name: "adrkit-record",
-    description: "Use when a choice that will constrain future work has already shipped and adr/ does not own it yet; record it directly, with no pending proposal.",
+    description: "Use when a shipped choice has important constraints or reasons that existing sources do not preserve; assess whether to record that missing context directly.",
     body: `# ADR Kit Record
 
-Recording a shipped choice at the moment of shipping keeps later tasks from re-deriving — and contradicting — it.
+Recording a shipped choice preserves important context that later tasks could otherwise lose.
+
+${RECORDING_GUIDANCE}
 
 First run \`adrkit list\` and read relevant implemented records in full; also check proposed records for intent and rejected records for the bad cases they warn against. Compare content, not titles alone — the CLI cannot infer semantic overlap. A duplicate means recording the choice in the existing record instead; a full replacement means recording the new decision and resolving the old one with \`adrkit supersede --by\` in the same change; a partial replacement keeps the older record active with a prose link between them.
 
 Ground factual observations in code you inspected (file:line or a symbol), a source link, or an attributed participant statement. Distinguish observations, inferences, and unknowns; code shows what exists, not why an alternative lost. Do not invent reasons or alternatives to fill a template. Keep unsupported rationale unknown and clarify it before presenting it as settled. If excerpts are truncated or a session does not match the change window, state the limitation rather than silently attaching it. Preserve available source anchors in ordinary Markdown within the existing sections; no new required field or section. Git identity, model identity, and passive approval do not establish who decided.
 
-Confirm the choice has actually shipped, and compare its claimed paths, names, defaults, and mechanisms with the current code and tests; the CLI cannot verify delivery. If a code change altered only the realization of an active decision, update those facts in the existing record rather than recording a new one; a changed choice always needs a new record and an explicit relationship. Run \`adrkit record "<title>" --raised-by <human|agent> --decided-by <human|agent>\`. Write a one-sentence description explaining when to read the record, then fill Problem, Decision, Alternatives considered, and Consequences with the shipped choice and genuine trade-offs. Use \`human\` for a person's judgment, \`agent\` for the agent's; passive human approval does not change an agent-origin choice. Run \`adrkit validate <N>\`.`,
+Confirm the choice has actually shipped, and compare its claimed paths, names, defaults, and mechanisms with the current code and tests; the CLI cannot verify delivery. If a code change altered only the realization of an active decision, update facts the existing record actually claims rather than recording a new one; changes within its implementation freedom need no update. A changed recorded choice needs a new record and an explicit relationship. Run \`adrkit record "<title>" --raised-by <human|agent> --decided-by <human|agent>\`. Write a one-sentence description explaining when to read the record, then fill Problem, Decision, Alternatives considered, and Consequences with the shipped choice and genuine trade-offs. Use \`human\` for a person's judgment, \`agent\` for the agent's; passive human approval does not change an agent-origin choice. Run \`adrkit validate <N>\`.`,
   },
   {
     name: "adrkit-validate",
@@ -305,6 +332,8 @@ Repository-wide validation checks archived records like any other record. If it 
 
 Promotion is what makes \`implemented/\` trustworthy authority — shipped guidance rather than intent — so later tasks can rely on what they read in full.
 
+Before promotion, recheck the recording judgment in the propose workflow: a proposal's existence is not proof of value. If only routine facts remain, explain that and suggest an appropriate disposition instead of promoting automatically. Respect explicit user intent; do not silently delete or reject the proposal.
+
 Confirm the proposal's work is shipped, not merely accepted for review. Compare the record's claimed paths, names, defaults, and mechanisms with the current code and tests, and check the active records for overlap with this choice: a full replacement is promoted and then resolved with \`adrkit supersede --by\` in the same change, while a partial replacement keeps the older record active and links both. Run \`adrkit show <name>\` and \`adrkit validate <name>\`; resolve errors. Then run \`adrkit implement <name> --raised-by <human|agent> --decided-by <human|agent>\`. The command assigns the next stable ADR number, rewrites proposal sections into a shipped decision, moves the record from \`proposed/\` to \`implemented/\`, and preserves \`created\` and \`description\`. It folds acceptance criteria into \`### Verification\` and risks into \`### Trade-offs\` under \`## Consequences\`; it warns because the CLI cannot rewrite prose. Rewrite those subsections as present-tense shipped facts, inspect the generated Decision and Consequences for proposal-era language, then validate the numbered record. Do not infer the two provenance declarations from the command runner.`,
   },
   {
@@ -319,6 +348,7 @@ Review decision-record coherence for a change, not general code quality. Run \`a
 - Compare each changed or newly shipped record with the changed code and tests: claimed paths, names, defaults, mechanisms, and verification evidence must match what actually shipped.
 - For actual changes, run \`adrkit relevant --base <review-base>\` with the intended exact comparison commit, or \`adrkit relevant --staged\` for index-only review; without Git, pass known changed paths explicitly. Git modes preserve deletions and rename origins. Use \`adrkit show <name>\` to read matching records in full, supplement scope matches with inventory reading for unscoped decisions, and recheck decisions newly relevant beyond the planned scope. Resolve incomplete-search diagnostics rather than treating partial or zero matches as no constraints.
 - Search active implemented records for realization facts the change invalidated — moved files, renamed options, altered defaults, changed behavior — and report each stale record for a factual update in the same change. A decision reversal is a new record with an explicit relationship, never a rewrite of old rationale.
+- Check whether a new or maintained record preserves important, otherwise hidden context; weigh importance, impact breadth, longevity, and resistance to becoming stale. Routine upgrade events or visual adjustments are not automatically decisions. An existing record is not precedent for similar records. If repeated synchronization comes only from volatile details, name the burden and their existing owner; suggest trimming details or authorized archival, without silently rewriting constraints or retiring records. Changes within a decision's implementation freedom need no update unless an actual claim becomes false.
 - Look for unresolved supersession: a new record that fully replaces an active one without \`adrkit supersede --by\`, or a partial overlap that should be linked in prose while both stay active.
 
 Keep a finding's observation and interpretation separate. Cite inspected code (file:line or a symbol), a test you actually ran, or an attributed source. Reproduce before calling a finding confirmed, and leave the failing scenario as an assertion under \`test/\`; label what you did not run, and treat a failed reproduction as a narrowed claim, not proof of absence. Record unknowns instead of inventing historical rationale. A confirmed defect is not yet a fix: weigh trigger probability, blast radius, fix cost, and the cost of leaving it, and state plainly any true finding you chose not to fix. \`adrkit validate\` checks record validity, not code compliance; scope matching proves neither reading nor compliance.

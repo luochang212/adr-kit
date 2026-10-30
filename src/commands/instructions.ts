@@ -8,7 +8,7 @@ import { VERSION } from '../version.js';
 // The one-line purpose anchor for the check-in moment: an agent glancing at
 // this output re-binds adr/ to the drift and forgetting it exists to block.
 const PURPOSE_LINE =
-  "adr/ is this repository's memory against drift and forgetting: read it at task start, record when a choice settles.";
+  "adr/ is this repository's memory against drift and forgetting: read it at task start, preserve important constraints and reasons missing from existing sources. Skipping a record is valid.";
 
 export function instructionsCommand(cwd: string): string {
   const root = findRoot(cwd);

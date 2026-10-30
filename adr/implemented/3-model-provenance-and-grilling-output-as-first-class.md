@@ -110,6 +110,8 @@ appendix outline renders on demand as
 `atlas --record <N> --format mermaid|text`. The one-ADR default and the
 appendix-as-reference rule above are unchanged.
 
+**Amended by ADR 45:** ADR 45 replaces the unconditional session-to-record route: only qualifying outcomes become records, with the complete session tree retained as context. A session with no qualifying outcome ends in a conversation summary. Provenance and tree grammar remain unchanged.
+
 ## Deliberation
 
 - Model provenance and grilling output as first-class [settled]

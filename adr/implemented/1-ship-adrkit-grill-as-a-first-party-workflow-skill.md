@@ -78,3 +78,7 @@ stays conversational, in the skill layer.
   maintainer approved the recommendations unchanged. Direction raised and
   confirmed by the maintainer; scope and shape proposed by the agent — hence
   `decided-by: human`, with this note as the provenance nuance.
+
+### Later changes
+
+**Amended by ADR 45:** ADR 45 replaces the unconditional terminal-record obligation added by later ADRs: apply information-value selection after grilling, retain the complete tree with a qualifying record, or summarize in conversation when none qualifies. The adapted first-party skill, frontier method, distribution and attribution remain unchanged.

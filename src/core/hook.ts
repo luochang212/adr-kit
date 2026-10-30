@@ -164,11 +164,11 @@ export function hookCheck(cwd: string): HookCheckResult {
     for (const { record, pattern } of result.implemented) {
       lines.push(`  ${displayName(record)}  [${pattern}]`);
     }
-    lines.push('', "If this change alters those records' paths, names, defaults, or mechanism, update them in this commit.");
+    lines.push('', "If this change makes a claim in those records false, update that claim in this commit. Changes within implementation freedom need no ADR update.");
   } else {
     lines.push('', 'No active record scopes the staged files; scope matching is not full-text search.');
   }
-  lines.push('If the change settles a choice future work must live with, record it ("adrkit record") or park it ("adrkit note").');
+  lines.push('If important constraints or reasons would otherwise be lost, preserve them with "adrkit propose" (unshipped), "adrkit record" (shipped), or "adrkit note" (candidate). Routine edits need no record or note.');
   return { ok: true, output: lines.join('\n') };
 }
 

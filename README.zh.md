@@ -55,6 +55,8 @@ adrkit implement "使用 SQLite 存储会话" --raised-by human --decided-by hum
 adrkit validate
 ```
 
+ADR Kit 是 agent 自主选用的小笔记本，不是改动流水账。保留代码、测试和已有文档无法可靠解释的重要约束与理由，尤其是只存在于用户会话中的上下文。综合重要性、影响面、长期性、不易腐烂与隐蔽性判断，不机械评分。普通升级和视觉微调通常无需记录，已有记录也不构成继续记录同类改动的先例。Grilling 使用相同标准，详见[何时记录](docs/zh/workflow.md#何时记录)。
+
 已交付但尚未记录的选择可直接用 `adrkit record "<标题>" --raised-by human --decided-by human`。任务进行中遇到值得先记下、但还不值得展开成记录形态的选择时，`adrkit note "<一行>"` 把带时间戳的一行写进 `adr/notes.md`。这一行在生命周期之外，`adrkit validate` 忽略它，`adrkit list` 和 `adrkit instructions` 会计数显示，直到它被成形或删除。
 
 ```text
@@ -135,7 +137,7 @@ adrkit help
 
 默认把集成安装到 `.agents/`；`--tools claude` 另装 `.claude/`，`--tools none` 不安装。可用 `--workflows init,propose,implement,validate` 选子集。
 
-`adrkit hook install` 让当前克隆选择启用 pre-commit 检查：暂存记录或 `@adr` 引用存在客观错误、或暂存了删除编号决策（保留编号的改名不受影响）时拦下提交，否则列出管辖这些改动的生效决策，并在改动定下选择时提醒写记录。`adrkit hook uninstall` 只移除 adr-kit 写入的钩子；`git commit --no-verify` 可单次绕过。
+`adrkit hook install` 让当前克隆选择启用 pre-commit 检查：暂存记录或 `@adr` 引用存在客观错误、或暂存了删除编号决策（保留编号的改名不受影响）时拦下提交，否则列出管辖这些改动的生效决策，并提醒保留现有来源无法表达的重要上下文；普通改动无需记录或 note。`adrkit hook uninstall` 只移除 adr-kit 写入的钩子；`git commit --no-verify` 可单次绕过。
 
 ## 记录格式
 
@@ -176,7 +178,7 @@ created: 2026-09-24
 
 `adrkit implement` 会把提案的 `## Acceptance criteria` 与 `## Risks` 折叠为 `## Consequences` 下的现在时 `### Verification` 与 `### Trade-offs`；implemented 记录不得在 Consequences 下保留旧 H3 标题。CLI 不能改写正文，因此折叠时会输出提醒。后续决策的修订收录在 `## Consequences` 末尾的 `### Later changes` 小节，每条以 `**Amended by ADR N:**` 开头；`adrkit validate` 校验该形式。
 
-implemented 记录可以更新路径、符号、默认值等已交付事实，但不可悄悄重写选择或理由。选择改变应新建记录并建立关系。完整替代写入 `superseded-by: N`，旧记录移入 `archived/`；归档记录保持编号，只作历史参考。决策地图包含编号历史，可选 `## Deliberation` 附录保留 deliberation tree。
+implemented 记录可以更新路径、符号、默认值等已交付事实，但不可悄悄重写选择或理由。实现自由范围内的变化若未使实际陈述失真就无需同步；被记录的选择改变应新建记录并建立关系。完整替代写入 `superseded-by: N`，旧记录移入 `archived/`；归档记录保持编号，只作历史参考。决策地图包含编号历史，可选 `## Deliberation` 附录保留 deliberation tree。
 
 ### 在代码中引用决策
 

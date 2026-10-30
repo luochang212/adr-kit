@@ -2,20 +2,31 @@
 
 ## When to record
 
-Record architectural choices that constrain future work and whose lasting
-rationale or genuine trade-offs are not adequately explained by code, tests,
-and existing documentation. A behavior change alone does not qualify. Record
-genuine alternatives and trade-offs; routine fixes need no ADR.
+ADR Kit is the agent's notebook, not a log of everything it changes. Use judgment; choosing not to record is a valid outcome. Respect an explicit user request to preserve a choice, but do not turn it into a rule to record every similar edit.
 
-Records cost time to write, read, and maintain, and stale records can mislead;
-record only when preserving the rationale is worth that cost. For example,
-routing all writes through one boundary to preserve validation and auditing can
-merit an ADR: a later direct write may look locally correct while bypassing
-those guarantees. Routine fixes and local renames usually need none when code
-and tests adequately explain them.
+Before creating or shaping a record, ask yourself:
 
-A grilling session is itself the importance signal, so record every choice it
-settles. Do not confuse a settled choice with shipped work.
+1. **What would be lost?** Identify a constraint, reason, or genuine trade-off that code, tests, and existing documentation do not reliably explain. A requirement mentioned only in a user conversation is especially easy to lose; an implementation result alone is not enough.
+2. **What would forgetting cost?** Name a plausible future mistake and its consequences. Weigh importance and breadth of impact; a local decision with severe consequences can qualify too. Do not invent a hypothetical disaster to justify a record.
+3. **What should survive?** Preserve the stable choice, its boundary, and why it matters. Weigh longevity and resistance to becoming stale separately: a long-lived page can have constantly changing spacing. Let code, configuration, tests, or an existing document own volatile facts.
+
+These are judgment dimensions, not a score or an all-must-pass checklist. If there is no meaningful information to preserve beyond existing sources, skip the record. Do not add a justification field, ask the user to approve every skip, or create a note merely to defer that conclusion. A note is candidate memory, not an obligation to produce an ADR.
+
+| Usually leave to existing sources | Potentially worth preserving |
+| --- | --- |
+| Upgraded adr-kit to a new version; Git and the lockfile retain the event | A user-only constraint requires tools to work without public-network access, governing future dependencies and upgrades |
+| Adjusted a button's spacing or shadow; styles and visual checks own the result | A durable accessibility constraint limits future visual changes, and its reason is otherwise hidden |
+| Selected a library; the manifest already shows which one | A deployment restriction explains why an otherwise attractive library or runtime mechanism is unsuitable |
+
+Judge the actual information, not these topic names. During maintenance, an existing record is not precedent for recording similar edits. A change inside its implementation freedom needs no ADR update unless a claim the record actually makes becomes false. Keep required paths and references valid. If volatile details force repeated synchronization, report the specific burden and suggest trimming those details to their existing owner or archiving the record when its distinct rationale no longer guides work. Do not silently rewrite the choice, ignore an explicit constraint, delete a record, or archive it without authorization.
+
+Grilling uses the same selection judgment. If an outcome qualifies, preserve the
+complete session tree in its Deliberation appendix; local answers are context,
+not separate ongoing obligations. If none qualifies, summarize in conversation
+and create no record. A settled choice is not necessarily shipped work.
+
+Agent behavior can be evaluated with the [recording judgment cases](recording-evaluation.md).
+These are a manual protocol; template tests do not prove model quality.
 
 ## Lifecycle
 
@@ -62,7 +73,8 @@ Creating, shipping, and reviewing are one governance loop:
 - **When shipping**, compare the record's claimed paths, names, defaults, and
   mechanisms with the current code and tests, and state shipped facts rather
   than proposal-era intent. If a code change alters only the realization of
-  an active decision, update those facts in that record; a changed choice is
+  an active decision, update facts the record actually claims. Changes within
+  its implementation freedom need no update; a changed recorded choice is
   a new record with an explicit relationship.
 - **When code implements a decision**, cite it in a comment with `@adr <N>`
   (`@adr 14, 22`). Citations are optional; `adrkit validate --all` fails when

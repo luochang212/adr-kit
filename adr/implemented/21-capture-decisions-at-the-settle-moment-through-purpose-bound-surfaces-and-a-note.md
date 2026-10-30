@@ -179,6 +179,9 @@ decisions.
   primitive is append, count, and surface — no parsing sophistication — and
   the buffer is a plain file.
 
+### Later changes
+
+**Amended by ADR 45:** ADR 45 refines capture triggers to important context missing from existing sources and applies information-value selection before shaping notes. Notes are candidate memory, not an obligation to produce ADRs; routine events need no note. Purpose-bound surfaces and the one-line buffer remain, with no new lifecycle state or CLI quality gate.
 
 ## Deliberation
 

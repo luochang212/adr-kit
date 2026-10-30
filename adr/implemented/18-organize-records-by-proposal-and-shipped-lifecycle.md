@@ -146,3 +146,5 @@ appearing stale. The four-folder lifecycle itself is unchanged.
 ### Later changes
 
 **Amended by ADR 44:** Descriptions replace theme tags as discovery metadata. The four lifecycle folders, numbering and shipping boundaries are unchanged.
+
+**Amended by ADR 45:** ADR 45 replaces the requirement that every settled grilling choice be recorded. Only qualifying choices enter the existing lifecycle; a qualifying record keeps the complete tree, and a session with none ends in conversation. Maintenance updates claims a record actually makes; implementation freedom does not require synchronization. The four folders, shipping boundary, numbering and retirement rules remain unchanged.

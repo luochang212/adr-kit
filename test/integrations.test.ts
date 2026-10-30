@@ -68,13 +68,13 @@ describe('initCommand tool integrations', () => {
     expect(existsSync(fileURLToPath(new URL('../CLAUDE.md', import.meta.url)))).toBe(false);
   });
 
-  it('capture-side descriptions mirror the settle moment', () => {
+  it('capture-side descriptions route by missing important context', () => {
     // Descriptions are the retrieval key in skill-based agents; they must
     // speak the agent's situational language, not the tool's category.
     const find = (name: string) => WORKFLOWS.find((workflow) => workflow.name === name)!;
-    expect(find('adrkit-propose').description).toContain('catch yourself settling a choice future work must live with');
-    expect(find('adrkit-record').description).toContain('has already shipped and adr/ does not own it yet');
-    expect(find('adrkit-grill').description).toContain('no branch is silently assumed');
+    expect(find('adrkit-propose').description).toContain('important constraints or reasons that existing sources do not preserve');
+    expect(find('adrkit-record').description).toContain('shipped choice has important constraints or reasons');
+    expect(find('adrkit-grill').description).toContain('preserve only outcomes worth recording');
   });
 
   it('installs and refreshes reading guidance without replacing project instructions', () => {
@@ -92,7 +92,7 @@ describe('initCommand tool integrations', () => {
       expect(init).toContain('read the relevant `implemented/` records in full');
       expect(init).toContain('check the relevant `proposed/` records for intent');
       expect(init).toContain('treat `archived/` as frozen history and read it only when a task explicitly cites it');
-      expect(init).toContain('Record an ADR when an architectural choice constrains future work');
+      expect(init).toContain('Record an ADR when an architectural choice carries important information');
       expect(init).toContain('not invented template filler');
       expect(init).toContain('CLI neither infers nor verifies shipping or provenance');
       for (const workflow of ['propose', 'record']) {
@@ -538,10 +538,37 @@ rules:
     expect(grill?.body).toContain('adrkit validate <name>');
     expect(grill?.body).toContain('--raised-by');
     expect(grill?.body).toContain('## Deliberation');
-    expect(grill?.body).toContain('Record every choice the session settles');
+    expect(grill?.body).toContain('If no outcome qualifies');
+    expect(grill?.body).toContain('preserve the complete session tree');
+    expect(grill?.body).not.toContain('Record every choice the session settles');
     expect(grill?.body).not.toContain('adrkit graph --html');
     expect(grill?.body).toContain('adrkit propose');
-    expect(grill?.description).toContain('record every settled choice');
+    expect(grill?.description).toContain('preserve only outcomes worth recording');
+  });
+
+  it('installs selective recording judgment through skills and commands on both targets', () => {
+    const root = makeTarget();
+    initCommand(root, 'agents,claude');
+    for (const target of ['.agents', '.claude']) {
+      for (const workflow of ['propose', 'record', 'grill']) {
+        for (const path of [`skills/adrkit-${workflow}/SKILL.md`, `commands/adrkit-${workflow}.md`]) {
+          const installed = readFileSync(join(root, target, path), 'utf8');
+          // Distribution checks, not evidence of a model's semantic judgment.
+          for (const requirement of [
+            'What would be lost?', 'What would forgetting cost?', 'What should survive?',
+            'not a score or an all-must-pass checklist', 'user conversation',
+            'Upgraded adr-kit', "button's spacing", 'local decision with severe consequences',
+            'an existing record is not precedent', 'archive it without authorization',
+          ]) expect(installed).toContain(requirement);
+        }
+      }
+      const note = readFileSync(join(root, target, 'skills/adrkit-note/SKILL.md'), 'utf8');
+      expect(note).toContain('not a promise to create an ADR');
+      const implement = readFileSync(join(root, target, 'skills/adrkit-implement/SKILL.md'), 'utf8');
+      expect(implement).toContain("a proposal's existence is not proof of value");
+      const review = readFileSync(join(root, target, 'skills/adrkit-review/SKILL.md'), 'utf8');
+      expect(review).toContain('repeated synchronization');
+    }
   });
 
   it('visualize owns rendering and browser delivery', () => {

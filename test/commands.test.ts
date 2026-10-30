@@ -1171,7 +1171,11 @@ describe('integration drift: installed-with stamp and notice', () => {
 
   it('instructions re-anchors the purpose at the check-in moment', () => {
     const root = makeRepo();
-    expect(instructionsCommand(root)).toContain('memory against drift and forgetting');
+    const output = instructionsCommand(root);
+    expect(output).toContain('memory against drift and forgetting');
+    expect(output).toContain('important constraints and reasons missing from existing sources');
+    expect(output).toContain('Skipping a record is valid');
+    expect(output).not.toContain('record when a choice settles');
   });
 
   it('no note for a repository configured before the stamp existed', () => {

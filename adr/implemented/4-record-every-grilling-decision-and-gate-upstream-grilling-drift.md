@@ -91,3 +91,5 @@ inventory-first, scoped reading.
 
 **Amended by ADR 20:** the per-folder context budget was fixed. The
 always-record rule and the upstream pin above are unchanged.
+
+**Amended by ADR 45:** ADR 45 partially replaces this record's always-record rule and its no-filter/no-record-escape prohibition. Grilling uses the same information-value judgment as direct capture; a session can produce no record, and a qualifying record retains the complete tree without making each local answer an independent obligation. The upstream pin, manual adaptation and hard drift gate remain active and unchanged.

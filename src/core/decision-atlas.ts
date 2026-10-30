@@ -262,7 +262,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     ? `<section id="top" class="page-hero"><div class="hero-content"><div class="hero-heading">`
     + `<p class="eyebrow"><span aria-hidden="true"></span> DECISION ATLAS / ${en ? 'PROJECT MEMORY' : '项目记忆'}</p>`
     + `<h1>${escapeHtml(projectName)}</h1>`
-    + `<p class="hero-tagline">${en ? '<span class="hero-line">Every choice.</span><span class="hero-line">A traceable story.</span>' : '<span class="hero-line">每一次选择，</span><span class="hero-line">都有迹可循。</span>'}</p>`
+    + `<p class="hero-tagline">${en ? '<span class="hero-line">Key choices.</span><span class="hero-line">A traceable story.</span>' : '<span class="hero-line">关键的选择，</span><span class="hero-line">都有迹可循。</span>'}</p>`
     + (en
       ? `<p class="hero-description">The questions, trade-offs, and turning points behind this project. Follow the decisions to see how it became what it is.</p>`
       : `<p class="hero-description">留下问题、判断与取舍，也留下改变方向的理由。<br>沿着决策的脉络，看这个项目如何成为今天的样子。</p>`)
@@ -274,7 +274,7 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     + `<h1>${escapeHtml(projectName)}</h1></div><div class="hero-guide">`
     + (en
       ? `<p class="hero-description">The choices that shaped this project, and the reasons they changed.<br>Explore ${implemented.length} active decisions and ${archived.length} archived records through time, references, and their original text.</p>`
-      : `<p class="hero-description">记录每一次选择，也保留被替代的理由。<br>沿着时间与引用，回看 ${implemented.length} 条生效决策和 ${archived.length} 条归档历史中的问题、判断与取舍。</p>`)
+      : `<p class="hero-description">记录关键的选择，也保留被替代的理由。<br>沿着时间与引用，回看 ${implemented.length} 条生效决策和 ${archived.length} 条归档历史中的问题、判断与取舍。</p>`)
     + `<div class="hero-actions"><a class="primary-link" href="#cards-view">${en ? 'Browse records' : '记录目录'} <span aria-hidden="true">↗</span></a>`
     + `<a href="#decision-map">${en ? 'Explore the map' : '演进全景'} <span aria-hidden="true">↗</span></a></div>`
     + `</div></div>${stats}</section>`;
