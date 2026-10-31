@@ -1,7 +1,8 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { lstatSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 import type { AdrRecord } from './adr.js';
 import { ADR_DIR } from './config.js';
+import { gitListedFiles } from './git.js';
 import { globMatches } from './glob.js';
 import type { ValidationIssue } from './validate.js';
 
@@ -89,7 +90,7 @@ export function citationIssues(root: string, records: readonly AdrRecord[]): Val
   }
 
   const issues: ValidationIssue[] = [];
-  const files = [...scannedFiles(root, issues)].sort((a, b) =>
+  const files = scannedFiles(root, issues).sort((a, b) =>
     relative(root, a).localeCompare(relative(root, b)));
   for (const file of files) {
     let text: string | undefined;
@@ -114,6 +115,37 @@ export function citationIssues(root: string, records: readonly AdrRecord[]): Val
     }
   }
   return issues;
+}
+
+/** One place code cites a decision. */
+export interface CitationSite {
+  path: string;
+  line: number;
+}
+
+/**
+ * Every file and line that cites `number`. A lifecycle command reads this
+ * before retiring a decision: moving the record would strand each of these
+ * citations, which the next validation would then report. Reading the same
+ * corpus as validation is what makes the refusal and that report agree.
+ */
+export function citationsTo(root: string, number: number): CitationSite[] {
+  const sites: CitationSite[] = [];
+  for (const file of scannedFiles(root, [])) {
+    let text: string | undefined;
+    try {
+      text = readText(file);
+    } catch {
+      continue;
+    }
+    if (text === undefined) continue;
+    for (const citation of findCitations(text)) {
+      if (citation.numbers.includes(number)) {
+        sites.push({ path: relative(root, file).split(sep).join('/'), line: citation.line });
+      }
+    }
+  }
+  return sites.sort((a, b) => a.path.localeCompare(b.path) || a.line - b.line);
 }
 
 /**
@@ -143,7 +175,33 @@ export function citationProblem(record: AdrRecord | undefined, number: number, f
   return undefined;
 }
 
-function* scannedFiles(root: string, issues: ValidationIssue[]): Generator<string> {
+function scannedFiles(root: string, issues: ValidationIssue[]): string[] {
+  const listed = gitListedFiles(root);
+  if (listed !== undefined) {
+    const files: string[] = [];
+    for (const path of listed) {
+      if (!isCitationScanPath(path)) continue;
+      const file = join(root, ...path.split('/'));
+      try {
+        // A tracked file deleted from the working tree is in the index and not
+        // in the repository; a symlink is never read, as in the walk below.
+        if (!lstatSync(file).isFile()) continue;
+      } catch {
+        continue;
+      }
+      files.push(file);
+    }
+    return files;
+  }
+  return [...walkFiles(root, issues)];
+}
+
+/**
+ * The filesystem fallback for a repository git cannot describe: a directory
+ * extracted from a tarball or a copy without `.git`. Ignore rules are unknown
+ * here, so every directory not on the dependency skip list is walked.
+ */
+function* walkFiles(root: string, issues: ValidationIssue[]): Generator<string> {
   const queue = [root];
   for (let index = 0; index < queue.length; index += 1) {
     const dir = queue[index]!;

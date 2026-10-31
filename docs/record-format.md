@@ -108,7 +108,12 @@ normal migration fix.
 
 Code may cite a record with `@adr <number>` in a comment; `adrkit validate`
 fails when the citation names a missing, archived, or superseded decision, or a
-file outside the record's `paths`.
+file outside the record's `paths`. The scan reads the files Git carries —
+tracked files plus untracked files no ignore rule excludes — and walks the
+directory only when Git cannot describe it, so an ignored tree is neither a
+place a citation is checked nor a place it can fail validation. `archive` and
+`supersede` refuse while a citation still names the decision, listing each
+`path:line`: the move would strand the citation that this same rule rejects.
 
 ## Archived history
 

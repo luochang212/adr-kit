@@ -42,7 +42,9 @@ Grilling 使用同一判断标准，讨论过不代表必须记录。存在值�
    `superseded-by` 进入 `archived/`。部分替代仍保留有效的现行指导。
    其他低未来价值记录，仅当现状另有权威来源时，才用 `adrkit archive <N>
    --reason "<现状来源>"` 归档；绝不按年龄归档。两条命令都把最终记录移入
-   `archived/`，后续变化由 Git 记录。
+   `archived/`，后续变化由 Git 记录。只要代码仍在引用该记录，两条命令都会拒绝
+   执行并列出每个 `path:line`：此时移动会让 `validate` 否决的引用悬空，先改写或
+   删除这些引用。`supersede` 还会拒绝编号小于被替代记录的 `--by` 决策。
 5. `adrkit validate` 检查四个目录，包括归档记录。新模板必填章节未填时会失败。
    `adrkit atlas` 写出可浏览的决策档案，`adrkit atlas --record <name>`
    绘制可选 `## Deliberation` 附录的 deliberation tree。

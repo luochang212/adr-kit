@@ -48,7 +48,10 @@ These are a manual protocol; template tests do not prove model quality.
    --reason "<current authority>"` retires other low-guidance implemented
    records when current behavior has another owner. Never archive by age.
    Both commands move the final record into `archived/`; Git records later
-   changes.
+   changes. Both refuse while code still cites the record, listing each
+   `path:line`: moving it would strand citations that `validate` rejects, so
+   repoint or remove them first. `supersede` also refuses a `--by` decision
+   numbered lower than the record it replaces.
 5. `adrkit validate` checks all four directories, including archived records.
    Fresh templates fail until required sections are filled.
    `adrkit atlas` writes the browsable decision atlas;

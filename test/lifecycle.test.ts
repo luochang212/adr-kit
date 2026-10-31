@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -162,6 +162,24 @@ describe('four-folder lifecycle', () => {
     expect(old?.supersededBy).toBeUndefined();
     recordCommand('Use Postgres', root, 'human', 'human');
     expect(listRecords(root).some((record) => record.number === 2)).toBe(true);
+  });
+
+  it('refuses to archive a decision code still cites', () => {
+    const root = repo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    fillDecision(root, 1);
+    const source = join(root, 'src', 'store.ts');
+    mkdirSync(join(root, 'src'), { recursive: true });
+    writeFileSync(source, `// ${'@adr'} 1 — the store lives here\n`);
+
+    // Archiving anyway would fail the next validate with the same file:line,
+    // after this command had already reported success.
+    expect(() => archiveCommand('1', 'moved', root)).toThrow(/src\/store\.ts:1/);
+    expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('implemented');
+
+    writeFileSync(source, '// the store lives here\n');
+    expect(() => archiveCommand('1', 'moved', root)).not.toThrow();
+    expect(validateRepository(root)).toEqual([]);
   });
 
   it('refuses archival of unshipped work or a blank reason', () => {

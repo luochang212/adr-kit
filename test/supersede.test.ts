@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -10,7 +10,7 @@ import { statusCommand } from '../src/commands/status.js';
 import { supersedeCommand } from '../src/commands/supersede.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { parseAdrFile, todayStamp } from '../src/core/adr.js';
-import { listProposals } from '../src/core/repository.js';
+import { listProposals, listRecords } from '../src/core/repository.js';
 import { formatIssues, validateRecord } from '../src/core/validate.js';
 
 const tempDirs: string[] = [];
@@ -95,6 +95,33 @@ describe('supersedeCommand', () => {
 
     const result = validateCommand(root);
     expect(result.valid).toBe(true);
+  });
+
+  it('refuses a successor that predates the record it would replace', () => {
+    const root = makeRepo();
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
+
+    // Numbers follow creation order, so a lower-numbered successor writes a
+    // permanently backwards chain that no validation rejects.
+    expect(() => supersedeCommand('2', '1', root)).toThrow('is older than decision 2');
+    expect(listRecords(root).find((record) => record.number === 2)?.folder).toBe('implemented');
+  });
+
+  it('refuses to retire a decision code still cites', () => {
+    const root = makeRepo();
+    implementDecision(root, 'Use SQLite');
+    implementDecision(root, 'Use Postgres');
+    const source = join(root, 'src', 'store.ts');
+    mkdirSync(join(root, 'src'), { recursive: true });
+    writeFileSync(source, `// ${'@adr'} 1 — the store lives here\n`);
+
+    expect(() => supersedeCommand('1', '2', root)).toThrow(/src\/store\.ts:1/);
+    expect(listRecords(root).find((record) => record.number === 1)?.folder).toBe('implemented');
+
+    writeFileSync(source, '// the store lives here\n');
+    expect(() => supersedeCommand('1', '2', root)).not.toThrow();
+    expect(validateCommand(root).valid).toBe(true);
   });
 
   it('preserves the recording commit instead of stamping the retirement', () => {

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { formatIssues, validateRecord } from '../core/validate.js';
+import { citationsTo } from '../core/markers.js';
 import { retireRecord } from '../core/retire.js';
 import { folderPath, resolveRecord } from '../core/repository.js';
 
@@ -30,6 +31,15 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   if (record.status !== 'implemented' || record.folder !== 'implemented') {
     throw new Error(`"${query}" must be an implemented decision`);
   }
+  // Numbers are assigned in creation order, so the record making a choice
+  // obsolete is always the later one. Accepting a lower number would write a
+  // permanently backwards `superseded-by` that no validation rejects.
+  if (record.number !== undefined && replacement.number <= record.number) {
+    throw new Error(
+      `"--by ${byQuery}" is decision ${replacement.number}, which is older than decision ${record.number}; ` +
+        'a decision is superseded by a later one',
+    );
+  }
   if (existsSync(join(folderPath(root, 'archived'), record.fileName))) {
     throw new Error(`archived record already exists: adr/archived/${record.fileName}`);
   }
@@ -46,6 +56,20 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
   const recordIssues = validateRecord(root, record);
   if (recordIssues.length > 0) {
     throw new Error(`"${query}" is not valid; fix it before superseding:\n${formatIssues(recordIssues)}`);
+  }
+  // Retirement strands every `@adr N` naming the old decision, and validation
+  // rejects a citation to a superseded record. Refuse before the move so the
+  // repository cannot fail the next validate because of a command that
+  // reported success.
+  if (record.number !== undefined) {
+    const citing = citationsTo(root, record.number);
+    if (citing.length > 0) {
+      throw new Error(
+        `"${query}" is cited in code; repoint these citations to ADR ${replacement.number} ` +
+          `or remove them before superseding:\n` +
+          citing.map((site) => `  ${site.path}:${site.line}`).join('\n'),
+      );
+    }
   }
   // Same one-stamp rule as archive: the two fields describe one moment.
   const stamp = todayStamp();

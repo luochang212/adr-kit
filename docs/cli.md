@@ -75,12 +75,22 @@ requires a reason but does not require an abandoned proposal's acceptance
 criteria or risks to be finished. Existing notes in those sections are kept.
 
 Repository-wide validation also checks `@adr <number>` citations in code and
-configuration files. A citation must name an implemented decision; when that
+configuration files. The scan reads the files Git carries — tracked files plus
+untracked files no ignore rule excludes — and walks the directory only when Git
+cannot describe it, so an ignored build output or a local copy of another
+checkout is not read. A citation must name an implemented decision; when that
 decision declares `paths`, the citing file must match one of them. A citation
 to a missing, archived, or superseded decision
 fails and names the line and, for a superseded decision, its successor. Markdown
 and the root `site/` documentation copy are not scanned, and citations are
 optional: only the ones that exist are checked.
+
+`archive` and `supersede` apply the same rule before moving anything: while code
+still cites the decision they refuse, list each `path:line`, and leave the tree
+untouched, because the move would strand those citations and fail the very next
+`validate`. Repoint or remove the citations first. `supersede` also refuses a
+`--by` decision numbered lower than the record it replaces, since numbers follow
+creation order and a lower-numbered successor can only write a backwards chain.
 
 ## Validation coverage
 

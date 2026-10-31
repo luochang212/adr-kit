@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -5,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { initCommand } from '../src/commands/init.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { findCitations } from '../src/core/markers.js';
+import { citationsTo, findCitations } from '../src/core/markers.js';
 import { folderPath } from '../src/core/repository.js';
 import { validateRepository } from '../src/core/validate.js';
 
@@ -207,6 +208,24 @@ describe('citation validation', () => {
     expect(citationMessages(root)).toEqual([
       expect.stringContaining('cites ADR 0, which does not exist'),
     ]);
+  });
+
+  it('reads only files git carries, so an ignored copy cannot fail validation', () => {
+    const root = makeRepo();
+    execFileSync('git', ['init', '-q'], { cwd: root });
+    writeFileSync(join(root, '.gitignore'), 'local-copy/\n');
+    // A stale copy of another checkout: same extensions, citations this
+    // repository never made. It is not part of what git hands anyone else.
+    writeSource(root, 'local-copy/old.ts', `${cite(99)}\n`);
+    expect(citationMessages(root)).toEqual([]);
+  });
+
+  it('reports citation sites with the forward-slash path convention', () => {
+    const root = makeRepo();
+    writeSource(root, 'src/a.ts', `${cite(1)}\n`);
+    // A retirement refusal prints these next to `validate` output, which
+    // normalizes separators; a Windows host must not disagree with it.
+    expect(citationsTo(root, 1)).toEqual([{ path: 'src/a.ts', line: 1 }]);
   });
 
   it('keeps the repository-wide scan out of single-record validation', () => {

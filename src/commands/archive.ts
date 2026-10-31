@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { formatIssues, validateRecord } from '../core/validate.js';
+import { citationsTo } from '../core/markers.js';
 import { retireRecord } from '../core/retire.js';
 import { folderPath, resolveRecord } from '../core/repository.js';
 
@@ -24,6 +25,19 @@ export function archiveCommand(query: string, reason: string, cwd: string): stri
   }
   if (existsSync(join(folderPath(root, 'archived'), record.fileName))) {
     throw new Error(`archived record already exists: adr/archived/${record.fileName}`);
+  }
+  // The move would strand every `@adr N` naming this decision: validation
+  // rejects a citation to an archived record, so the repository would fail
+  // `adrkit validate` immediately after this command reported success. Refuse
+  // before touching the tree, as `implement` refuses an unready proposal.
+  if (record.number !== undefined) {
+    const citing = citationsTo(root, record.number);
+    if (citing.length > 0) {
+      throw new Error(
+        `"${query}" is cited in code; update these citations before archiving:\n` +
+          citing.map((site) => `  ${site.path}:${site.line}`).join('\n'),
+      );
+    }
   }
   // One stamp for both fields: a second call can cross midnight and write a
   // record that immediately fails its own "archived matches date" invariant.
