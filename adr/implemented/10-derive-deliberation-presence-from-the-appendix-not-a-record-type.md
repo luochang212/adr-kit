@@ -74,7 +74,8 @@ structured record type so a view could filter, or accept the derived signal.
 
 **Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`; the map
 badge and the renderable-tree check serve `atlas` and
-`atlas --record <name> --diagram`, still on the same predicate. The
+`atlas --record <name>`, whose tree renders in the formats `--format` selects
+(html, mermaid, text), still on the same predicate. The
 derive-from-the-appendix rule above is unchanged.
 
 ## Deliberation
