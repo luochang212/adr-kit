@@ -45,3 +45,17 @@ for (const name of Object.keys(pages)) {
     } finally { await context.close(); }
   });
 }
+
+test('a diagram shorter than the canvas opens at the top rim', async ({ page }) => {
+  // The two-card tree never fills a 900px canvas. It still enters at the top,
+  // where a reader starts, instead of floating in the middle of the frame.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(pathToFileURL(join(root, 'tree.html')).href);
+  await expect(page.locator('body')).toHaveClass(/interactive/);
+  const view = await page.locator('#viewport').boundingBox();
+  const world = await page.locator('#world').boundingBox();
+  // Premise: the drawing is shorter than the room it sits in.
+  expect(world.height).toBeLessThan(view.height);
+  expect(world.y - view.y).toBeGreaterThanOrEqual(0);
+  expect(world.y - view.y).toBeLessThan(80);
+});

@@ -63,6 +63,9 @@ button, summary { font: inherit; color: inherit; cursor: pointer; }
 .viewer-stats strong { margin-right: 4px; }
 .canvas-dock { position: absolute; z-index: 4; left: 0; right: 0; bottom: 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; pointer-events: none; }
 .canvas-dock > * { pointer-events: auto; }
+/* The cluster keeps the trailing corner whether or not a legend shares the
+   dock, so losing the legend does not move the controls across the canvas. */
+.canvas-dock .controls { margin-inline-start: auto; }
 /* Without the script there is no floating canvas: the dock sits at the end of the content. */
 body:not(.interactive) main { padding-bottom: 84px; }
 /* Frosted chips: the dotted ground and panned cards blur behind the panel
@@ -211,16 +214,16 @@ export const CANVAS_SCRIPT = String.raw`
   /**
    * The view a diagram opens in: readable first. Fit the width and never past
    * 1:1, so a tall tree runs past the fold and pans instead of shrinking to a
-   * thumbnail whose text cannot be read. Fit is still the overview.
+   * thumbnail whose text cannot be read. Fit is still the overview. The top
+   * rim is the same whether the drawing overflows or fits: a short diagram
+   * opens at its first line, not floating in the middle of empty canvas.
    */
   function fitWidth() {
     const width = world.offsetWidth, height = world.offsetHeight;
     if (!width || !height) return;
     scale = Math.max(.01, Math.min(1, (viewport.clientWidth - 48) / width));
     tx = (viewport.clientWidth - width * scale) / 2;
-    const dock = viewport.querySelector('.canvas-dock');
-    const room = viewport.clientHeight - 48 - (dock ? dock.offsetHeight : 0);
-    ty = height * scale <= room ? (viewport.clientHeight - height * scale) / 2 : 24;
+    ty = 24;
     paint();
   }
   function zoomAt(factor, clientX, clientY) {

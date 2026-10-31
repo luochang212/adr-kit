@@ -37,7 +37,7 @@ export const ATLAS_EN: Array<[string, string]> = [
   ['26 条记录从 09-20 写到 10-19，落在 11 个不同的日子；09-22 一天就立下 8 条，决策总在同一批工作里成串出现。', '26 records run from 09-20 to 10-19 across 11 distinct days; 09-22 alone produced 8 — decisions arrive in batches.'],
   ['画布可视范围，左右方向键按日期列移动', 'Canvas viewport; arrow keys move by date column'],
   ['ADR 创建日期与编号时间线', 'ADR created date and numbered timeline'],
-  ['编号 / 创建日期（UTC）', 'Number / created (UTC)'],
+  ['编号 / 创建日期', 'Number / created'],
   ['没有匹配的记录，试试其他关键词。', 'No matching records; try another term.'],
   ['画布横向范围索引', 'Canvas range index'],
   ['当前约束请查看生效记录。', 'Current constraints are in the active records.'],

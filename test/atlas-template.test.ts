@@ -35,6 +35,13 @@ describe('decision-atlas template mirrors the shared contract', () => {
     expect(template).toMatch(/:root \{[^}]*-webkit-tap-highlight-color:\s*transparent/);
   });
 
+  it('does not claim UTC for a date the CLI writes from local time', () => {
+    // todayStamp() formats the local calendar date, so a "(UTC)" axis label
+    // names a zone the value was never converted to.
+    expect(template).toContain("'编号 / 创建日期'");
+    expect(template).not.toContain('（UTC）');
+  });
+
   it('leaves no Chinese behind in the translated static chrome', () => {
     // The English page is produced by global string replacement, so one
     // unmatched literal (or a single-character key cutting through a word)

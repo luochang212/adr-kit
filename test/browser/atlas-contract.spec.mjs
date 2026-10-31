@@ -102,6 +102,48 @@ for (const language of ['en', 'zh']) {
   });
 }
 
+test('the legend panel leaves with its last entry instead of framing nothing', async ({ page, fixturePages }) => {
+  for (const language of ['en', 'zh']) {
+    // No supersessions, no references, no archive, no deliberation: every entry
+    // is hidden, so the panel they sit in must go too. What remains is the dock
+    // and its controls.
+    for (const variant of ['empty', 'unlinked']) {
+      await page.goto(fixturePages[`folio-${language}-${variant}`]);
+      await expect(page.locator('.canvas-legend')).toHaveCount(0);
+      await expect(page.locator('.canvas-dock .controls')).toBeVisible();
+      // Losing the legend must not move the controls to the other corner.
+      const dock = await page.locator('.canvas-dock').boundingBox();
+      const controls = await page.locator('.canvas-dock .controls').boundingBox();
+      expect(controls.x).toBeGreaterThan(dock.x + dock.width / 2);
+    }
+    // One surviving entry keeps the panel: it is the frame around that entry.
+    await page.goto(fixturePages[`folio-${language}-references`]);
+    await expect(page.locator('.canvas-legend')).toHaveCount(1);
+    await expect(page.locator('.canvas-legend .legend > span')).toHaveCount(1);
+  }
+});
+
+test('a map shorter than the canvas opens at the top, not floating mid-canvas', async ({ page, fixturePages }) => {
+  for (const language of ['en', 'zh']) {
+    // One row of cards is far shorter than the canvas. It still enters at the
+    // top rim with the rest of the drawing's room below it, so a small
+    // repository reads like a document instead of a centered thumbnail.
+    for (const variant of ['unlinked', 'stack']) {
+      await page.goto(fixturePages[`folio-${language}-${variant}`]);
+      const map = page.locator('#decision-map #viewport');
+      await map.scrollIntoViewIfNeeded();
+      const view = await map.boundingBox();
+      const first = await page.locator('#decision-map #world .node').first().boundingBox();
+      const label = await page.locator('#decision-map .date-label').first().boundingBox();
+      const offset = first.y - view.y;
+      expect(offset).toBeGreaterThan(0);
+      expect(offset).toBeLessThan(80);
+      // The date label above the cards must stay inside the canvas.
+      expect(label.y - view.y).toBeGreaterThanOrEqual(0);
+    }
+  }
+});
+
 test('signal: shuffles every file without duplication and deals a fresh round on reset', async ({ page, fixturePages }) => {
   await page.addInitScript(() => { Math.random = () => 0; });
   await page.goto(fixturePages['signal-en-stack']);
