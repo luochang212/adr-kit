@@ -30,7 +30,7 @@ rewrites `AGENTS.md`.
 | `adrkit validate [<name> \| --all]` | Validate one record, or the whole repository with its closed lifecycle inventory; a name and `--all` are exclusive |
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
-| `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, on a staged deletion that strands a numbered decision's references, and on one that strands a record's literal `paths` entry, then show which active decisions govern the staged files |
+| `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, on a staged deletion that strands a numbered decision's references, on one that strands a record's literal `paths` entry, and on any staged deletion of an archived record, then show which active decisions govern the staged files |
 | `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--formal-only]` | Write the decision atlas; no flags writes the full atlas (English chrome by default, `--lang zh` for Chinese), `--record` is one deliberation tree, and `--map` selects the decision map. `--format` sets the selected object's format; the full atlas supports only HTML |
 | `adrkit completion <bash\|zsh\|fish>` | Print shell completion |
 | `adrkit version` | Print version |
@@ -121,8 +121,9 @@ Per record, in every mode, including archived records.
   present, a real calendar date, and not after the status date.
 - `description`: required, non-empty, single-line text explaining when to read the record.
 - `paths` (when present): non-empty, repository-relative, forward slashes,
-  no `..`, no duplicates, and every static directory anchor (or full literal
-  path) still exists in the repository.
+  no `..`, no duplicates, every static directory anchor (or full literal
+  path) still exists in the repository, and spelled exactly as the repository
+  spells it — matching is case-sensitive on every platform.
 - Sections: the required headings per status exist without duplicates, and
   every required section carries written content: `Problem`, `Decision`/
   `Proposal`, `Alternatives considered`, and `Consequences` for a decision;
@@ -141,14 +142,16 @@ Per record, in every mode, including archived records.
   `**Amended by ADR N:**`; a trailing `ADR N later` block, a block that
   loses the opening, or ordinary text before the first entry fails, while a
   paragraph continuing an entry does not.
-- Supersession chains resolve without cycles to an implemented decision;
-  no backlink from the successor is required.
+- Supersession chains resolve without cycles to an implemented decision,
+  and every successor is the later decision (a greater number); no backlink
+  from the successor is required.
 Repository-wide (no name, or `--all`), additionally:
 
 - The four lifecycle folders are the whole inventory: unknown folders,
   records at the `adr/` root, and nested folders fail. `adr/config.yaml`
   exists and its known fields are well-typed.
-- Decision numbers are unique across `implemented/` and `archived/`.
+- Decision numbers are unique across `implemented/` and `archived/`;
+  `adrkit validate <name>` reports another record sharing its number.
 - `@adr <number>` citations in code and configuration (details above);
   unreadable source files or directories fail with a scan diagnostic.
 - Archived records satisfy the same format, path, and reference checks as the

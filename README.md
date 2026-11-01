@@ -69,7 +69,7 @@ adr/
 └── archived/       # numbered, frozen history
 ```
 
-An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern as a durable terminal: keep it, and remove it only when another record owns the warning it blocks. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. A record that should never have existed — noise, a duplicate, a routine change recorded as a decision — is removed with `adrkit delete`, which refuses while code cites the record or another record references it, and never deletes archived records. Partial replacement leaves still-relevant guidance active. Both moves write the archived record as ordinary Git-tracked history; there is no separate seal or manifest. `adrkit validate` checks it like any other record, and Git records later changes.
+An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern as a durable terminal: keep it, and remove it only when another record owns the warning it blocks (rejections are unnumbered, so removing a redundant one frees no reusable number). `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. A record that should never have existed — noise, a duplicate, a routine change recorded as a decision — is removed with `adrkit delete`, which refuses while code cites the record or another record references it, and never deletes archived records. Partial replacement leaves still-relevant guidance active. Both moves write the archived record as ordinary Git-tracked history; there is no separate seal or manifest. `adrkit validate` checks it like any other record, and Git records later changes.
 
 ## Tell your agent
 
@@ -105,7 +105,7 @@ adrkit atlas --theme folio --out folio.html
 adrkit atlas --theme signal --out signal.html
 ```
 
-The interface defaults to English; add `--lang zh` for Chinese. Or ask your agent:
+The interface defaults to English; add `--lang zh` for Chinese — the CLI's output and error messages stay English. Or ask your agent:
 
 > Use the `adrkit-visualize` skill to build a browsable decision atlas from `adr/implemented/` and `adr/archived/`. Publish archived bodies in full, and pin the page to the current commit.
 
@@ -140,7 +140,7 @@ adrkit help
 
 By default, integrations install into `.agents/`. Pass `--tools claude` for additional `.claude/` copies, or `--tools none` to install none. `--workflows` selects a subset such as `init,propose,implement,validate`.
 
-`adrkit hook install` opts a clone into a pre-commit check: it blocks a staged record or `@adr` citation that is objectively invalid, a staged deletion of a numbered decision that still has references (a rename keeping the number, or an `adrkit delete` that strands nothing, still passes), and a staged deletion of a file a record's literal `paths` entry names (glob scopes keep governing the remaining files), then names the active decisions governing the staged files and reminds the agent to preserve important context missing from existing sources; routine edits need no record or note. `adrkit hook uninstall` removes only the hook adr-kit wrote; `git commit --no-verify` bypasses it once.
+`adrkit hook install` opts a clone into a pre-commit check: it blocks a staged record or `@adr` citation that is objectively invalid, a staged deletion of a numbered decision that still has references (a rename keeping the number, or an `adrkit delete` that strands nothing, still passes), a staged deletion of a file a record's literal `paths` entry names (glob scopes keep governing the remaining files), and any staged deletion of an archived record (frozen history is never deleted), then names the active decisions governing the staged files and reminds the agent to preserve important context missing from existing sources; routine edits need no record or note. `adrkit hook uninstall` removes only the hook adr-kit wrote; `git commit --no-verify` bypasses it once.
 
 ## Record format
 

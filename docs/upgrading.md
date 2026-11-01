@@ -34,7 +34,20 @@ repository deliberately migrates archived front matter in the same change while
 preserving archived bodies; use an explained migration commit for your archives
 too.
 
-### After 0.34.0: Node.js floor raised to 24.22
+### After 0.34.0: checked record deletion
+
+`adrkit delete <name>` is the checked removal path for a record that should
+never have existed. It refuses while code cites the record (`@adr N`) or
+another record names the number in prose or `superseded-by`, and it never
+deletes archived records. Decision numbers now form an append-only journal at
+`adr/.decision-sequence`: a removed number is never reallocated, so commit
+that file together with the deletion. The pre-commit hook stopped failing
+every staged deletion of a numbered decision — it fails only when the
+deletion strands a citation or a record reference, and still fails any staged
+deletion of an archived record or of a file a record's literal `paths` entry
+names.
+
+### After 0.33.0: Node.js floor raised to 24.22
 
 The CLI now requires Node.js 24.22 or later, and `@types/node` follows the
 same line. Node.js 22 has entered maintenance (its end-of-life is April 2027),

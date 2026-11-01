@@ -52,7 +52,7 @@ const ui = {
     'graph.eyebrow': 'Decision map',
     'graph.title': 'A history you can look at',
     'graph.lead':
-      'One command turns the adr/ directory into a live map of your decisions: grouped by date, styled by lifecycle, linked by the references between them. The map is one self-contained HTML file with a pan-and-zoom canvas, and any view — the map, or one decision\u2019s deliberation tree — saves as a shareable image.',
+      'One command turns the adr/ directory into a live map of your decisions: grouped by date, styled by lifecycle, linked by the references between them. The map is one self-contained HTML file with a pan-and-zoom canvas, and any view — the map, or one decision\u2019s deliberation tree — saves as an image.',
     'graph.caption': 'Real repository topology; titles generalized. Long dashes indicate replacement.',
     'graph.supersede': 'ADR 1 is superseded by ADR 11',
     'graph.aria':
@@ -73,7 +73,7 @@ const ui = {
     'start.agent.prompt.short':
       'Use github.com/luochang212/adr-kit in this repository to automatically record key architecture decisions.',
     'start.agent.prompt.full':
-      "Use github.com/luochang212/adr-kit here. Propose unshipped choices, implement after delivery, and record choices already shipped. Keep a formal rejection; remove it only when another record owns the warning it blocks. Declare --raised-by and --decided-by on implemented decisions.",
+      "Use github.com/luochang212/adr-kit here. Propose unshipped choices, implement after delivery, and record choices already shipped. Keep a formal rejection (adrkit reject --reason); remove it only when another record owns the warning it blocks. Declare --raised-by and --decided-by on implemented decisions.",
     'start.agents.footnote':
       'Pick one, paste it into your coding assistant, and it will record this repository\u2019s architecture decisions as ADRs.',
     'start.human.label': 'Or run it yourself',
@@ -91,7 +91,7 @@ const ui = {
       "It adds one adr/ directory with config, README, and four lifecycle folders: proposed, implemented, rejected, archived. By default it writes agent skills and commands to .agents/; --tools claude adds .claude/ copies, and --tools none installs nothing. Records remain plain Markdown. AGENTS.md stays yours: its optional generation marker tracks template updates while allowing local edits and translation. Compare and reconcile changes before updating an old marker; omit it to opt out of tracking.",
     'faq.2.q': 'How do I use ADR Kit day to day?',
     'faq.2.a':
-      "Use adrkit propose for unshipped work, then adrkit implement after delivery. Use adrkit record for an already-shipped choice. Formal rejection requires adrkit reject --reason; retired guidance uses archive or supersede. Fill required sections and run adrkit validate. Visualize with adrkit atlas.",
+      "Use adrkit propose for unshipped work, then adrkit implement after delivery. Use adrkit record for an already-shipped choice. Formal rejection requires adrkit reject --reason and stays durable until another record owns its warning; retired guidance uses archive or supersede. Fill required sections and run adrkit validate. Visualize with adrkit atlas.",
     'faq.3.q': 'Can I use ADR Kit alongside tools like OpenSpec?',
     'faq.3.a':
       'Yes. ADR Kit is an independent decision-record product with its own lifecycle. It can coexist with specification tools because its records live in adr/ and its agent workflows are namespaced; no other tool is required.',

@@ -13,7 +13,8 @@ The canonical front matter order is `status`, `date`, `description`, `raised-by`
 `decided-by`, `created`, `superseded-by`, `reason`,
 `archived`, `archive-reason`, `paths`. Only applicable fields appear.
 `date` is machine-stamped at every lifecycle move; `created` preserves the
-record's birth date. `archived` is the archival date and matches `date`
+record's birth date — it is required on every record, a real calendar date,
+and never after `date`. `archived` is the archival date and matches `date`
 when a record enters frozen history. Records carry no git provenance: the
 former `commit` field is removed, and where a decision landed is Git
 history's to tell.

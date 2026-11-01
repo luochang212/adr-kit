@@ -238,9 +238,10 @@ prose; report missing substance that cannot be mechanically migrated. Rejection
 requires the problem, proposal, alternatives, and a reason, without completing
 an abandoned implementation plan.
 
-The front matter layout (`---`, `status`/`date` fields in canonical
-order, `---`, blank line, `# ADR:` title) and the per-status section
-skeletons are machine-checked. The `date` field is machine-stamped at
+The front matter layout (`---`, the required `status`/`date` fields, `---`,
+blank line, `# ADR:` title) and the per-status section skeletons are
+machine-checked; the canonical field order is how the CLI emits front matter,
+renormalized at the next lifecycle move rather than validated. The `date` field is machine-stamped at
 every lifecycle move. When you change a template or a validation rule,
 update:
 

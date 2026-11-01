@@ -2,6 +2,7 @@
 
 可在项目任意子目录运行；ADR Kit 向上寻找最近的 `adr/`。
 记录位于 `proposed/`、`implemented/`、`rejected/`、`archived/`。
+npm 包名是 `adr-kit`，安装的命令是 `adrkit`。
 
 新项目使用 `adrkit init`，已有项目需要刷新集成时使用 `adrkit update`。
 后续会话从 `adrkit list` 和相关决策阅读开始。已安装集成但缺少常驻规则时，
@@ -27,7 +28,7 @@
 | `adrkit validate [<name> \| --all]` | 校验单条记录，或整个仓库（含闭合的生命周期清单）；名称与 `--all` 互斥 |
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
-| `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错、暂存删除搁浅编号决策的引用、或暂存删除某记录字面 `paths` 条目指名的文件时失败，否则列出管辖这些改动的生效决策 |
+| `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错、暂存删除搁浅编号决策的引用、暂存删除某记录字面 `paths` 条目指名的文件、或暂存删除任何归档记录时失败，否则列出管辖这些改动的生效决策 |
 | `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record` 是单条决策的 deliberation tree（卡片视图），`--map` 显式选择决策地图；`--format` 只设置已选对象的格式，完整档案只支持 HTML |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |
 | `adrkit version` | 输出版本 |
@@ -100,8 +101,9 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
 - Front matter：可解析的规范布局，无未知字段；`created` 必填、为真实
   日历日期、不晚于状态日期。
 - `description`：必填、非空的单行文本，说明什么情况下值得阅读。
-- `paths`（存在时）：非空、仓库相对、正斜杠、不含 `..`、不重复，且每个
-  静态目录锚点（无通配符时为完整路径）在仓库中仍然存在。
+- `paths`（存在时）：非空、仓库相对、正斜杠、不含 `..`、不重复，每个
+  静态目录锚点（无通配符时为完整路径）在仓库中仍然存在，且与仓库的实际
+  拼写完全一致——匹配在所有平台上都区分大小写。
 - 小节：按状态要求的必备标题齐全、不重复，且每个必备小节都有实际内容：
   决策要求 `Problem`、`Decision`/`Proposal`、`Alternatives considered` 和
   `Consequences`；提案要求 `Problem`、`Proposal`、`Alternatives considered`、
@@ -116,12 +118,14 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
 - implemented 记录的 `### Later changes` 条目以 `**Amended by ADR N:**`
   开头；以 `ADR N later` 开头的尾注段落、丢失开头的条目，或首条合法条目之前
   的普通正文会失败，承接上一条的普通段落不受影响。
-- 替代链无环且最终指向 implemented 决策；后继无需反向引用。
+- 替代链无环且最终指向 implemented 决策，且每个后继都是更晚（编号更大）
+  的决策；后继无需反向引用。
 整仓校验（无名称或 `--all`）额外检查：
 
 - 四个生命周期目录就是全部清单：未知目录、`adr/` 根下的记录、嵌套目录
   都会失败；`adr/config.yaml` 存在且已知字段类型正确。
-- 编号在 `implemented/` 与 `archived/` 之间全局唯一。
+- 编号在 `implemented/` 与 `archived/` 之间全局唯一；`adrkit validate
+  <名称>` 也会报告与该记录编号相同的其他记录。
 - 代码与配置中的 `@adr <编号>` 引用（细节见上）；源文件或目录不可读时
   报告扫描诊断并使校验失败。
 - 归档记录与其他记录一样满足格式、路径和引用校验。

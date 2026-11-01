@@ -44,7 +44,7 @@ These are a manual protocol; template tests do not prove model quality.
    cannot reuse a number.
 4. Full replacement uses `adrkit supersede <old> --by <new>`; the old
    numbered record moves to `archived/` with `superseded-by`. Partial
-   replacement leaves still-relevant guidance active. `adrkit archive <N>
+   replacement leaves still-relevant guidance active. `adrkit archive <name>
    --reason "<current authority>"` retires other low-guidance implemented
    records when current behavior has another owner. Never archive by age.
    Both commands move the final record into `archived/`; Git records later
