@@ -199,7 +199,33 @@ describe('pre-commit hook management', () => {
     expect(result.output).toContain('cites ADR 99, which does not exist');
   });
 
-  it('fails on a staged deletion of a numbered decision', () => {
+  it('fails on a staged deletion that strands a citation', () => {
+    const root = makeRepo();
+    write(join(root, 'src', 'a.ts'), `${cite(1)}export const a = 1;\n`);
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
+    git(root, 'add', '-A');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
+    git(root, 'rm', '-q', 'adr/implemented/1-test.md');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('src/a.ts');
+    expect(result.output).toContain('cites the deleted ADR 1');
+  });
+
+  it('fails on a staged deletion that strands a prose reference', () => {
+    const root = makeRepo();
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
+    write(join(root, 'adr', 'implemented', '2-follow.md'), decision(['src/a.ts']).replace('1 Test', '2 Follow') + '\nFollows ADR 1.\n');
+    git(root, 'add', '-A');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decisions');
+    git(root, 'rm', '-q', 'adr/implemented/1-test.md');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('adr/implemented/2-follow.md: body references decision 1, which this commit deletes');
+  });
+
+  it('allows a staged deletion whose number nothing references', () => {
     const root = makeRepo();
     write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
     write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
@@ -207,9 +233,19 @@ describe('pre-commit hook management', () => {
     git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
     git(root, 'rm', '-q', 'adr/implemented/1-test.md');
     const result = hookRunCommand(root);
+    expect(result.ok).toBe(true);
+  });
+
+  it('fails on a staged deletion of an archived decision', () => {
+    const root = makeRepo();
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    write(join(root, 'adr', 'archived', '1-old.md'), decision(['src/a.ts']).replace('1 Test', '1 Old'));
+    git(root, 'add', '-A');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the archived decision');
+    git(root, 'rm', '-q', 'adr/archived/1-old.md');
+    const result = hookRunCommand(root);
     expect(result.ok).toBe(false);
-    expect(result.output).toContain('adr/implemented/1-test.md: staged deletion of a numbered decision');
-    expect(result.output).toContain('"adrkit archive"');
+    expect(result.output).toContain('adr/archived/1-old.md: staged deletion of an archived decision');
   });
 
   it('allows a staged rename that keeps the decision number', () => {

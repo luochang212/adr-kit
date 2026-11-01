@@ -1,4 +1,5 @@
 import {
+  appendFileSync,
   closeSync,
   existsSync,
   openSync,
@@ -90,12 +91,17 @@ decision's implementation freedom need no update. Existing records are not
 precedent for recording similar edits. A changed recorded choice needs a new
 record. Archive or supersede rather than erase it.
 
-If a numbered record was created by mistake before anything cites it, removing
-it is a Git operation, not a lifecycle move: git rm it in a commit that also
-removes or updates anything citing the number, and say why in the commit
-message. The pre-commit hook flags such a removal; treat that as the moment to
-double-check nothing references it. The record survives in Git history, as
-every archived record does.
+The exception is the record that should never have existed — noise, a
+duplicate, a routine change recorded as a decision. Remove it with
+adrkit delete, never by hand: the command refuses while code cites the
+record or another record references it, so the repository stays valid after
+every deletion. Decision numbers form an append-only journal at
+adr/.decision-sequence: allocation and removal both append to it, so a removed
+number is never reallocated and deleting even the highest number cannot hand
+it to a later decision. Removing a rejection is a
+deliberate edit: its warning must be owned by another record first (ADR 20).
+Archived records are never deleted. Git history retains every removed record,
+as it retains every archived one.
 
 The canonical header includes status, date, and created: YYYY-MM-DD (the
 birth date, never re-stamped). Numbered records declare raised-by: human | agent
@@ -321,12 +327,73 @@ export function resolveRecordFromInventory<T extends Pick<AdrRecord, 'path' | 'f
   return exactlyOne(root, query, candidates, 'ADR');
 }
 
+/**
+ * The decision-number line is an append-only journal at the `adr/` root; the
+ * numbered file names are its current projection. Every number event is
+ * journaled — a numbered record write journals the number it lands, removal
+ * journals one that must never return — so the next allocation is a maximum
+ * over the journal and the surviving files, and no deletion, however high,
+ * can hand its number to a later decision (ADR 48). A dotfile keeps the
+ * journal out of the record inventory, the citation scan, and `adrkit list`.
+ * Lines are numbers; blank lines and `#` comments are ignored. Writers only
+ * append, so no lock is needed beyond the small O_APPEND write.
+ */
+const DECISION_SEQUENCE_FILE = '.decision-sequence';
+
+export function decisionSequencePath(root: string): string {
+  return join(adrRoot(root), DECISION_SEQUENCE_FILE);
+}
+
+function readDecisionSequence(root: string): number[] {
+  let text: string;
+  try {
+    text = readFileSync(decisionSequencePath(root), 'utf8');
+  } catch {
+    return [];
+  }
+  const numbers: number[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || trimmed.startsWith('#')) continue;
+    const number = Number(trimmed);
+    if (Number.isSafeInteger(number) && number > 0) numbers.push(number);
+  }
+  return numbers;
+}
+
+function appendDecisionNumber(root: string, number: number): void {
+  appendFileSync(decisionSequencePath(root), `${number}\n`, { encoding: 'utf8' });
+}
+
+/**
+ * Journal a numbered record's write, under the write lock so a competing
+ * same-number writer still arbitrates first. A crash after the file lands
+ * but before the journal line self-heals: the file maximum keeps the line
+ * monotonic until the journal catches up.
+ */
+function journalWrittenDecisionNumber(root: string, number: number): void {
+  appendDecisionNumber(root, number);
+}
+
+/**
+ * Journal a numbered record's removal: the one event that can lower the
+ * surviving-file maximum. Journaling before the removal means a failed
+ * removal still cannot hand the number onward; a retry appends a harmless
+ * duplicate.
+ */
+export function journalRemovedDecisionNumber(root: string, number: number): void {
+  appendDecisionNumber(root, number);
+}
+
 export function nextDecisionNumber(root: string): number {
   let max = 0;
   for (const record of listRecords(root)) {
     if ((record.folder === 'implemented' || record.folder === 'archived') && (record.number ?? 0) > max) {
       max = record.number ?? 0;
     }
+  }
+  for (const number of readDecisionSequence(root)) {
+    if (number > max) max = number;
   }
   return max + 1;
 }
@@ -389,6 +456,7 @@ export function writeRecord(root: string, folder: AdrFolder, fileName: string, c
     // A removed lifecycle folder is recreated on write.
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, content, { flag: 'wx' });
+    journalWrittenDecisionNumber(root, number);
     return path;
   } finally {
     closeSync(lock);

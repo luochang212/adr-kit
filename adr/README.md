@@ -35,12 +35,17 @@ decision's implementation freedom need no update. Existing records are not
 precedent for recording similar edits. A changed recorded choice needs a new
 record. Archive or supersede rather than erase it.
 
-If a numbered record was created by mistake before anything cites it, removing
-it is a Git operation, not a lifecycle move: git rm it in a commit that also
-removes or updates anything citing the number, and say why in the commit
-message. The pre-commit hook flags such a removal; treat that as the moment to
-double-check nothing references it. The record survives in Git history, as
-every archived record does.
+The exception is the record that should never have existed — noise, a
+duplicate, a routine change recorded as a decision. Remove it with
+adrkit delete, never by hand: the command refuses while code cites the
+record or another record references it, so the repository stays valid after
+every deletion. Decision numbers form an append-only journal at
+adr/.decision-sequence: allocation and removal both append to it, so a removed
+number is never reallocated and deleting even the highest number cannot hand
+it to a later decision. Removing a rejection is a
+deliberate edit: its warning must be owned by another record first (ADR 20).
+Archived records are never deleted. Git history retains every removed record,
+as it retains every archived one.
 
 The canonical header includes status, date, and created: YYYY-MM-DD (the
 birth date, never re-stamped). Numbered records declare raised-by: human | agent

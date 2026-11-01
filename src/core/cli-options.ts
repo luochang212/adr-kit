@@ -16,6 +16,7 @@ export const COMMANDS = [
   'reject',
   'archive',
   'supersede',
+  'delete',
   'list',
   'relevant',
   'show',

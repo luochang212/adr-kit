@@ -8,6 +8,7 @@ import { archiveCommand } from './commands/archive.js';
 import { atlasCommand } from './commands/atlas.js';
 import { completionCommand } from './commands/completion.js';
 import { configCommand } from './commands/config.js';
+import { deleteCommand } from './commands/delete.js';
 import { hookInstallCommand, hookRunCommand, hookUninstallCommand } from './commands/hook.js';
 import { recordCommand } from './commands/record.js';
 import { implementCommand } from './commands/implement.js';
@@ -59,6 +60,7 @@ Usage:
   adrkit reject <name> --reason <reason>     Reject a proposal; keep it as an anti-pattern
   adrkit archive <name> --reason <reason>    Retire an implemented record
   adrkit supersede <name> --by <name>        Replace and archive an implemented decision
+  adrkit delete <name>                       Remove a record that should never have existed
   adrkit list                                List all lifecycle records
   adrkit relevant [<path>... | --base <git-ref> | --staged]
                                            Retrieve scoped records for planned files or Git changes
@@ -212,6 +214,10 @@ export function main(argv: string[]): void {
           throw new Error('supersede requires --by <name>');
         }
         console.log(supersedeCommand(oneName(rest, 'supersede'), by, process.cwd()));
+        return;
+      }
+      case 'delete': {
+        console.log(deleteCommand(oneName(rest, 'delete'), process.cwd()));
         return;
       }
       case 'list': {

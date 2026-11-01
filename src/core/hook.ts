@@ -4,10 +4,16 @@ import { isAbsolute, join, resolve } from 'node:path';
 import { parseAdrText, type AdrFolder, type AdrRecord } from './adr.js';
 import { ADR_DIR, findRoot, requireRoot } from './config.js';
 import { gitChangedPaths } from './git.js';
-import { citationProblem, findCitations, isCitationScanPath } from './markers.js';
+import { citationProblem, citationsTo, findCitations, isCitationScanPath } from './markers.js';
 import { relevantRecords } from './relevant.js';
 import { displayName, FOLDERS, listRecords } from './repository.js';
-import { formatIssues, validateRecord, validateRecordReferences, type ValidationIssue } from './validate.js';
+import {
+  formatIssues,
+  recordsReferencing,
+  validateRecord,
+  validateRecordReferences,
+  type ValidationIssue,
+} from './validate.js';
 
 const HOOK_MARKER = '# adrkit: managed pre-commit hook';
 
@@ -111,11 +117,25 @@ export function hookCheck(cwd: string): HookCheckResult {
     if (text === undefined) {
       const number = numberedPath(path);
       if (number !== undefined && !keptNumbers.has(number)) {
-        issues.push({
-          path,
-          message:
-            'staged deletion of a numbered decision; decisions are never deleted — retire it with "adrkit archive" or "adrkit supersede" instead',
-        });
+        if (path.startsWith(`${ADR_DIR}/archived/`)) {
+          issues.push({
+            path,
+            message:
+              'staged deletion of an archived decision; archived records are frozen history and are never deleted',
+          });
+        } else {
+          // A deletion is a defect only when it strands something: adrkit
+          // delete refuses the same references before removing the record, so
+          // a removal that went through it passes here, and a manual rm that
+          // left references behind fails with their list. Objective defects
+          // only — the deletion itself is the committer's deliberate move.
+          for (const site of citationsTo(root, number)) {
+            issues.push({ path: site.path, message: `line ${site.line}: cites the deleted ADR ${number}` });
+          }
+          for (const site of recordsReferencing(root, records, number)) {
+            issues.push({ path: site.path, message: `${site.message}, which this commit deletes` });
+          }
+        }
       }
       continue;
     }

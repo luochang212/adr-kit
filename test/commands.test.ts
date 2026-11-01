@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.js';
 import { implementCommand } from '../src/commands/implement.js';
+import { archiveCommand } from '../src/commands/archive.js';
+import { deleteCommand } from '../src/commands/delete.js';
+import { supersedeCommand } from '../src/commands/supersede.js';
 import { atlasCommand } from '../src/commands/atlas.js';
 import { configCommand } from '../src/commands/config.js';
 import { recordCommand } from '../src/commands/record.js';
@@ -87,6 +90,21 @@ afterEach(() => {
   }
 });
 
+/** Two shipped decisions (1 Use SQLite, 2 Use Postgres); the second's body names the first in prose. */
+function implementTwoDecisions(root: string, extraDecisionText = ''): void {
+  for (const title of ['Use SQLite', 'Use Postgres']) {
+    proposeCommand(title, root);
+    fillDraft(root);
+    const draft = pendingDraftPath(root);
+    writeFileSync(draft, readFileSync(draft, 'utf8').replace('# ADR: Use SQLite', `# ADR: ${title}`));
+    implementCommand(title, root, 'human', 'human');
+  }
+  if (extraDecisionText.length > 0) {
+    const follower = join(root, 'adr', 'implemented', '2-use-postgres.md');
+    writeFileSync(follower, readFileSync(follower, 'utf8').replace('## Decision\n\nUse SQLite.', `## Decision\n\nUse SQLite. ${extraDecisionText}`));
+  }
+}
+
 describe('initCommand', () => {
   it('creates the ADR Kit directory layout', () => {
     const root = makeRepo();
@@ -131,11 +149,15 @@ describe('initCommand', () => {
   it('states the no-deletion invariant the decision numbering depends on', () => {
     const root = makeRepo();
     const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
-    // Deleting a decision reuses its number (nextDecisionNumber derives the next
-    // number from the files present), so the generated README must forbid it and
-    // point at the command that retires a decision without deleting it.
+    // The README keeps the default forbidden and points at the commands that
+    // retire a decision without deleting it; ADR 48 reserves removed numbers,
+    // so the README must also name the ledger that makes deletion safe.
     expect(readme).toContain('Never delete a numbered decision');
     expect(readme).toContain('adrkit supersede');
+    // The mistaken-record exception names the checked removal path and keeps
+    // the frozen-history boundary.
+    expect(readme).toContain('adrkit delete');
+    expect(readme).toContain('Archived records are never deleted');
   });
 
   it('documents the created and description fields in the generated README', () => {
@@ -547,6 +569,106 @@ describe('propose and implement', () => {
     expect(content).toContain('## Implementation');
     expect(content).toContain('PR #123: https://github.com/example/repo/pull/123');
     expect(validateCommand(root).valid).toBe(true);
+  });
+});
+
+describe('deleteCommand', () => {
+  it('removes an unnumbered proposal and reports the deletion', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    const output = deleteCommand('use-sqlite', root);
+    expect(output).toContain('deleted adr/proposed/');
+    expect(listProposals(root)).toHaveLength(0);
+  });
+
+  it('refuses an archived record: frozen history is never deleted', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    archiveCommand('1', 'no longer needed', root);
+    expect(() => deleteCommand('1', root)).toThrow('archived records are frozen history');
+    expect(existsSync(join(root, 'adr', 'archived', '1-use-sqlite.md'))).toBe(true);
+  });
+
+  it('refuses while code cites the record, then deletes once the citation is gone', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    // The citation marker is split so this test file is not itself a citation.
+    writeFileSync(join(root, 'src.ts'), `// @${'adr'} 1\nexport const a = 1;\n`);
+    expect(() => deleteCommand('1', root)).toThrow(/cited in code[\s\S]*src\.ts:1/);
+    rmSync(join(root, 'src.ts'));
+    const output = deleteCommand('1', root);
+    expect(output).toContain('deleted adr/implemented/1-use-sqlite.md');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('refuses while another record references the number in prose', () => {
+    const root = makeRepo();
+    implementTwoDecisions(root, 'Follows ADR 1.');
+    expect(() => deleteCommand('1', root)).toThrow(/referenced by other records[\s\S]*body references decision 1/);
+    const follower = join(root, 'adr', 'implemented', '2-use-postgres.md');
+    writeFileSync(follower, readFileSync(follower, 'utf8').replace('Follows ADR 1.', 'Migrated directly.'));
+    expect(deleteCommand('1', root)).toContain('deleted adr/implemented/1-use-sqlite.md');
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('refuses while an archived successor chain names it in superseded-by', () => {
+    const root = makeRepo();
+    implementTwoDecisions(root);
+    supersedeCommand('1', '2', root);
+    expect(() => deleteCommand('2', root)).toThrow('superseded-by names deleted decision 2');
+    expect(existsSync(join(root, 'adr', 'implemented', '2-use-postgres.md'))).toBe(true);
+  });
+
+  it('deletes a rejection only after the durable-warning note', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    rejectCommand('Use SQLite', 'the temptation passed', root);
+    const output = deleteCommand('use-sqlite', root);
+    expect(output).toContain('a rejection is durable (ADR 20)');
+    expect(output).toContain('deleted adr/rejected/');
+    expect(listRecords(root)).toEqual([]);
+  });
+
+  it('never reallocates a removed number, even the highest one', () => {
+    const root = makeRepo();
+    const journal = () =>
+      readFileSync(join(root, 'adr', '.decision-sequence'), 'utf8')
+        .split('\n')
+        .filter((line) => line.trim() && !line.startsWith('#'));
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    expect(deleteCommand('1', root)).toContain('deleted adr/implemented/1-use-sqlite.md');
+    // The write journaled 1 and the removal journaled it again; the journal,
+    // not the surviving files, holds the number (ADR 48).
+    expect(journal()).toEqual(['1', '1']);
+
+    proposeCommand('Use Postgres', root);
+    fillDraft(root);
+    const draft = pendingDraftPath(root);
+    writeFileSync(draft, readFileSync(draft, 'utf8').replace('# ADR: Use SQLite', '# ADR: Use Postgres'));
+    implementCommand('Use Postgres', root, 'human', 'human');
+    // The removed 1 stays reserved: the next decision is 2, not 1.
+    expect(existsSync(join(root, 'adr', 'implemented', '2-use-postgres.md'))).toBe(true);
+    expect(existsSync(join(root, 'adr', 'implemented', '1-use-postgres.md'))).toBe(false);
+    expect(journal()).toEqual(['1', '1', '2']);
+    expect(validateCommand(root).valid).toBe(true);
+  });
+
+  it('reports a user-owned mention without rewriting it', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    writeFileSync(join(root, 'AGENTS.md'), '# rules\n\nFollow ADR 1 for storage.\n');
+    const output = deleteCommand('1', root);
+    expect(output).toContain('AGENTS.md mentions ADR 1');
+    expect(readFileSync(join(root, 'AGENTS.md'), 'utf8')).toContain('Follow ADR 1');
   });
 });
 

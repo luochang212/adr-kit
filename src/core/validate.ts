@@ -571,22 +571,63 @@ function danglingReferenceIssues(
   record: AdrRecord,
   decisions: Map<number, AdrRecord>,
 ): ValidationIssue[] {
-  // The same visible-prose vocabulary the decision map mines: `ADR-12`,
-  // `ADR 4`, `ADR12`. The lookbehind keeps terms that merely contain ADR —
-  // "MADR-12" and the like — out of the reference vocabulary.
-  const pattern = /(?<![A-Za-z])ADR-?\s*([1-9]\d*)/g;
-  const numbers = new Set<number>();
-  const text = visibleRecordText(record);
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(text)) !== null) {
-    numbers.add(Number(match[1]));
-  }
   const issues: ValidationIssue[] = [];
-  for (const number of [...numbers].sort((a, b) => a - b)) {
+  for (const number of proseReferenceNumbers(visibleRecordText(record)).sort((a, b) => a - b)) {
     if (number === record.number || decisions.has(number)) continue;
     issues.push({ path, message: `body references decision ${number}, which does not exist` });
   }
   return issues;
+}
+
+/**
+ * The decision numbers a visible text names, in the prose reference vocabulary
+ * the decision map mines and danglingReferenceIssues checks: `ADR-12`, `ADR 4`,
+ * `ADR12`. The lookbehind keeps terms that merely contain ADR — "MADR-12" and
+ * the like — out of the reference vocabulary. A fresh regex per call keeps the
+ * /g state out of shared mutable memory.
+ */
+export function proseReferenceNumbers(text: string): number[] {
+  const pattern = /(?<![A-Za-z])ADR-?\s*([1-9]\d*)/g;
+  const numbers = new Set<number>();
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text)) !== null) {
+    numbers.add(Number(match[1]));
+  }
+  return [...numbers];
+}
+
+/** One surviving record that still names a decision slated for removal. */
+export interface ReferenceSite {
+  path: string;
+  message: string;
+}
+
+/**
+ * The records a removal of decision `number` would strand: a visible-prose
+ * reference in another record's body or a `superseded-by` front-matter chain
+ * naming it. The inverse of danglingReferenceIssues — it asks which records
+ * name a number instead of which numbers a record misses. `adrkit delete` and
+ * the pre-commit hook refuse a removal until this list is empty, so the
+ * repository stays valid at every step, as the retirement commands refuse
+ * stranded citations (ADR 46).
+ */
+export function recordsReferencing(
+  root: string,
+  records: readonly AdrRecord[],
+  number: number,
+): ReferenceSite[] {
+  const sites: ReferenceSite[] = [];
+  for (const record of records) {
+    if (record.number === number) continue;
+    const path = relative(root, record.path).replace(/\\/g, '/');
+    if (record.supersededBy === number) {
+      sites.push({ path, message: `superseded-by names deleted decision ${number}` });
+    }
+    if (proseReferenceNumbers(visibleRecordText(record)).includes(number)) {
+      sites.push({ path, message: `body references decision ${number}` });
+    }
+  }
+  return sites.sort((a, b) => a.path.localeCompare(b.path) || a.message.localeCompare(b.message));
 }
 
 export function formatIssues(issues: ValidationIssue[]): string {
