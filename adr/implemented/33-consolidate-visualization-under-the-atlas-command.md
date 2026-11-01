@@ -5,7 +5,6 @@ description: "Read when exposing visualization capabilities through the single a
 raised-by: human
 decided-by: human
 created: 2026-10-22
-commit: 09a43d9
 paths:
   - src/commands/atlas.ts
   - src/commands/graph.ts

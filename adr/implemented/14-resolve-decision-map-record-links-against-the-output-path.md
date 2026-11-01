@@ -5,7 +5,6 @@ description: "Read when writing decision maps to a file and resolving record lin
 raised-by: human
 decided-by: human
 created: 2026-09-22
-commit: 059da29
 paths:
   - src/commands/graph.ts
   - src/core/graph-html.ts

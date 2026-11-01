@@ -133,7 +133,6 @@ export function decisionTemplate(
   number: number,
   title: string,
   context: string | undefined,
-  commit: string | undefined,
   decidedBy: DecidedBy,
   raisedBy: RaisedBy,
 ): string {
@@ -146,7 +145,6 @@ export function decisionTemplate(
     'raised-by': raisedBy,
     'decided-by': decidedBy,
   };
-  if (commit !== undefined) fields.commit = commit;
   return `${frontMatter(fields)}
 # ADR: ${number} ${title}
 
@@ -175,8 +173,7 @@ ${contextBlock(context)}## Problem
 /**
  * Convert a proposal into an implemented decision using the mechanical
  * rewrite the format requires: Proposal becomes Decision, and the
- * acceptance criteria and risks are folded into Consequences. `commit` anchors
- * the decision to the code state it was recorded against.
+ * acceptance criteria and risks are folded into Consequences.
  * Callers validate the generated record before mutating files: preserved
  * custom sections can collide with the canonical Decision or Consequences.
  *
@@ -189,7 +186,6 @@ ${contextBlock(context)}## Problem
 export function proposalToDecision(
   proposal: AdrRecord,
   number: number,
-  commit: string | undefined,
   decidedBy: DecidedBy,
   raisedBy: RaisedBy,
 ): string {
@@ -232,7 +228,6 @@ export function proposalToDecision(
   // Discovery text and file scopes survive promotion unchanged.
   if (proposal.description !== undefined) fields.description = proposal.description;
   if (proposal.paths !== undefined) fields.paths = proposal.paths;
-  if (commit !== undefined) fields.commit = commit;
   let output = `${frontMatter(fields)}
 # ADR: ${number} ${proposal.title}
 

@@ -172,9 +172,6 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   for (const key of record.frontMatterExtras ?? []) {
     issues.push({ path, message: `unknown front matter field "${key}"` });
   }
-  if (record.commit !== undefined && !/^[0-9a-f]{7,40}$/.test(record.commit)) {
-    issues.push({ path, message: `commit "${record.commit}" is not a git hash` });
-  }
   const dateError = dateIssue(record);
   if (dateError !== undefined) issues.push({ path, message: dateError });
   issues.push(...createdIssues(path, record));

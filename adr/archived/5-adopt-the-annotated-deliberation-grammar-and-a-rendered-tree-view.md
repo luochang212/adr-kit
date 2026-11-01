@@ -5,7 +5,6 @@ description: "Historical annotated deliberation grammar, superseded by the offli
 raised-by: human
 decided-by: human
 created: 2026-09-21
-commit: e816e44
 superseded-by: 8
 archived: 2026-09-25
 archive-reason: superseded by ADR 8

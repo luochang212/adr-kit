@@ -10,10 +10,11 @@ ADR Kit 用 YAML front matter 加 Markdown 正文，并按生命周期分目录�
 | `adr/archived/` | `implemented` 或 `superseded` | `N-slug.md` | 冻结历史 |
 
 front matter 的规范顺序是 `status`、`date`、`description`、`raised-by`、
-`decided-by`、`created`、`commit`、`superseded-by`、`reason`、
+`decided-by`、`created`、`superseded-by`、`reason`、
 `archived`、`archive-reason`、`paths`，只写适用字段。`date` 在每次生命周期
 转移时由机器写入；`created` 保留出生日期；`archived` 是归档日期，
-进入冻结历史时与 `date` 相同。
+进入冻结历史时与 `date` 相同。记录不携带 git 出处：原 `commit` 字段已移除，
+决策落在哪个提交由 Git 历史来讲述。
 头部后必须空一行，再写 `# ADR: <标题>`；已编号决策为
 `# ADR: N <标题>`。
 

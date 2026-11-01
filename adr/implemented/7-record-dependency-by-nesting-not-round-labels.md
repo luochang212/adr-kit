@@ -5,7 +5,6 @@ description: "Read when representing follow-up dependencies or deriving frontier
 raised-by: human
 decided-by: human
 created: 2026-09-21
-commit: e816e44
 paths:
   - src/core/deliberation.ts
   - src/core/deliberation-html.ts

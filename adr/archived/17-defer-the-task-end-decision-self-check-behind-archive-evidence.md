@@ -5,7 +5,6 @@ description: "Historical task-end recording reminder, replaced by the opt-in com
 raised-by: agent
 decided-by: human
 created: 2026-09-24
-commit: e999c3a
 superseded-by: 32
 archived: 2026-10-22
 archive-reason: superseded by ADR 32

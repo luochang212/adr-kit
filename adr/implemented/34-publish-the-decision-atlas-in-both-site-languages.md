@@ -5,7 +5,6 @@ description: "Read when generating bilingual atlas pages from one shared templat
 raised-by: human
 decided-by: human
 created: 2026-10-23
-commit: 309204c
 paths:
   - tools/build-decision-atlas.mjs
   - src/core/atlas-i18n.ts

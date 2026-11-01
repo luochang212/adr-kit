@@ -10,11 +10,13 @@ ADR Kit stores Markdown with YAML front matter in four lifecycle directories:
 | `adr/archived/` | `implemented` or `superseded` | `N-slug.md` | Frozen history |
 
 The canonical front matter order is `status`, `date`, `description`, `raised-by`,
-`decided-by`, `created`, `commit`, `superseded-by`, `reason`,
+`decided-by`, `created`, `superseded-by`, `reason`,
 `archived`, `archive-reason`, `paths`. Only applicable fields appear.
 `date` is machine-stamped at every lifecycle move; `created` preserves the
 record's birth date. `archived` is the archival date and matches `date`
-when a record enters frozen history.
+when a record enters frozen history. Records carry no git provenance: the
+former `commit` field is removed, and where a decision landed is Git
+history's to tell.
 The header is followed by a blank line and `# ADR: <title>` (or
 `# ADR: N <title>` for numbered decisions).
 

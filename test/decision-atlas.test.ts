@@ -69,7 +69,6 @@ const live = [
     description: 'Read when changing session storage.',
     paths: ['src/storage.ts'],
     sections: [{ heading: 'Problem', body: '\nSessions leaked.\n' }, { heading: 'Decision', body: '\nUse SQLite.\n' }],
-    commit: 'def5678',
   }),
   record({
     number: 2,

@@ -22,6 +22,18 @@ Archived records change only through a deliberate, explained commit.
 
 Newest first. Each note names what changed and what to do.
 
+### After 0.34.0: the commit field is removed
+
+Records no longer carry git provenance: `adrkit record` and `adrkit implement`
+stop stamping `commit`, validation no longer checks its shape, and a record
+still carrying the field reports `unknown front matter field "commit"`. Delete
+the line from every record — the migration is mechanical and needs no author
+judgment. Where a decision was recorded against is Git history's to tell: the
+parent of the commit that added the record file names the same state. This
+repository deliberately migrates archived front matter in the same change while
+preserving archived bodies; use an explained migration commit for your archives
+too.
+
 ### After 0.34.0: Node.js floor raised to 24.22
 
 The CLI now requires Node.js 24.22 or later, and `@types/node` follows the

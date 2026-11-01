@@ -5,7 +5,6 @@ description: "Read when changing what a grilling session must record or how the 
 raised-by: human
 decided-by: human
 created: 2026-09-20
-commit: fbfea95
 paths:
   - skills/adrkit-grill/SKILL.md
   - src/core/tool-integrations.ts

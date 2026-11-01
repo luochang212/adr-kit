@@ -5,7 +5,6 @@ description: "Read when deciding whether a choice belongs in a proposal, active 
 raised-by: human
 decided-by: human
 created: 2026-09-24
-commit: 9cfada4
 paths:
   - adr/**
   - src/commands/propose.ts

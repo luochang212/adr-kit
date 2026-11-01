@@ -5,7 +5,6 @@ description: "Read when linking code to decisions and validating whether those c
 raised-by: agent
 decided-by: agent
 created: 2026-10-19
-commit: 5ebda92
 paths:
   - src/core/markers.ts
   - src/core/validate.ts

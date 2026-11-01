@@ -5,7 +5,6 @@ description: "Historical single-theme website publication policy, superseded by 
 raised-by: human
 decided-by: human
 created: 2026-10-25
-commit: 8dc58f5
 superseded-by: 41
 archived: 2026-10-27
 archive-reason: superseded by ADR 41

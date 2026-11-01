@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -124,7 +124,7 @@ describe('supersedeCommand', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 
-  it('preserves the recording commit instead of stamping the retirement', () => {
+  it('refuses a record still carrying the removed commit field', () => {
     const root = makeRepo();
     implementDecision(root, 'Use SQLite');
     implementDecision(root, 'Use Postgres');
@@ -135,12 +135,10 @@ describe('supersedeCommand', () => {
     );
     writeFileSync(path, source);
 
-    supersedeCommand('1', '2', root);
-
-    const old = readFileSync(join(root, 'adr', 'archived', '1-use-sqlite.md'), 'utf8');
-    // The field anchors the decision to the code it was recorded against;
-    // retirement has its own date and is visible in Git history.
-    expect(old).toContain('commit: abc1234');
+    expect(() => supersedeCommand('1', '2', root)).toThrow(/unknown front matter field\(s\): commit/);
+    // The lifecycle rewrite emits only canonical fields, so the move refuses
+    // instead of silently dropping the key; provenance lives in Git history.
+    expect(existsSync(join(root, 'adr', 'archived', '1-use-sqlite.md'))).toBe(false);
   });
 
   it('counts archived records separately in status', () => {

@@ -5,7 +5,6 @@ description: "Read when changing the offline decision map, its relationship edge
 raised-by: human
 decided-by: human
 created: 2026-09-22
-commit: c4c58fe
 paths:
   - src/core/graph-html.ts
   - src/core/graph-view.ts

@@ -5,7 +5,6 @@ description: "Read when designing how agents notice settled choices and capture 
 raised-by: agent
 decided-by: agent
 created: 2026-10-12
-commit: a3072af
 paths:
   - src/core/notes.ts
   - src/commands/note.ts

@@ -79,7 +79,8 @@ Records outlive the format that wrote them. The npm package is
 `adr-kit`; the command it installs is `adrkit`, so install and upgrade
 with `npm install -g adr-kit`. The former `tags` field is removed: remove it and author a one-sentence
 `description` explaining when to read each record; labels cannot mechanically
-supply that sentence. When `adrkit validate` reports
+supply that sentence. The former `commit` field is removed too: delete the line; where a decision
+landed is Git history's to tell, not the record's. When `adrkit validate` reports
 unknown fields, missing sections, or parse errors on records an older release
 wrote, treat it as format drift rather than damage: upgrade the `adr-kit`
 package to the latest stable release, migrate the active records to the current
@@ -93,7 +94,7 @@ When the user wants to review or share the project's history, use the
 and `adr/archived/` only, publish archived bodies in full, and pin the page to
 the commit it was built from.
 
-<!-- adrkit: standing-orders 0c08aaee -->
+<!-- adrkit: standing-orders 2cce4b9b -->
 
 ## Commands
 

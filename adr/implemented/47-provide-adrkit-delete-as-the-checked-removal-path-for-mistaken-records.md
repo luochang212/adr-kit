@@ -6,7 +6,6 @@ description: Read when removing a record that should never have been written, or
 raised-by: human
 decided-by: human
 created: 2026-11-01
-commit: 84f2dec
 paths:
   - src/commands/delete.ts
   - src/core/hook.ts

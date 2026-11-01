@@ -6,7 +6,6 @@ description: Explain when each decision should be read without maintaining a
 raised-by: human
 decided-by: human
 created: 2026-10-29
-commit: 8316bb7
 paths:
   - src/**
   - skills/**

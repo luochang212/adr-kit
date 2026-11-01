@@ -8,7 +8,6 @@ created: 2026-10-23
 paths:
   - site/src/layouts/Base.astro
   - test/site-language.test.ts
-commit: cad88d2
 ---
 
 # ADR: 38 prefer Chinese anywhere in the browser language list for the homepage

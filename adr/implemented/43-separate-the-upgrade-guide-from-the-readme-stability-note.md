@@ -5,7 +5,6 @@ description: "Read when placing stability promises and release-specific upgrade 
 raised-by: human
 decided-by: human
 created: 2026-10-29
-commit: 522df0c
 paths:
   - README.md
   - README.zh.md

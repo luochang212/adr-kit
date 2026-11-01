@@ -5,7 +5,6 @@ description: "Read when adding commit-time decision checks and separating object
 raised-by: human
 decided-by: human
 created: 2026-10-22
-commit: 147b36a
 paths:
   - src/core/hook.ts
   - src/commands/hook.ts

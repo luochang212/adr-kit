@@ -5,7 +5,6 @@ description: "Read when changing pan, zoom, fit, keyboard controls, or gestures 
 raised-by: human
 decided-by: human
 created: 2026-09-22
-commit: 651c064
 paths:
   - src/core/canvas-view.ts
   - src/core/graph-html.ts

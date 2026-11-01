@@ -50,7 +50,6 @@ interface AtlasRecord {
   'raised-by'?: string;
   'decided-by'?: string;
   created?: string;
-  commit?: string;
   'superseded-by'?: number;
   'archive-reason'?: string;
   description: string;
@@ -230,7 +229,6 @@ export function renderDecisionAtlas(options: DecisionAtlasOptions): string {
     'raised-by': record.raisedBy,
     'decided-by': record.decidedBy,
     created: record.created,
-    commit: record.commit,
     'superseded-by': record.supersededBy,
     'archive-reason': record.archiveReason,
     description: record.description ?? '',

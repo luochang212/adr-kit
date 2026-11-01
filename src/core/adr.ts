@@ -44,7 +44,7 @@ export function isRaisedBy(value: unknown): value is RaisedBy {
 export type AdrFolder = 'proposed' | 'implemented' | 'rejected' | 'archived';
 
 /** Canonical front matter field order; only fields that exist are written. */
-export const FRONT_MATTER_ORDER = ['status', 'date', 'description', 'raised-by', 'decided-by', 'created', 'commit', 'superseded-by', 'reason', 'archived', 'archive-reason', 'paths'] as const;
+export const FRONT_MATTER_ORDER = ['status', 'date', 'description', 'raised-by', 'decided-by', 'created', 'superseded-by', 'reason', 'archived', 'archive-reason', 'paths'] as const;
 
 /** File name of a numbered record in implemented/ or archived/: `N-slug.md`. */
 export const NUMBERED_FILE_NAME_PATTERN = /^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/;
@@ -114,8 +114,6 @@ export interface AdrRecord {
   /** Date the record was created; stamped once and never re-stamped, so the
    * time axis survives later lifecycle moves. */
   created?: string;
-  /** Short git hash the decision was recorded against; auto-stamped when in a git repo. */
-  commit?: string;
   rejectionReason?: string;
   /** For superseded decisions: the number of the decision that replaced this one. */
   /** Immediate historical successor; validation follows the chain to an implemented record. */
@@ -474,15 +472,6 @@ export function parseAdrText(text: string, filePath: string): AdrRecord {
     paths = pathsField as string[];
   }
 
-  let commit: string | undefined;
-  const commitField = fields['commit'];
-  if (commitField !== undefined) {
-    if (typeof commitField !== 'string' || commitField.trim().length === 0) {
-      throw new AdrFormatError('commit must be a non-empty string', filePath);
-    }
-    commit = commitField.trim();
-  }
-
   let rejectionReason: string | undefined;
   const reason = fields['reason'];
   if (status === 'rejected') {
@@ -586,7 +575,6 @@ export function parseAdrText(text: string, filePath: string): AdrRecord {
     date,
     sections,
   };
-  if (commit !== undefined) parsed.commit = commit;
   if (raisedBy !== undefined) parsed.raisedBy = raisedBy;
   if (decidedBy !== undefined) parsed.decidedBy = decidedBy;
   if (created !== undefined) parsed.created = created;

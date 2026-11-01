@@ -5,7 +5,6 @@ description: "Read when changing the first-party grilling workflow, its installa
 raised-by: human
 decided-by: human
 created: 2026-09-20
-commit: 83ac493
 paths:
   - skills/*/SKILL.md
   - src/core/tool-integrations.ts

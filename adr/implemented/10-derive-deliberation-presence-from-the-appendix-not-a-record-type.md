@@ -5,7 +5,6 @@ description: "Read when detecting whether a record has a renderable deliberation
 raised-by: human
 decided-by: human
 created: 2026-09-22
-commit: b79fff0
 paths:
   - src/core/deliberation.ts
   - src/core/graph.ts

@@ -5,7 +5,6 @@ description: "Read when defining which repository files a decision governs and d
 raised-by: agent
 decided-by: human
 created: 2026-10-12
-commit: 87afe6a
 paths:
   - src/core/adr.ts
   - src/core/templates.ts

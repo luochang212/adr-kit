@@ -5,7 +5,6 @@ description: "Read when promoting proposal acceptance criteria and risks into ve
 raised-by: agent
 decided-by: agent
 created: 2026-10-18
-commit: d202911
 paths:
   - src/core/adr.ts
   - src/core/templates.ts

@@ -5,7 +5,6 @@ description: "Read when choosing the project instruction file or installing the 
 raised-by: human
 decided-by: human
 created: 2026-10-16
-commit: "29211e6"
 paths:
   - src/core/tool-integrations.ts
   - skills/adrkit-init/SKILL.md

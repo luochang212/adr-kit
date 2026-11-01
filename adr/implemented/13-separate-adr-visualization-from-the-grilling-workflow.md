@@ -5,7 +5,6 @@ description: "Read when routing visualization requests to a workflow independent
 raised-by: human
 decided-by: human
 created: 2026-09-22
-commit: 02536cc
 paths:
   - skills/adrkit-visualize/SKILL.md
   - skills/adrkit-grill/SKILL.md

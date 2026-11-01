@@ -5,7 +5,6 @@ description: "Read when generating and publishing the project decision atlas fro
 raised-by: human
 decided-by: agent
 created: 2026-10-21
-commit: a2a2462
 paths:
   - src/core/decision-atlas.ts
   - src/core/graph-html.ts

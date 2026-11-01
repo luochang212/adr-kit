@@ -3,7 +3,6 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
-import { parseAdrFile } from '../src/core/adr.js';
 import { recordCommand } from '../src/commands/record.js';
 import { initCommand } from '../src/commands/init.js';
 
@@ -31,25 +30,14 @@ afterEach(() => {
   }
 });
 
-describe('git commit stamping', () => {
-  it('stamps the short HEAD hash on decide inside a git repo', () => {
+describe('git provenance stays out of records', () => {
+  it('records no commit field, even inside a git repo', () => {
     const root = makeRepo();
     gitInit(root);
-    const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
-      cwd: root,
-      encoding: 'utf8',
-    }).trim();
     recordCommand('Use SQLite', root, 'human', 'human');
-    // Assert on the parsed record: an all-digit short hash is serialized
-    // quoted (`commit: "2281972"`) to stay a string in YAML, so a raw-text
-    // regex would flake on ~5% of hashes.
-    const record = parseAdrFile(join(root, 'adr', 'implemented', '1-use-sqlite.md'));
-    expect(record.commit).toBe(head);
-  });
-
-  it('omits the commit field outside a git repo', () => {
-    const root = makeRepo();
-    recordCommand('Use SQLite', root, 'human', 'human');
+    // A git hash in the front matter would be a second, unverifiable copy of
+    // what history already records (ADR 49): validate names it as an unknown
+    // field, so the template must never write one.
     const content = readFileSync(join(root, 'adr', 'implemented', '1-use-sqlite.md'), 'utf8');
     expect(content).not.toContain('commit:');
   });

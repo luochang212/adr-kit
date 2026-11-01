@@ -5,7 +5,6 @@ description: "Read when changing how decision numbers are allocated, or touching
 raised-by: human
 decided-by: human
 created: 2026-11-01
-commit: 84f2dec
 paths:
   - src/core/repository.ts
   - src/commands/implement.ts

@@ -2,7 +2,6 @@ import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { hasMeaningfulBody, parseAdrText, section, type DecidedBy, type RaisedBy } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
-import { gitHead } from '../core/git.js';
 import { folderPath, listRecords, nextDecisionNumber, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
 import { droppedSections, proposalToDecision } from '../core/templates.js';
 import { formatIssues, validateRecord, validateRecordReferences } from '../core/validate.js';
@@ -45,7 +44,7 @@ export function implementCommand(
     throw new Error(`decision already exists: adr/implemented/${fileName}`);
   }
 
-  const content = proposalToDecision(proposal, number, gitHead(root), decidedBy, raisedBy);
+  const content = proposalToDecision(proposal, number, decidedBy, raisedBy);
   const generated = parseAdrText(content, path);
   generated.folder = 'implemented';
   const generatedIssues = [

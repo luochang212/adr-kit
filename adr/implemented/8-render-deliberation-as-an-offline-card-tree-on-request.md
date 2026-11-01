@@ -5,7 +5,6 @@ description: "Read when rendering an existing deliberation as a self-contained o
 raised-by: human
 decided-by: human
 created: 2026-09-22
-commit: e816e44
 paths:
   - src/core/deliberation-html.ts
   - src/core/deliberation-view.ts

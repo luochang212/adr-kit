@@ -609,6 +609,12 @@ Body.
     expect(validateCommand(root).output).toContain('unknown front matter field "tags"');
   });
 
+  it('rejects the removed commit field: git provenance is history, not front matter', () => {
+    const root = makeRepo();
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), decision('1 First', ACCEPTED).replace('---\n\n# ADR:', 'commit: abc1234\n---\n\n# ADR:'));
+    expect(validateCommand(root).output).toContain('unknown front matter field "commit"');
+  });
+
 });
 
 describe('closed lifecycle inventory', () => {

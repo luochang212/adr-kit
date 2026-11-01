@@ -5,7 +5,6 @@ description: "Read when delivering a requested visualization and deciding whethe
 raised-by: human
 decided-by: human
 created: 2026-09-22
-commit: 02536cc
 paths:
   - skills/adrkit-visualize/SKILL.md
   - src/core/tool-integrations.ts

@@ -118,8 +118,7 @@ records until their required sections are filled in.
 Per record, in every mode, including archived records.
 
 - Front matter: parseable canonical layout, no unknown fields; `created`
-  present, a real calendar date, and not after the status date; `commit`
-  (when present) a git hash.
+  present, a real calendar date, and not after the status date.
 - `description`: required, non-empty, single-line text explaining when to read the record.
 - `paths` (when present): non-empty, repository-relative, forward slashes,
   no `..`, no duplicates, and every static directory anchor (or full literal

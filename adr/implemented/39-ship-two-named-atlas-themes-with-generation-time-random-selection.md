@@ -5,7 +5,6 @@ description: "Read when selecting atlas themes or changing the shared behavior a
 raised-by: human
 decided-by: human
 created: 2026-10-25
-commit: 246c65d
 paths:
   - src/core/atlas-theme.ts
   - src/core/decision-atlas.ts

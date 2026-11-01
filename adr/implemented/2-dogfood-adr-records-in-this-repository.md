@@ -5,7 +5,6 @@ description: "Read when deciding where this repository keeps its architectural a
 raised-by: agent
 decided-by: human
 created: 2026-09-20
-commit: ba15e73
 paths:
   - .gitignore
   - adr/**

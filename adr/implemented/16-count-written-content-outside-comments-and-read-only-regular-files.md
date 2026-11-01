@@ -5,7 +5,6 @@ description: "Read when parsing written Markdown content or protecting record re
 raised-by: agent
 decided-by: human
 created: 2026-09-23
-commit: 6ec0049
 paths:
   - src/core/adr.ts
   - src/core/files.ts

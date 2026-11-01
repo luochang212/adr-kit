@@ -2,7 +2,6 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { assertSingleLineTitle, parseAdrText, type DecidedBy, type RaisedBy } from '../core/adr.js';
 import { readConfig, requireRoot } from '../core/config.js';
-import { gitHead } from '../core/git.js';
 import { folderPath, nextDecisionNumber, writeRecord } from '../core/repository.js';
 import { PATHS_TIP, decisionTemplate } from '../core/templates.js';
 import { slugify } from '../core/slug.js';
@@ -35,7 +34,6 @@ export function recordCommand(
     number,
     trimmed,
     readConfig(root).context,
-    gitHead(root),
     decidedBy,
     raisedBy,
   );

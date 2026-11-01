@@ -5,7 +5,6 @@ description: "Read when adding badges, states, statistics, or legend entries to 
 raised-by: human
 decided-by: human
 created: 2026-09-22
-commit: 02536cc
 paths:
   - src/core/deliberation.ts
   - src/core/deliberation-html.ts

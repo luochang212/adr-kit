@@ -5,7 +5,6 @@ description: "Read when retrieving decisions from paths or Git changes and repor
 raised-by: human
 decided-by: agent
 created: 2026-10-14
-commit: f768729
 paths:
   - src/core/relevant.ts
   - src/core/glob.ts

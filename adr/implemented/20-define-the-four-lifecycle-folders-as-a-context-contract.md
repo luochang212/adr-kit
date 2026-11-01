@@ -5,7 +5,6 @@ description: "Read when deciding which lifecycle records agents should read, che
 raised-by: human
 decided-by: human
 created: 2026-09-25
-commit: f398955
 paths:
   - AGENTS.md
   - adr/README.md
