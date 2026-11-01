@@ -2,7 +2,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, w
 import { isAbsolute, join, resolve } from 'node:path';
 import { parseAdrText, type AdrFolder, type AdrRecord } from './adr.js';
 import { ADR_DIR, findRoot, requireRoot } from './config.js';
-import { gitChangedPaths, runGit } from './git.js';
+import { gitChangedPaths, gitStagedDeletions, runGit } from './git.js';
 import { citationProblem, citationsTo, findCitations, isCitationScanPath } from './markers.js';
 import { relevantRecords } from './relevant.js';
 import { displayName, FOLDERS, listRecords } from './repository.js';
@@ -69,9 +69,13 @@ export function hookCheck(cwd: string): HookCheckResult {
   if (root === undefined) return { ok: true, output: '' };
 
   let staged: string[];
+  let deletions: Set<string>;
   let prefix: string;
   try {
     staged = gitChangedPaths(root, { staged: true });
+    // Deletions come from the diff, not from a failed read: a blob the output
+    // buffer cannot hold is unreadable, not gone.
+    deletions = new Set(gitStagedDeletions(root));
     // The index spells paths from the repository root, while the staged list
     // is relative to the ADR root; the prefix bridges a nested adr/ directory.
     prefix = runGit(root, ['rev-parse', '--show-prefix']).trim();
@@ -99,12 +103,11 @@ export function hookCheck(cwd: string): HookCheckResult {
   const keptNumbers = new Set<number>();
   for (const path of stagedRecordPaths) {
     const number = numberedPath(path);
-    if (number !== undefined && stagedText(root, prefix, path) !== undefined) keptNumbers.add(number);
+    if (number !== undefined && !deletions.has(path)) keptNumbers.add(number);
   }
 
   for (const path of stagedRecordPaths) {
-    const text = stagedText(root, prefix, path);
-    if (text === undefined) {
+    if (deletions.has(path)) {
       const number = numberedPath(path);
       if (number !== undefined && !keptNumbers.has(number)) {
         if (path.startsWith(`${ADR_DIR}/archived/`)) {
@@ -129,6 +132,11 @@ export function hookCheck(cwd: string): HookCheckResult {
       }
       continue;
     }
+    const text = stagedText(root, prefix, path);
+    if (text === undefined) {
+      issues.push({ path, message: 'cannot read the staged record from the index' });
+      continue;
+    }
     let record: AdrRecord;
     try {
       record = parseAdrText(text, join(root, path));
@@ -148,10 +156,10 @@ export function hookCheck(cwd: string): HookCheckResult {
   // drift-checked against the working tree above, so it reports once, not
   // twice.
   const stagedRecordTexts = new Set(
-    stagedRecordPaths.filter((path) => stagedText(root, prefix, path) !== undefined),
+    stagedRecordPaths.filter((path) => !deletions.has(path)),
   );
-  for (const path of staged) {
-    if (isRecordPath(path) || stagedText(root, prefix, path) !== undefined) continue;
+  for (const path of deletions) {
+    if (isRecordPath(path)) continue;
     for (const site of recordsScopedTo(root, records, path)) {
       if (stagedRecordTexts.has(site.path)) continue;
       issues.push({ path: site.path, message: site.message });

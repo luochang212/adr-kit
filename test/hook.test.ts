@@ -260,6 +260,20 @@ describe('pre-commit hook management', () => {
     expect(result.ok).toBe(true);
   });
 
+  it('does not mistake an unreadable large staged file for a deletion', () => {
+    const root = makeRepo();
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['assets/big.bin']));
+    write(join(root, 'assets', 'big.bin'), 'x');
+    git(root, 'add', '-A');
+    git(root, 'commit', '-qm', 'add the decision');
+    // Larger than the git output buffer, so reading the staged blob back fails.
+    // A read failure says nothing about whether the file still exists.
+    writeFileSync(join(root, 'assets', 'big.bin'), Buffer.alloc(16 * 1024 * 1024 + 1024));
+    git(root, 'add', 'assets/big.bin');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(true);
+  });
+
   it('passes a staged deletion whose record is updated in the same commit', () => {
     const root = makeRepo();
     write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts', 'src/b.ts']));

@@ -5,9 +5,8 @@ import { isAbsolute, relative, resolve, sep } from 'node:path';
 /**
  * The short HEAD commit hash of the repository containing `cwd`, or undefined
  * when git is unavailable, `cwd` is not inside a git repository, or the repo
- * has no commits yet. Silent by design: the commit stamp is an enhancement
- * (it anchors a decision to the code state it was recorded against), never a
- * failure. Callers stamp `commit` into the front matter only when defined.
+ * has no commits yet. Silent by design: the atlas build pin is an enhancement,
+ * never a failure.
  */
 export function gitHead(cwd: string): string | undefined {
   try {
@@ -77,6 +76,19 @@ export function gitListedFiles(root: string): string[] | undefined {
   }
 }
 
+/** NUL-separated repo-relative git output → root-relative POSIX paths under `root`. */
+function scopedPaths(root: string, gitRoot: string, listing: string): string[] {
+  const adrRoot = realpathSync.native(root);
+  const paths = new Set<string>();
+  for (const path of listing.split('\0')) {
+    if (path.length === 0) continue;
+    const scoped = relative(adrRoot, resolve(gitRoot, path));
+    if (scoped === '..' || scoped.startsWith(`..${sep}`) || isAbsolute(scoped)) continue;
+    paths.add(scoped.split(sep).join('/'));
+  }
+  return [...paths].sort();
+}
+
 /** Git file inputs are literal paths, including deleted files and rename origins. */
 export function gitChangedPaths(root: string, options: { base?: string; staged?: boolean }): string[] {
   try {
@@ -91,17 +103,29 @@ export function gitChangedPaths(root: string, options: { base?: string; staged?:
       ...(options.staged ? ['--cached'] : [base!]), '--',
     ]);
     const untracked = options.staged ? '' : runGit(gitRoot, ['ls-files', '--others', '--exclude-standard', '-z']);
-    const adrRoot = realpathSync.native(root);
-    const paths = new Set<string>();
-    for (const path of (diff + untracked).split('\0')) {
-      if (path.length === 0) continue;
-      const scoped = relative(adrRoot, resolve(gitRoot, path));
-      if (scoped === '..' || scoped.startsWith(`..${sep}`) || isAbsolute(scoped)) continue;
-      paths.add(scoped.split(sep).join('/'));
-    }
-    return [...paths].sort();
+    return scopedPaths(root, gitRoot, diff + untracked);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`cannot read Git changes${options.base === undefined ? '' : ` from base "${options.base}"`}: ${message}`);
+  }
+}
+
+/**
+ * The staged deletions under `root`, as root-relative POSIX paths. The index is
+ * asked directly which entries are gone in one diff call, so a file that merely
+ * cannot be read back — a blob larger than the git output buffer, for example —
+ * is never mistaken for a deletion.
+ */
+export function gitStagedDeletions(root: string): string[] {
+  try {
+    const gitRoot = gitToplevel(root);
+    const diff = runGit(gitRoot, [
+      'diff', '--name-only', '-z', '--no-renames', '--no-ext-diff', '--no-textconv',
+      '--diff-filter=D', '--cached', '--',
+    ]);
+    return scopedPaths(root, gitRoot, diff);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`cannot read staged Git deletions: ${message}`);
   }
 }
