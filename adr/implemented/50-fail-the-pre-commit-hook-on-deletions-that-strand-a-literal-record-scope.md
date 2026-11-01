@@ -7,10 +7,13 @@ decided-by: human
 created: 2026-11-02
 paths:
   - src/core/hook.ts
+  - src/core/git.ts
+  - src/core/validate.ts
   - test/hook.test.ts
   - README.md
   - README.zh.md
   - docs/cli.md
+  - docs/zh/cli.md
 ---
 
 # ADR: 50 Fail the pre-commit hook on deletions that strand a literal record scope

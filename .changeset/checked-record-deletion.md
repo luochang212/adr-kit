@@ -16,6 +16,6 @@ decision.
   allocation and removal both append to it, so a removed number is never
   reallocated, not even when the deleted record was the highest-numbered one.
 - The pre-commit hook no longer fails every staged deletion of a numbered
-  decision. It fails only when the deletion strands a citation or a record
+  decision. It fails when the deletion strands a citation or a record
   reference — the objective defect — and still fails any staged deletion of an
   archived record.

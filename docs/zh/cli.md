@@ -27,7 +27,7 @@
 | `adrkit validate [<name> \| --all]` | 校验单条记录，或整个仓库（含闭合的生命周期清单）；名称与 `--all` 互斥 |
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
-| `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错则失败，否则列出管辖这些改动的生效决策 |
+| `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错、暂存删除搁浅编号决策的引用、或暂存删除某记录字面 `paths` 条目指名的文件时失败，否则列出管辖这些改动的生效决策 |
 | `adrkit atlas [--out <path>] [--map] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--record <name>] [--format <mermaid\|dot\|text\|html>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record` 是单条决策的 deliberation tree（卡片视图），`--map` 显式选择决策地图；`--format` 只设置已选对象的格式，完整档案只支持 HTML |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |
 | `adrkit version` | 输出版本 |
