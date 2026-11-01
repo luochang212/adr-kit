@@ -69,7 +69,7 @@ adr/
 └── archived/       # 保留编号，冻结历史
 ```
 
-未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号，因此移除一条多余的否决不会腾出可复用的编号）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档；部分替代仍保留有效的现行记录。两次转移都把归档记录当作普通的 Git 跟踪历史；既没有封存仪式，也没有单独的封存清单。`adrkit validate` 像检查其他记录一样检查它，后续修改由 Git 记录。
+未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号，因此移除一条多余的否决不会腾出可复用的编号）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档； 一条本不该存在的记录——噪声、重复、把常规修改误记成决策——用 `adrkit delete` 删除：代码仍在引用或其他记录仍提及它时命令会拒绝执行，归档记录一律不可删除。部分替代仍保留有效的现行记录。两次转移都把归档记录当作普通的 Git 跟踪历史；既没有封存仪式，也没有单独的封存清单。`adrkit validate` 像检查其他记录一样检查它，后续修改由 Git 记录。
 
 ## 告诉 Agent
 
@@ -120,6 +120,7 @@ adrkit record <title> --raised-by <human|agent> --decided-by <human|agent>
 adrkit reject <name> --reason <text>
 adrkit archive <name> --reason <text>
 adrkit supersede <old> --by <new>
+adrkit delete <name>
 adrkit list
 adrkit relevant [<path>... | --base <git-ref> | --staged]
 adrkit show <name>

@@ -69,7 +69,7 @@ adr/
 └── archived/       # numbered, frozen history
 ```
 
-An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern as a durable terminal: keep it, and remove it only when another record owns the warning it blocks. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. Partial replacement leaves still-relevant guidance active. Both moves write the archived record as ordinary Git-tracked history; there is no separate seal or manifest. `adrkit validate` checks it like any other record, and Git records later changes.
+An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern as a durable terminal: keep it, and remove it only when another record owns the warning it blocks. `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. A record that should never have existed — noise, a duplicate, a routine change recorded as a decision — is removed with `adrkit delete`, which refuses while code cites the record or another record references it, and never deletes archived records. Partial replacement leaves still-relevant guidance active. Both moves write the archived record as ordinary Git-tracked history; there is no separate seal or manifest. `adrkit validate` checks it like any other record, and Git records later changes.
 
 ## Tell your agent
 
@@ -122,6 +122,7 @@ adrkit record <title> --raised-by <human|agent> --decided-by <human|agent>
 adrkit reject <name> --reason <text>
 adrkit archive <name> --reason <text>
 adrkit supersede <old> --by <new>
+adrkit delete <name>
 adrkit list
 adrkit relevant [<path>... | --base <git-ref> | --staged]
 adrkit show <name>

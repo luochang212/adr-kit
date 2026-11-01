@@ -18,6 +18,7 @@
 | `adrkit reject <name> --reason <text>` | 把否决提案记为 `rejected/` 中的反例 |
 | `adrkit archive <name> --reason <text>` | 将不再指导工作的已交付记录归档 |
 | `adrkit supersede <old> --by <new>` | 完整替代并归档旧决策 |
+| `adrkit delete <name>` | 删除一条本不该存在的记录；代码仍在引用或其他记录仍提及它时拒绝执行，归档记录一律拒绝删除 |
 | `adrkit list` | 按生命周期列出记录 |
 | `adrkit relevant [<path>... | --base <git-ref> | --staged]` | 检索作用域记录：显式路径、指定提交到工作区的变化或暂存区文件；三种输入互斥 |
 | `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录主体，省略 `## Deliberation` |
@@ -77,6 +78,16 @@ CLI 不能验证代码已交付或现状另有权威来源。`--tools claude` �
 拒绝执行、列出每个 `path:line` 并保持记录树不变，因为这时移动会让这些引用悬空，
 使紧接着的 `validate` 失败。先改写或删除这些引用。`supersede` 还会拒绝编号小于被替代
 记录的 `--by` 决策：编号按创建顺序分配，编号更小的替代者只会写出一条倒序的替代链。
+
+`delete` 删除一条本不该存在的记录——噪声、重复、把常规修改误记成决策。它不是生命周期
+阶段：`reject` 保留被否决的方向，`archive` 归档曾经生效的指导。`delete` 把退役规则应用到
+删除上：代码仍在引用编号记录时，拒绝并列出每个 `path:line`；其他记录的正文或
+`superseded-by` 仍提到该编号时，拒绝并列出记录清单；先清理这些引用再重试。它从不删除
+归档记录；删除否决记录时只在大声提示后执行——否决是持久的，必须先由另一条记录接管
+其警告（ADR 20）。它无法验证的提及——`AGENTS.md` 与 `adr/notes.md`——以 note 形式报告，
+从不代写。决策编号是一条追加式流水（`adr/.decision-sequence`）：分配与删除都向其
+追加一行，被删除的编号因此永不复用，即使删除的正好是最大编号；Git 历史保留每一条
+被删除的记录。
 
 ## 校验覆盖面
 

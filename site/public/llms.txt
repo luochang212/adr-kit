@@ -31,7 +31,10 @@ already-shipped choice. Use `adrkit reject <name> --reason "<the tempting
 mistake this blocks>"` for a formally declined proposal; a rejection is durable,
 removed only when another record owns its warning. Full supersession archives the old implemented record;
 `adrkit archive <N> --reason "<current authority>"` retires other implemented
-records that no longer guide work.
+records that no longer guide work. A record that should never have existed is
+removed with `adrkit delete <N>`: it refuses while code cites the record or
+another record references it, never deletes archived records, and journals the
+number (`adr/.decision-sequence`) so no later decision reuses it.
 
 ## Key facts
 
