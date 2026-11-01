@@ -22,6 +22,14 @@ Archived records change only through a deliberate, explained commit.
 
 Newest first. Each note names what changed and what to do.
 
+### After 0.34.0: Node.js floor raised to 24.22
+
+The CLI now requires Node.js 24.22 or later, and `@types/node` follows the
+same line. Node.js 22 has entered maintenance (its end-of-life is April 2027),
+Node 24 is the active LTS line this project tracks, and CI verifies the floor
+at 24.22.0 with Node 26 as the newest LTS. Upgrade Node.js before installing;
+earlier Node.js lines are no longer supported.
+
 ### After 0.31.0: selective agent memory
 
 Refresh skills with `adrkit update`, then reconcile your user-owned `AGENTS.md`
@@ -89,7 +97,7 @@ in any format must explicitly add `--map`.
 ### Package, command, and runtime
 
 The npm package is `adr-kit` and the CLI is `adrkit` (there is no `adrkit`
-package on npm). The CLI requires Node.js 22.22 or later; earlier Node.js
+package on npm). The CLI requires Node.js 24.22 or later; earlier Node.js
 lines are no longer supported.
 
 ### CLI strictness (0.27.0)

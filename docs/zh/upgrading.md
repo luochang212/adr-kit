@@ -14,6 +14,13 @@ ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令
 
 按版本从新到旧排列，每条说明变化内容与需要做的事。
 
+### 0.34.0 之后：Node.js 下限提升至 24.22
+
+CLI 现在要求 Node.js 24.22 或更新版本，`@types/node` 跟随同一版本线。Node.js 22
+已进入维护期（2027 年 4 月停止维护），Node 24 是本项目跟踪的活跃 LTS 版本线，
+CI 在 24.22.0 上验证该下限，并以 Node 26 作为最新 LTS。安装前请先升级
+Node.js；更早的 Node.js 版本不再受支持。
+
 ### 0.31.0 之后：按信息价值选择记录
 
 运行 `adrkit update` 刷新技能，再将用户自有的 `AGENTS.md` 段落与当前
@@ -53,7 +60,7 @@ ADR Kit 尚未稳定，且有意破坏：版本可能变更记录格式或命令
 
 ### 包名、命令与运行时
 
-npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 22.22 或更新版本；更早的 Node.js 版本不再受支持。
+npm 包名是 `adr-kit`，CLI 命令是 `adrkit`（npm 上没有 `adrkit` 包）。CLI 需要 Node.js 24.22 或更新版本；更早的 Node.js 版本不再受支持。
 
 ### CLI 严格化（0.27.0）
 

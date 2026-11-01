@@ -25,9 +25,12 @@ updates:
           - patch
     ignore:
       # DefinitelyTyped publishes near-daily; patch/minor @types/node bumps
-      # dominated every batch. Majors still land and realign the types.
+      # dominated every batch. Majors land the same way: the types must follow
+      # the engines floor, and only a deliberate floor raise moves both, so
+      # @types/node is bumped by hand in that change and never by Dependabot.
       - dependency-name: "@types/node"
         update-types:
+          - "version-update:semver-major"
           - "version-update:semver-patch"
           - "version-update:semver-minor"
   - package-ecosystem: github-actions

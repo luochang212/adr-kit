@@ -35,11 +35,8 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          # Astro raises its Node.js floor in patch releases (7.4.2 needs
-          # 22.23.4), and setup-node's manifest lags the newest 22.x security
-          # release (it resolved '22' to 22.23.3 on 2026-10-21). The newest
-          # LTS line stays ahead of that floor; the CLI's own 22.22 floor is
-          # verified by ci.yml, not here.
+          # The CLI's own 24.22 floor is verified by ci.yml, not here; this
+          # job only needs a version above Astro's floor.
           node-version: '24'
           cache: npm
           cache-dependency-path: |
