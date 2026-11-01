@@ -62,7 +62,9 @@ becomes false; keep required paths and references valid. If volatile details
 force repeated synchronization, report the burden and suggest trimming details
 to their existing owner or authorized archival. Do not silently rewrite a
 choice, ignore an explicit constraint, delete records, or archive them without
-authorization. Grilling uses the same selection judgment: discussion alone does
+authorization. The one sanctioned removal is `adrkit delete` for a record that
+should never have existed: it refuses while code cites the record or another
+record references it, and never deletes archived records. Grilling uses the same selection judgment: discussion alone does
 not require a record. Preserve the complete tree with a qualifying record; if
 none qualifies, summarize in conversation and create none. Use `adrkit propose`
 for unshipped work, `adrkit implement` after it ships, and `adrkit record` for
@@ -91,7 +93,7 @@ When the user wants to review or share the project's history, use the
 and `adr/archived/` only, publish archived bodies in full, and pin the page to
 the commit it was built from.
 
-<!-- adrkit: standing-orders 2cde6e1f -->
+<!-- adrkit: standing-orders 0c08aaee -->
 
 ## Commands
 
