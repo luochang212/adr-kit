@@ -2,6 +2,7 @@ import type { AdrRecord } from './adr.js';
 import { section, visibleRecordText } from './adr.js';
 import { hasDeliberationTree } from './deliberation.js';
 import { relativePath } from './repository.js';
+import { proseReferenceNumbers } from './validate.js';
 
 /** One decision in the graph; `title` keeps its "N " prefix. */
 export interface GraphNode {
@@ -36,17 +37,6 @@ export interface DecisionGraph {
   /** Mined `ADR-N` mentions, deduplicated against formal edges. */
   referenceEdges: GraphEdge[];
 }
-
-/**
- * The prose cross-reference vocabulary: `ADR-12`, `ADR 4`. A term that merely
- * contains ADR ("MADR-12") does not mine: the lookbehind rejects a letter
- * before the ADR. Title-form
- * references — CJK prose cites records as `ADR「标题」` or `「标题」`, often
- * shortened to a title prefix — do not mine: quoted-span matching needs fuzzy
- * title prefixes, which trades silent completeness for wrong edges in a
- * governance view. Known limitation, parked in adr/notes.md.
- */
-const REFERENCE_PATTERN = /(?<![A-Za-z])ADR-?\s*([1-9]\d*)/g;
 
 export function buildDecisionGraph(
   records: AdrRecord[],
@@ -104,11 +94,15 @@ export function buildDecisionGraph(
       const record = recordByNumber.get(node.number)!;
       // Mined edges come from visible prose, the same text validation's
       // dangling-reference check reads: comment-masked and fenced text never
-      // becomes an edge.
+      // becomes an edge, and the vocabulary is validate's
+      // proseReferenceNumbers — one owner, not a map-local copy. Title-form
+      // references — CJK prose cites records as `ADR「标题」` or `「标题」`,
+      // often shortened to a title prefix — do not mine: quoted-span matching
+      // needs fuzzy title prefixes, which trades silent completeness for wrong
+      // edges in a governance view. Known limitation, parked in adr/notes.md.
       const body = visibleRecordText(record);
       const targets = new Set<number>();
-      for (const match of body.matchAll(REFERENCE_PATTERN)) {
-        const target = Number(match[1]);
+      for (const target of proseReferenceNumbers(body)) {
         if (target === node.number) continue;
         // Prose may mention proposals or numbers that are not decisions;
         // only references that resolve to a node become edges.
