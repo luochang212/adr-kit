@@ -1,8 +1,8 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { isAbsolute, join, resolve } from 'node:path';
-import { parseAdrText, type AdrFolder, type AdrRecord } from './adr.js';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { decisionNumberFromFileName, parseAdrText, type AdrFolder, type AdrRecord } from './adr.js';
 import { ADR_DIR, findRoot, requireRoot } from './config.js';
-import { gitChangedPaths, gitStagedDeletions, runGit } from './git.js';
+import { gitChangedPaths, gitListedFiles, gitStagedDeletions, runGit } from './git.js';
 import { citationProblem, citationsTo, findCitations, isCitationScanPath } from './markers.js';
 import { relevantRecords } from './relevant.js';
 import { displayName, FOLDERS, listRecords } from './repository.js';
@@ -36,8 +36,7 @@ function isRecordPath(path: string): boolean {
 function numberedPath(path: string): number | undefined {
   const parts = path.slice(ADR_DIR.length + 1).split('/');
   if (parts.length !== 2 || (parts[0] !== 'implemented' && parts[0] !== 'archived')) return undefined;
-  const match = parts[1]!.match(/^(\d+)-/);
-  return match === null ? undefined : Number(match[1]);
+  return decisionNumberFromFileName(parts[1]!);
 }
 
 function hooksDir(root: string): string {
@@ -79,8 +78,13 @@ export function hookCheck(cwd: string): HookCheckResult {
     // The index spells paths from the repository root, while the staged list
     // is relative to the ADR root; the prefix bridges a nested adr/ directory.
     prefix = runGit(root, ['rev-parse', '--show-prefix']).trim();
-  } catch {
-    return { ok: true, output: '' };
+  } catch (error) {
+    // Fail open — a Git state this tool cannot read must not brick the
+    // commit — but say so: an invisible skip is a check silently switched off.
+    return {
+      ok: true,
+      output: `adrkit pre-commit: skipped the record checks; cannot read Git state: ${firstLine(error)}`,
+    };
   }
   if (staged.length === 0) return { ok: true, output: '' };
 
@@ -91,9 +95,32 @@ export function hookCheck(cwd: string): HookCheckResult {
   } catch (error) {
     issues.push({ path: ADR_DIR, message: `cannot read the record inventory: ${firstLine(error)}` });
   }
+  // The corpus this commit leaves behind: a record whose removal is staged is
+  // not a survivor, so the duplicate, stranding, and scope checks below judge
+  // the post-commit state rather than the worktree.
+  records = records.filter(
+    (record) => !deletions.has(relative(root, record.path).split(sep).join('/')),
+  );
+  // Citations are read from the index, so the decisions they name are counted
+  // from the same world (the one ADR 46 defines): a record the index carries
+  // is not missing, and a staged record counts at its staged bytes even when
+  // the worktree copy is gone or stale. Worktree records stay as the floor
+  // for numbers this commit does not touch.
   const byNumber = new Map<number, AdrRecord>();
   for (const record of records) {
     if (record.number !== undefined) byNumber.set(record.number, record);
+  }
+  for (const path of gitListedFiles(root) ?? []) {
+    if (!isRecordPath(path) || deletions.has(path)) continue;
+    const text = stagedText(root, prefix, path);
+    if (text === undefined) continue;
+    try {
+      const record = parseAdrText(text, join(root, path));
+      record.folder = path.split('/')[1] as AdrFolder;
+      if (record.number !== undefined) byNumber.set(record.number, record);
+    } catch {
+      // The staged-record loop below reports unparseable records.
+    }
   }
 
   const stagedRecordPaths = staged.filter((path) => isRecordPath(path));
@@ -220,9 +247,15 @@ export function hookInstall(cwd: string, entry?: string): string {
   if (existsSync(file) && !readFileSync(file, 'utf8').includes(HOOK_MARKER)) {
     throw new Error(`refusing to replace ${file}: it is not managed by adr-kit; move it aside first`);
   }
+  // The entry the CLI passes is absolute, but a library caller may hand a
+  // relative one; resolve it against the command's cwd, not the process's,
+  // so both checks and the emitted path agree.
   const resolved = entry === undefined
     ? undefined
-    : (existsSync(entry) ? realpathSync(entry) : resolve(cwd, entry));
+    : (() => {
+      const absolute = resolve(cwd, entry);
+      return existsSync(absolute) ? realpathSync(absolute) : absolute;
+    })();
   const command = resolved === undefined ? 'adrkit' : `node ${shellQuote(resolved)}`;
   // Letting exec fail alone surfaces a bare module-loader trace; fail closed
   // with the remedy instead.

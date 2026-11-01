@@ -487,6 +487,67 @@ Amended by ADR 2: the second entry lost its opening.
     expect(result.output).toContain('references a missing decision');
   });
 
+  it('rejects a backwards supersession a hand edit wrote', () => {
+    const root = makeRepo();
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), decision('1 First', ACCEPTED));
+    writeFileSync(
+      join(folderPath(root, 'archived'), '2-second.md'),
+      archivedDecision('2 Second', 1),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('supersession must point at a later decision; decision 2 is superseded by older decision 1');
+  });
+
+  it('flags a scope that differs from the repository spelling only by case', () => {
+    const root = makeRepo();
+    mkdirSync(join(root, 'src', 'core'), { recursive: true });
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-scope.md'),
+      `---
+status: implemented
+date: 2026-08-19
+description: Read when changing the storage boundary.
+raised-by: human
+decided-by: human
+created: 2026-08-19
+paths:
+  - src/Core/**
+---
+
+# ADR: 1 Scope
+
+## Problem
+
+p
+
+## Decision
+
+d
+
+## Alternatives considered
+
+a
+
+## Consequences
+
+c
+`,
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('path "src/Core/**" does not match the repository spelling "src/core"');
+  });
+
+  it('reports a duplicate number when validating a single record', () => {
+    const root = makeRepo();
+    writeFileSync(join(folderPath(root, 'implemented'), '1-first.md'), decision('1 First', ACCEPTED));
+    writeFileSync(join(folderPath(root, 'implemented'), '1-clone.md'), decision('1 Clone', ACCEPTED));
+    const result = validateCommand(root, '1-first');
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('duplicate decision number 1');
+  });
+
   it('accepts a supersession chain when validating a single record', () => {
     const root = makeRepo();
     writeFileSync(

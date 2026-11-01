@@ -97,11 +97,19 @@ function pathsIssues(root: string, path: string, record: AdrRecord): ValidationI
       continue;
     }
     const prefix = staticPrefix(entry);
-    if (prefix.length > 0 && !existsSync(join(root, prefix))) {
-      issues.push({
-        path,
-        message: `path "${entry}" matches nothing in the repository ("${prefix}" does not exist)`,
-      });
+    if (prefix.length > 0) {
+      const actual = caseDivergentSpelling(root, prefix);
+      if (actual !== undefined) {
+        issues.push({
+          path,
+          message: `path "${entry}" does not match the repository spelling "${actual}"; scope matching is case-sensitive`,
+        });
+      } else if (!existsSync(join(root, prefix))) {
+        issues.push({
+          path,
+          message: `path "${entry}" matches nothing in the repository ("${prefix}" does not exist)`,
+        });
+      }
     }
   }
   return issues;
@@ -504,6 +512,7 @@ function supersedeReferenceIssues(
   const visited = new Set<number>();
   if (record.number !== undefined) visited.add(record.number);
   let next: number | undefined = record.supersededBy;
+  let previous: number | undefined = record.number;
   while (next !== undefined) {
     if (visited.has(next)) {
       return [{ path, message: `supersession chain contains a cycle at decision ${next}` }];
@@ -513,6 +522,14 @@ function supersedeReferenceIssues(
     if (target === undefined) {
       return [{ path, message: `"superseded-by: ${next}" references a missing decision` }];
     }
+    // Numbers are assigned in creation order, so a successor is always the
+    // later decision — the invariant `adrkit supersede` writes by refusing an
+    // older replacement. A hand-edited backwards link fails here instead of
+    // rendering as an ordinary chain.
+    if (previous !== undefined && next <= previous) {
+      return [{ path, message: `supersession must point at a later decision; decision ${previous} is superseded by older decision ${next}` }];
+    }
+    previous = next;
     // An accepted-then-archived terminal is a valid end, so only the status is
     // checked, not the folder: `archive` may retire a decision nothing
     // replaced, and the chain then leads into frozen history by design. Code
@@ -533,9 +550,10 @@ function supersedeReferenceIssues(
 
 /**
  * Repository-level checks for a single record: a `superseded-by: N` reference
- * must follow existing records without cycles to an implemented decision.
- * validateRecord only sees one file; this adds the cross-record half so
- * `adrkit validate <name>` keeps the same promise as a full validate.
+ * must follow existing records without cycles to an implemented decision, and
+ * no other surviving record may share its decision number — the same promise
+ * `validateRepository` keeps, so `adrkit validate <name>` and the hook agree
+ * with a full validate.
  */
 export function validateRecordReferences(
   root: string,
@@ -548,10 +566,21 @@ export function validateRecordReferences(
       decisions.set(candidate.number, candidate);
     }
   }
-  return [
+  const issues: ValidationIssue[] = [];
+  if (record.number !== undefined) {
+    const path = relative(root, record.path);
+    for (const candidate of records) {
+      if (candidate.path !== record.path && candidate.number === record.number) {
+        issues.push({ path, message: `duplicate decision number ${record.number}` });
+        break;
+      }
+    }
+  }
+  issues.push(
     ...supersedeReferenceIssues(root, record, decisions),
     ...danglingReferenceIssues(relative(root, record.path), record, decisions),
-  ];
+  );
+  return issues;
 }
 
 /**
@@ -625,6 +654,35 @@ export function recordsReferencing(
     }
   }
   return sites.sort((a, b) => a.path.localeCompare(b.path) || a.message.localeCompare(b.message));
+}
+
+/**
+ * The repository's actual spelling of `prefix` when it differs only by case,
+ * or undefined when the prefix exists exactly as written (or cannot be
+ * checked). Scope matching compares case-sensitively on every platform, so a
+ * prefix that only a case-insensitive filesystem can see — `src/Core` over
+ * `src/core` on macOS or Windows — would validate clean and then never match
+ * in `adrkit relevant`; this names the spelling that retrieval can.
+ */
+function caseDivergentSpelling(root: string, prefix: string): string | undefined {
+  let dir = root;
+  const actual: string[] = [];
+  for (const segment of prefix.split('/')) {
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return undefined;
+    }
+    if (entries.includes(segment)) {
+      actual.push(segment);
+      dir = join(dir, segment);
+      continue;
+    }
+    const folded = entries.find((entry) => entry.toLowerCase() === segment.toLowerCase());
+    return folded === undefined ? undefined : [...actual, folded].join('/');
+  }
+  return undefined;
 }
 
 /**

@@ -241,7 +241,7 @@ describe('pre-commit hook management', () => {
     write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
     write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
     git(root, 'add', '-A');
-    git(root, 'commit', '-qm', 'add the decision');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
     git(root, 'rm', '-q', 'src/a.ts');
     const result = hookRunCommand(root);
     expect(result.ok).toBe(false);
@@ -254,7 +254,7 @@ describe('pre-commit hook management', () => {
     write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
     write(join(root, 'src', 'b.ts'), 'export const b = 1;\n');
     git(root, 'add', '-A');
-    git(root, 'commit', '-qm', 'add the decision');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
     git(root, 'rm', '-q', 'src/a.ts');
     const result = hookRunCommand(root);
     expect(result.ok).toBe(true);
@@ -265,7 +265,7 @@ describe('pre-commit hook management', () => {
     write(join(root, 'adr', 'implemented', '1-test.md'), decision(['assets/big.bin']));
     write(join(root, 'assets', 'big.bin'), 'x');
     git(root, 'add', '-A');
-    git(root, 'commit', '-qm', 'add the decision');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
     // Larger than the git output buffer, so reading the staged blob back fails.
     // A read failure says nothing about whether the file still exists.
     writeFileSync(join(root, 'assets', 'big.bin'), Buffer.alloc(16 * 1024 * 1024 + 1024));
@@ -280,7 +280,7 @@ describe('pre-commit hook management', () => {
     write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
     write(join(root, 'src', 'b.ts'), 'export const b = 1;\n');
     git(root, 'add', '-A');
-    git(root, 'commit', '-qm', 'add the decision');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
     git(root, 'rm', '-q', 'src/a.ts');
     write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/b.ts']));
     git(root, 'add', 'adr/implemented/1-test.md');
@@ -294,7 +294,7 @@ describe('pre-commit hook management', () => {
     write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
     write(join(root, 'src', 'b.ts'), 'export const b = 1;\n');
     git(root, 'add', '-A');
-    git(root, 'commit', '-qm', 'add the decision');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
     git(root, 'rm', '-q', 'src/a.ts');
     write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts', 'src/b.ts']).replace('Use SQLite.', 'Use SQLite, revised.'));
     git(root, 'add', 'adr/implemented/1-test.md');
@@ -337,6 +337,35 @@ describe('pre-commit hook management', () => {
     const result = hookRunCommand(root);
     expect(result.ok).toBe(false);
     expect(result.output).toContain('cites ADR 99');
+  });
+
+  it('counts a staged record the worktree lost when resolving citations', () => {
+    const root = makeRepo();
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
+    write(join(root, 'src', 'a.ts'), `${cite(1)}export const a = 1;\n`);
+    git(root, 'add', '-A');
+    // Scratch cleanup without `git rm`: the index still carries both files,
+    // so the citation's target is not missing just because the worktree copy
+    // is gone. The inventory must come from the same world as the text.
+    rmSync(join(root, 'adr', 'implemented', '1-test.md'));
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(true);
+  });
+
+  it('says so when Git state cannot be read instead of passing silently', () => {
+    const root = makeRepo();
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    git(root, 'add', '-A');
+    const previousPath = process.env.PATH;
+    process.env.PATH = '';
+    try {
+      const result = hookRunCommand(root);
+      expect(result.ok).toBe(true);
+      expect(result.output).toContain('skipped the record checks');
+      expect(result.output).toContain('cannot read Git state');
+    } finally {
+      process.env.PATH = previousPath;
+    }
   });
 
   it('stays quiet outside an ADR repository and with nothing staged', () => {

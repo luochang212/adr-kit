@@ -175,7 +175,7 @@ export function main(argv: string[]): void {
         return;
       }
       case 'note': {
-        console.log(noteCommand(joinTitle(rest, 'note'), process.cwd()));
+        console.log(noteCommand(joinTitle(rest, 'note', 'line of text'), process.cwd()));
         return;
       }
       case 'record': {
@@ -259,7 +259,7 @@ export function main(argv: string[]): void {
       }
       case 'hook': {
         // No mode falls through to the mode list below; only extra words are an arity error.
-        const mode = rest.length === 0 ? '' : oneName(rest, 'hook');
+        const mode = rest.length === 0 ? '' : oneName(rest, 'hook', 'mode');
         if (mode === 'install') {
           console.log(hookInstallCommand(process.cwd(), process.argv[1]));
           return;
@@ -295,7 +295,7 @@ export function main(argv: string[]): void {
       }
       case 'completion': {
         // An empty shell reaches completionCommand, whose error names the supported ones.
-        const shell = rest.length === 0 ? '' : oneName(rest, 'completion');
+        const shell = rest.length === 0 ? '' : oneName(rest, 'completion', 'shell name');
         console.log(completionCommand(shell));
         return;
       }
@@ -321,23 +321,26 @@ export function main(argv: string[]): void {
 /**
  * Title-shaped positional: the shell splits an unquoted multi-word title into
  * separate words, so they are joined back rather than silently dropping every
- * word after the first. An empty title is still an error.
+ * word after the first. An empty title is still an error; the noun names what
+ * the command's own synopsis calls it.
  */
-function joinTitle(rest: string[], command: string): string {
+function joinTitle(rest: string[], command: string, noun: string = 'title'): string {
   const title = rest.join(' ').trim();
   if (title.length === 0) {
-    throw new Error(`${command} requires a title`);
+    throw new Error(`${command} requires a ${noun}`);
   }
   return title;
 }
 
 /**
  * Identifier-shaped positional: a record name is one token, so extra words are
- * a mistake to report, not words to join or drop.
+ * a mistake to report, not words to join or drop. The noun defaults to the
+ * record commands' "title or name"; commands whose positional is not a record
+ * name pass their own.
  */
-function oneName(rest: string[], command: string): string {
+function oneName(rest: string[], command: string, noun: string = 'title or name'): string {
   if (rest.length === 0 || rest[0]!.trim().length === 0) {
-    throw new Error(`${command} requires a title or name`);
+    throw new Error(`${command} requires a ${noun}`);
   }
   if (rest.length > 1) {
     throw new Error(`${command} takes one name, got ${rest.length} arguments: ${rest.join(' ')}`);

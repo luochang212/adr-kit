@@ -363,10 +363,37 @@ describe('cli atlas surface', () => {
     { map: true, record: '1', format: 'text' },
     { map: true, lang: 'zh' },
     { formalOnly: true },
+    { record: '1', formalOnly: true },
   ])('rejects invalid object combinations before writing: %j', (options) => {
     const root = makeRepo();
     expect(() => atlasCommand(root, { ...options, out: 'invalid.html' })).toThrow();
     expect(existsSync(join(root, 'invalid.html'))).toBe(false);
+  });
+
+  it('percent-encodes a record path that would break the mermaid click url', () => {
+    const root = makeRepo();
+    const content = `---
+status: implemented
+date: 2026-08-19
+description: Read when changing the storage boundary.
+raised-by: human
+decided-by: human
+created: 2026-08-19
+---
+
+# ADR: 1 Weird name
+
+## Problem
+
+p
+`;
+    // The format forbids this file name, but the map must not gate on
+    // validation: a hand-placed path still has to render as one well-formed
+    // click line instead of opening Mermaid's quoting.
+    writeFileSync(join(root, 'adr', 'implemented', '1-we"ird.md'), content);
+    const out = atlasCommand(root, { map: true, format: 'mermaid' });
+    expect(out).toContain('click n1 "adr/implemented/1-we%22ird.md"');
+    expect(out).not.toContain('we"ird');
   });
 
   it('rejects a language other than en or zh', () => {

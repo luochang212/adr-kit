@@ -201,6 +201,24 @@ describe('positional arity', () => {
     output.mockRestore();
   });
 
+  it('names the positional each command actually takes', () => {
+    const root = makeRepo();
+    process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      main(['note']);
+      expect(errorSpy.mock.calls[0]?.[0]).toContain('note requires a line of text');
+      main(['hook', ' ']);
+      expect(errorSpy.mock.calls[1]?.[0]).toContain('hook requires a mode');
+      main(['completion', ' ']);
+      expect(errorSpy.mock.calls[2]?.[0]).toContain('completion requires a shell name');
+      main(['show', ' ']);
+      expect(errorSpy.mock.calls[3]?.[0]).toContain('show requires a title or name');
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
   it('joins an unquoted multi-word note text', () => {
     const root = makeRepo();
     process.chdir(root);

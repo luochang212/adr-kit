@@ -192,7 +192,7 @@ export function mermaidGraph(
     `  class ${active.join(',')} active`,
   ];
   const clicks = graph.nodes.map(
-    (node) => `  click n${node.number} "${recordHref(node.path)}"`,
+    (node) => `  click n${node.number} "${mermaidHref(recordHref(node.path))}"`,
   );
 
   const blocks = [header, formal, references, activeStyle, style, clicks, linkStyles].filter(
@@ -203,6 +203,15 @@ export function mermaidGraph(
 
 function mermaidLabel(title: string): string {
   return title.replaceAll('"', '#quot;');
+}
+
+/**
+ * A link target, so percent-encoding is the portable escape — the label's
+ * `#quot;` is Mermaid's entity handling for text, not for URLs. Encoding `%`
+ * first keeps an already-encoded-looking path from being mangled twice.
+ */
+function mermaidHref(path: string): string {
+  return path.replace(/[%"#? ]/g, (char) => encodeURIComponent(char));
 }
 
 /** Graphviz digraph with one cluster (and rank) per record date. */
