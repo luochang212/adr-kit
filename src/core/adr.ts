@@ -49,6 +49,18 @@ export const FRONT_MATTER_ORDER = ['status', 'date', 'description', 'raised-by',
 /** File name of a numbered record in implemented/ or archived/: `N-slug.md`. */
 export const NUMBERED_FILE_NAME_PATTERN = /^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/;
 
+/**
+ * The decision number a record file name carries, or undefined. Single-sourced
+ * beside the file-name pattern so the writer, the collision scan, and the hook
+ * agree on which files carry numbers; a zero-padded name such as `07-x.md` is
+ * not this format's numbering and counts as numberless plumbing-side, exactly
+ * as validate counts it format-side.
+ */
+export function decisionNumberFromFileName(fileName: string): number | undefined {
+  const match = fileName.match(/^([1-9]\d*)-/);
+  return match === null ? undefined : Number(match[1]);
+}
+
 /** Sections that only make sense during the proposal era and must not appear in an implemented decision. */
 export const PROPOSAL_ERA_HEADINGS = ['Proposal', 'Acceptance criteria', 'Risks', 'Plan', 'Migration plan'];
 

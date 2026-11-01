@@ -1,15 +1,13 @@
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
 import { formatIssues, validateRecord } from '../core/validate.js';
 import { citationsTo } from '../core/markers.js';
 import { retireRecord } from '../core/retire.js';
-import { folderPath, resolveRecord } from '../core/repository.js';
+import { resolveRecord, resolveRecordForRetirement } from '../core/repository.js';
 
 export function supersedeCommand(query: string, byQuery: string, cwd: string): string {
   const root = requireRoot(cwd);
-  const record = resolveRecord(root, query);
+  const record = resolveRecordForRetirement(root, query);
   if (record.status === 'superseded') {
     const current = record.supersededBy ?? 0;
     throw new Error(
@@ -22,26 +20,24 @@ export function supersedeCommand(query: string, byQuery: string, cwd: string): s
     throw new Error('a decision cannot supersede itself');
   }
   if (replacement.status !== 'implemented' || replacement.folder !== 'implemented') {
-    throw new Error(`"--by ${byQuery}" must be an implemented decision`);
+    throw new Error(`"--by ${byQuery}" must be an implemented decision; run "adrkit list" to see decisions`);
   }
   if (replacement.number === undefined) {
-    throw new Error(`"--by ${byQuery}" has no decision number`);
+    throw new Error(`"--by ${byQuery}" has no decision number; run "adrkit list" to see decisions`);
   }
 
   if (record.status !== 'implemented' || record.folder !== 'implemented') {
-    throw new Error(`"${query}" must be an implemented decision`);
+    throw new Error(`"${query}" must be an implemented decision; run "adrkit list" to see decisions`);
   }
   // Numbers are assigned in creation order, so the record making a choice
-  // obsolete is always the later one. Accepting a lower number would write a
-  // permanently backwards `superseded-by` that no validation rejects.
+  // obsolete is always the later one. Validation enforces the same invariant
+  // on hand-edited records; refusing here keeps the command from being the
+  // first writer of a backwards chain.
   if (record.number !== undefined && replacement.number <= record.number) {
     throw new Error(
       `"--by ${byQuery}" is decision ${replacement.number}, which is older than decision ${record.number}; ` +
         'a decision is superseded by a later one',
     );
-  }
-  if (existsSync(join(folderPath(root, 'archived'), record.fileName))) {
-    throw new Error(`archived record already exists: adr/archived/${record.fileName}`);
   }
   // A lifecycle rewrite emits only the canonical fields, so a key outside the
   // set would disappear silently. Refuse and point at the command that reports

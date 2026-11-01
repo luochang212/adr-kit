@@ -11,7 +11,8 @@ import {
 } from 'node:fs';
 import { basename, dirname, join, posix, relative, resolve } from 'node:path';
 import { ADR_DIR, CONFIG_FILE, configPath } from './config.js';
-import { parseAdrFile, type AdrFolder, type AdrRecord } from './adr.js';
+import { decisionNumberFromFileName, parseAdrFile, type AdrFolder, type AdrRecord } from './adr.js';
+import { readRegularText } from './files.js';
 
 /** Lifecycle folders are the repository inventory. */
 export const FOLDERS: AdrFolder[] = ['proposed', 'implemented', 'rejected', 'archived'];
@@ -261,10 +262,10 @@ function listRecordsForResolve(root: string, needle: string): AdrRecord[] {
         records.push(record);
       } catch (error) {
         const bareName = entry.replace(/\.md$/, '');
-        const numberMatch = folder === 'implemented' || folder === 'archived' ? bareName.match(/^(\d+)-/) : null;
-        const isTarget =
-          fileNameMatchesQuery(entry, needle) ||
-          (numberMatch !== null && numberMatch[1] === needle);
+        const number = folder === 'implemented' || folder === 'archived'
+          ? decisionNumberFromFileName(bareName)
+          : undefined;
+        const isTarget = fileNameMatchesQuery(entry, needle) || (number !== undefined && String(number) === needle);
         if (isTarget) {
           const message = error instanceof Error ? error.message : String(error);
           throw new Error(`failed to parse ${relative(root, path)}: ${message}`);
@@ -302,29 +303,58 @@ export function resolveRecord(root: string, query: string): AdrRecord {
   return resolveRecordFromInventory(root, query, records);
 }
 
-/** Resolve the same CLI queries against an inventory already read by a caller. */
+/** The records a CLI query can name: file name, bare slug, title, or number. */
+function recordMatchesQuery(
+  record: Pick<AdrRecord, 'fileName' | 'title' | 'folder' | 'number'>,
+  needle: string,
+): boolean {
+  if (fileNameMatchesQuery(record.fileName, needle)) return true;
+  if (record.title === needle || `# ADR: ${record.title}` === needle) {
+    return true;
+  }
+  if (record.folder === 'implemented' || record.folder === 'archived') {
+    // Zero is never a decision number; leaving it matchable let `show 0`
+    // resolve to whatever malformed record lacked a title number.
+    if (record.number !== undefined && String(record.number) === needle) {
+      return true;
+    }
+    // list prints "[N] Title" and prose references quote the title without
+    // its number, while the H1 stores "N Title"; accept the stripped form.
+    if (record.title.replace(/^\d+\s+/, '') === needle) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function resolveRecordFromInventory<T extends Pick<AdrRecord, 'path' | 'fileName' | 'title' | 'folder' | 'number'>>(
   root: string, query: string, records: readonly T[],
 ): T {
   const needle = query.trim();
-  const candidates = records.filter((record) => {
-    if (fileNameMatchesQuery(record.fileName, needle)) return true;
-    if (record.title === needle || `# ADR: ${record.title}` === needle) {
-      return true;
-    }
-    if (record.folder === 'implemented' || record.folder === 'archived') {
-      if (String(record.number ?? 0) === needle) {
-        return true;
-      }
-      // list prints "[N] Title" and prose references quote the title without
-      // its number, while the H1 stores "N Title"; accept the stripped form.
-      if (record.title.replace(/^\d+\s+/, '') === needle) {
-        return true;
-      }
-    }
-    return false;
-  });
-  return exactlyOne(root, query, candidates, 'ADR');
+  return exactlyOne(root, query, records.filter((record) => recordMatchesQuery(record, needle)), 'ADR');
+}
+
+/**
+ * Resolution for the retirement commands. An interrupted archive or supersede
+ * leaves the implemented source and the archived copy its dead run staged
+ * sharing one number, which ordinary resolution must report as ambiguous;
+ * the source is the move's subject, so this resolver drops the staged twin
+ * and lets `retireRecord` converge the pair or refuse on bytes it did not
+ * stage. Everything else resolves exactly as `resolveRecord` does.
+ */
+export function resolveRecordForRetirement(root: string, query: string): AdrRecord {
+  const needle = query.trim();
+  let records: AdrRecord[];
+  try {
+    records = listRecords(root);
+  } catch {
+    records = listRecordsForResolve(root, needle);
+  }
+  const candidates = records.filter((record) => recordMatchesQuery(record, needle));
+  const sources = candidates.filter((record) => record.folder === 'implemented');
+  const pared = candidates.filter((record) =>
+    record.folder !== 'archived' || !sources.some((source) => source.number === record.number));
+  return exactlyOne(root, query, pared, 'ADR');
 }
 
 /**
@@ -398,12 +428,39 @@ export function nextDecisionNumber(root: string): number {
   return max + 1;
 }
 
+/**
+ * Hold a decision number's write lock for the duration of `body`. The lock is
+ * the arbitration point for every numbered write: one writer per number across
+ * both lifecycle folders, so a concurrent command cannot stage alongside — or
+ * converge onto — a live writer's files. A crash inside the window leaves the
+ * lock file behind; the error below is the recovery instruction.
+ */
+export function withDecisionLock<T>(root: string, number: number, body: () => T): T {
+  const lockPath = join(adrRoot(root), `.write-${number}.lock`);
+  let lock: number;
+  try {
+    lock = openSync(lockPath, 'wx');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+    throw new Error(
+      `decision number ${number} is being written; re-run after the other writer finishes. ` +
+      `If it was interrupted, confirm no writer is running before removing ${ADR_DIR}/.write-${number}.lock`,
+    );
+  }
+  try {
+    return body();
+  } finally {
+    closeSync(lock);
+    rmSync(lockPath);
+  }
+}
+
 export function writeRecord(root: string, folder: AdrFolder, fileName: string, content: string): string {
   const path = join(folderPath(root, folder), fileName);
-  const numberMatch = (folder === 'implemented' || folder === 'archived')
-    ? fileName.match(/^(\d+)-/)
-    : null;
-  if (numberMatch === null) {
+  const number = (folder === 'implemented' || folder === 'archived')
+    ? decisionNumberFromFileName(fileName)
+    : undefined;
+  if (number === undefined) {
     mkdirSync(dirname(path), { recursive: true });
     // Exclusive creation backs the callers' existsSync pre-check through the
     // race window: two concurrent writers of the same unnumbered name must
@@ -418,50 +475,46 @@ export function writeRecord(root: string, folder: AdrFolder, fileName: string, c
     }
     return path;
   }
+  return withDecisionLock(root, number, () => writeNumberedRecordLocked(root, folder, fileName, content, number));
+}
 
-  const number = Number(numberMatch[1]);
-  const lockPath = join(adrRoot(root), `.write-${number}.lock`);
-  let lock: number;
-  try {
-    // Exclusive creation arbitrates across processes before either the scan
-    // or write. Lock by number across both lifecycle folders: an allocation
-    // can become stale while another command archives that number.
-    lock = openSync(lockPath, 'wx');
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
-    throw new Error(
-      `decision number ${number} is being written; re-run after the other writer finishes. ` +
-      `If it was interrupted, confirm no writer is running before removing ${ADR_DIR}/.write-${number}.lock`,
-    );
-  }
-  try {
-    for (const candidateFolder of ['implemented', 'archived'] as const) {
-      const dir = folderPath(root, candidateFolder);
-      const collision = existsSync(dir)
-        ? readdirSync(dir).find((entry) => {
-            if (!entry.endsWith('.md') || Number(entry.match(/^(\d+)-/)?.[1]) !== number) return false;
-            // Retirement may stage alongside its implemented source, but must
-            // never replace an archive another move already staged. Otherwise
-            // that move's rollback could delete this writer's only copy even
-            // when both writers generated identical bytes.
-            return !(folder === 'archived' && candidateFolder === 'implemented' && entry === fileName);
-          })
+/**
+ * The collision scan, exclusive write, and journal for a caller already
+ * holding the number's lock — the body of `writeRecord`'s numbered path and
+ * of a retirement move, which keeps the lock across staging and source
+ * removal.
+ */
+export function writeNumberedRecordLocked(
+  root: string,
+  folder: AdrFolder,
+  fileName: string,
+  content: string,
+  number: number,
+): string {
+  const path = join(folderPath(root, folder), fileName);
+  for (const candidateFolder of ['implemented', 'archived'] as const) {
+    const dir = folderPath(root, candidateFolder);
+    const collision = existsSync(dir)
+      ? readdirSync(dir).find((entry) => {
+          if (!entry.endsWith('.md') || decisionNumberFromFileName(entry) !== number) return false;
+          // Retirement may stage alongside its implemented source, but must
+          // never replace an archive another move already staged. Otherwise
+          // that move's rollback could delete this writer's only copy even
+          // when both writers generated identical bytes.
+          return !(folder === 'archived' && candidateFolder === 'implemented' && entry === fileName);
+        })
         : undefined;
-      if (collision !== undefined) {
-        throw new Error(
-          `decision number ${number} is already taken by ${ADR_DIR}/${candidateFolder}/${collision}; re-run to allocate the next number`,
-        );
-      }
+    if (collision !== undefined) {
+      throw new Error(
+        `decision number ${number} is already taken by ${ADR_DIR}/${candidateFolder}/${collision}; re-run to allocate the next number`,
+      );
     }
-    // A removed lifecycle folder is recreated on write.
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, content, { flag: 'wx' });
-    journalWrittenDecisionNumber(root, number);
-    return path;
-  } finally {
-    closeSync(lock);
-    rmSync(lockPath);
   }
+  // A removed lifecycle folder is recreated on write.
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, content, { flag: 'wx' });
+  journalWrittenDecisionNumber(root, number);
+  return path;
 }
 
 export function removeRecord(record: AdrRecord): void {
@@ -484,7 +537,10 @@ export function resolveProposed(root: string, query: string): AdrRecord {
 }
 
 export function readRecord(record: AdrRecord): string {
-  return readFileSync(record.path, 'utf8');
+  // The same regular-file rule every record reader applies (ADR 16): a record
+  // swapped for a device or FIFO between listing and a lifecycle move must
+  // fail loudly, not block the move forever on a stream that never ends.
+  return readRegularText(record.path, 'record');
 }
 
 export function displayName(record: Pick<AdrRecord, 'folder' | 'number' | 'title'>): string {

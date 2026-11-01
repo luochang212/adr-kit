@@ -11,7 +11,7 @@ import { listCommand } from '../src/commands/list.js';
 import { proposeCommand } from '../src/commands/propose.js';
 import { showCommand } from '../src/commands/show.js';
 import { validateCommand } from '../src/commands/validate.js';
-import { folderPath, listProposals, listRecords, relativePath, writeRecord } from '../src/core/repository.js';
+import { folderPath, listProposals, listRecords, readRecord, relativePath, writeRecord } from '../src/core/repository.js';
 
 const tempDirs: string[] = [];
 
@@ -379,6 +379,17 @@ describe('non-regular record paths', () => {
     const root = makeRepo();
     execSync(`mkfifo ${JSON.stringify(join(folderPath(root, 'implemented'), '1-fifo.md'))}`);
     expect(() => listCommand(root)).toThrow(/not a regular file \(fifo\)/);
+  });
+
+  it.skipIf(windows)('refuses a FIFO when a lifecycle move rereads the record', () => {
+    const root = makeRepo();
+    const fifo = join(folderPath(root, 'implemented'), '1-fifo.md');
+    execSync(`mkfifo ${JSON.stringify(fifo)}`);
+    // The retirement boundary rereads the source after listing; a record
+    // swapped for a stream in that window must fail, not block forever.
+    expect(() => readRecord({ path: fifo } as Parameters<typeof readRecord>[0])).toThrow(
+      /not a regular file \(fifo\)/,
+    );
   });
 
   it.skipIf(windows)('refuses a path that resolves to a character device', () => {

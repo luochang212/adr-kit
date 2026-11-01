@@ -36,8 +36,34 @@ export function implementCommand(
     throw new Error(`proposal is not ready to implement:\n${formatIssues(issues)}`);
   }
 
-  const number = nextDecisionNumber(root);
+  // Process death between writing the decision and removing the proposal is
+  // the one window the rollback below cannot cover, and re-running would
+  // allocate a second number for the same promotion. Converge instead: when
+  // an implemented record is exactly this proposal's promotion — same slug,
+  // birth date, and bytes at its own number and declarations — finish the
+  // move by removing the proposal. Bytes that differ are not this move's.
   const slug = proposal.fileName.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '');
+  const prior = records.find((record) =>
+    record.folder === 'implemented' &&
+    record.number !== undefined &&
+    record.decidedBy !== undefined &&
+    record.raisedBy !== undefined &&
+    record.fileName === `${record.number}-${slug}.md` &&
+    record.created === proposal.created &&
+    record.title === `${record.number} ${proposal.title}`);
+  if (prior !== undefined) {
+    const staged = proposalToDecision(proposal, prior.number!, prior.decidedBy!, prior.raisedBy!, prior.date);
+    if (staged === readFileSync(prior.path, 'utf8')) {
+      removeRecord(proposal);
+      return `resumed an interrupted implement: adr/proposed/${proposal.fileName} had already landed as adr/implemented/${prior.fileName}; removed the proposal`;
+    }
+    throw new Error(
+      `adr/implemented/${prior.fileName} looks like this proposal's promotion but its bytes are not this move's; ` +
+      'remove the decision or the proposal you do not want, then run implement again',
+    );
+  }
+
+  const number = nextDecisionNumber(root);
   const fileName = `${number}-${slug}.md`;
   const path = join(folderPath(root, 'implemented'), fileName);
   if (existsSync(path)) {
@@ -58,6 +84,11 @@ export function implementCommand(
   try {
     removeRecord(proposal);
   } catch (error) {
+    if (!existsSync(proposal.path)) {
+      // The proposal is gone: another run of this promotion completed it, and
+      // the staged decision is that move's result, not ours to roll back.
+      return `implemented adr/proposed/${proposal.fileName} as adr/implemented/${fileName}`;
+    }
     // The staged decision is rolled back so re-running the command cannot
     // allocate a second number for the same proposal; the proposal itself is
     // untouched. Same boundary retireRecord holds for archive and supersede.

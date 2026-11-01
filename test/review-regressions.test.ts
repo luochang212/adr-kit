@@ -235,7 +235,10 @@ describe('movement gates and staged rollback', () => {
     // first rollback deleted its archive: both paths ended up absent.
     expect(fs.existsSync(path)).toBe(true);
     expect(competingError).toMatchObject({
-      message: expect.stringContaining('already taken by adr/archived/1-choice.md'),
+      // The lock spans staging and source removal, so the competing move is
+      // refused at arbitration — before it could stage or converge onto the
+      // live writer's files.
+      message: expect.stringContaining('decision number 1 is being written'),
     });
     expect(fs.existsSync(archived)).toBe(false);
     vi.mocked(fs.rmSync).mockImplementation(actualFs.rmSync);

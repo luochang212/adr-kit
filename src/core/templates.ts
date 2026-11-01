@@ -188,6 +188,7 @@ export function proposalToDecision(
   number: number,
   decidedBy: DecidedBy,
   raisedBy: RaisedBy,
+  stamp: string = todayStamp(),
 ): string {
   const problem = sectionBody(proposal, 'Problem');
   const decision = sectionBody(proposal, 'Proposal');
@@ -218,10 +219,13 @@ export function proposalToDecision(
 
   const fields: Record<string, FrontMatterValue> = {
     status: 'implemented',
-    date: todayStamp(),
+    // One stamp for the date fields: a promotion crossing midnight between
+    // them would write `created` after `date`. A resuming implement passes the
+    // staged decision's own stamp so the re-run reproduces its bytes.
+    date: stamp,
     // The decision inherits the proposal's birth date: created is stamped
     // once, at propose time, and survives the promotion.
-    created: proposal.created ?? todayStamp(),
+    created: proposal.created ?? stamp,
     'raised-by': raisedBy,
     'decided-by': decidedBy,
   };
@@ -286,11 +290,8 @@ export function droppedSections(proposal: AdrRecord): string[] {
  * move must never lose a field the writer set.
  */
 export function stampLifecycleMove(content: string, patch: Record<string, FrontMatterValue>): string {
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (match === null) {
-    throw new Error('record has no YAML front matter block');
-  }
-  const existing = parse(match[1] ?? '') as Record<string, unknown>;
+  const { block, yaml } = frontMatterBlock(content);
+  const existing = parse(yaml) as Record<string, unknown>;
   const merged: Record<string, FrontMatterValue> = {};
   for (const key of FRONT_MATTER_ORDER) {
     const patched = patch[key];
@@ -304,5 +305,36 @@ export function stampLifecycleMove(content: string, patch: Record<string, FrontM
       merged[key] = kept as string[];
     }
   }
-  return `---\n${stringify(merged)}---${content.slice(match[0].length)}`;
+  return `---\n${stringify(merged)}---${content.slice(block.length)}`;
+}
+
+/** The fenced YAML text and its full literal block, or an error when absent. */
+function frontMatterBlock(content: string): { block: string; yaml: string } {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (match === null) {
+    throw new Error('record has no YAML front matter block');
+  }
+  return { block: match[0], yaml: match[1]! };
+}
+
+/**
+ * Whether `staged` is exactly this move's transform of `source` — the
+ * comparison a resuming lifecycle command makes. The clock fields the patch
+ * stamps (`date`, `archived`) are read from the staged copy itself, so a
+ * re-run that crossed midnight still recognizes its own earlier staging;
+ * every other patched value must match what the caller passes now, so a
+ * resume never silently swaps the reason or successor a person chose.
+ */
+export function isStagedLifecycleMove(
+  source: string,
+  staged: string,
+  patch: Record<string, FrontMatterValue>,
+): boolean {
+  const stagedFields = parse(frontMatterBlock(staged).yaml) as Record<string, unknown>;
+  const allowance: Record<string, FrontMatterValue> = {};
+  if (patch.date !== undefined && typeof stagedFields.date === 'string') allowance.date = stagedFields.date;
+  if (patch.archived !== undefined && typeof stagedFields.archived === 'string') {
+    allowance.archived = stagedFields.archived;
+  }
+  return stampLifecycleMove(source, { ...patch, ...allowance }) === staged;
 }
