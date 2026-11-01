@@ -38,9 +38,11 @@ jobs:
       - name: Create release pull request or publish
         uses: changesets/action@v2
         with:
-          title: 'chore(release): version packages'
-          publish: npm run release
-          version: npx changeset version
+          # changesets/action v2 renamed its inputs (title -> pr-title,
+          # publish -> publish-script, version -> version-script).
+          pr-title: 'chore(release): version packages'
+          publish-script: npm run release
+          version-script: npx changeset version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
