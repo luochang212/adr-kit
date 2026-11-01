@@ -123,3 +123,5 @@ prose carries no enforcement.
 ### Later changes
 
 **Amended by ADR 45:** ADR 45 changes the grilling rule this record explicitly left untouched: a session now uses information-value selection and can end without a record. The hook reminder now points to important context missing from existing sources and allows skipping routine edits; it updates only claims that become false. The opt-in installation and objective-only failure boundary remain unchanged; the hook does not judge record value.
+
+**Amended by ADR 50:** The objective staged-set defects now include a staged deletion of a file a record's literal `paths` entry names — the commit-time mirror of ADR 22's drift check. The opt-in installation and the judgment boundary (no failure for a missing record) are unchanged.

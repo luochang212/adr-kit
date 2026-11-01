@@ -140,7 +140,7 @@ adrkit help
 
 By default, integrations install into `.agents/`. Pass `--tools claude` for additional `.claude/` copies, or `--tools none` to install none. `--workflows` selects a subset such as `init,propose,implement,validate`.
 
-`adrkit hook install` opts a clone into a pre-commit check: it blocks a staged record or `@adr` citation that is objectively invalid, and a staged deletion of a numbered decision (a rename that keeps the number still passes), then names the active decisions governing the staged files and reminds the agent to preserve important context missing from existing sources; routine edits need no record or note. `adrkit hook uninstall` removes only the hook adr-kit wrote; `git commit --no-verify` bypasses it once.
+`adrkit hook install` opts a clone into a pre-commit check: it blocks a staged record or `@adr` citation that is objectively invalid, a staged deletion of a numbered decision that still has references (a rename keeping the number, or an `adrkit delete` that strands nothing, still passes), and a staged deletion of a file a record's literal `paths` entry names (glob scopes keep governing the remaining files), then names the active decisions governing the staged files and reminds the agent to preserve important context missing from existing sources; routine edits need no record or note. `adrkit hook uninstall` removes only the hook adr-kit wrote; `git commit --no-verify` bypasses it once.
 
 ## Record format
 

@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { isAbsolute, join, resolve } from 'node:path';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { parseAdrText, type AdrFolder, type AdrRecord } from './adr.js';
 import { ADR_DIR, findRoot, requireRoot } from './config.js';
 import { gitChangedPaths } from './git.js';
@@ -150,6 +150,27 @@ export function hookCheck(cwd: string): HookCheckResult {
     }
     issues.push(...validateRecord(root, record));
     if (records.length > 0) issues.push(...validateRecordReferences(root, record, records));
+  }
+
+  // A staged deletion strands a scope only when the deleted path is itself a
+  // `paths:` entry: a literal entry can name only that file, so the record is
+  // false until it changes, while a glob entry keeps governing whatever still
+  // matches it. A record staged in this commit was already drift-checked
+  // against the working tree above, so it reports once, not twice.
+  const stagedRecordTexts = new Set(
+    stagedRecordPaths.filter((path) => stagedText(root, prefix, path) !== undefined),
+  );
+  for (const path of staged) {
+    if (isRecordPath(path) || stagedText(root, prefix, path) !== undefined) continue;
+    for (const record of records) {
+      const file = relative(root, record.path).split(sep).join('/');
+      if (stagedRecordTexts.has(file) || record.paths === undefined) continue;
+      if (!record.paths.includes(path)) continue;
+      issues.push({
+        path: file,
+        message: `staged deletion of "${path}" strands its literal paths entry`,
+      });
+    }
   }
 
   for (const path of staged) {

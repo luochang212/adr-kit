@@ -236,6 +236,60 @@ describe('pre-commit hook management', () => {
     expect(result.ok).toBe(true);
   });
 
+  it('fails on a staged deletion that strands a literal paths entry', () => {
+    const root = makeRepo();
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    git(root, 'add', '-A');
+    git(root, 'commit', '-qm', 'add the decision');
+    git(root, 'rm', '-q', 'src/a.ts');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('adr/implemented/1-test.md: staged deletion of "src/a.ts" strands its literal paths entry');
+  });
+
+  it('passes a staged deletion that only a glob entry matched', () => {
+    const root = makeRepo();
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/**/*.ts']));
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    write(join(root, 'src', 'b.ts'), 'export const b = 1;\n');
+    git(root, 'add', '-A');
+    git(root, 'commit', '-qm', 'add the decision');
+    git(root, 'rm', '-q', 'src/a.ts');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(true);
+  });
+
+  it('passes a staged deletion whose record is updated in the same commit', () => {
+    const root = makeRepo();
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts', 'src/b.ts']));
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    write(join(root, 'src', 'b.ts'), 'export const b = 1;\n');
+    git(root, 'add', '-A');
+    git(root, 'commit', '-qm', 'add the decision');
+    git(root, 'rm', '-q', 'src/a.ts');
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/b.ts']));
+    git(root, 'add', 'adr/implemented/1-test.md');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(true);
+  });
+
+  it('reports a stranded literal entry once when the record is also staged', () => {
+    const root = makeRepo();
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts', 'src/b.ts']));
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    write(join(root, 'src', 'b.ts'), 'export const b = 1;\n');
+    git(root, 'add', '-A');
+    git(root, 'commit', '-qm', 'add the decision');
+    git(root, 'rm', '-q', 'src/a.ts');
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts', 'src/b.ts']).replace('Use SQLite.', 'Use SQLite, revised.'));
+    git(root, 'add', 'adr/implemented/1-test.md');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('path "src/a.ts" matches nothing in the repository');
+    expect(result.output).not.toContain('strands its literal paths entry');
+  });
+
   it('fails on a staged deletion of an archived decision', () => {
     const root = makeRepo();
     write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
