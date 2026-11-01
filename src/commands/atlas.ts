@@ -3,7 +3,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireRoot } from '../core/config.js';
-import { gitHead } from '../core/git.js';
+import { gitHead, gitToplevel } from '../core/git.js';
 import { buildDecisionGraph } from '../core/graph.js';
 import { renderDecisionAtlas } from '../core/decision-atlas.js';
 import { selectAtlasTheme } from '../core/atlas-theme.js';
@@ -114,10 +114,7 @@ function projectName(root: string): string {
     }
   }
   try {
-    const top = execFileSync('git', ['rev-parse', '--show-toplevel'], {
-      cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
-    if (top.length > 0) return basename(top);
+    return basename(gitToplevel(root));
   } catch {
     // Not a Git repository: the ADR root is the best name available.
   }

@@ -22,7 +22,12 @@ export function gitHead(cwd: string): string | undefined {
   }
 }
 
-function runGit(cwd: string, args: string[]): string {
+/**
+ * Run git in `cwd` with the shared execution contract every direct git call
+ * uses: bounded buffer and timeout, stdout captured, failures thrown to the
+ * caller. Callers that want best-effort semantics wrap the call in try/catch.
+ */
+export function runGit(cwd: string, args: readonly string[]): string {
   return execFileSync('git', args, {
     cwd,
     encoding: 'utf8',
@@ -39,7 +44,7 @@ function runGit(cwd: string, args: string[]): string {
  * RUNNER~1, while git prints the long form). Only the native realpath expands
  * those; the JS one keeps the spelling it was handed.
  */
-function gitToplevel(root: string): string {
+export function gitToplevel(root: string): string {
   return realpathSync.native(runGit(root, ['rev-parse', '--show-toplevel']).replace(/\r?\n$/, ''));
 }
 

@@ -627,6 +627,29 @@ export function recordsReferencing(
   return sites.sort((a, b) => a.path.localeCompare(b.path) || a.message.localeCompare(b.message));
 }
 
+/**
+ * The records a deletion of repository file `path` would strand: a literal
+ * `paths:` entry naming that exact file. The commit-time mirror of the
+ * pathsIssues drift check — a literal entry can name only that file, so the
+ * record is false until it changes, while a glob entry keeps governing
+ * whatever still matches it (ADR 50).
+ */
+export function recordsScopedTo(
+  root: string,
+  records: readonly AdrRecord[],
+  path: string,
+): ReferenceSite[] {
+  const sites: ReferenceSite[] = [];
+  for (const record of records) {
+    if (record.paths === undefined || !record.paths.includes(path)) continue;
+    sites.push({
+      path: relative(root, record.path).replace(/\\/g, '/'),
+      message: `staged deletion of "${path}" strands its literal paths entry`,
+    });
+  }
+  return sites;
+}
+
 export function formatIssues(issues: ValidationIssue[]): string {
   if (issues.length === 0) return 'OK';
   // Issue paths arrive with the platform separator (they come from node:path

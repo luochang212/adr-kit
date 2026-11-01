@@ -1,15 +1,15 @@
-import { execFileSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 import { parseAdrText, type AdrFolder, type AdrRecord } from './adr.js';
 import { ADR_DIR, findRoot, requireRoot } from './config.js';
-import { gitChangedPaths } from './git.js';
+import { gitChangedPaths, runGit } from './git.js';
 import { citationProblem, citationsTo, findCitations, isCitationScanPath } from './markers.js';
 import { relevantRecords } from './relevant.js';
 import { displayName, FOLDERS, listRecords } from './repository.js';
 import {
   formatIssues,
   recordsReferencing,
+  recordsScopedTo,
   validateRecord,
   validateRecordReferences,
   type ValidationIssue,
@@ -20,16 +20,6 @@ const HOOK_MARKER = '# adrkit: managed pre-commit hook';
 export interface HookCheckResult {
   ok: boolean;
   output: string;
-}
-
-function git(root: string, args: readonly string[]): string {
-  return execFileSync('git', args, {
-    cwd: root,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-    maxBuffer: 16 * 1024 * 1024,
-    timeout: 10_000,
-  });
 }
 
 function firstLine(error: unknown): string {
@@ -51,14 +41,14 @@ function numberedPath(path: string): number | undefined {
 }
 
 function hooksDir(root: string): string {
-  const out = git(root, ['rev-parse', '--git-path', 'hooks']).trim();
+  const out = runGit(root, ['rev-parse', '--git-path', 'hooks']).trim();
   return isAbsolute(out) ? out : resolve(root, out);
 }
 
 /** The staged blob of `path`, or undefined when the index has no such file (a deletion). */
 function stagedText(root: string, prefix: string, path: string): string | undefined {
   try {
-    return git(root, ['show', `:${prefix}${path}`]);
+    return runGit(root, ['show', `:${prefix}${path}`]);
   } catch {
     return undefined;
   }
@@ -84,7 +74,7 @@ export function hookCheck(cwd: string): HookCheckResult {
     staged = gitChangedPaths(root, { staged: true });
     // The index spells paths from the repository root, while the staged list
     // is relative to the ADR root; the prefix bridges a nested adr/ directory.
-    prefix = git(root, ['rev-parse', '--show-prefix']).trim();
+    prefix = runGit(root, ['rev-parse', '--show-prefix']).trim();
   } catch {
     return { ok: true, output: '' };
   }
@@ -153,23 +143,18 @@ export function hookCheck(cwd: string): HookCheckResult {
   }
 
   // A staged deletion strands a scope only when the deleted path is itself a
-  // `paths:` entry: a literal entry can name only that file, so the record is
-  // false until it changes, while a glob entry keeps governing whatever still
-  // matches it. A record staged in this commit was already drift-checked
-  // against the working tree above, so it reports once, not twice.
+  // literal `paths:` entry (recordsScopedTo); a glob entry keeps governing
+  // whatever still matches. A record staged in this commit was already
+  // drift-checked against the working tree above, so it reports once, not
+  // twice.
   const stagedRecordTexts = new Set(
     stagedRecordPaths.filter((path) => stagedText(root, prefix, path) !== undefined),
   );
   for (const path of staged) {
     if (isRecordPath(path) || stagedText(root, prefix, path) !== undefined) continue;
-    for (const record of records) {
-      const file = relative(root, record.path).split(sep).join('/');
-      if (stagedRecordTexts.has(file) || record.paths === undefined) continue;
-      if (!record.paths.includes(path)) continue;
-      issues.push({
-        path: file,
-        message: `staged deletion of "${path}" strands its literal paths entry`,
-      });
+    for (const site of recordsScopedTo(root, records, path)) {
+      if (stagedRecordTexts.has(site.path)) continue;
+      issues.push({ path: site.path, message: site.message });
     }
   }
 
@@ -243,7 +228,7 @@ export function hookInstall(cwd: string, entry?: string): string {
   // whose adr/ sits below the root is not the ADR root. Change into the root
   // the hook was installed for, so discovery finds the records. Resolve the
   // top level at commit time so a linked worktree checks its own tree.
-  const prefix = git(root, ['rev-parse', '--show-prefix']).trim();
+  const prefix = runGit(root, ['rev-parse', '--show-prefix']).trim();
   writeFileSync(
     file,
     `#!/bin/sh\n${HOOK_MARKER}\n# Installed by \`adrkit hook install\`; remove with \`adrkit hook uninstall\`.\ncd "$(git rev-parse --show-toplevel)"/${shellQuote(prefix)} || exit 1\n${guard}exec ${command} hook run\n`,
