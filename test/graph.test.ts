@@ -389,11 +389,13 @@ p
 `;
     // The format forbids this file name, but the map must not gate on
     // validation: a hand-placed path still has to render as one well-formed
-    // click line instead of opening Mermaid's quoting.
-    writeFileSync(join(root, 'adr', 'implemented', '1-we"ird.md'), content);
+    // click line instead of opening Mermaid's quoting. A literal `%` is the
+    // portable hostile character — a double quote is illegal in a Windows
+    // file name, and a raw `%` either forges an escape or must be escaped.
+    writeFileSync(join(root, 'adr', 'implemented', '1-we%ird.md'), content);
     const out = atlasCommand(root, { map: true, format: 'mermaid' });
-    expect(out).toContain('click n1 "adr/implemented/1-we%22ird.md"');
-    expect(out).not.toContain('we"ird');
+    expect(out).toContain('click n1 "adr/implemented/1-we%25ird.md"');
+    expect(out).not.toContain('we%ird');
   });
 
   it('rejects a language other than en or zh', () => {
@@ -631,6 +633,29 @@ describe('graph output file', () => {
     graphCommand(root, { out: outside });
     const record = join(realpathSync(root), 'adr', 'archived', '1-old.md');
     expect(readFileSync(outside, 'utf8')).toContain('click n1 "' + pathToFileURL(record).href + '"');
+  });
+
+  it('passes an already-encoded file url through untouched (a space in the root path)', () => {
+    // recordHref answers an absolute file:// url for a map written outside
+    // the repository, and pathToFileURL has already escaped it in full.
+    // Re-encoding those escapes corrupted every click — RUNNER%7E1 became
+    // RUNNER%257E1 on Windows CI. A space in the root makes the same case
+    // observable on every platform, not only where temp paths carry a tilde.
+    const parent = mkdtempSync(join(tmpdir(), 'adrkit-graph spaced '));
+    tempDirs.push(parent);
+    const root = join(parent, 'repo with space');
+    mkdirSync(root, { recursive: true });
+    initCommand(root);
+    writeDecision(root, 1, 'Old', { date: '2026-08-17' });
+    const dir = mkdtempSync(join(tmpdir(), 'adrkit-mmd-out-'));
+    tempDirs.push(dir);
+    const outside = join(dir, 'map.mmd');
+    graphCommand(root, { out: outside });
+    const record = join(realpathSync(root), 'adr', 'implemented', '1-old.md');
+    const href = pathToFileURL(record).href;
+    // The fixture only proves something while the space really is escaped.
+    expect(href).toContain('%20');
+    expect(readFileSync(outside, 'utf8')).toContain('click n1 "' + href + '"');
   });
 });
 

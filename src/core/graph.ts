@@ -207,10 +207,15 @@ function mermaidLabel(title: string): string {
 
 /**
  * A link target, so percent-encoding is the portable escape — the label's
- * `#quot;` is Mermaid's entity handling for text, not for URLs. Encoding `%`
- * first keeps an already-encoded-looking path from being mangled twice.
+ * `#quot;` is Mermaid's entity handling for text, not for URLs. A href with
+ * a scheme is already a URL that recordHref escaped in full (the absolute
+ * file:// target for a map written outside the repository), so it passes
+ * through untouched; re-encoding its escapes corrupts them (%7E became
+ * %257E on Windows CI). A relative record path is raw text, so every
+ * reserved character — `%` included — needs the escape.
  */
 function mermaidHref(path: string): string {
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(path)) return path;
   return path.replace(/[%"#? ]/g, (char) => encodeURIComponent(char));
 }
 
