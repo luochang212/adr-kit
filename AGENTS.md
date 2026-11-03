@@ -3,9 +3,9 @@
 ADR Kit is a command-line tool for Architecture Decision Records. This file
 contains standing orders for coding agents working in this repository.
 
-## 架构决策
+## 架构决策记录
 
-本仓库的架构决策记录保存在 `adr/` 目录。可以用 `adrkit` 命令查看：`adrkit list` 列出全部记录，`adrkit show <编号>` 读取一条，`adrkit relevant <路径>` 查找管辖某文件的记录。只记录会影响后续工作的架构选择：代码、测试和现有文档说不清、后来者又可能遗忘的约束与理由才值得记，例行修改留给 Git 和测试。判断时问三件事——会丢失什么、遗忘的代价是什么、哪条稳定的选择该留存；没有值得记的就跳过，不硬凑。写法见 `adrkit-propose`、`adrkit-record` 技能。
+本仓库用 `adr-kit` 这个 npm 包管理架构级决策，记录保存在 `adr/` 目录。可以用 `adrkit list` 列出全部记录，`adrkit show <编号>` 读取某一条，`adrkit relevant <路径>` 查找与某文件相关的记录。记录是有代价的：每记一件事，就要在代码之外多维护一份真相源。但记录又是必要的——代码只是根因衍生的现象，知道根因却不记录，未来的 agent 只能从代码反猜。例行修改留给 Git 和测试；没有值得记的就跳过。写法见 `adrkit-propose`、`adrkit-record` 技能。
 
 ## Commands
 
