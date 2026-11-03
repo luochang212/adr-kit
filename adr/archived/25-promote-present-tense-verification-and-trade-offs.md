@@ -1,10 +1,14 @@
 ---
 status: implemented
-date: 2026-10-18
-description: "Read when promoting proposal acceptance criteria and risks into verified facts and trade-offs of a shipped decision."
+date: 2026-11-03
+description: Read when promoting proposal acceptance criteria and risks into
+  verified facts and trade-offs of a shipped decision.
 raised-by: agent
 decided-by: agent
 created: 2026-10-18
+archived: 2026-11-03
+archive-reason: "consolidated into ADR 18: promotion output and validation now
+  live with the lifecycle record"
 paths:
   - src/core/adr.ts
   - src/core/templates.ts

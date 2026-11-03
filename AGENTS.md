@@ -49,6 +49,9 @@ over a patch rather than share the working tree.
   announced through release notes and the upgrade guide instead of drift
   notes. Preserve the user-owned AGENTS.md boundary: CLI commands read it but
   never rewrite it.
+- This repository dogfoods its own records: `adr/` is tracked, and a change
+  that settles a long-lived choice is recorded there first. The tracked tree
+  and this convention carry ADR 2's historical governance note.
 - The `adrkit-grill` method is adapted from `mattpocock/skills` (MIT). The
   upstream grilling directory is vendored under `assets/upstream/grilling/`
   and pinned in `MANIFEST.json`; CI hard-fails (`npm run check:upstream`) when

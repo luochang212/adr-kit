@@ -1,10 +1,14 @@
 ---
 status: implemented
-date: 2026-10-23
-description: "Read when generating bilingual atlas pages from one shared template and translation table."
+date: 2026-11-03
+description: Read when generating bilingual atlas pages from one shared template
+  and translation table.
 raised-by: human
 decided-by: human
 created: 2026-10-23
+archived: 2026-11-03
+archive-reason: "consolidated into ADR 29: bilingual atlas publication now lives
+  with the site atlas record"
 paths:
   - tools/build-decision-atlas.mjs
   - src/core/atlas-i18n.ts

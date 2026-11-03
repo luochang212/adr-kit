@@ -495,9 +495,9 @@ test(`${theme}: opening the reader focuses the dialog, not the source link`, asy
 
 test(`${theme}: keyboard focus rings follow the theme accent`, async ({ page }) => {
   await page.goto(artifact('en', theme));
-  // Record 15 has no relation pills, so the reader holds exactly four tab
+  // Record 49 has no relation pills, so the reader holds exactly four tab
   // stops and the walk below stays short and stable across themes.
-  await page.locator('.decision-card[data-record="15"]').click();
+  await page.locator('.decision-card[data-record="49"]').click();
   await expect(page.locator('#reader')).toBeVisible();
   // Walk focus with the keyboard until the source link holds it, so
   // :focus-visible matches through the engine's own heuristics. Pressing
@@ -521,7 +521,7 @@ test(`${theme}: keyboard focus rings follow the theme accent`, async ({ page }) 
 
 test(`${theme}: touch taps leave no focus ring on the source link`, async ({ page }) => {
   await page.goto(artifact('en', theme));
-  await page.locator('.decision-card[data-record="15"]').click();
+  await page.locator('.decision-card[data-record="49"]').click();
   await expect(page.locator('#reader')).toBeVisible();
   // WebKit matches :focus-visible on tapped links, so the ring would stick
   // after every tap; under a coarse pointer the source link keeps its focus

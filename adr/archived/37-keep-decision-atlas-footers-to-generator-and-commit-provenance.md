@@ -1,10 +1,14 @@
 ---
 status: implemented
-date: 2026-10-23
-description: "Read when changing atlas footer attribution, commit provenance, or navigation links."
+date: 2026-11-03
+description: Read when changing atlas footer attribution, commit provenance, or
+  navigation links.
 raised-by: human
 decided-by: human
 created: 2026-10-23
+archived: 2026-11-03
+archive-reason: "consolidated into ADR 29: footer provenance now lives with the
+  site atlas record"
 paths:
   - src/core/decision-atlas.ts
   - tools/build-decision-atlas.mjs

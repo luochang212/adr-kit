@@ -248,7 +248,7 @@ describe('citation validation', () => {
     const expected: Array<[string, number[]]> = [
       ['src/core/retire.ts', [30]],
       ['src/core/graph-html.ts', [9, 11]],
-      ['src/core/decision-atlas.ts', [29, 31]],
+      ['src/core/decision-atlas.ts', [29]],
       ['src/core/markers.ts', [26]],
     ];
     for (const [file, numbers] of expected) {

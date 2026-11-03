@@ -1,10 +1,14 @@
 ---
 status: implemented
-date: 2026-10-29
-description: "Read when placing stability promises and release-specific upgrade instructions in project documentation."
+date: 2026-11-03
+description: Read when placing stability promises and release-specific upgrade
+  instructions in project documentation.
 raised-by: human
 decided-by: human
 created: 2026-10-29
+archived: 2026-11-03
+archive-reason: "consolidated into ADR 28: upgrade-surface layout now lives with
+  the compatibility record"
 paths:
   - README.md
   - README.zh.md

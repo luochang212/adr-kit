@@ -1,10 +1,14 @@
 ---
 status: implemented
-date: 2026-10-22
-description: "Read when deciding how much archived record content to publish in the human-facing atlas."
+date: 2026-11-03
+description: Read when deciding how much archived record content to publish in
+  the human-facing atlas.
 raised-by: human
 decided-by: human
 created: 2026-10-22
+archived: 2026-11-03
+archive-reason: "consolidated into ADR 29: archived-body publication now lives
+  with the site atlas record"
 paths:
   - src/core/decision-atlas.ts
   - skills/adrkit-visualize/**

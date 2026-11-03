@@ -119,6 +119,16 @@ The embedded outline described in the Problem was later removed after a
 worth-fix review: the reader renders the appendix as part of the record body,
 and the card tree remains `atlas --record --diagram`.
 
+### Consolidated guidance
+
+ADR 12 and ADR 13 are archived; their still-current delivery and routing rules
+live here. A request for an existing record's visualization opens the generated
+file in the default browser and returns a clickable link; an explicit file-only
+or no-open instruction overrides that default, and a failed open keeps the
+link. The CLI itself still writes HTML to stdout without launching a browser.
+`adrkit-visualize` owns viewing existing records; `adrkit-grill` owns
+questioning and recording.
+
 ### Later changes
 
 **Amended by ADR 36:** `--map` explicitly selects every map export; format alone

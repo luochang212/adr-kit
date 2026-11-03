@@ -123,4 +123,9 @@ empty-body verification above are historical.
 footer — replacing the Chinese-only showcase above; the `ui.ts` copy rule
 stays inapplicable.
 
+**Amended by ADR 37:** atlas footers keep only the generator attribution and
+the pinned commit; the home and sibling-language links, and the redundant
+current-records phrase, are removed. This supersedes the footer cross-links
+named in the ADR 34 entry above.
+
 **Amended by ADR 44:** Atlas payloads carry descriptions instead of tags. Directory summaries, reader introductions and local search use the description; shared generation, source links and commit provenance remain unchanged.

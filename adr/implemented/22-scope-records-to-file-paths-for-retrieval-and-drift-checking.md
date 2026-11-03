@@ -23,80 +23,62 @@ paths:
 ADR 20 made the four lifecycle folders a context contract, but its only
 retrieval axis is intent. An agent asking "which decisions govern this file?"
 has no mechanical answer: front matter carries no path scope, no command
-filters by file, and `adrkit list` does not even expose `--tag`. Relevance is
-judged by reading titles and body prose — the reading rule already tells
-agents to "inspect tags, paths, relationships", yet the paths it means are
-citations buried in prose.
+filters by file, and relevance is judged by reading prose — the paths the
+reading rule names are citations buried in bodies.
 
-Dogfood measurement (2026-10-12): only 6 of 21 implemented records mention
-any repository path in their body, and `src/core/adr.ts` — the file the
-record format itself is the product contract for — is cited by zero records.
-Full-text grep, the only workaround, both over-matches (mentions in
-alternatives, archived history) and under-matches (that same zero). The AGENTS.md
-duty to keep realization facts aligned with shipped code likewise has no
-mechanical backstop: `validate` checks dates, sections, and references,
-never whether a cited path still exists, so a rename silently strands every
-prose citation.
-
-The wider tooling has converged on the same mechanism independently:
-`affects`/`applies_to` scoping fields and "which decisions govern this
-file/PR" retrieval in at least three 2026 agent-ADR tools. ADR 20 deferred
-this axis as speculative "class/area" taxonomy; two years of ecosystem
-adoption and this repository's own 16-of-21 tags adoption have since removed
-the speculation.
+Measurement on this repository (2026-10-12): only 6 of 21 implemented records
+mention any repository path, and `src/core/adr.ts` — the file whose format is
+the product contract — is cited by zero. Grep, the only workaround,
+over-matches alternatives and history while under-matching that same zero. The
+AGENTS.md duty to keep realization facts aligned with shipped code also has no
+mechanical backstop: `validate` checks dates, sections, and references, never
+whether a cited path still exists, so a rename silently strands prose
+citations. Other 2026 agent-ADR tools converged independently on
+`affects`/`applies_to` scoping and "which decisions govern this file/PR"
+retrieval, removing ADR 20's earlier "speculative taxonomy" objection.
 
 ## Decision
 
-Add an optional `paths:` front matter field — a list of repository-relative
-glob patterns naming the files a record governs — and consume it on two
-surfaces, in one change:
+Add an optional `paths:` front matter field — repository-relative glob
+patterns naming the files a record governs — and consume it on two surfaces in
+one change:
 
-- **`adrkit relevant <path>...`** — a retrieval command that lists the
-  records whose `paths:` globs match the given path(s), grouped by lifecycle
-  folder with the reading posture ADR 20 defined: implemented records are
-  current authority to read in full, proposed records are intent, rejected
-  records are anti-pattern warnings, and archived records are excluded (not
-  read by default). Each match shows the glob that fired, so the result is
-  verifiable. A directory argument matches any file under it (bounded walk,
-  skipping `.git` and `node_modules`). Records without `paths:` never match:
-  `relevant` is scope retrieval, not full-text search, and must not pretend
-  to be one.
-- **`adrkit validate` drift check** — every `paths:` entry's static directory anchor
-  (complete directory components before the first wildcard, or the full path
-  without wildcards) must exist in the repository, and
-  entries must be relative and forward-slashed. A record scoped to a renamed
-  directory fails validation instead of silently stranding its citations,
-  giving the AGENTS.md realization-facts duty its first mechanical backstop.
+- **`adrkit relevant <path>...`** lists records whose `paths:` globs match,
+  grouped by lifecycle folder with ADR 20's reading posture: implemented is
+  current authority read in full, proposed is intent, rejected is
+  anti-pattern warnings, and archived is excluded. Each match shows the glob
+  that fired, so the result is verifiable. A directory argument matches files
+  under it through a bounded walk skipping `.git` and `node_modules`. Records
+  without `paths:` never match: this is scope retrieval, not full-text search.
+- **`adrkit validate` drift check** requires every entry's static directory
+  anchor — complete components before the first wildcard, or the full path
+  without wildcards — to exist, and requires relative, forward-slashed
+  entries. A record scoped to a renamed directory fails instead of silently
+  stranding citations, giving the realization-facts duty its first mechanical
+  backstop.
 
 Glob semantics stay minimal and dependency-free: `**` crosses directory
-separators, `*` stays within one segment, `?` matches one character,
-everything else is literal. No brace expansion, no character classes. The
-field sits after `tags` in `FRONT_MATTER_ORDER`, is optional on every status,
-is carried through lifecycle moves like `tags`, and survives the
-proposal-to-decision promotion. This extends ADR 20's context contract with
-the file axis it deferred; ADR 20 stays active and links here.
+separators, `*` stays within one segment, `?` matches one character, and
+everything else is literal; no brace expansion or character classes. The field
+sits after `tags` in `FRONT_MATTER_ORDER`, is optional on every status, is
+carried through lifecycle moves and promotion, and extends ADR 20's context
+contract with the file axis it deferred.
 
 ## Alternatives considered
 
-- **Keep prose citations and grep**: rejected. Measured in this repository:
-  grep misses the most-governed file in the repo (`src/core/adr.ts`, zero
-  citations) and cannot separate governance from passing mention.
-- **Full-text search command over record bodies**: rejected. It answers
-  "which records mention this string", not "which decisions govern this
-  file"; it over-matches alternatives and history, and it needs ranking
-  heuristics a deterministic scope field does not.
-- **Reuse `tags` as the scope axis**: rejected. Tags classify by theme; a
-  file path is not a theme. Overloading them would break the existing
-  16-of-21 corpus and the kebab-case shape check.
-- **Directory/class taxonomy folders (the ADR 20 wording)**: rejected. A
-  second folder axis forces one record into one area, while globs let a
-  record govern several; folders also cannot express file granularity.
-- **MCP server with semantic retrieval**: deferred, not rejected. It serves a
-  different consumer (agents without shell access) and does not need the
-  format to change; a scope field is its natural substrate later.
-- **Validate drift via regex over body prose**: rejected. Unextractable
-  without false positives (example paths, globs in prose, translated docs);
-  drift checking is only sound against a structured field.
+- **Keep prose citations and grep**: rejected. Measured here: grep misses the
+  most-governed file and cannot separate governance from passing mention.
+- **Full-text search over record bodies**: rejected. It answers "which records
+  mention this string", over-matches alternatives and history, and needs
+  ranking heuristics a deterministic scope field does not.
+- **Reuse `tags` as the scope axis**: rejected. A file path is not a theme,
+  and overloading tags breaks the existing corpus and shape check.
+- **Directory/class taxonomy folders**: rejected. A second folder axis forces
+  one record into one area and cannot express file granularity.
+- **MCP server with semantic retrieval**: deferred, not rejected. It serves
+  agents without shell access and can use the scope field as substrate.
+- **Regex drift checking over body prose**: rejected. Unextractable without
+  false positives; drift checking needs a structured field.
 
 ## Consequences
 
@@ -104,41 +86,33 @@ the file axis it deferred; ADR 20 stays active and links here.
 
 - `FRONT_MATTER_ORDER` includes `paths` after `tags`; the parser accepts an
   optional list of non-empty strings and rejects other shapes.
-- `adrkit relevant <path>` prints matching records grouped as Implemented /
-  Proposed / Rejected with the matched glob per record, excludes archived,
-  and states plainly when nothing matches.
-- `adrkit validate` fails a record whose `paths:` entry has a nonexistent
-  static directory anchor, an absolute path, or a `..` segment, and passes valid ones.
-- Glob matching supports `**`, `*`, `?` with those exact crossing semantics,
-  covered by unit tests; no new runtime dependency is added.
-- Lifecycle moves and proposal promotion carry `paths` through; the
-  bilingual READMEs, `docs/record-format.md` (+zh), the CLI reference, the
-  standing orders in `tool-integrations.ts` and the mirrored skills,
-  `INIT_README`, `docs/workflow.md`, and this repository's AGENTS.md and
-  `adr/README.md` document the field and the command in the same change.
-- `npm test`, `npm run typecheck`, and `npm run build` pass.
+- `adrkit relevant <path>` groups Implemented/Proposed/Rejected matches, shows
+  the matched glob, excludes archived, and states when nothing matches.
+- `adrkit validate` fails an entry with a nonexistent static anchor, an
+  absolute path, or a `..` segment, and passes valid entries.
+- Glob matching supports `**`, `*`, `?` with the stated crossing semantics and
+  adds no runtime dependency.
+- Lifecycle moves and promotion carry `paths`; the READMEs, record-format
+  references, CLI reference, standing orders, skills, `INIT_README`,
+  `docs/workflow.md`, `AGENTS.md`, and `adr/README.md` document the field and
+  command in the same change. `npm test`, typecheck, and build pass.
 
 ### Trade-offs
 
-- **The field goes unfilled and becomes a dead axis** — the ADR 20 worry.
-  Mitigation: it ships with its consumer (`relevant`) in the same change, the
-  dogfooded corpus gets scoped on implementation, and `validate` makes a
-  filled-but-stale field fail loudly rather than rot quietly.
-- **Glob dialect expectations** (`src/**/*.ts` vs `src/*.ts`): mitigated by
-  documented minimal semantics and unit tests pinning the crossing behavior.
-- **Over-scoped records mislead retrieval** (a glob so wide every file
-  matches). Mitigation: the command prints the glob that fired, making
-  over-scope visible at use; review guidance names scoping as a realization
-  fact.
-- **Directory walks on huge trees cost time**: mitigated by the bounded walk
-  (capped file count, skipping `.git`/`node_modules`); the common case is a
-  single file, which never walks.
-
+- **The field goes unfilled.** Mitigation: it ships with `relevant`, the
+  dogfooded corpus is scoped on implementation, and `validate` makes a stale
+  filled field fail loudly.
+- **Glob dialect expectations.** Mitigated by documented minimal semantics and
+  unit tests pinning the crossing behavior.
+- **Over-scoped records mislead retrieval.** The command prints the glob that
+  fired, making over-scope visible at use.
+- **Directory walks cost time on huge trees.** The walk is bounded and skips
+  `.git`/`node_modules`; the common single-file case never walks.
 
 ADR 23 extends the retrieval consumer with exact Git-base and staged inputs,
-explicit incomplete-search diagnostics and unscoped coverage counts. It retains
-the optional paths field, minimal glob dialect, drift check and lifecycle reading
-postures defined here; no second retrieval model or record field is introduced.
+explicit incomplete-search diagnostics, and unscoped coverage counts. It
+retains the optional field, glob dialect, drift check, and reading postures
+defined here; no second retrieval model or record field is introduced.
 
 ### Later changes
 

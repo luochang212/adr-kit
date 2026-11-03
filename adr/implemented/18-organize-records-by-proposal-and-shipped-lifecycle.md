@@ -38,111 +38,89 @@ paths:
 
 ## Problem
 
-ADR Kit currently stores committed decisions together in `decisions/` and
-keeps proposals in a gitignored `.drafts/` directory. A rejected proposal is
-deleted. `accepted` means the choice was recorded, not that it shipped. This
-layout cannot distinguish work still being shaped from shipped guidance, keep
-the rationale for a formal rejection, or retire low-future-value guidance
-without confusing it with supersession. It also makes every task read the
-entire decision set, including historical records. The maintainer chose to
-adopt the lifecycle discipline of DeepSeek Harness Agent Notes while keeping
-ADR Kit's provenance, deliberation, stable decision numbers, and graph.
+ADR Kit stored committed decisions together in `decisions/`, kept proposals in
+a gitignored `.drafts/`, and deleted rejected proposals; `accepted` meant the
+choice was recorded, not that it shipped. The layout could not distinguish work
+still being shaped from shipped guidance, preserve a rejection's rationale, or
+retire low-value guidance without conflating it with supersession, and it made
+every task read the whole set. The maintainer adopted the lifecycle discipline
+of DeepSeek Harness Agent Notes while keeping ADR Kit's provenance,
+deliberation, stable decision numbers, and graph.
 
 ## Decision
 
-- The repository has four lifecycle directories: `proposed/`,
-  `implemented/`, `rejected/`, and `archived/`, with no class subdirectories or
-  `.drafts/`. `proposed/` holds unshipped work, including choices settled by a
-  grilling session. An uncommitted proposal is a working-tree draft; a commit
-  makes it shared. `implemented/` means the decision actually shipped, not
-  merely that someone chose or approved it.
+- Four lifecycle directories: `proposed/`, `implemented/`, `rejected/`, and
+  `archived/`, with no class subdirectories or `.drafts/`. `proposed/` holds
+  unshipped work, including choices settled by grilling; an uncommitted
+  proposal is a working-tree draft and a commit makes it shared.
+  `implemented/` means the decision actually shipped, not that someone chose
+  or approved it.
 - `propose` creates a dated, unnumbered proposal. `reject` requires a reason
-  and preserves every formally rejected proposal in `rejected/`. `implement`
-  promotes a shipped proposal, rewrites proposal-era sections as present-tense
-  decision and consequences, and assigns the next ADR number. `record` writes
-  an already-shipped decision directly into `implemented/` with that number.
-  The CLI does not infer whether work shipped; the caller declares the move.
+  and preserves the proposal in `rejected/`. `implement` promotes a shipped
+  proposal, rewrites proposal-era sections as present-tense decision and
+  consequences, and assigns the next number. `record` writes an
+  already-shipped decision directly into `implemented/`. The CLI does not
+  infer that work shipped; the caller declares the move.
 - A grilling session records every choice it settles, but an unshipped result
-  remains in `proposed/`, with the settled direction, alternatives,
-  deliberation, and provenance in its body. It does not become an implemented
-  ADR merely because the questioning ended. This changes the terminal route
-  in ADRs 3 and 4 while retaining their provenance and deliberation rules.
+  stays in `proposed/` with its direction, alternatives, deliberation, and
+  provenance. It does not become an implemented ADR because questioning
+  ended; this changes the terminal route in ADRs 3 and 4 while keeping their
+  provenance and deliberation rules.
 - Implemented records may be updated to keep paths, symbols, defaults, and
-  other realization facts aligned with shipped code. Their choice and
-  rationale are not rewritten into another decision; a changed choice needs
-  a new record and an explicit relationship. Full supersession moves the old
-  record to `archived/`, preserving its number and `superseded-by` link.
-  Partial supersession leaves the still-relevant record active and links the
-  related decisions instead.
-- Only implemented records enter `archived/`. An implemented decision may be
-  archived when its distinct rationale is unlikely to guide future work,
-  current behavior has another authoritative owner, and the record still has
-  historical value. Archive is frozen history and not current authority;
-  supersession is one archive reason, not the only one. Records are never
-  archived by age or quota. Numbers are assigned only on entry to
-  `implemented/` and remain stable in `archived/`; proposed and rejected
-  records retain dated filenames.
-- Agent instructions first discover the active inventory, then read the
-  relevant implemented records in full and check relevant proposed and
-  rejected records. Archived records are read only for historical context.
-  Relevance is not determined from titles alone. `tags` remain the thematic
-  classification; no additional class directory is introduced.
-- This is the new product contract, not a compatibility layer. Existing
-  commands, templates, integrations, documentation, and repository records
-  change together. OpenSpec is not part of the runtime or governance design.
+  other realization facts aligned with shipped code. A changed choice needs a
+  new record and an explicit relationship, not a rewrite of the old rationale.
+  Full supersession archives the old record with its number and
+  `superseded-by`; partial supersession leaves the still-relevant record
+  active and links the decisions.
+- Only implemented records enter `archived/`. Archiving fits a record whose
+  distinct rationale is unlikely to guide future work, whose behavior has
+  another authoritative owner, and which still has historical value; it is
+  never done by age or quota. Supersession is one archive reason, not the
+  only one. Numbers are assigned on entry to `implemented/` and stay stable.
+- Agents discover the active inventory, read relevant implemented records in
+  full, check relevant proposed and rejected records, and read archived
+  records only for historical context. Relevance is not judged from titles
+  alone; `tags` remain the thematic classification. This is a new product
+  contract, not a compatibility layer: commands, templates, integrations,
+  documentation, and records change together, and OpenSpec is outside the
+  runtime and governance design.
 
 ## Alternatives considered
 
-- **Keep decisions in `decisions/` and only change the display**: rejected.
-  The filesystem would still conflate chosen, shipped, rejected, and retired
-  work, leaving agent discovery and repository review with the old model.
-- **Use `implemented/` for a settled but unshipped choice**: rejected. That
-  makes the directory's central claim false. DeepSeek Harness uses it for
-  shipped decisions, which is the meaning chosen here.
-- **Add a fifth `accepted/` directory or a second accepted status within
-  `proposed/`**: rejected. The chosen direction can be stated in a proposal's
-  body and provenance without another lifecycle state. The four-directory
-  inventory remains legible.
-- **Keep `.drafts/` for uncommitted work**: rejected. Git already distinguishes
-  an uncommitted working file from a shared proposal; a separate store adds a
-  move and an extra set of lookup rules.
-- **Discard rejections or retain only selected rejections**: rejected. Every
-  formally rejected proposal gets an explicit, durable outcome. Scratch
-  thoughts and losing options within a decision are not formal proposals.
-- **Require supersession before archival**: rejected. A shipped record can
-  lose forward guidance without being replaced; it may be archived when current
-  authority exists elsewhere. Conversely, a partial replacement does not
+- **Keep `decisions/` and change only the display**: rejected. The filesystem
+  would still conflate chosen, shipped, rejected, and retired work.
+- **Put settled-but-unshipped choices in `implemented/`**: rejected. That
+  makes the directory's central claim false.
+- **Add a fifth `accepted/` directory or a second accepted status, or add
+  class subdirectories**: rejected. The chosen direction fits in a proposal's
+  body, and `tags` already provide cross-cutting themes.
+- **Discard rejections or keep only selected ones**: rejected. Every formal
+  rejection gets a durable outcome; scratch thoughts are not proposals.
+- **Require supersession before archival**: rejected. Guidance can lose
+  forward value without a replacement, and a partial replacement does not
   justify removing remaining active constraints.
-- **Read every implemented record at every task start**: rejected. The
-  retained proposal and rejection corpus makes universal full reads scale
-  poorly. Inventory-first discovery and relevant full reads keep the actual
-  obligations while bounding context.
-- **Add lifecycle and class subdirectories together**: rejected for now.
-  The lifecycle axis solves the present problem; `tags` already provide
-  cross-cutting themes. A second path taxonomy has no demonstrated need.
-- **Preserve old command and file compatibility**: rejected by the maintainer
-  for this self-used pre-stable repository. Keeping obsolete concepts would
-  weaken the new model and add code without current users to protect.
+- **Preserve old command and file compatibility**: rejected for this
+  self-used pre-stable repository. Obsolete concepts would weaken the model.
 
 ## Consequences
 
 The file layout, status validation, repository readers, command surface,
 numbering, graph paths, lifecycle skills, standing orders, bilingual docs,
-website examples, and tests must change as one contract. The new inventory
+website examples, and tests change as one contract. The inventory
 distinguishes work in progress, shipped guidance, rejected proposals, and
 archived history without treating approval as delivery. Git records proposal
 collaboration; the CLI records declared lifecycle moves but cannot prove code
-was shipped or that an archive has no remaining forward value. The
-maintainer raised the direction, chose the four-directory lifecycle, kept
-every formal rejection, removed local drafts and compatibility requirements,
-and confirmed this design after reviewing the alternatives. ADR 20 later
-defined the four folders by context value — current authority to read in full,
-intent to check, anti-pattern to check, and lowest-value history read only when
-a task cites it — and made "kept every formal rejection" a durable terminal:
-a rejection is removed only when another record owns its warning, never for
-appearing stale. The four-folder lifecycle itself is unchanged.
+shipped or that an archive has no remaining forward value. ADR 20 later
+defined the folders by context value — current authority read in full, intent
+to check, anti-pattern to check, and lowest-value history read only when
+cited — and made a rejection durable until another record owns its warning.
 
 ### Later changes
+
+**Amended by ADR 25:** promotion emits `### Verification` and `### Trade-offs`
+under `## Consequences`, and validation rejects the proposal-era
+`### Acceptance criteria` and `### Risks` headings there in implemented
+records. The four folders, shipping boundary, and numbering are unchanged.
 
 **Amended by ADR 44:** Descriptions replace theme tags as discovery metadata. The four lifecycle folders, numbering and shipping boundaries are unchanged.
 

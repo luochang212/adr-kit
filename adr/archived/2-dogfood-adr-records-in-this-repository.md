@@ -1,10 +1,13 @@
 ---
 status: implemented
-date: 2026-09-20
-description: "Read when deciding where this repository keeps its architectural authority and how its own records enter version control."
+date: 2026-11-03
+description: Read when deciding where this repository keeps its architectural
+  authority and how its own records enter version control.
 raised-by: agent
 decided-by: human
 created: 2026-09-20
+archived: 2026-11-03
+archive-reason: "consolidated: adr/ is tracked and the dogfood rule now lives in AGENTS.md"
 paths:
   - .gitignore
   - adr/**

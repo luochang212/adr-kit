@@ -1,10 +1,14 @@
 ---
 status: implemented
-date: 2026-09-22
-description: "Read when delivering a requested visualization and deciding whether to open it in a browser."
+date: 2026-11-03
+description: Read when delivering a requested visualization and deciding whether
+  to open it in a browser.
 raised-by: human
 decided-by: human
 created: 2026-09-22
+archived: 2026-11-03
+archive-reason: "consolidated into ADR 33: browser delivery and routing now live
+  with the atlas command record"
 paths:
   - skills/adrkit-visualize/SKILL.md
   - src/core/tool-integrations.ts

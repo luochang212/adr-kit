@@ -7,7 +7,7 @@ import { renderDecisionMapSvg } from './graph-html.js';
 import { relativePath } from './repository.js';
 import { escapeHtml } from './view-text.js';
 
-// @adr 29, 31 — the build-time atlas and its full archived bodies.
+// @adr 29 — the build-time atlas, including archived bodies.
 /**
  * The replaceable regions in the shipped decision-atlas example. The example is
  * a snapshot an agent can adapt by hand; this repository's site build uses the

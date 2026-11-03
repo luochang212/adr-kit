@@ -1,10 +1,14 @@
 ---
 status: implemented
-date: 2026-09-22
-description: "Read when routing visualization requests to a workflow independently of decision grilling."
+date: 2026-11-03
+description: Read when routing visualization requests to a workflow
+  independently of decision grilling.
 raised-by: human
 decided-by: human
 created: 2026-09-22
+archived: 2026-11-03
+archive-reason: "consolidated into ADR 33: visualization routing now lives with
+  the atlas command record"
 paths:
   - skills/adrkit-visualize/SKILL.md
   - skills/adrkit-grill/SKILL.md
