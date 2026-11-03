@@ -8,7 +8,13 @@ decided-by: human
 created: 2026-11-03
 paths:
   - AGENTS.md
+  - src/cli.ts
   - src/core/tool-integrations.ts
+  - src/commands/init.ts
+  - src/commands/instructions.ts
+  - src/commands/list.ts
+  - src/commands/relevant.ts
+  - src/commands/update.ts
   - test/integrations.test.ts
   - test/commands.test.ts
   - skills/adrkit-init/SKILL.md
