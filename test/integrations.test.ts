@@ -560,11 +560,20 @@ rules:
           const installed = readFileSync(join(root, target, path), 'utf8');
           // Distribution checks, not evidence of a model's semantic judgment.
           for (const requirement of [
-            'What would be lost?', 'What would forgetting cost?', 'What should survive?',
+            '## When to record',
+            'Can code, tests, or Git explain this choice?',
+            'only say "we did X"',
+            'hidden and durable enough to guide future choices',
+            'routine upgrade, naming change, format migration',
+            'it is not an ADR',
             'not a score or an all-must-pass checklist', 'user conversation',
-            'Upgraded adr-kit', "button's spacing", 'local decision with severe consequences',
+            'Upgraded adr-kit', "button's spacing",
             'an existing record is not precedent', 'archive it without authorization',
           ]) expect(installed).toContain(requirement);
+          // The retired three questions must not creep back into the templates.
+          for (const retired of ['What would be lost?', 'What would forgetting cost?', 'What should survive?']) {
+            expect(installed).not.toContain(retired);
+          }
         }
       }
       const note = readFileSync(join(root, target, 'skills/adrkit-note/SKILL.md'), 'utf8');

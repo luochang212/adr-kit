@@ -46,9 +46,12 @@ reasons that code, tests, and existing documentation cannot reliably preserve.
 The maintainer identified importance, impact breadth, longevity, resistance to
 becoming stale, and hiddenness, particularly context held only in conversation.
 These are judgment dimensions, not a score or five mandatory gates. The agent
-implements them through three questions: what would be lost, what forgetting
-would cost, and what stable choice and reason should survive. Paired examples
-separate routine upgrade/style events from hidden constraints in those domains.
+implements them through four exclusion tests: whether code, tests, or Git
+already explain the choice; whether the record only restates what the code
+makes obvious; whether the reason is hidden and durable enough to guide future
+choices; and whether the change is a routine upgrade, naming change, format
+migration, visual tweak, or process ritual. Paired examples separate routine
+upgrade/style events from hidden constraints in those domains.
 
 Apply that judgment to direct capture, note shaping, proposal promotion, review,
 and grilling, including commit-hook and instructions reminders. Skipping is valid without a declaration or per-skip approval;

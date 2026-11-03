@@ -82,6 +82,20 @@ describe('bilingual lifecycle documentation', () => {
   });
 });
 
+describe('recording guidance placement', () => {
+  // The recording test belongs to the installed skills, which agents actually
+  // read; docs/workflow.md is a human-facing page and must not become a second
+  // source of truth for it.
+  it('keeps the recording test in the skills, not the workflow doc', () => {
+    for (const file of ['docs/workflow.md', 'docs/zh/workflow.md']) {
+      const text = read(file);
+      expect(text, file).toContain('adrkit-propose');
+      expect(text, file).not.toContain('What would be lost?');
+      expect(text, file).not.toContain('Can code, tests, or Git explain');
+    }
+  });
+});
+
 describe('documentation language policy (ADR 53)', () => {
   // Bilingual copy is paid for only where an external entry point links it.
   // The internal index keeps one Chinese copy; the four reference documents
