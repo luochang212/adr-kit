@@ -99,6 +99,10 @@ describe('initCommand tool integrations', () => {
       expect(section.body).toContain(STANDING_ORDERS_COMMAND);
       expect(section.body).not.toContain('<!--');
     }
+    // The always-loaded section points at the four-question test instead of
+    // restating it; the pointer must survive compression.
+    expect(STANDING_ORDERS_SECTIONS.zh.body).toContain('何时记录的四问');
+    expect(STANDING_ORDERS_SECTIONS.en.body).toContain('four-question recording test');
   });
 
   it('capture-side descriptions route by missing important context', () => {

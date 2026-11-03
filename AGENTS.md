@@ -5,7 +5,7 @@ contains standing orders for coding agents working in this repository.
 
 ## 架构决策记录
 
-本仓库用 `adr-kit` 这个 npm 包管理架构级决策，记录保存在 `adr/` 目录。可以用 `adrkit list` 列出全部记录，`adrkit show <编号>` 读取某一条，`adrkit relevant <路径>` 查找与某文件相关的记录。记录是有代价的：每记一件事，就要在代码之外多维护一份真相源。但记录又是必要的——代码只是根因衍生的现象，知道根因却不记录，未来的 agent 只能从代码反猜。例行修改留给 Git 和测试；没有值得记的就跳过。写法见 `adrkit-propose`、`adrkit-record` 技能。
+本仓库用 `adr-kit` 这个 npm 包管理架构级决策，记录保存在 `adr/` 目录。可以用 `adrkit list` 列出全部记录，`adrkit show <编号>` 读取某一条，`adrkit relevant <路径>` 查找与某文件相关的记录。记录是有代价的：每记一件事，就要在代码之外多维护一份真相源。但记录又是必要的——代码只是根因衍生的现象，知道根因却不记录，未来的 agent 只能从代码反猜。例行修改留给 Git 和测试；没有值得记的就跳过。何时记录的四问与写法见 `adrkit-propose`、`adrkit-record` 技能。
 
 ## Commands
 
