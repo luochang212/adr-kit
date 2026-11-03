@@ -22,6 +22,16 @@ Archived records change only through a deliberate, explained commit.
 
 Newest first. Each note names what changed and what to do.
 
+### After 0.35.0: the atlas theme default is Signal
+
+Omitting `--theme` no longer rolls a weighted coin: it renders Signal
+deterministically, so regenerating the same atlas keeps its theme. `--theme
+random` stays as an opt-in feature and now rolls a fair 50/50 coin between
+Folio and Signal once at generation. Workflows that relied on re-running
+`adrkit atlas` to re-roll the theme must pass `--theme random` explicitly;
+agent integrations installed before this release should be refreshed with
+`adrkit update` so their guidance matches.
+
 ### After 0.34.0: the commit field is removed
 
 Records no longer carry git provenance: `adrkit record` and `adrkit implement`

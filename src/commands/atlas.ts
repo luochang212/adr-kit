@@ -34,7 +34,7 @@ export interface AtlasOptions {
   formalOnly?: boolean;
   /** Page copy language: `en` (default) or `zh`. */
   lang?: string;
-  /** Full-atlas visual composition: folio, signal, or random (default). */
+  /** Full-atlas visual composition: folio, signal, or random (default signal). */
   theme?: string;
 }
 

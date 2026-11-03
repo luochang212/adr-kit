@@ -637,9 +637,9 @@ describe('installed atlas theme contract', () => {
       const verify = () => {
         const skill = readFileSync(skillPath, 'utf8');
         expect(skill).toContain('The agent owns selection');
-        expect(skill).toContain('prefer `--theme random`');
+        expect(skill).toContain('omit `--theme`');
         expect(skill).toContain('When updating an existing atlas, preserve');
-        expect(skill).toContain('do not ask the user merely');
+        expect(skill).toContain('do not prompt for a theme');
         expect(skill).toContain('shuffled desk of real decision files');
         expect(skill).toContain('opening the next file takes a separate card click');
         expect(skill).toContain('a quiet reset only after exhaustion');

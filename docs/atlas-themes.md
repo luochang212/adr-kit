@@ -13,11 +13,11 @@ Use this order, without adding a theme-selection step for the user:
    for randomness.
 2. When updating an existing atlas, pass its concrete `data-atlas-theme` value
    unless the user requests a different theme or a fresh random choice.
-3. For a new atlas without a clear preference, use `--theme random`, also the
-   CLI default. Do not infer a preference from project category, identity or OS.
+3. For a new atlas without a clear preference, omit `--theme`: the CLI default
+   renders Signal. Do not infer a preference from project category, identity or OS.
 
-`src/core/atlas-theme.ts` makes a weighted choice once at generation: Folio 30%
-and Signal 70% (ADR 42).
+`src/core/atlas-theme.ts` selects once at generation: an omitted choice renders
+Signal, and `--theme random` rolls a fair 50/50 coin (ADR 51).
 The resulting HTML stores a concrete identity. Refreshes and OS appearance
 changes do not select again. There is no in-page switch. `--theme` applies only
 to the full atlas; maps and deliberation trees reject it.
@@ -35,7 +35,7 @@ obsolete generated HTML is removed. The gallery uses the README screenshots
 and links to the actual theme pages; it does not add a theme switch to an atlas.
 The homepage opens Signal directly in the reader's language. Both READMEs retain
 the theme gallery entry and link each named theme in the reader's language.
-These public examples do not change the CLI's random default or add
+These public examples do not change the CLI's Signal default or add
 an in-page theme switch. The browser gate checks all published routes and also
 uses isolated per-theme fixtures for behavioral checks.
 

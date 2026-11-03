@@ -1,10 +1,14 @@
 ---
-status: implemented
-date: 2026-10-27
-description: "Read when changing the generation-time random theme distribution or its explicit-selection override."
+status: superseded
+date: 2026-11-03
+description: Read when changing the generation-time random theme distribution or
+  its explicit-selection override.
 raised-by: human
 decided-by: human
 created: 2026-10-27
+superseded-by: 51
+archived: 2026-11-03
+archive-reason: superseded by ADR 51
 paths:
   - src/core/atlas-theme.ts
   - skills/adrkit-visualize/**

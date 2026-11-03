@@ -43,6 +43,14 @@ describe('cli option handling', () => {
     if (theme !== 'random') expect(html).toContain(`data-atlas-theme="${theme}"`);
   });
 
+  it('exports a full atlas with an omitted theme as Signal', () => {
+    process.chdir(makeRepo());
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    main(['atlas', '--out', 'default.html']);
+    expect(process.exitCode).toBeUndefined();
+    expect(readFileSync('default.html', 'utf8')).toContain('data-atlas-theme="signal"');
+  });
+
   it.each([['--theme', 'auto'], ['--theme', 'light'], ['--map', '--theme', 'folio'],
     ['--record', '1', '--theme', 'signal']].map(args => ({ args })))('rejects invalid theme use without writing: %j', ({ args }) => {
     process.chdir(makeRepo());

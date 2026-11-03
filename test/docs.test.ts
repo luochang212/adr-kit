@@ -92,10 +92,10 @@ describe('agent-facing front door', () => {
       expect(COMMANDS as readonly string[]).toContain(match[1]);
     }
     expect(document).not.toContain('adr/.drafts/');
-    // ADR 42 replaced the even roll; the agent-facing file is a front door.
-    expect(document).toContain('Folio 30%');
-    expect(document).toContain('Signal 70%');
-    expect(document).not.toContain('equal probability');
+    // ADR 51 made the omission deterministic; the agent-facing file is a front door.
+    expect(document).toContain('fair 50/50');
+    expect(document).not.toContain('30%');
+    expect(document).not.toContain('70%');
   });
 
   it('site stats count the installed workflow skills in both languages', () => {

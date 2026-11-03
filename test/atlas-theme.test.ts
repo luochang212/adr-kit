@@ -12,21 +12,22 @@ describe('generation-time atlas theme selection', () => {
     expect(randomInt).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, 'random'])('resolves %s from the weighted 30/70 roll exactly once', selection => {
+  it('resolves an omitted selection to Signal without rolling', () => {
+    vi.mocked(randomInt).mockClear();
+    expect(selectAtlasTheme()).toBe('signal');
+    expect(selectAtlasTheme(undefined)).toBe('signal');
+    expect(randomInt).not.toHaveBeenCalled();
+  });
+
+  it('resolves --theme random from a fair 50/50 roll exactly once', () => {
     vi.mocked(randomInt).mockClear();
     vi.mocked(randomInt).mockReturnValueOnce(0);
-    expect(selectAtlasTheme(selection)).toBe('folio');
-    expect(randomInt).toHaveBeenCalledExactlyOnceWith(10);
+    expect(selectAtlasTheme('random')).toBe('folio');
+    expect(randomInt).toHaveBeenCalledExactlyOnceWith(2);
     vi.mocked(randomInt).mockClear();
-    vi.mocked(randomInt).mockReturnValueOnce(2);
-    expect(selectAtlasTheme(selection)).toBe('folio');
-    vi.mocked(randomInt).mockClear();
-    vi.mocked(randomInt).mockReturnValueOnce(3);
-    expect(selectAtlasTheme(selection)).toBe('signal');
-    vi.mocked(randomInt).mockClear();
-    vi.mocked(randomInt).mockReturnValueOnce(9);
-    expect(selectAtlasTheme(selection)).toBe('signal');
-    expect(randomInt).toHaveBeenCalledExactlyOnceWith(10);
+    vi.mocked(randomInt).mockReturnValueOnce(1);
+    expect(selectAtlasTheme('random')).toBe('signal');
+    expect(randomInt).toHaveBeenCalledExactlyOnceWith(2);
   });
 
   it.each(['auto', 'light', 'dark', '', 'Folio'])('rejects unsupported selection %j', selection => {

@@ -94,9 +94,9 @@ record's deliberation tree, with HTML as its default; --format html|mermaid|text
 sets its encoding. All three objects default to HTML. The full atlas chrome is
 English by default; --lang zh renders it in Chinese.
 Full atlases offer Folio (paper/editorial) and Signal (dark/instrumental).
---theme folio|signal selects one; omitted --theme or --theme random rolls once
-at generation. The file keeps that theme: no system preference or page switch.
-Agents should prefer random without a clear preference; no theme prompt is needed.
+--theme folio|signal selects one; omitted --theme renders Signal, and
+--theme random rolls a fair 50/50 coin once at generation. The file keeps
+that theme: no system preference or page switch. No theme prompt is needed.
 --theme applies only to the full atlas, not --map or --record.
 Atlas accepts no positional arguments; use --record <name> for a record.
 With --out, the receipt identifies the object, format, and destination; stdout

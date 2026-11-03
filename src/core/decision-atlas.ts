@@ -39,7 +39,7 @@ export interface DecisionAtlasOptions {
   projectName: string;
   /** Page copy language; generated slot values and the static chrome follow it. */
   language: AtlasLanguage;
-  /** Choose a visual composition once; omitted selection rolls randomly. */
+  /** Choose a visual composition once; an omitted selection renders Signal. */
   theme?: AtlasThemeSelection;
 }
 

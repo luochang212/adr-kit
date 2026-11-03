@@ -36,9 +36,9 @@ rewrites `AGENTS.md`.
 | `adrkit version` | Print version |
 | `adrkit help` | Print help |
 
-The full atlas offers two independent themes: **Folio** uses warm paper and editorial typography; **Signal** uses dark surfaces, cyan accents and a compact layout. An AI can choose `--theme folio` or `--theme signal`; omitting `--theme` or passing `--theme random` rolls Folio 30% / Signal 70% once at generation, favoring the flagship Signal theme. The HTML keeps that theme across reloads, with no system appearance detection or theme switch. `--theme` applies only to the full atlas, not `--map` or `--record`.
+The full atlas offers two independent themes: **Folio** uses warm paper and editorial typography; **Signal** uses dark surfaces, cyan accents and a compact layout. An AI can choose `--theme folio` or `--theme signal`; omitting `--theme` renders Signal, and `--theme random` rolls a fair 50/50 coin between the two once at generation. The HTML keeps that theme across reloads, with no system appearance detection or theme switch. `--theme` applies only to the full atlas, not `--map` or `--record`.
 
-For a new atlas without a clear visual preference, the agent should prefer `--theme random` and proceed without asking the user to choose. Honor explicit theme or visual requests; when updating an existing file, preserve its selected theme unless the user requests a change or a fresh random choice. Do not infer style from the operating system or project category.
+For a new atlas without a clear visual preference, the agent omits `--theme` and proceeds without asking the user to choose. Honor explicit theme or visual requests; when updating an existing file, preserve its selected theme unless the user requests a change or a fresh random choice. Do not infer style from the operating system or project category.
 
 `adrkit atlas --format html --out adr.html` writes the full atlas, just like
 omitting `--format`. To generate only the decision map, use

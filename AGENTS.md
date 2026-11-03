@@ -221,8 +221,9 @@ Both themes follow
 `docs/atlas-themes.md`: behavior is shared and presentation is separate. Theme
 changes must keep the common browser gate passing in both themes and languages,
 including unavailable-module activation and insight height budgets; the gate
-checks the published routes and isolated fixtures from the same records. Agents default to random for a new atlas without a clear
-preference and preserve the selected theme when updating an existing artifact
+checks the published routes and isolated fixtures from the same records. Agents omit
+`--theme` for a new atlas without a clear preference (Signal is the default) and
+preserve the selected theme when updating an existing artifact
 unless asked to change it. The browser gate runs on Linux CI and on macOS and
 Windows locally, where font metrics differ: express a layout budget in the
 page's own units — rem, or a measured row height — rather than as a pixel gap
