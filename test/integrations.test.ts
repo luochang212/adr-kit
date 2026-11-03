@@ -64,7 +64,9 @@ describe('initCommand tool integrations', () => {
       expect(section.body).not.toMatch(/at (the start|task start)|must run|在任务开始|必须/i);
     }
     expect(STANDING_ORDERS_SECTIONS.zh.body).toContain('只记录会影响后续工作的架构选择');
+    expect(STANDING_ORDERS_SECTIONS.zh.body).toContain('会丢失什么');
     expect(STANDING_ORDERS_SECTIONS.en.body).toContain('Record only architectural choices');
+    expect(STANDING_ORDERS_SECTIONS.en.body).toContain('what would be lost');
     const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
     expect(initBody).not.toMatch(/adrkit:\s*standing-orders/);
     const agents = readFileSync(fileURLToPath(new URL('../AGENTS.md', import.meta.url)), 'utf8');

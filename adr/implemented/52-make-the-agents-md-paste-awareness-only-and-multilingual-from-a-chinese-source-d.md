@@ -40,9 +40,11 @@ feeds rides the output of five commands.
 
 The paste becomes a short awareness section in the repository's language. It
 names the tool and its entry commands — `adrkit list`, `adrkit show`,
-`adrkit relevant` — keeps the record-worthiness bar in one line (only choices
-that will guide future work; routine edits belong to Git and tests), and
-points at the propose and record skills for the judgment and format. It states
+`adrkit relevant` — keeps the record-worthiness criteria condensed: only
+choices that will guide future work, a constraint or reason code and tests
+cannot explain, and the three questions (what would be lost, what forgetting
+costs, what should survive), with the propose and record skills carrying the
+format. It states
 nothing about when or whether an agent runs the commands; that judgment stays
 with the agent. The Chinese text is the canonical
 source and is kept within three hundred characters by a lint test; every other

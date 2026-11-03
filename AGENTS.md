@@ -5,7 +5,7 @@ contains standing orders for coding agents working in this repository.
 
 ## 架构决策
 
-本仓库的架构决策记录保存在 `adr/` 目录。可以用 `adrkit` 命令查看：`adrkit list` 列出全部记录，`adrkit show <编号>` 读取一条，`adrkit relevant <路径>` 查找管辖某文件的记录。只记录会影响后续工作的架构选择，例行修改留给 Git 和测试；判断标准与写法见 `adrkit-propose`、`adrkit-record` 技能。
+本仓库的架构决策记录保存在 `adr/` 目录。可以用 `adrkit` 命令查看：`adrkit list` 列出全部记录，`adrkit show <编号>` 读取一条，`adrkit relevant <路径>` 查找管辖某文件的记录。只记录会影响后续工作的架构选择：代码、测试和现有文档说不清、后来者又可能遗忘的约束与理由才值得记，例行修改留给 Git 和测试。判断时问三件事——会丢失什么、遗忘的代价是什么、哪条稳定的选择该留存；没有值得记的就跳过，不硬凑。写法见 `adrkit-propose`、`adrkit-record` 技能。
 
 ## Commands
 

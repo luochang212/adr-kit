@@ -26,7 +26,7 @@ Newest first. Each note names what changed and what to do.
 
 The section your agent pastes into `AGENTS.md` no longer mandates reading:
 it now names the tool, its entry commands (`adrkit list`, `adrkit show`,
-`adrkit relevant`), and the record-worthiness bar in one line — whether or
+`adrkit relevant`), and the record-worthiness criteria condensed — whether or
 when an agent runs the commands is the agent's judgment. The template ships
 in Chinese and English, translated from
 the Chinese source; the `adrkit-init` skill carries both and asks for the one
