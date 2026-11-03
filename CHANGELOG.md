@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.36.0
+
+### Minor Changes
+
+- 459faac: Make the AGENTS.md paste awareness-only and multilingual, and remove the
+  generation marker (ADR 52, superseding ADR 35): the section agents add to
+  `AGENTS.md` now names the adrkit commands and the record-worthiness bar —
+  whether and when to run them is the agent's judgment — and ships in Chinese
+  (the ≤300-character canonical source) and English, translated from the
+  Chinese, with more languages translating from Chinese. The installed
+  `adrkit-propose`, `adrkit-record`, and `adrkit-grill` skills now carry the
+  four-question test for whether a choice is an ADR; the workflow docs and the
+  AGENTS.md section point at those skills instead of restating the test. The `<!-- adrkit: standing-orders <id> -->` marker
+  and its drift note are gone; old markers in your AGENTS.md are inert comments
+  you can delete at will, and template changes are announced in the upgrade
+  guide instead. Refresh installed integrations with `adrkit update`.
+- 9e0eb11: Make Signal the default atlas theme and demote random to an opt-in fair coin
+  (ADR 51, superseding ADR 42): omitting `--theme` renders Signal
+  deterministically — regenerating the same atlas no longer flips its theme —
+  while `--theme random` rolls a fair 50/50 coin between Folio and Signal once
+  at generation. Workflows that relied on re-running the CLI to re-roll the
+  theme must now pass `--theme random` explicitly, and installed agent
+  integrations should be refreshed with `adrkit update`.
+
 ## 0.35.0
 
 ### Minor Changes
