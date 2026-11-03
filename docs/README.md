@@ -10,6 +10,7 @@ machine-checkable lifecycle.
 | [workflow.md](workflow.md) | Lifecycle from proposal to decision |
 | [recording-evaluation.md](recording-evaluation.md) | Manual agent-behavior cases for selecting useful records; not a measured quality claim |
 | [upgrading.md](upgrading.md) | Upgrade notes: the supported path and what broke between releases |
+| [release.md](release.md) | adr-kit release procedure: the project-specific override for the generic npm-release skill |
 | [research/peer-adr-tools.md](research/peer-adr-tools.md) | Peer ADR tools: what they do and what this project borrows (English) |
 | [research/agent-adr-competitors.md](research/agent-adr-competitors.md) | Coding Agent ADR competitors: verified mechanisms and adoption candidates (Chinese, 2026-10-14) |
 
