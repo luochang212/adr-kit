@@ -403,6 +403,13 @@ for (const language of ['zh', 'en']) {
       // record identity; only its styling differs (ADR 39 presentation split).
       await expect(page.locator('.reader-head #reader-meta + #reader-source')).toBeVisible();
       await expect(page.locator('#reader-body h3').first()).toBeVisible();
+      await expect(page.locator('#reader-title + #reader-description')).toBeVisible();
+      await expect(page.locator('#reader-description')).toHaveCSS('font-style', 'normal');
+      const description = await page.locator('#reader-description').evaluate(el => ({
+        width: el.clientWidth, scrollWidth: el.scrollWidth,
+      }));
+      expect(description.scrollWidth).toBeLessThanOrEqual(description.width);
+
       const type = await page.locator('#reader-body').evaluate(el => ({
         size: parseFloat(getComputedStyle(el).fontSize),
         width: el.clientWidth,
