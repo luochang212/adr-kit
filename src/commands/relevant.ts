@@ -1,7 +1,6 @@
 import { installedWithNotice, joinNotices, readConfigSafe, requireRoot, withNotice } from '../core/config.js';
 import { displayName, relativePath } from '../core/repository.js';
 import { relevantRecords, type RelevantMatch } from '../core/relevant.js';
-import { standingOrdersDriftNote } from '../core/tool-integrations.js';
 import { VERSION } from '../version.js';
 import { gitChangedPaths } from '../core/git.js';
 
@@ -37,7 +36,6 @@ export function relevantCommand(
   const config = readConfigSafe(root);
   const notice = joinNotices([
     config === undefined ? undefined : installedWithNotice(config, VERSION),
-    standingOrdersDriftNote(root),
   ]);
   const inputs = gitInput ? gitChangedPaths(root, options) : paths;
   const result = relevantRecords(root, inputs, cwd, gitInput);

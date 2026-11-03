@@ -4,7 +4,6 @@ import {
   integrationSummary,
   parseTools,
   parseWorkflows,
-  standingOrdersDriftNote,
   standingOrdersNote,
   writeToolIntegrations,
 } from '../core/tool-integrations.js';
@@ -29,7 +28,7 @@ export function initCommand(targetDir: string, toolsValue?: string, workflowsVal
   // and prompt here; later commands cannot compare versions without a stamp.
   const keptExisting = repaired === true && integrations.some((entry) => entry.outcome === 'preserved');
   if (!keptExisting) writeInstalledWithConfig(root, VERSION);
-  const note = standingOrdersNote(root, integrations) ?? standingOrdersDriftNote(root);
+  const note = standingOrdersNote(root, integrations);
   return [
     repaired === true
       ? `Repaired the ADR Kit repository at ${root}`

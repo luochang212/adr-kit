@@ -2,7 +2,7 @@ import { ADR_DIR, CONFIG_FILE, findRoot, installedWithNotice, joinNotices, readC
 import { listRecords } from '../core/repository.js';
 import { formatIssues, validateRecord, validateRecordReferences, validateRepository } from '../core/validate.js';
 import { unshapedNotesLine } from '../core/notes.js';
-import { standingOrdersDriftNote, standingOrdersNote } from '../core/tool-integrations.js';
+import { standingOrdersNote } from '../core/tool-integrations.js';
 import { VERSION } from '../version.js';
 
 // The one-line purpose anchor for the check-in moment: an agent glancing at
@@ -19,7 +19,6 @@ export function instructionsCommand(cwd: string): string {
   const notice = joinNotices([
     config === undefined ? undefined : installedWithNotice(config, VERSION),
     config === undefined || config.tools?.length === 0 ? undefined : standingOrdersNote(root),
-    standingOrdersDriftNote(root),
   ]);
   const issues = validateRepository(root);
   // Every reachable output of this command opens with the purpose anchor, not

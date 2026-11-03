@@ -22,7 +22,7 @@ import { updateCommand } from '../src/commands/update.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { todayStamp } from '../src/core/adr.js';
 import { installedWithNotice, readConfig } from '../src/core/config.js';
-import { STANDING_ORDERS_MARKER, standingOrdersSection } from '../src/core/tool-integrations.js';
+import { standingOrdersSection } from '../src/core/tool-integrations.js';
 import { listProposals, listRecords as allRecords } from '../src/core/repository.js';
 import { displayWidth } from '../src/core/view-text.js';
 import { VERSION } from '../src/version.js';
@@ -1087,82 +1087,68 @@ describe('decision descriptions in discovery', () => {
   });
 });
 
-describe('standing-orders note', () => {
-  const SECTION =
-    '## Reading architecture decisions\n\nAt the start of a coding task, run adrkit list.\n';
-
+describe('awareness-section note', () => {
   function freshDir(prefix: string): string {
     const dir = mkdtempSync(join(tmpdir(), prefix));
     tempDirs.push(dir);
     return dir;
   }
 
-  it('init notes the missing standing-orders section', () => {
-    // The manual-paste step is the one integration state the CLI does not
-    // write; without the note, a repo whose agent never ran the init skill
-    // loses the task-start reading rules silently.
+  it('init offers the missing section without mandating it', () => {
+    // The paste step is the one integration state the CLI does not write;
+    // without the note, a repo whose agent never ran the init skill never
+    // learns the option exists. The note offers — it never claims agents must
+    // read adr/ on a schedule.
     const out = initCommand(freshDir('adrkit-note-'));
-    expect(out).toContain('note: AGENTS.md does not carry the standing orders');
-    expect(out).toContain('Reading architecture decisions');
+    expect(out).toContain('note: AGENTS.md does not mention adrkit');
+    expect(out).toContain('Optionally add the matching-language section');
     expect(out).toContain(join('.agents', 'skills', 'adrkit-init', 'SKILL.md'));
     expect(out).not.toContain('step 4');
   });
 
-  it('init stays quiet once AGENTS.md carries the section', () => {
+  it('init stays quiet once AGENTS.md carries the Chinese section', () => {
     const dir = freshDir('adrkit-note-');
-    writeFileSync(join(dir, 'AGENTS.md'), `# mine\n\n${SECTION}`);
-    expect(initCommand(dir)).not.toContain('note: AGENTS.md does not carry');
+    writeFileSync(join(dir, 'AGENTS.md'), `# mine\n\n${standingOrdersSection('zh')}\n`);
+    expect(initCommand(dir)).not.toContain('note: AGENTS.md does not mention');
   });
 
   it('CLAUDE.md alone does not satisfy the check', () => {
     // Claude Code reads AGENTS.md directly since v2.1.277 and no other tool
     // reads CLAUDE.md; a second carrier would double the paste surface, so
-    // standing orders in CLAUDE.md alone keep the note visible.
+    // awareness in CLAUDE.md alone keeps the note visible.
     const dir = freshDir('adrkit-note-');
-    writeFileSync(join(dir, 'CLAUDE.md'), SECTION);
-    expect(initCommand(dir)).toContain('note: AGENTS.md does not carry');
+    writeFileSync(join(dir, 'CLAUDE.md'), standingOrdersSection('en'));
+    expect(initCommand(dir)).toContain('note: AGENTS.md does not mention');
   });
 
-  it('a reworked section still counts through its rule sentence', () => {
-    // The init workflow allows updating "an equivalent section"; a reorganized
-    // paste must not turn the note into a nudge to add a duplicate.
+  it('a section in an unshipped language counts through its command anchor', () => {
+    // A translation into a language the registry does not ship loses every
+    // known heading; CLI invocations survive translation verbatim, and an
+    // AGENTS.md that names `adrkit list` already tells its agents the tool
+    // exists however the surrounding prose reads.
     const dir = freshDir('adrkit-note-');
     writeFileSync(
       join(dir, 'AGENTS.md'),
-      '# mine\n\n## Our architecture implemented\n\nRecord an ADR when an architectural choice constrains future work.\n',
+      '# ルール\n\n## アーキテクチャ決定\n\n`adrkit list` で決定記録を一覧できます。\n',
     );
-    expect(initCommand(dir)).not.toContain('note: AGENTS.md does not carry');
-  });
-
-  it('a translated section counts through its command anchor', () => {
-    // A localized standing-orders section loses every English anchor — the
-    // field finding: a fully Chinese AGENTS.md carrying the real rules tripped
-    // the note. CLI invocations survive translation verbatim, and a repo whose
-    // AGENTS.md runs `adrkit list` at task start is wired to adr/ however the
-    // surrounding prose reads.
-    const dir = freshDir('adrkit-note-');
-    writeFileSync(
-      join(dir, 'AGENTS.md'),
-      '# 规则\n\n## 阅读架构决策记录\n\n编码任务开始时，先跑 `adrkit list`，完整阅读相关记录。\n',
-    );
-    expect(initCommand(dir)).not.toContain('note: AGENTS.md does not carry');
+    expect(initCommand(dir)).not.toContain('note: AGENTS.md does not mention');
   });
 
   it('update reports the missing section and goes quiet once it lands', () => {
     const root = makeRepo();
-    expect(updateCommand(root)).toContain('note: AGENTS.md does not carry');
-    writeFileSync(join(root, 'AGENTS.md'), SECTION);
-    expect(updateCommand(root)).not.toContain('note: AGENTS.md does not carry');
+    expect(updateCommand(root)).toContain('note: AGENTS.md does not mention');
+    writeFileSync(join(root, 'AGENTS.md'), standingOrdersSection('en'));
+    expect(updateCommand(root)).not.toContain('note: AGENTS.md does not mention');
   });
 
   it('no note for an explicit integrations opt-out', () => {
     const out = initCommand(freshDir('adrkit-note-'), 'none');
-    expect(out).not.toContain('note: AGENTS.md does not carry');
+    expect(out).not.toContain('note: AGENTS.md does not mention');
   });
 
   it('instructions detects unfinished setup without editing project rules', () => {
     const root = makeRepo();
-    expect(instructionsCommand(root)).toContain('note: AGENTS.md does not carry');
+    expect(instructionsCommand(root)).toContain('note: AGENTS.md does not mention');
     expect(existsSync(join(root, 'AGENTS.md'))).toBe(false);
     const rules = '# Project rules\n\nKeep our conventions.\n';
     writeFileSync(join(root, 'AGENTS.md'), rules);
@@ -1170,45 +1156,41 @@ describe('standing-orders note', () => {
     const output = instructionsCommand(root);
     expect(output).toContain('1 proposal pending');
     expect(output).toContain('validation issues');
-    expect(output).toContain('note: AGENTS.md does not carry');
+    expect(output).toContain('note: AGENTS.md does not mention');
     expect(output).toContain(join('.agents', 'skills', 'adrkit-init', 'SKILL.md'));
     expect(output).not.toContain('step 4');
     expect(readFileSync(join(root, 'AGENTS.md'), 'utf8')).toBe(rules);
-    writeFileSync(join(root, 'AGENTS.md'), `${rules}\n${SECTION}`);
-    expect(instructionsCommand(root)).not.toContain('note: AGENTS.md does not carry');
+    writeFileSync(join(root, 'AGENTS.md'), `${rules}\n${standingOrdersSection('en')}\n`);
+    expect(instructionsCommand(root)).not.toContain('note: AGENTS.md does not mention');
   });
 
   it('instructions respects integrations opt-out even with leftover skill files', () => {
     const root = makeRepo();
     editConfig(root, (text) => text.replace('tools: [ agents ]', 'tools: []'));
-    expect(instructionsCommand(root)).not.toContain('note: AGENTS.md does not carry');
+    expect(instructionsCommand(root)).not.toContain('note: AGENTS.md does not mention');
   });
 
   it('instructions uses a README fallback when the init workflow was not selected', () => {
     const root = freshDir('adrkit-subset-');
     initCommand(root, undefined, 'record');
     const output = instructionsCommand(root);
-    expect(output).toContain('note: AGENTS.md does not carry');
+    expect(output).toContain('note: AGENTS.md does not mention');
     expect(output).toContain('see the adr-kit README');
     expect(output).not.toContain(join('adrkit-init', 'SKILL.md'));
   });
 });
 
-describe('standing-orders template marker', () => {
+describe('awareness section stays quiet across commands', () => {
   function freshDir(): string {
-    const root = mkdtempSync(join(tmpdir(), 'adrkit-marker-'));
+    const root = mkdtempSync(join(tmpdir(), 'adrkit-section-'));
     tempDirs.push(root);
     return root;
   }
 
-  const SECTION =
-    '## Reading architecture decisions\n\nAt the start of a coding task, run adrkit list.\n';
-
   it.each([
-    ['unmarked local section', SECTION],
-    ['current template', standingOrdersSection()],
-    ['edited body with current marker', `${SECTION}Local rules.\n${STANDING_ORDERS_MARKER}`],
-    ['translated body with current marker', `## 架构决策\n任务开始时运行 adrkit list。\n${STANDING_ORDERS_MARKER}`],
+    ['the Chinese template', standingOrdersSection('zh')],
+    ['the English template', standingOrdersSection('en')],
+    ['a user-owned section in the user\'s own words', '# mine\n\nDecisions live in adr/; `adrkit list` shows them.\n'],
   ])('%s stays quiet across commands and preserves AGENTS.md', (_name, section) => {
     const root = freshDir();
     const path = join(root, 'AGENTS.md');
@@ -1218,41 +1200,23 @@ describe('standing-orders template marker', () => {
       relevantCommand([join(root, 'src', 'main.ts')], root).output,
     ];
     for (const output of outputs) {
-      expect(output).not.toContain('note: the standing orders');
-      expect(output).not.toContain('note: AGENTS.md does not carry');
+      expect(output).not.toContain('note: AGENTS.md does not mention');
     }
+    // No drift note exists anymore: a section different from the template is
+    // the user's own text, not a signal.
     expect(readFileSync(path, 'utf8')).toBe(section);
   });
 
-  it('an old marker asks for comparison before re-stamping across commands', () => {
-    const root = freshDir();
-    const path = join(root, 'AGENTS.md');
-    const section = `${SECTION}\n<!-- adrkit: standing-orders deadbeef -->\n`;
-    writeFileSync(path, section);
-    const outputs = [
-      initCommand(root), updateCommand(root), listCommand(root), instructionsCommand(root),
-      relevantCommand([join(root, 'src', 'main.ts')], root).output,
-    ];
-    for (const output of outputs) {
-      expect(output).toContain('different template generation');
-      expect(output).toContain(`"Reading architecture decisions" section in ${join('.agents', 'skills', 'adrkit-init', 'SKILL.md')}`);
-      expect(output).not.toContain('step 4');
-      expect(output).toContain('compare the section');
-      expect(output).toContain('reconcile any changes, then update the generation marker');
-    }
-    expect(readFileSync(path, 'utf8')).toBe(section);
-  });
-
-  it.each([undefined, '# Project instructions\n'])('a missing section keeps its separate init/update note (%s)', (body) => {
+  it.each([undefined, '# Project instructions\n'])('a missing section keeps its init/update offer (%s)', (body) => {
     const root = freshDir();
     if (body !== undefined) writeFileSync(join(root, 'AGENTS.md'), body);
-    for (const output of [initCommand(root), updateCommand(root)]) {
-      expect(output).toContain('note: AGENTS.md does not carry the standing orders');
-      expect(output).not.toContain('note: the standing orders');
+    for (const output of [initCommand(root), updateCommand(root), instructionsCommand(root)]) {
+      expect(output).toContain('note: AGENTS.md does not mention adrkit');
     }
-    for (const output of [listCommand(root), instructionsCommand(root)]) {
-      expect(output).not.toContain('note: the standing orders');
-    }
+    // The retired drift note is gone for good: list and relevant carry no
+    // AGENTS.md note at all.
+    expect(listCommand(root)).not.toContain('note:');
+    expect(relevantCommand([join(root, 'src', 'main.ts')], root).output).not.toContain('note:');
   });
 });
 
@@ -1286,7 +1250,7 @@ describe('integration drift: installed-with stamp and notice', () => {
 
   it('no note when the stamp matches and setup is complete', () => {
     const root = makeRepo();
-    writeFileSync(join(root, 'AGENTS.md'), standingOrdersSection());
+    writeFileSync(join(root, 'AGENTS.md'), standingOrdersSection('en'));
     expect(listCommand(root)).not.toContain('note:');
     expect(instructionsCommand(root)).not.toContain('note:');
   });

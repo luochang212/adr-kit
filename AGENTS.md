@@ -3,98 +3,9 @@
 ADR Kit is a command-line tool for Architecture Decision Records. This file
 contains standing orders for coding agents working in this repository.
 
-## Reading architecture decisions
+## 架构决策
 
-`adr/` exists because agents over-focus on the current task and forget settled decisions: reading it at task start counters the drift, and preserving important context before it is lost counters the forgetting. At the start of a coding, design, or review task, if `adr/` exists, run
-`adrkit list` to discover the inventory. The four lifecycle folders are a
-context budget: read the relevant `implemented/` records in full with
-`adrkit show <N>` or their files; check the relevant `proposed/` records for
-intent and the relevant `rejected/` records for the bad cases they warn
-against (a rejection is durable: it leaves only when another record owns its
-warning); treat `archived/` as frozen history and read it only when a task
-explicitly cites it. Do not judge relevance by title alone; inspect descriptions,
-paths, relationships, and task scope; when a task targets specific files,
-`adrkit relevant <path>` retrieves the records whose `paths:` scopes govern
-them. For actual Git changes, use `adrkit relevant --base <review-base>` or
-`adrkit relevant --staged`; supplement scope matches with inventory reading for
-unscoped decisions and resolve incomplete-search diagnostics. Check relevant decisions against
-current code and requirements. Apply constraints that still hold; explain
-conflicts or changed assumptions before choosing a different approach.
-Mention relevant ADR numbers in the implementation or review summary and
-verify the affected behavior. If no decisions apply, continue normally;
-reading does not require creating an ADR. Re-read on a new or resumed task,
-or when scope or relevant files change, rather than relying on conversation
-memory.
-
-A `## Deliberation` appendix records the design tree behind a decision. It is
-reference material: read it only when that decision is in play, not on every
-task.
-
-Before creating any record, compare it with the active records covering the
-same choice or mechanism: extend a duplicate; when the active record's
-mechanism is itself unsound, weigh removing it rather than patching it; for an
-unshipped full replacement, link its intent and keep the old authority active,
-then use `adrkit supersede --by` in the same change that ships and records the
-replacement; link a partial overlap while the older record stays active. When
-shipping or reviewing, keep the realization facts an active record actually claims aligned with
-shipped code; a changed recorded choice is a new record
-with an explicit relationship, not a rewrite of old rationale. Archived records
-are ordinary Git-tracked history, never edited silently; `adrkit validate`
-checks them like any record.
-
-ADR Kit is the agent's notebook, not a change log. Record an ADR when an
-architectural choice carries important information that code, tests, and
-existing documentation cannot reliably preserve. Weigh importance, impact
-breadth, longevity, resistance to becoming stale, and how hidden the constraint
-or rationale is, especially when it exists only in a user conversation. These
-are judgment dimensions, not a score or five mandatory conditions. Ask what
-would be lost, what forgetting would cost, and what stable choice and reason
-should survive. Routine upgrades and visual adjustments usually belong to Git,
-configuration, styles, or tests; a hidden offline-deployment or accessibility
-constraint may merit a record. Preserve genuine reasons and alternatives, not
-invented template filler. Skipping a record is valid; no declaration or user
-approval is required for each skip. Respect explicit user requests to preserve a
-choice without extending them to all similar edits.
-
-An existing record is not precedent for recording similar edits. Changes within
-its implementation freedom need no ADR update unless a claim it actually makes
-becomes false; keep required paths and references valid. If volatile details
-force repeated synchronization, report the burden and suggest trimming details
-to their existing owner or authorized archival. Do not silently rewrite a
-choice, ignore an explicit constraint, delete records, or archive them without
-authorization. The one sanctioned removal is `adrkit delete` for a record that
-should never have existed: it refuses while code cites the record or another
-record references it, and never deletes archived records. Grilling uses the same selection judgment: discussion alone does
-not require a record. Preserve the complete tree with a qualifying record; if
-none qualifies, summarize in conversation and create none. Use `adrkit propose`
-for unshipped work, `adrkit implement` after it ships, and `adrkit record` for
-an already-shipped decision. `decided-by` is a declaration of where the choice
-came from, not an inference: `human` when a person determined the direction —
-they stated it, changed a proposal into what shipped, or you are recording one
-they made earlier — `agent` when it came from the agent's own judgment,
-including when a person only let it through. The CLI neither infers nor verifies
-it.
-
-Records outlive the format that wrote them. The npm package is
-`adr-kit`; the command it installs is `adrkit`, so install and upgrade
-with `npm install -g adr-kit`. The former `tags` field is removed: remove it and author a one-sentence
-`description` explaining when to read each record; labels cannot mechanically
-supply that sentence. The former `commit` field is removed too: delete the line; where a decision
-landed is Git history's to tell, not the record's. When `adrkit validate` reports
-unknown fields, missing sections, or parse errors on records an older release
-wrote, treat it as format drift rather than damage: upgrade the `adr-kit`
-package to the latest stable release, migrate the active records to the current
-format where the change is mechanical, and report any record that cannot be
-carried over instead of forcing a rewrite; then re-run `adrkit validate --all`.
-Archived records are ordinary Git-tracked history: validate checks them by the
-current rules; a later format change is a normal migration commit.
-
-When the user wants to review or share the project's history, use the
-`adrkit-visualize` skill; generate a browsable atlas from `adr/implemented/`
-and `adr/archived/` only, publish archived bodies in full, and pin the page to
-the commit it was built from.
-
-<!-- adrkit: standing-orders 2cce4b9b -->
+本仓库的架构决策记录保存在 `adr/` 目录。可以用 `adrkit` 命令查看：`adrkit list` 列出全部记录，`adrkit show <编号>` 读取一条，`adrkit relevant <路径>` 查找管辖某文件的记录。只记录会影响后续工作的架构选择，例行修改留给 Git 和测试；判断标准与写法见 `adrkit-propose`、`adrkit-record` 技能。
 
 ## Commands
 
@@ -133,11 +44,11 @@ over a patch rather than share the working tree.
   distribution; commit those generated files with the source change. Do not
   edit their Markdown directly. `test/integrations.test.ts` detects stale
   exports. Supporting resources such as the atlas HTML remain authored files.
-- The standing-orders marker declares reconciliation with a template generation,
-  not body equality. Local edits and translation are allowed. Compare and
-  reconcile changes before updating the marker; omitting it opts out of
-  template-change notes. Preserve the user-owned AGENTS.md boundary: CLI
-  commands read it but never rewrite it.
+- The awareness section in AGENTS.md is user-owned and carries no tracking
+  marker: local edits and translation are expected, and template changes are
+  announced through release notes and the upgrade guide instead of drift
+  notes. Preserve the user-owned AGENTS.md boundary: CLI commands read it but
+  never rewrite it.
 - The `adrkit-grill` method is adapted from `mattpocock/skills` (MIT). The
   upstream grilling directory is vendored under `assets/upstream/grilling/`
   and pinned in `MANIFEST.json`; CI hard-fails (`npm run check:upstream`) when
@@ -173,6 +84,13 @@ over a patch rather than share the working tree.
   is irreducibly dependency-shaped.
 - Every behavior change gets a test in `test/`. Command tests create real
   repositories in a temp directory and assert on files and command output.
+- `docs/` copy is bilingual only where an external entry point links it: the
+  two READMEs, and `docs/cli.md`, `docs/record-format.md`, `docs/workflow.md`,
+  and `docs/upgrading.md` each paired with `docs/zh/`. Edit both languages in
+  the same change there. Everything else under `docs/` — the index, release
+  procedure, recording evaluation, research, and reviews — is a single Chinese
+  copy; do not create an English counterpart unless something links it.
+  English-only files that already exist stay as they are (ADR 53).
 - `openspec/` is frozen history, not a second spec system: the current rules
   live in `adr/` and `docs/`. `openspec/specs/` predates ADR 30, 33, and 36 and
   must not drive implementation; `openspec/changes/archive/` is retained only
@@ -183,7 +101,7 @@ over a patch rather than share the working tree.
   release promises that old records or integrations keep working. External
   adopters exist, so a break is a user-facing decision: say so where users meet
   it (the record format, the README stability note and the upgrade guide, the
-  standing orders),
+  AGENTS.md awareness section),
   migrate active records where the change is mechanical, state plainly when a
   record cannot be carried over, and never rewrite archived records silently
   (ADR 30).

@@ -10,12 +10,12 @@ import { initCommand } from '../src/commands/init.js';
 import { updateCommand } from '../src/commands/update.js';
 import { readConfig } from '../src/core/config.js';
 import {
-  STANDING_ORDERS_HEADING,
-  STANDING_ORDERS_MARKER,
-  STANDING_ORDERS_PURPOSE,
-  STANDING_ORDERS_RULE,
+  STANDING_ORDERS_COMMAND,
+  STANDING_ORDERS_SECTIONS,
   WORKFLOWS,
   WORKFLOW_NAMES,
+  standingOrdersSection,
+  type StandingOrdersLanguage,
 } from '../src/core/tool-integrations.js';
 
 const tempDirs: string[] = [];
@@ -34,38 +34,69 @@ afterEach(() => {
 
 describe('initCommand tool integrations', () => {
   it('the standing-orders detector matches the init workflow template', () => {
-    // standingOrdersFile recognizes a pasted section by these strings; if the
-    // template's wording moves, the detector must move with it or every
-    // existing installation starts failing the check.
+    // standingOrdersFile recognizes a pasted section by the localized headings
+    // or the command anchor; if the template's wording moves, the detector
+    // must move with it or every existing installation starts failing the
+    // check. The command anchor doubles as the awareness-section content, so
+    // its presence in the template keeps the two honest together.
     const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
-    expect(initBody).toContain(STANDING_ORDERS_HEADING);
-    expect(initBody).toContain(STANDING_ORDERS_RULE);
+    for (const section of Object.values(STANDING_ORDERS_SECTIONS)) {
+      expect(initBody).toContain(section.heading);
+    }
+    expect(initBody).toContain(STANDING_ORDERS_COMMAND);
   });
 
-  it('the purpose line survives regeneration into the installed init skill', () => {
+  it('both language sections survive regeneration into the installed init skill', () => {
     const root = makeTarget();
     initCommand(root);
     const installed = readFileSync(join(root, '.agents/skills/adrkit-init/SKILL.md'), 'utf8');
-    expect(installed).toContain(STANDING_ORDERS_PURPOSE);
+    for (const language of Object.keys(STANDING_ORDERS_SECTIONS) as StandingOrdersLanguage[]) {
+      expect(installed).toContain(standingOrdersSection(language));
+    }
   });
 
-  it('the purpose line and current marker ride the template and this repository\'s AGENTS.md', () => {
-    // The standing orders must open by binding adr/ to the failure modes it
-    // blocks: obligations without that anchor never teach an agent to
-    // recognize the settle moment. The dogfooded AGENTS.md must carry the
-    // same sentence, or this repository stops exercising what it ships.
+  it('the sections state the record bar without prescribing usage', () => {
+    // Compression must keep the substance: what belongs in a record stays in
+    // the template. What must not regress is the mandate ("run X at task
+    // start") and the generation marker — the user owns the file, and a
+    // difference from the template is not a signal.
+    for (const section of Object.values(STANDING_ORDERS_SECTIONS)) {
+      expect(section.body).not.toMatch(/at (the start|task start)|must run|在任务开始|必须/i);
+    }
+    expect(STANDING_ORDERS_SECTIONS.zh.body).toContain('只记录会影响后续工作的架构选择');
+    expect(STANDING_ORDERS_SECTIONS.en.body).toContain('Record only architectural choices');
     const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
-    expect(initBody).toContain(STANDING_ORDERS_PURPOSE);
+    expect(initBody).not.toMatch(/adrkit:\s*standing-orders/);
     const agents = readFileSync(fileURLToPath(new URL('../AGENTS.md', import.meta.url)), 'utf8');
-    expect(agents).toContain(STANDING_ORDERS_PURPOSE);
-    // The pasted section carries the generation marker, and nothing else in CI
-    // reads it: validate never checks AGENTS.md and the drift note only fires
-    // when a command runs. Without this assertion a template edit that misses
-    // the dogfooded paste leaves every gate green and the drift silent.
-    expect(agents).toContain(STANDING_ORDERS_MARKER);
+    expect(agents).not.toMatch(/adrkit:\s*standing-orders/);
     // ADR 24: AGENTS.md is the only instruction carrier, so the repository
     // must not regrow a CLAUDE.md — Claude Code skips AGENTS.md while one exists.
     expect(existsSync(fileURLToPath(new URL('../CLAUDE.md', import.meta.url)))).toBe(false);
+  });
+
+  it('the dogfooded AGENTS.md carries the canonical Chinese section verbatim', () => {
+    // The repository dogfoods what it ships: the pasted section must equal the
+    // zh registry entry, or this repo stops exercising its own template.
+    const agents = readFileSync(fileURLToPath(new URL('../AGENTS.md', import.meta.url)), 'utf8');
+    expect(agents).toContain(standingOrdersSection('zh'));
+  });
+
+  it('lint: the canonical Chinese body stays within three hundred characters', () => {
+    // Chinese is the translation source; a body that keeps growing pushes
+    // every translated section wider too. The cap forces compression at the
+    // source instead of letting the section regrow into standing orders.
+    const zh = STANDING_ORDERS_SECTIONS.zh;
+    expect(Array.from(zh.body).length).toBeLessThanOrEqual(300);
+    expect(zh.body.length).toBeGreaterThan(0);
+    expect(zh.heading.length).toBeGreaterThan(0);
+  });
+
+  it('lint: every language section is a complete, anchor-bearing translation', () => {
+    for (const section of Object.values(STANDING_ORDERS_SECTIONS)) {
+      expect(section.heading).toMatch(/^## /);
+      expect(section.body).toContain(STANDING_ORDERS_COMMAND);
+      expect(section.body).not.toContain('<!--');
+    }
   });
 
   it('capture-side descriptions route by missing important context', () => {
@@ -77,24 +108,21 @@ describe('initCommand tool integrations', () => {
     expect(find('adrkit-grill').description).toContain('preserve only outcomes worth recording');
   });
 
-  it('installs and refreshes reading guidance without replacing project instructions', () => {
+  it('installs and refreshes awareness guidance without replacing project instructions', () => {
     const root = makeTarget();
     initCommand(root, 'claude');
     writeFileSync(join(root, 'AGENTS.md'), '# Existing project instructions\n');
     for (const target of ['.agents', '.claude']) {
       const skill = join(root, target, 'skills/adrkit-init/SKILL.md');
-      expect(readFileSync(skill, 'utf8')).toContain('At the start of a coding, design, or review task');
+      expect(readFileSync(skill, 'utf8')).toContain(standingOrdersSection('en'));
       writeFileSync(skill, 'old installed skill');
     }
     updateCommand(root);
     for (const target of ['.agents', '.claude']) {
       const init = readFileSync(join(root, target, 'skills/adrkit-init/SKILL.md'), 'utf8');
-      expect(init).toContain('read the relevant `implemented/` records in full');
-      expect(init).toContain('check the relevant `proposed/` records for intent');
-      expect(init).toContain('treat `archived/` as frozen history and read it only when a task explicitly cites it');
-      expect(init).toContain('Record an ADR when an architectural choice carries important information');
-      expect(init).toContain('not invented template filler');
-      expect(init).toContain('CLI neither infers nor verifies shipping or provenance');
+      expect(init).toContain(standingOrdersSection('zh'));
+      expect(init).toContain(standingOrdersSection('en'));
+      expect(init).toContain('judged from the existing AGENTS.md, README, and records');
       for (const workflow of ['propose', 'record']) {
         const command = readFileSync(join(root, target, `commands/adrkit-${workflow}.md`), 'utf8');
         expect(command).toContain('adrkit list');
@@ -236,31 +264,6 @@ describe('initCommand tool integrations', () => {
     const root = makeTarget();
     const output = initCommand(root);
     expect(output).toContain(`created ${join('.agents', 'skills', 'adrkit-propose', 'SKILL.md')}`);
-  });
-
-  it('the init workflow template carries the current standing-orders marker', () => {
-    // The marker is how AGENTS.md drift is detected; a template without it
-    // would leave every paste unmarked and the drift note permanently on.
-    const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
-    expect(initBody).toContain(STANDING_ORDERS_MARKER);
-    const root = makeTarget();
-    initCommand(root);
-    expect(readFileSync(join(root, '.agents', 'skills', 'adrkit-init', 'SKILL.md'), 'utf8')).toContain(
-      STANDING_ORDERS_MARKER,
-    );
-  });
-
-  it('tells agents to migrate format drift instead of hand-editing archived records', () => {
-    // A record written by an older adr-kit fails the current shape rules, and
-    // the agent is the one holding the error. The standing orders must name the
-    // migration remedy and the archived-history boundary in the same breath.
-    const initBody = WORKFLOWS.find((workflow) => workflow.name === 'adrkit-init')!.body;
-    const agents = readFileSync(fileURLToPath(new URL('../AGENTS.md', import.meta.url)), 'utf8');
-    for (const text of [initBody, agents]) {
-      const flat = text.replace(/\s+/g, ' ');
-      expect(flat).toContain('upgrade the `adr-kit` package to the latest stable release');
-      expect(flat).toContain('a later format change is a normal migration commit');
-    }
   });
 
   it('removes the claude exception when it is no longer selected', () => {
@@ -602,7 +605,7 @@ describe('installed evidence-based co-design', () => {
       expect(skill('adrkit-review')).toContain('adrkit relevant --base <review-base>');
       expect(skill('adrkit-review')).toContain('adrkit relevant --staged');
       expect(skill('adrkit-review')).toContain('not code compliance');
-      expect(skill('adrkit-init')).toContain('unscoped decisions');
+      expect(skill('adrkit-init')).toContain('translation of the Chinese source');
     }
   });
 });

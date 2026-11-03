@@ -1,10 +1,14 @@
 ---
-status: implemented
-date: 2026-10-23
-description: "Read when reconciling translated or edited project rules with a new standing-orders template generation."
+status: superseded
+date: 2026-11-03
+description: Read when reconciling translated or edited project rules with a new
+  standing-orders template generation.
 raised-by: human
 decided-by: human
 created: 2026-10-23
+superseded-by: 52
+archived: 2026-11-03
+archive-reason: superseded by ADR 52
 paths:
   - AGENTS.md
   - src/core/tool-integrations.ts

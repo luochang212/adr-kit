@@ -5,11 +5,11 @@ Records live in `proposed/`, `implemented/`, `rejected/`, and `archived/`.
 The npm package is `adr-kit`; the command it installs is `adrkit`.
 
 Use `adrkit init` for a new project and `adrkit update` when an initialized
-project needs its integrations refreshed. Later sessions start with `adrkit list`
-and relevant decision reading. `adrkit instructions` also reminds you to merge
-the standing orders into `AGENTS.md` when integrations are installed but the
-rules are missing; an explicit `--tools none` opt-out stays quiet. The CLI never
-rewrites `AGENTS.md`.
+project needs its integrations refreshed. `adrkit instructions` also offers to
+add the awareness section to `AGENTS.md` — in Chinese or English — when
+integrations are installed but `AGENTS.md` does not mention `adrkit`; an
+explicit `--tools none` opt-out stays quiet. The CLI never rewrites
+`AGENTS.md`.
 
 | Command | Purpose |
 | --- | --- |

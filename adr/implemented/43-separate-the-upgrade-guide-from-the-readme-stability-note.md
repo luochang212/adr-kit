@@ -9,7 +9,6 @@ paths:
   - README.md
   - README.zh.md
   - docs/README.md
-  - docs/zh/README.md
   - docs/upgrading.md
   - docs/zh/upgrading.md
   - AGENTS.md
@@ -89,7 +88,7 @@ realization facts name the old location.
 - `docs/upgrading.md` and `docs/zh/upgrading.md` carry the per-release notes
   (0.30.0 validation tightening, marker mechanics, atlas consolidation,
   package/command/Node.js, CLI strictness, manifest removal), newest first,
-  and `docs/README.md` plus `docs/zh/README.md` list them.
+  and `docs/README.md` lists them.
 - `AGENTS.md` names the README stability note and the upgrade guide in the
   standing-orders surface list; the canonical template and the generation
   marker are unchanged.

@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 
@@ -45,54 +44,39 @@ export interface Workflow {
 }
 
 /**
- * The purpose sentence that opens the standing-orders section, binding adr/ to
- * the two failure modes it exists to block. The template and this repository's
- * dogfooded AGENTS.md must carry it verbatim; test/integrations.test.ts checks
- * both sides.
+ * Languages the standing-orders section ships in. The Chinese text is the
+ * canonical source: it is kept within three hundred characters, and every
+ * other language is a translation of it, so a wording change lands in `zh`
+ * first and propagates outward. The section states what the tool is for and
+ * what belongs in a record, but never prescribes how or when to use it; what
+ * an agent does with the knowledge is its own judgment.
  */
-export const STANDING_ORDERS_PURPOSE =
-  '`adr/` exists because agents over-focus on the current task and forget settled decisions: reading it at task start counters the drift, and preserving important context before it is lost counters the forgetting.';
+export type StandingOrdersLanguage = 'zh' | 'en';
 
-/** Heading of the standing-orders section the init workflow asks agents to paste. */
-export const STANDING_ORDERS_HEADING = '## Reading architecture decisions';
+export const STANDING_ORDERS_SECTIONS: Record<
+  StandingOrdersLanguage,
+  { heading: string; body: string }
+> = {
+  zh: {
+    heading: '## 架构决策',
+    body: '本仓库的架构决策记录保存在 `adr/` 目录。可以用 `adrkit` 命令查看：`adrkit list` 列出全部记录，`adrkit show <编号>` 读取一条，`adrkit relevant <路径>` 查找管辖某文件的记录。只记录会影响后续工作的架构选择，例行修改留给 Git 和测试；判断标准与写法见 `adrkit-propose`、`adrkit-record` 技能。',
+  },
+  en: {
+    heading: '## Architecture decisions',
+    body: 'This repository keeps its architecture decision records in `adr/`. Browse them with the `adrkit` CLI: `adrkit list` lists all records, `adrkit show <N>` reads one, `adrkit relevant <path>` finds the records governing a file. Record only architectural choices that will guide future work; routine edits belong to Git and tests. The `adrkit-propose` and `adrkit-record` skills carry the judgment and the format.',
+  },
+};
 
 /**
- * The canonical section body between the heading and the marker: what an agent
- * pastes into AGENTS.md and reconciles when the template changes.
+ * The section — heading plus body, nothing after it — that the init workflow
+ * asks agents to paste into AGENTS.md in the repository's language. No
+ * generation marker follows: the text is awareness-only and user-owned, so a
+ * difference from the template is expected rather than a drift signal, and
+ * template changes are announced through release notes and the upgrade guide.
  */
-const STANDING_ORDERS_BODY = `${STANDING_ORDERS_PURPOSE} At the start of a coding, design, or review task, if \`adr/\` exists, run \`adrkit list\`. The four folders are a context budget: read the relevant \`implemented/\` records in full with \`adrkit show <N>\` or their files; check the relevant \`proposed/\` records for intent and the relevant \`rejected/\` records for the bad cases they warn against (a rejection is durable: it leaves only when another record owns its warning); treat \`archived/\` as frozen history and read it only when a task explicitly cites it. Do not judge relevance by title alone: inspect descriptions, paths, relationships, and task scope; when a task targets specific files, \`adrkit relevant <path>\` retrieves the records whose \`paths:\` scopes govern them. For actual Git changes, use \`adrkit relevant --base <review-base>\` or \`adrkit relevant --staged\`; supplement scope matches with inventory reading for unscoped decisions and resolve incomplete-search diagnostics. Compare constraints with current code; explain conflicts or changed assumptions before choosing a different approach. Mention relevant ADR numbers and verify affected behavior. Re-read on a new or resumed task, or when scope changes. Read a \`## Deliberation\` appendix only when its decision is in play.
-
-Before creating a record, compare it with the active records covering the same choice or mechanism: extend a duplicate; when the active record's mechanism is itself unsound, weigh removing it rather than patching it; for an unshipped full replacement, link its intent and keep the old authority active, then use \`adrkit supersede --by\` in the same change that ships and records the replacement; link a partial overlap while the older record stays active. When shipping or reviewing, keep the realization facts an active record actually claims aligned with shipped code; a changed recorded choice is a new record with an explicit relationship, not a rewrite of old rationale. Archived records are ordinary Git-tracked history, never edited silently, and not read by default.
-
-ADR Kit is the agent's notebook, not a change log. Record an ADR when an architectural choice carries important information that code, tests, and existing documentation cannot reliably preserve. Weigh importance, impact breadth, longevity, resistance to becoming stale, and how hidden the constraint or rationale is, especially when it exists only in a user conversation. These are judgment dimensions, not a score or five mandatory conditions. Ask what would be lost, what forgetting would cost, and what stable choice and reason should survive. Routine upgrades and visual adjustments usually belong to Git, configuration, styles, or tests; a hidden offline-deployment or accessibility constraint may merit a record. Preserve genuine reasons and alternatives, not invented template filler. Skipping a record is valid; no declaration or user approval is required for each skip. Respect explicit user requests to preserve a choice without extending them to all similar edits.
-
-An existing record is not precedent for recording similar edits. Changes within its implementation freedom need no ADR update unless a claim it actually makes becomes false; keep required paths and references valid. If volatile details force repeated synchronization, report the burden and suggest trimming details to their existing owner or authorized archival. Do not silently rewrite a choice, ignore an explicit constraint, delete records, or archive them without authorization. The one sanctioned removal is \`adrkit delete\` for a record that should never have existed: it refuses while code cites the record or another record references it, and never deletes archived records. Grilling uses the same selection judgment: discussion alone does not require a record. Preserve the complete tree with a qualifying record; if none qualifies, summarize in conversation and create none. Use \`adrkit propose\` for unshipped work, \`adrkit implement\` after it ships, and \`adrkit record\` for an already-shipped decision. \`raised-by\` declares who introduced the choice; \`decided-by\` declares whose judgment settled it. The CLI neither infers nor verifies shipping or provenance.
-
-Records outlive the format that wrote them. The npm package is \`adr-kit\`; the command it installs is \`adrkit\`, so install and upgrade with \`npm install -g adr-kit\`. The former \`tags\` field is removed: remove it and author a one-sentence \`description\` explaining when to read each record; labels do not supply that sentence mechanically. The former \`commit\` field is removed too: delete the line; where a decision landed is Git history's to tell, not the record's. When \`adrkit validate\` reports unknown fields, missing sections, or parse errors on records an older release wrote, treat it as format drift rather than damage: upgrade the \`adr-kit\` package to the latest stable release, migrate the active records to the current format where the change is mechanical, and report any record that cannot be carried over instead of forcing a rewrite; then re-run \`adrkit validate --all\`. Archived records are ordinary Git-tracked history: validate checks them by the current rules; a later format change is a normal migration commit.
-
-When the user wants to review or share the project's history, use the \`adrkit-visualize\` skill; generate a browsable atlas from \`adr/implemented/\` and \`adr/archived/\` only, publish archived bodies in full, and pin the page to the commit it was built from.`;
-
-/**
- * Template-generation id derived from the canonical body, with no manual bump.
- * A pasted marker declares reconciliation with that generation, not equality
- * with the local body: translation, shortening, and local edits are allowed.
- */
-export const STANDING_ORDERS_MARK = createHash('sha256')
-  .update(STANDING_ORDERS_BODY)
-  .digest('hex')
-  .slice(0, 8);
-
-/** The marker line the pasted section and the template carry verbatim. */
-export const STANDING_ORDERS_MARKER = `<!-- adrkit: standing-orders ${STANDING_ORDERS_MARK} -->`;
-
-/**
- * The canonical standing-orders section — heading through marker — that the
- * init workflow asks agents to paste into AGENTS.md. The trailing marker
- * declares the section was reconciled with this template generation; it
- * survives translation because it is a comment, not prose.
- */
-export function standingOrdersSection(): string {
-  return `${STANDING_ORDERS_HEADING}\n\n${STANDING_ORDERS_BODY}\n\n${STANDING_ORDERS_MARKER}`;
+export function standingOrdersSection(language: StandingOrdersLanguage): string {
+  const section = STANDING_ORDERS_SECTIONS[language];
+  return `${section.heading}\n\n${section.body}`;
 }
 
 const RECORDING_GUIDANCE = `## Is this worth recording?
@@ -124,17 +108,15 @@ export const WORKFLOWS: Workflow[] = [
     description: "Use when initializing ADR Kit in a repository or when the agent cannot find an adr/ directory.",
     body: `# ADR Kit Init
 
-Installing ADR Kit wires a repository's decision memory into the surfaces agents read, against two failure modes: mid-task drift from long-term decisions, and forgetting settled choices until they bite.
-
-Run \`adrkit init [path]\` for a new repository, or to repair an existing \`adr/\` whose \`config.yaml\` is missing. Repair fills missing files and preserves existing records and integrations. Use \`adrkit update\` to refresh integrations in an initialized repository. Confirm the four lifecycle folders: \`proposed/\`, \`implemented/\`, \`rejected/\`, and \`archived/\`. They are a context budget as well as a lifecycle: \`implemented/\` is current authority, \`proposed/\` is intent, \`rejected/\` is anti-pattern memory, and \`archived/\` is lowest-value frozen history. The CLI installs workflow skills but does not rewrite a project's standing orders.
+Installing ADR Kit puts a repository's decision memory where agents can see it: records live in \`adr/\`, and the \`adrkit\` CLI reads them. Run \`adrkit init [path]\` for a new repository, or to repair an existing \`adr/\` whose \`config.yaml\` is missing. Repair fills missing files and preserves existing records and integrations. Use \`adrkit update\` to refresh integrations in an initialized repository. Confirm the four lifecycle folders: \`proposed/\`, \`implemented/\`, \`rejected/\`, and \`archived/\`. The CLI installs workflow skills but does not rewrite a project's AGENTS.md.
 
 Record language follows the repository: match the language of existing records, or the user's language when the repository has no records yet, and keep that language for both titles and bodies rather than switching per conversation.
 
-The trailing generation marker declares which template the section was reconciled against; it does not assert identical text. Translation, shortening, and local edits are allowed. Keep project-specific obligations outside the pasted section. Keep the marker to receive template-change notes, or omit it to maintain the section without tracking. When a note appears, compare with this template and reconcile any changes before updating the marker.
+Offer one of the sections below for \`AGENTS.md\` — suggest the one matching the repository's language, judged from the existing AGENTS.md, README, and records, defaulting to English when nothing decides — and paste it only with the user's agreement. A section in another language is a translation of the Chinese source; translate it and keep the \`adrkit\` invocations verbatim. If AGENTS.md already mentions adrkit in the user's own words, respect that text and suggest nothing. The section names the tool and the record-worthiness bar, and leaves whether or when an agent runs the commands to its judgment.
 
-Add or update this section in \`AGENTS.md\`:
+${standingOrdersSection('zh')}
 
-${standingOrdersSection()}
+${standingOrdersSection('en')}
 
 After installation, continue the original task; initializing ADR Kit is not itself a reason to create a record.`,
   },
@@ -625,41 +607,28 @@ export function integrationSummary(root: string, written: ToolIntegration[]): st
 }
 
 /**
- * A distinctive sentence from the section body. The init workflow allows an
- * agent to "update an equivalent section", so a section with a reworked
- * heading still counts; this phrase is what makes that honest instead of a
- * heading-only match.
- */
-export const STANDING_ORDERS_RULE = 'Record an ADR when an architectural choice';
-
-/**
- * The task-start inventory command, as the language-neutral anchor. A
- * translated standing-orders section loses every English sentence — the field
- * finding behind this anchor is a fully Chinese AGENTS.md that carried the
- * real rules and still tripped the missing-section note — but the CLI
- * invocations survive translation verbatim, and a repo whose AGENTS.md runs
- * `adrkit list` at task start reads adr/ however the surrounding prose reads.
+ * The inventory command, as the language-neutral anchor. A section translated
+ * into a language the registry does not ship loses every known heading, but
+ * CLI invocations survive translation verbatim — an AGENTS.md that names
+ * `adrkit list` already tells its agents the tool exists.
  */
 export const STANDING_ORDERS_COMMAND = 'adrkit list';
 
 /**
- * The agent instruction file that carries the standing-orders section, or
- * undefined when AGENTS.md does not. A section counts through its heading,
- * its rule sentence, or its task-start command — the last anchor keeps
- * translated sections honest (see STANDING_ORDERS_COMMAND). Reading only —
- * the file belongs to the user, and the CLI never rewrites it. CLAUDE.md is
- * deliberately not a carrier: Claude Code reads AGENTS.md directly since
- * v2.1.277, and no other tool reads CLAUDE.md, so a second instruction file
- * would double the paste and verification surface without serving any tool.
+ * The agent instruction file that carries the awareness section, or undefined
+ * when AGENTS.md does not. A section counts through a known localized heading
+ * or the command anchor — the last keeps sections in untranslated languages
+ * honest (see STANDING_ORDERS_COMMAND). Reading only — the file belongs to
+ * the user, and the CLI never rewrites it. CLAUDE.md is deliberately not a
+ * carrier: Claude Code reads AGENTS.md directly since v2.1.277, and no other
+ * tool reads CLAUDE.md, so a second instruction file would double the paste
+ * and verification surface without serving any tool.
  */
 export function standingOrdersFile(root: string): string | undefined {
   try {
     const text = readFileSync(join(root, 'AGENTS.md'), 'utf8');
-    if (
-      text.includes(STANDING_ORDERS_HEADING) ||
-      text.includes(STANDING_ORDERS_RULE) ||
-      text.includes(STANDING_ORDERS_COMMAND)
-    ) {
+    const headings = Object.values(STANDING_ORDERS_SECTIONS).map((section) => section.heading);
+    if (headings.some((heading) => text.includes(heading)) || text.includes(STANDING_ORDERS_COMMAND)) {
       return 'AGENTS.md';
     }
   } catch {
@@ -684,13 +653,14 @@ function initSkillReference(root: string): string {
 }
 
 /**
- * The note for init/update/instructions when no instruction file carries the
- * standing orders. Integration files being installed is what makes the
- * paste step meaningful, so an empty selection (an explicit `--tools none`
- * opt-out) stays quiet. The pointer is derived from what is actually
- * installed: a `--workflows` subset without the init workflow cannot name a
- * file that does not exist. Without a write result, inspect installed files;
- * callers must also respect an explicit configuration opt-out.
+ * The note for init/update/instructions when no instruction file mentions
+ * adrkit. Integration files being installed is what makes the paste step
+ * meaningful, so an empty selection (an explicit `--tools none` opt-out)
+ * stays quiet. The pointer is derived from what is actually installed: a
+ * `--workflows` subset without the init workflow cannot name a file that
+ * does not exist. Without a write result, inspect installed files; callers
+ * must also respect an explicit configuration opt-out. The note offers, never
+ * mandates — the section is optional awareness, not a requirement.
  */
 export function standingOrdersNote(
   root: string,
@@ -702,33 +672,8 @@ export function standingOrdersNote(
   if (!hasIntegrations) return undefined;
   if (standingOrdersFile(root) !== undefined) return undefined;
   return [
-    'note: AGENTS.md does not carry the standing orders, so agents will not read',
-    '  adr/ at task start. Merge the "Reading architecture decisions" section',
-    `  from ${initSkillReference(root)} into AGENTS.md, preserving existing project rules.`,
+    'note: AGENTS.md does not mention adrkit, so agents may not discover it.',
+    `  Optionally add the matching-language section from ${initSkillReference(root)}`,
+    '  to AGENTS.md, preserving existing project rules; Chinese and English are included.',
   ].join('\n');
-}
-
-/** The marker an AGENTS.md section carries when reconciled with a template. */
-const STANDING_ORDERS_MARKER_RE = /<!--\s*adrkit:\s*standing-orders\s+([0-9a-f]+)\s*-->/;
-
-/**
- * The drift note for a standing-orders section whose marker does not match
- * the current template generation. Reading only — the file belongs to the
- * user, and the note asks for reconciliation instead of rewriting anything.
- * No marker opts out of generation tracking; a matching marker declares
- * reconciliation without asserting body equality. A missing section is owned
- * by the separate missing-section note.
- */
-export function standingOrdersDriftNote(root: string): string | undefined {
-  if (standingOrdersFile(root) === undefined) return undefined;
-  let text: string;
-  try {
-    text = readFileSync(join(root, 'AGENTS.md'), 'utf8');
-  } catch {
-    return undefined;
-  }
-  const match = STANDING_ORDERS_MARKER_RE.exec(text);
-  if (match === null || match[1] === STANDING_ORDERS_MARK) return undefined;
-  const source = `the "Reading architecture decisions" section in ${initSkillReference(root)}`;
-  return `note: the standing orders in AGENTS.md carry a different template generation marker than this adr-kit ships; compare the section with ${source}, reconcile any changes, then update the generation marker`;
 }

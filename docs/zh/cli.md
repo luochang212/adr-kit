@@ -5,9 +5,9 @@
 npm 包名是 `adr-kit`，安装的命令是 `adrkit`。
 
 新项目使用 `adrkit init`，已有项目需要刷新集成时使用 `adrkit update`。
-后续会话从 `adrkit list` 和相关决策阅读开始。已安装集成但缺少常驻规则时，
-`adrkit instructions` 也会提醒将规则合并到 `AGENTS.md`；显式选择
-`--tools none` 的项目保持安静。CLI 不会改写 `AGENTS.md`。
+已安装集成但 `AGENTS.md` 未提及 `adrkit` 时，`adrkit instructions`
+会主动提供中英两版的告知段落供你选用；显式选择 `--tools none`
+的项目保持安静。CLI 不会改写 `AGENTS.md`。
 
 | 命令 | 作用 |
 | --- | --- |

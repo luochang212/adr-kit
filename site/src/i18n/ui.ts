@@ -88,7 +88,7 @@ const ui = {
     'faq.title': 'Questions',
     'faq.1.q': 'What does ADR Kit do to my project when I adopt it?',
     'faq.1.a':
-      "It adds one adr/ directory with config, README, and four lifecycle folders: proposed, implemented, rejected, archived. By default it writes agent skills and commands to .agents/; --tools claude adds .claude/ copies, and --tools none installs nothing. Records remain plain Markdown. AGENTS.md stays yours: its optional generation marker tracks template updates while allowing local edits and translation. Compare and reconcile changes before updating an old marker; omit it to opt out of tracking.",
+      "It adds one adr/ directory with config, README, and four lifecycle folders: proposed, implemented, rejected, archived. By default it writes agent skills and commands to .agents/; --tools claude adds .claude/ copies, and --tools none installs nothing. Records remain plain Markdown. AGENTS.md stays yours: the agent may add a short section that names the adrkit commands and what deserves a record, in the repository's language (Chinese and English templates included, translated from the Chinese source); edit, translate, or omit it freely, with no tracking marker of any kind.",
     'faq.2.q': 'How do I use ADR Kit day to day?',
     'faq.2.a':
       "Use adrkit propose for unshipped work, then adrkit implement after delivery. Use adrkit record for an already-shipped choice. Formal rejection requires adrkit reject --reason and stays durable until another record owns its warning; retired guidance uses archive or supersede. Fill required sections and run adrkit validate. Visualize with adrkit atlas.",
@@ -175,7 +175,7 @@ const ui = {
     'faq.title': 'Q&A',
     'faq.1.q': '引入 ADR Kit 后，它会在我的项目里做什么？',
     'faq.1.a':
-      "只添加一个 adr/ 目录，内有配置、README 与 proposed、implemented、rejected、archived 四个目录。默认还将 agent 技能和命令写入 .agents/；--tools claude 另装 .claude/，--tools none 则不安装。记录仍是纯 Markdown。AGENTS.md 归你维护：可选的代际标记用于跟踪模板更新，允许本地修改和翻译。遇到旧标记时先比较、处理变化，再更新；省略标记则不跟踪。",
+      "只添加一个 adr/ 目录，内有配置、README 与 proposed、implemented、rejected、archived 四个目录。默认还将 agent 技能和命令写入 .agents/；--tools claude 另装 .claude/，--tools none 则不安装。记录仍是纯 Markdown。AGENTS.md 归你维护：agent 可按仓库语言加入一小段文字，告知其他 agent adrkit 的命令与记录标准（模板内含中英两版，其他语言由中文版翻译而来）；可随意修改、翻译或不加，没有任何跟踪标记。",
     'faq.2.q': '日常如何在项目中使用 ADR Kit？',
     'faq.2.a':
       "未交付工作先用 adrkit propose，交付后运行 adrkit implement；已交付但未记录的选择用 adrkit record。正式否决用 adrkit reject --reason（稳定保留，只在另一条记录接管其警示时移除）；过时指导用 archive 或 supersede。填写必填章节并运行 adrkit validate。用 adrkit atlas 可视化。",

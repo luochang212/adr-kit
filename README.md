@@ -44,9 +44,9 @@ cd your-project
 adrkit init
 ```
 
-Initialization installs workflow skills into `.agents/`; use `adrkit init --tools claude` for additional `.claude/` copies. Read the installed `adrkit-init` skill and merge its "Reading architecture decisions" section into `AGENTS.md`, preserving existing project rules. The CLI leaves `AGENTS.md` for you to edit. See [Tell your agent](#tell-your-agent) for the ongoing workflow.
+Initialization installs workflow skills into `.agents/`; use `adrkit init --tools claude` for additional `.claude/` copies. Read the installed `adrkit-init` skill and add its matching-language section to `AGENTS.md` — Chinese and English templates are included, translated from the Chinese source — preserving existing project rules. The section only makes the tool visible to your agents; whether and when they use it is their judgment. The CLI leaves `AGENTS.md` for you to edit. See [Tell your agent](#tell-your-agent) for the ongoing workflow.
 
-For an initialized project, use `adrkit update` when integrations need refreshing. On later sessions, start with `adrkit list` and read relevant decisions; setup does not need repeating. `adrkit instructions` shows the next workflow step and reminds you when installed integrations are missing their `AGENTS.md` rules.
+For an initialized project, use `adrkit update` when integrations need refreshing. `adrkit instructions` shows the next workflow step and offers the section when installed integrations are in place but `AGENTS.md` does not mention `adrkit`.
 
 ```bash
 adrkit propose "Use SQLite for session storage"
@@ -73,7 +73,7 @@ An uncommitted proposal is a local working-tree draft; committing it shares it. 
 
 ## Tell your agent
 
-Agents over-focus on the current task and forget settled decisions; `adr/` is the memory against both. Add the [reading rule](docs/workflow.md#read-decisions-before-coding) to `AGENTS.md`. At task start, run `adrkit list`: read the relevant `implemented/` records in full, check `proposed/` for intent and `rejected/` for the bad cases they warn against, and consult `archived/` only for cited history. Do not filter by title alone. When a task targets specific files, `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern them. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and link an unshipped replacement to the old decision, keeping that authority active until the replacement ships; resolve it with `adrkit supersede --by` in the delivery change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code. When code implements a decision, cite it in a comment with `@adr <number>`; `adrkit validate` fails when the citation is stale.
+`adr/` holds the decisions whose rationale should guide future work; `adrkit` makes them visible to any agent. The optional `AGENTS.md` section names the commands and the record-worthiness bar — whether and when an agent consults past decisions is its judgment. To work with them: `adrkit list` shows the inventory, and `adrkit relevant <path>` retrieves the records whose `paths:` scopes govern specific files. The `adrkit-init` skill guides setup; `adrkit update` refreshes installed skills. Before creating a record, compare it with active records covering the same choice and link an unshipped replacement to the old decision, keeping that authority active until the replacement ships; resolve it with `adrkit supersede --by` in the delivery change; when shipping or reviewing, use the `adrkit-implement` and `adrkit-review` skills to keep realization facts aligned with shipped code. When code implements a decision, cite it in a comment with `@adr <number>`; `adrkit validate` fails when the citation is stale.
 
 
 `adrkit show <name>` displays the complete main record without its optional `## Deliberation` appendix. Read the source file at the printed path when you need the original deliberation.

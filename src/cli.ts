@@ -31,11 +31,11 @@ Getting started:
   1. Run adrkit init in your project to create adr/ and install workflow skills.
      Skills default to .agents/; --tools claude adds .claude/ copies.
      For an initialized project, use adrkit update when integrations need refreshing.
-  2. Read the installed adrkit-init skill and merge its
-     "Reading architecture decisions" section into AGENTS.md, preserving
-     existing project rules. The CLI leaves AGENTS.md for you to edit.
-  3. On later sessions, run adrkit list and read relevant decisions in full
-     at task start; setup does not need repeating.
+  2. Read the installed adrkit-init skill and add its matching-language
+     section to AGENTS.md, preserving existing project rules. The CLI
+     leaves AGENTS.md for you to edit.
+  3. adrkit list shows the inventory whenever you or your agent want to
+     consult past decisions; setup does not need repeating.
      Record architectural choices whose rationale should guide future work.
   Guide: https://github.com/luochang212/adr-kit#tell-your-agent
 

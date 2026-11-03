@@ -13,14 +13,30 @@ per-release notes. Every change, breaking or not, is listed in the
 3. `adrkit validate --all` — run in each repository; validation errors name
    what changed.
 
-The standing orders tell your agent to upgrade the package, migrate active
-records where the change is mechanical, and report a record it cannot carry
-over instead of forcing a rewrite. A migration is never assumed to exist.
-Archived records change only through a deliberate, explained commit.
+A migration is never assumed to exist. When a note below says to migrate
+active records, do it where the change is mechanical and report a record the
+migration cannot carry over instead of forcing a rewrite. Archived records
+change only through a deliberate, explained commit.
 
 ## Upgrade notes
 
 Newest first. Each note names what changed and what to do.
+
+### After 0.35.0: the AGENTS.md section is awareness-only, multilingual, and unmarked
+
+The section your agent pastes into `AGENTS.md` no longer mandates reading:
+it now names the tool, its entry commands (`adrkit list`, `adrkit show`,
+`adrkit relevant`), and the record-worthiness bar in one line — whether or
+when an agent runs the commands is the agent's judgment. The template ships
+in Chinese and English, translated from
+the Chinese source; the `adrkit-init` skill carries both and asks for the one
+matching the repository's language. The `<!-- adrkit: standing-orders <id>
+-->` generation marker and its drift note are removed — markers left in your
+`AGENTS.md` are inert HTML comments you can delete at will, and no command
+compares your section against a template anymore. Template changes are
+announced here and in the release notes instead (ADR 52). Refresh
+integrations with `adrkit update`, then paste or keep the section as you like;
+omitting it entirely is supported.
 
 ### After 0.35.0: the atlas theme default is Signal
 
@@ -106,19 +122,6 @@ migration, and placeholder prose is not a remedy. Explain any archived edits
 in their commit. Rejecting a proposal still requires only its problem,
 proposal, alternatives, and a reason; an abandoned implementation plan need
 not be completed.
-
-### Standing-orders marker
-
-The standing-orders section in `AGENTS.md` is yours: its optional
-`<!-- adrkit: standing-orders <id> -->` generation marker declares which
-template you reconciled it against, not identical text. Translation,
-shortening, and local edits are allowed; keep project-specific obligations
-outside the section. An old marker produces a note in `init`, `update`,
-`list`, `instructions`, and `relevant`: compare with the current
-`adrkit-init` template and reconcile the changes before updating the marker.
-Unmarked sections stay quiet, including older installations; retain or add
-the current marker after reconciliation to opt into future template-change
-notes. A missing section still produces the separate init/update note.
 
 ### Visualization consolidated (ADR 33, ADR 36)
 

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { COMMAND_OPTIONS, COMMANDS } from '../src/core/cli-options.js';
@@ -78,6 +78,27 @@ describe('bilingual lifecycle documentation', () => {
         expect(COMMAND_OPTIONS[command]).toContain('--reason');
         expect(document).toContain(`adrkit ${command} <name> --reason <text>`);
       }
+    }
+  });
+});
+
+describe('documentation language policy (ADR 53)', () => {
+  // Bilingual copy is paid for only where an external entry point links it.
+  // The internal index keeps one Chinese copy; the four reference documents
+  // stay paired because the READMEs and llms.txt link them.
+  it('keeps a single Chinese docs index', () => {
+    expect(existsSync(fileURLToPath(new URL('../docs/zh/README.md', import.meta.url)))).toBe(false);
+    const index = read('docs/README.md');
+    expect(index).toContain('# ADR Kit 文档');
+    for (const doc of ['cli', 'record-format', 'workflow', 'upgrading']) {
+      expect(index, doc).toContain(`(zh/${doc}.md)`);
+    }
+  });
+
+  it('keeps both languages for documents the README or site links', () => {
+    for (const doc of ['cli', 'record-format', 'workflow', 'upgrading']) {
+      expect(existsSync(fileURLToPath(new URL(`../docs/${doc}.md`, import.meta.url))), doc).toBe(true);
+      expect(existsSync(fileURLToPath(new URL(`../docs/zh/${doc}.md`, import.meta.url))), doc).toBe(true);
     }
   });
 });

@@ -5,7 +5,8 @@ words. They are a manual evaluation protocol, not a measured quality claim.
 Integration tests cover distribution of the instructions only.
 
 Run each case in a fresh disposable repository with the generated skills and
-standing orders installed, using the agent/model configuration being evaluated.
+the `AGENTS.md` awareness section installed, using the agent/model configuration
+being evaluated.
 Give the agent the task and inspect its actions, record content, and final reply.
 Do not supply the expected behavior to the agent. For cases with existing records,
 seed a valid record with the stated constraint and no additional recording policy.

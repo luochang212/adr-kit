@@ -44,9 +44,9 @@ cd your-project
 adrkit init
 ```
 
-初始化会将工作流技能安装到 `.agents/`；使用 `adrkit init --tools claude` 可额外生成 `.claude/` 副本。阅读已安装的 `adrkit-init` 技能，将其中的 "Reading architecture decisions" 规则合并到 `AGENTS.md`，保留现有项目规则。`AGENTS.md` 由你编辑，CLI 不会改写它。后续工作流见[告诉 Agent](#告诉-agent)。
+初始化会将工作流技能安装到 `.agents/`；使用 `adrkit init --tools claude` 可额外生成 `.claude/` 副本。阅读已安装的 `adrkit-init` 技能，将其中的告知段落按仓库语言加入 `AGENTS.md`——模板内含中文与英文两版，其他语言由中文版翻译而来——并保留现有项目规则。段落让 agent 知道工具存在、什么值得记录；是否使用、何时使用由它们自行判断。`AGENTS.md` 由你编辑，CLI 不会改写它。后续工作流见[告诉 Agent](#告诉-agent)。
 
-已有项目需要刷新集成时使用 `adrkit update`。后续会话直接从 `adrkit list` 和相关决策阅读开始，无需重复配置。`adrkit instructions` 显示下一步，并在已安装集成但缺少 `AGENTS.md` 规则时提醒补齐。
+已有项目需要刷新集成时使用 `adrkit update`。`adrkit instructions` 显示下一步，并在已安装集成但 `AGENTS.md` 未提及 `adrkit` 时主动提供该段落。
 
 ```bash
 adrkit propose "使用 SQLite 存储会话"
@@ -73,7 +73,7 @@ adr/
 
 ## 告诉 Agent
 
-Agent 会过度聚焦手头任务、遗忘已定的决策；`adr/` 正是对这两者的记忆。将[任务开始阅读规则](docs/zh/workflow.md#任务开始前阅读决策)加入 `AGENTS.md`。任务开始时先运行 `adrkit list`。四个目录是一份上下文预算：完整阅读相关的 `implemented/`；检查 `proposed/` 的意图与 `rejected/` 的反例；`archived/` 仅在任务明确引用历史时读。不能只看标题判断相关性。任务涉及具体文件时，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖它们的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，未交付的完整替代先链接意图并保留旧权威，交付时在同次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate` 失败。
+`adr/` 保存着应当指导未来工作的决策；`adrkit` 让任何 agent 都能看到它们。可选的 `AGENTS.md` 段落告知命令与记录标准——是否以及何时回顾既有决策是 agent 自己的判断。使用方式：`adrkit list` 显示清单，`adrkit relevant <path>` 检索通过 `paths:` 限定管辖具体文件的记录。`adrkit-init` 指导配置，`adrkit update` 刷新已安装技能。创建记录前，先与涉及同一选择的现行记录比较，未交付的完整替代先链接意图并保留旧权威，交付时在同次变更中用 `adrkit supersede --by` 解析；交付或审查时用 `adrkit-implement` 和 `adrkit-review` 技能保持实现事实与已交付代码一致。代码实现某条决策时，在注释里用 `@adr <编号>` 引用它；引用失效会让 `adrkit validate` 失败。
 
 
 `adrkit show <name>` 展示完整记录主体，省略可选的 `## Deliberation` 附录。需要原始推演时，读取输出路径对应的源文件。

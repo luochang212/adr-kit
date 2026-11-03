@@ -91,18 +91,15 @@ Creating, shipping, and reviewing are one governance loop:
 
 ## Read decisions before coding
 
-At task start, run `adrkit list` to discover the inventory. The four folders
-are a context budget: read the relevant `implemented/` records in full; check
-the relevant `proposed/` records for intent and the relevant `rejected/`
-records for the bad cases they warn against; treat `archived/` as frozen
-history and read it only when a task explicitly cites it. Relevance requires more than
-title matching: inspect descriptions, paths, relationships, and task scope; when a
-task targets specific files, `adrkit relevant <path>` retrieves the records
-whose `paths:` scopes govern them. Check
-records against current code, explain changed assumptions, and mention
-relevant ADR numbers in the work summary. Re-read when the task or scope
-changes. Agent skills guide lifecycle operations but the CLI does not
-automatically edit `AGENTS.md`.
+When a task touches settled choices, run `adrkit list` to discover the
+inventory, `adrkit relevant <path>` to retrieve the records whose `paths:`
+scopes govern the target files, and `adrkit show <N>` to read one in full.
+Relevance requires more than title matching: inspect descriptions, paths,
+relationships, and task scope; check records against current code, explain
+changed assumptions, and mention relevant ADR numbers in the work summary.
+The optional `AGENTS.md` section names these commands and the
+record-worthiness bar without prescribing when to run them — that judgment
+stays with the agent — and the CLI never edits `AGENTS.md`.
 
 
 ## Co-design with evidence
