@@ -74,7 +74,7 @@ Usage:
   adrkit config                              Print the current configuration
   adrkit hook <install|uninstall|run>
                                            Manage the pre-commit decision check
-  adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--formal-only]
+  adrkit atlas [--out <path>] [--map | --record <name>] [--lang <en|zh>] [--theme <folio|signal|random>] [--format <mermaid|dot|text|html>] [--formal-only]
                                            Write the decision atlas; --map selects the decision map, --record selects one deliberation tree
   adrkit completion <bash|zsh|fish>          Print a shell completion script
   adrkit version                             Print the version

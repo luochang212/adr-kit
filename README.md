@@ -132,7 +132,7 @@ adrkit validate [<name> | --all]
 adrkit update [--tools <list>] [--workflows <list>]
 adrkit config
 adrkit hook <install|uninstall|run>
-adrkit atlas [--out <path>] [--map] [--lang <en|zh>] [--theme <folio|signal|random>] [--record <name>] [--format <mermaid|dot|text|html>] [--formal-only]
+adrkit atlas [--out <path>] [--map | --record <name>] [--lang <en|zh>] [--theme <folio|signal|random>] [--format <mermaid|dot|text|html>] [--formal-only]
 adrkit completion <bash|zsh|fish>
 adrkit version
 adrkit help
