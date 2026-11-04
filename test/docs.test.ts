@@ -93,6 +93,14 @@ describe('recording guidance placement', () => {
       expect(text, file).not.toContain('What would be lost?');
       expect(text, file).not.toContain('Can code, tests, or Git explain');
     }
+    // The zh page restated the three questions in Chinese until the pointer
+    // rewrite; pin the retired Chinese wording so that form cannot creep back.
+    // A future Chinese translation of the four questions has no canonical
+    // wording to pin and stays outside this guard.
+    const zh = read('docs/zh/workflow.md');
+    for (const retired of ['会丢什么？', '丢了怎样？', '留下什么？']) {
+      expect(zh, 'docs/zh/workflow.md').not.toContain(retired);
+    }
   });
 });
 

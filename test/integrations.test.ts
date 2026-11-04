@@ -570,6 +570,7 @@ rules:
             'hidden and durable enough to guide future choices',
             'routine upgrade, naming change, format migration',
             'it is not an ADR',
+            'forgetting it would cost nothing',
             'not a score or an all-must-pass checklist', 'user conversation',
             'Upgraded adr-kit', "button's spacing",
             'an existing record is not precedent', 'archive it without authorization',
