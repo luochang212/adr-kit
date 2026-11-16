@@ -38,8 +38,8 @@ field, or another record's prose still references the number, and the
 pre-commit hook checks a staged archived deletion for stranded references
 instead of failing it categorically. The `adr/README.md` template now
 states the record-worthiness bar and names `adrkit delete` as the only
-deletion path; a repository whose copy still says the archive is never
-deleted can delete that file and re-run `adrkit init` to regenerate it.
+deletion path; a copy that still says the archive is never deleted needs
+that paragraph edited by hand.
 Stock recorded under an older bar can be regraded through the checked
 path — the workflow guide names deletion as the below-line outcome — and
 `adrkit list` and `adrkit status` report the inventory's reading cost.
