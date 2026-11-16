@@ -38,7 +38,8 @@ duplicates what the workflow skills already own, taxing every session whether
 or not a decision is in play. It ships in English only, so a Chinese-language
 repository pastes English prose into an otherwise Chinese file. And it ends in
 the `<!-- adrkit: standing-orders <hash> -->` generation marker: machinery
-from the CLI living in a user-authored file. ADR 35 made the marker opt-in and
+from the CLI living in a user-authored file. An earlier decision made the
+marker opt-in and
 clarified its meaning, but the file still carries it, and the drift note it
 feeds rides the output of five commands.
 

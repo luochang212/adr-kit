@@ -93,12 +93,10 @@ The agent proposed the names, equal-probability default and fixed HTML attribute
 
 ### Later changes
 
-**Amended by ADR 40:** the website no longer publishes both themes at once. The
-site build writes `index.html` and `en.html` for the single theme named by
-`SITE_THEME` (or `ATLAS_THEME` for one build) and removes a previous theme's
-pages, while the browser gate renders both themes as fixtures; `signal.html`
-and `signal.en.html` no longer exist. Both named themes, the generation-time
-selection rule, and the shared mechanisms above are unchanged.
+**Amended by ADR 41:** the website again publishes both themes as bilingual
+previews, with the route inventory owned by `SITE_PAGES`, replacing an interim
+single-theme publication choice that existed between the two decisions. The
+CLI's selection policy, shared template and offline artifacts are unchanged.
 
 
 Signal's presentation has since evolved into a shuffled, replenishing desk of
@@ -111,12 +109,8 @@ contract; `test/browser/atlas-package.spec.mjs` verifies the packed CLI and
 installed resources in an external repository. Theme selection remains fixed
 at generation; shuffling the files does not change the theme.
 
-**Amended by ADR 41:** the website again publishes both themes as bilingual
-previews, with the route inventory owned by `SITE_PAGES`. This replaces ADR 40's
-single-theme publication choice. The CLI's selection policy, shared template and
-offline artifacts are unchanged.
-
-**Amended by ADR 42:** the random default is no longer an even coin — it rolls
-Folio 30% and Signal 70% once at generation, promoting Signal as the flagship
-theme. The two named themes, generation-time selection, fixed identity and the
-shared mechanisms above are unchanged; explicit themes bypass the weights.
+**Amended by ADR 51:** the random default is no longer a roll — omitting
+`--theme` renders Signal deterministically, and `--theme random` rolls a fair
+50/50 coin once at generation. The two named themes, generation-time selection,
+fixed identity and the shared mechanisms above are unchanged; explicit themes
+bypass the coin.

@@ -78,10 +78,10 @@ weakening it.
   invokes it; the triggering description is part of the association layer.
 - **Lower the propose/record bar**: rejected. It trades away the contract that
   validation failures are success signals; separate capture from shape instead.
-- **Fold in ADR 17's task-end check**: rejected. It is separately owned
+- **Fold in the task-end check**: rejected. It is separately owned
   follow-through with its own closed evidence gate.
-- **Platform Stop hooks or mechanical triggers**: rejected per ADR 17's
-  portability analysis.
+- **Platform Stop hooks or mechanical triggers**: rejected per the task-end
+  check's portability analysis.
 - **A path-keyed retrieval surface (`adrkit why <path>`)**: rejected for now.
   Constraint-level decisions constrain files they never name, and an empty
   result licenses skipping. Revisit if dogfooding shows read-misses.

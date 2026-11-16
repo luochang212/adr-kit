@@ -23,9 +23,9 @@ paths:
 
 ## Problem
 
-ADR 18 adopted four lifecycle folders and ADR 19 sealed the archive, but the
-folders are defined only as lifecycle states, never by what they are worth to a
-task. The reading rule already treats them differently — read relevant
+ADR 18 adopted four lifecycle folders while a seal manifest froze the archive,
+but the folders are defined only as lifecycle states, never by what they are
+worth to a task. The reading rule already treats them differently — read relevant
 implemented records in full, check proposed and rejected records, consult
 archived only for history — yet that priority lives in prose spread across
 AGENTS.md and the skills, not in the folder contract itself.
@@ -58,7 +58,7 @@ it blocks. The only exit is replacement: when another record owns that warning
 and may be removed, with the owner preserving any unique rationale first. That
 is a deliberate, reviewed edit, not automatic pruning.
 
-Keep `archived/` as ADR 19 built it — frozen, never edited silently —
+Keep `archived/` frozen — never edited silently —
 and only make its reading posture explicit. Keep the stable numbers, the
 `superseded` status and the `tags` classification unchanged.
 This is a definition and reading-policy change, not a structure change: no new
@@ -67,8 +67,8 @@ folder, no new field, no new status, no code behavior change.
 Bind the policy into the surfaces an agent actually reads: this repository's
 AGENTS.md, the generated `adr/README.md`, the standing-orders template, and the
 `adrkit-*` skills that create, retire, or review records. This refines ADR 18's
-rejection retention and ADR 19's archive rules; both records stay active and
-link to this one.
+rejection retention and the archive rules then in force; ADR 18 stays active
+and links to this one.
 
 ## Alternatives considered
 
@@ -86,8 +86,8 @@ link to this one.
   Implemented records carry stable numbers and are archived; deleting one
   breaks number stability. Only unnumbered rejections can be removed, and only
   when another record owns them.
-- **Make `archived/` deletable or re-readable**: rejected. ADR 19 freezes
-  archived bytes and `validate --base` proves the archive only grows; the right
+- **Make `archived/` deletable or re-readable**: rejected. The seal froze
+  archived bytes and `validate --base` proved the archive only grew; the right
   posture is "do not read by default", not "delete".
 - **Add the class/area second path axis now**: rejected here. It is orthogonal
   to this decision, and adding an unexercised taxonomy on top of folders that
@@ -109,7 +109,7 @@ link to this one.
 - No code behavior changes: `adrkit reject`, `adrkit validate`, and the
   `superseded` status are unchanged; `npm test` and
   `node bin/adrkit.js validate --all` pass.
-- ADR 18 stays active and links to this record; ADR 19 was later superseded by ADR 30.
+- ADR 18 stays active and links to this record.
 
 ### Trade-offs
 
@@ -126,7 +126,7 @@ link to this one.
 
 ### Later changes
 
-**Amended by ADR 30:** ADR 19 and ADR 27 were superseded, and the archive
+**Amended by ADR 30:** the archive seal was replaced by Git history — the
 manifest and `validate --base` were removed. The four-folder contract and the
 reading policy above are unchanged; statements in this record that describe
 the seal are historical.

@@ -21,7 +21,8 @@ The deliberation tree flattened a session's follow-up questions into siblings
 of the root and patched the lost order with a `(round N)` label. The label does
 not render as progression: every question stays a child of the root, so two
 dependent questions draw as parallel boxes. It also duplicates a relationship
-the outline can already express. ADR 5's own tree already nests its
+the outline can already express. The annotated grammar's own example tree
+already nests its
 follow-up questions under the option that raised them, so the same file format
 carried two contradictory conventions, and ADR 3's flat tree read as if its
 five questions were independent when they were not.
@@ -35,15 +36,14 @@ five questions were independent when they were not.
   follow-up question distinct from an option at the same depth.
 - **Frontier rounds are derived, not stored.** A node's round is its depth in
   the dependency tree; the renderer may name the layers, but nothing in the
-  record stores a round. `(round N)` is removed from the grammar. This
-  supersedes ADR 6.
+  record stores a round. `(round N)` is removed from the grammar.
 - **The rendering styles the unlock edge.** The edge from a settled node to the
   follow-up question it raised is drawn distinctly, so the tree's depth reads as
   the frontier moving outward, and the structure is the only source for it.
 
 ## Alternatives considered
 
-- **Keep `(round N)` on a flat list** (ADR 6): rejected. It is a second
+- **Keep `(round N)` on a flat list**: rejected. It is a second
   representation of the same relation, it can disagree with the nesting, and it
   does not render as progression.
 - **Explicit `after:` edges**: rejected. Precise, but a hand-authored second
@@ -58,7 +58,7 @@ five questions were independent when they were not.
 
 - `adrkit tree` draws progression from the outline alone; a nested tree needs
   no round annotation to show a later question downstream of an earlier one.
-- ADR 3 and ADR 6 keep their flat trees; their questions now read as
+- ADR 3 keeps its flat tree; its questions now read as
   independent, which is the honest limit of what they recorded.
 - The grammar loses `(round N)` and gains no field; the `adrkit-grill` skill
   records each follow-up question under the node that raised it while the

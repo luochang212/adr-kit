@@ -19,8 +19,8 @@ paths:
 
 ## Problem
 
-ADR 8 and ADR 9 placed visualization routing in `adrkit-grill`, and ADR 12
-retained that routing while changing browser delivery. The maintainer found
+ADR 8 and ADR 9 placed visualization routing in `adrkit-grill`, and the
+browser-delivery policy rode along there. The maintainer found
 that the skill name no longer described its combined responsibilities and
 requested the proposed split. Viewing an existing record does not require
 interrogating a decision or creating another record.
@@ -35,9 +35,9 @@ workflow subsets remain explicit and are not silently expanded.
 
 The new skill owns both `adrkit tree <N> --html` for one record's deliberation
 and `adrkit graph --html` for the whole set, with no invented missing trees.
-It preserves the browser-opening default, file link, opt-out, and fallback
-from ADR 12. It does not start grilling or write records. This amends only
-the skill-routing portions of ADR 8, ADR 9, and ADR 12; the renderers and their
+It owns the browser-opening default, file link, opt-out, and fallback.
+It does not start grilling or write records. This amends only
+the skill-routing portions of ADR 8 and ADR 9; the renderers and their
 other constraints remain unchanged, including ADR 10's derived tree presence.
 
 ## Alternatives considered

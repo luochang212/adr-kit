@@ -121,7 +121,7 @@ and the card tree remains `atlas --record --diagram`.
 
 ### Consolidated guidance
 
-ADR 12 and ADR 13 are archived; their still-current delivery and routing rules
+ADR 13 is archived; its still-current delivery and routing rules
 live here. A request for an existing record's visualization opens the generated
 file in the default browser and returns a clickable link; an explicit file-only
 or no-open instruction overrides that default, and a failed open keeps the

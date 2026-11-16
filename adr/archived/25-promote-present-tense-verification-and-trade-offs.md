@@ -77,7 +77,7 @@ are the exception.
   skill and its `tool-integrations.ts` mirror, and the tests are updated.
 
 ADR 18 remains active and owns the lifecycle and promotion decision; this
-record refines its rewrite output. ADR 19's boundary — the CLI proves
+record refines its rewrite output. The archive-boundary rule — the CLI proves
 structural facts while review owns tense and meaning — bounds the narrow
 check.
 
@@ -106,7 +106,7 @@ shape under Consequences.
   promotions but lets old or copied records reintroduce the exact shape. The
   narrow check is cheap and does not reach into custom sections.
 - **Add a prose heuristic for `should` / `will`**: rejected. The CLI proves
-  structure; tense and meaning stay with the author and review (ADR 19).
+  structure; tense and meaning stay with the author and review.
 
 ## Consequences
 

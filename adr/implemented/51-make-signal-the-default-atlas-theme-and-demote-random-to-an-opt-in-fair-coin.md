@@ -26,7 +26,7 @@ paths:
 
 ## Problem
 
-ADR 42's weighted default rolls Folio 30% / Signal 70% on every generation
+A weighted default rolled Folio 30% / Signal 70% on every generation
 that omits `--theme`. The roll fires again each time the atlas is regenerated,
 so a project that rebuilds as records land can flip between Folio and Signal
 without anyone choosing a theme; the only guard is advisory agent guidance to
@@ -51,7 +51,7 @@ opt-in feature with even odds — and the ratio.
 
 ## Alternatives considered
 
-- Keep the weighted 30/70 default (ADR 42): rejected — the drift that
+- Keep the weighted 30/70 default: rejected — the drift that
   motivated it remains, and its flagship rationale disappears once omission
   renders Signal directly.
 - Persist the first roll in a config file and reuse it on later generations:

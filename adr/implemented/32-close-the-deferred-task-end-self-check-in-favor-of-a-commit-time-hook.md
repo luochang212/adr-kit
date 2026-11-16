@@ -22,8 +22,9 @@ paths:
 
 ## Problem
 
-ADR 17 (2026-09-24) evaluated a task-end self-check — "did this task settle a
-choice future work must live with?" — and deferred it behind an evidence gate:
+The 2026-09-24 task-end self-check evaluation considered asking "did this task
+settle a choice future work must live with?" and deferred it behind an evidence
+gate:
 if the next two or three OpenSpec archives showed a decision-inventory action,
 the standing-orders sentence would go in; two silent archives would falsify the
 channel. ADR 21 (2026-10-12) recorded the gate closed positive: three archives,
@@ -45,8 +46,8 @@ prose carries no enforcement.
 
 ## Decision
 
-- Close ADR 17's deferred sentence instead of shipping it. ADR 17 is superseded
-  by this record; no task-end sentence is added to the standing orders.
+- Close the deferred task-end sentence instead of shipping it; no task-end
+  sentence is added to the standing orders.
 - Use the commit boundary as the check-in point. `adrkit hook install` writes an
   opt-in pre-commit hook. It hard-fails only on objective defects in the staged
   set: an invalid staged record, or an `@adr` citation naming a missing,
@@ -66,11 +67,11 @@ prose carries no enforcement.
   mechanism depends on a spec framework.
 - This record changes neither the always-record rule for grilling sessions
   (ADR 4) nor the settle-moment note buffer (ADR 21). It replaces only
-  ADR 17's deferred mechanism.
+  the deferred task-end mechanism.
 
 ## Alternatives considered
 
-- **Ship the deferred sentence, as ADR 17 was written**: rejected. Its evidence
+- **Ship the deferred sentence as originally written**: rejected. Its evidence
   came from a different moment and one framework, its cost falls on every task,
   and prose has no enforcement.
 - **Re-run the experiment under another spec framework or a second
@@ -103,7 +104,7 @@ prose carries no enforcement.
   bad record blocked `git commit`, and the corrected record committed with the
   advisory output.
 - `npm test`, `npm run typecheck`, `npm run build`, and `adrkit validate --all`
-  pass; ADR 17 is archived and names this record as its successor.
+  pass.
 
 ### Trade-offs
 

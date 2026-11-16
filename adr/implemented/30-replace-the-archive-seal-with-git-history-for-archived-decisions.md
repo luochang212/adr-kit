@@ -51,15 +51,15 @@ paths:
 
 ## Problem
 
-ADR 19 sealed every archived file in `adr/archived/MANIFEST.json`: a committed
+The archive was once sealed in `adr/archived/MANIFEST.json`: a committed
 hash of the complete bytes, checked on every validation. The seal duplicated
 Git's append-only history without making it tamper-proof — the manifest
 travels in the same repository, so an edit can update file and hash together,
 and only Git or remote controls can detect a coordinated rewrite.
 
 The seal also produced unfixable failures. Once the record format changed, a
-sealed file could not be migrated without breaking the seal, so ADR 27 had to
-exempt archived records from the current format and reference rules. Archives
+sealed file could not be migrated without breaking the seal, so archived
+records had to be exempted from the current format and reference rules. Archives
 became second-class data: `list`, `show`, and the lifecycle commands needed a
 separate archive-tolerant identity inventory, while `graph` and `tree` could
 not read a legacy archive at all. The fix cost more than the integrity it

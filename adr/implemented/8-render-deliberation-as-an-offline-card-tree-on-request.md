@@ -17,11 +17,11 @@ paths:
 
 ## Problem
 
-ADR 5 made the annotated outline renderable, but its CDN-backed Mermaid HTML
+The annotated outline's first rendering used CDN-backed Mermaid HTML, which
 puts every question, option, and reason in a separate box. Real trees become
 wide and hard to read. The maintainer reviewed a left-to-right card-tree
 prototype and asked how users' agents could reliably deliver that quality.
-This supersedes ADR 5's HTML rendering choice while retaining its annotated
+This supersedes that HTML rendering choice while retaining the annotated
 grammar, state, recommendation, and override semantics.
 
 ## Decision
@@ -32,7 +32,7 @@ grammar, state, recommendation, and override semantics.
   from the question when the follow-up is option-independent. Preserve the
   Markdown source and dependency nesting from ADRs 3 and 7.
 - Keep the root, question, and option distinctions, state labels, recommendation
-  markers, and override signal from ADR 5. Do not infer missing history.
+  markers, and override signal from the annotated grammar. Do not infer missing history.
 - Embed styles and interaction code in the generated file: branch folding,
   panning, zooming, fit-to-view, and readable text. Keep `--mermaid` and `--text`
   as separate export formats. The CLI gains no runtime dependency.
@@ -64,7 +64,7 @@ the maintainer approved the prototype and changed the proposed automatic export
 policy to on-demand generation, then selected default file-link delivery.
 ### Later changes
 
-**Amended by ADR 12 and ADR 13:** browser opening became the default for a
+**Amended by ADR 13:** browser opening became the default for a
 visualization request, and routing moved from `adrkit-grill` to
 `adrkit-visualize`; on-request generation, the file link, and the no-open
 opt-out are unchanged.

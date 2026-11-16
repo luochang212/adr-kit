@@ -19,7 +19,7 @@ paths:
 
 ## Problem
 
-ADR 40 publishes one theme at a time, so README readers cannot try both Folio
+The site publishes one theme at a time, so README readers cannot try both Folio
 and Signal before choosing. After reviewing both themes, the maintainer
 explicitly requested deploying both through Astro and linking each live preview
 from both READMEs. The previous one-theme publication boundary no longer fits
@@ -34,7 +34,7 @@ records, shared template and pinned commit. `SITE_PAGES` in
 The site prebuild generates all pages before removing obsolete generated HTML.
 Each README links its own language's preview from the theme name in its table;
 the screenshot still links to its full image. The homepage keeps its Folio link.
-Remove the single-theme site switch. This replaces ADR 40's publication choice;
+Remove the single-theme site switch.
 ADR 39's CLI selection policy and shared implementation remain: unspecified CLI
 themes are random once per generation, explicit choices win, and an existing
 artifact keeps its theme unless a change is requested. No page theme toggle is
@@ -73,6 +73,6 @@ The public entry now presents a bilingual theme gallery at `index.html` /
 Signal's routes are unchanged. `SITE_PREVIEW_PAGES` owns the two gallery routes
 and `SITE_PAGES` retains the four atlases. The homepage now opens Signal directly
 in the reader's language, following the maintainer's choice to make the flagship
-experience the primary entrance (ADR 42). Both READMEs retain the gallery entry;
+experience the primary entrance. Both READMEs retain the gallery entry;
 their theme names still open the named previews. This route/presentation
 adjustment preserves the publication and CLI selection decisions above.
