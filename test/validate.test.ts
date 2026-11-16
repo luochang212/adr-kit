@@ -587,6 +587,28 @@ c
     expect(result.output).toContain('implemented title must be');
   });
 
+  it('flags a zero-padded title with the archived folder wording', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'archived'), '1-first.md'),
+      archivedDecision('0001 First', 2),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('archived title must be');
+  });
+
+  it('flags an archived file name outside the numbered pattern', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'archived'), '1_first.md'),
+      archivedDecision('1 First', 2),
+    );
+    const result = validateCommand(root);
+    expect(result.valid).toBe(false);
+    expect(result.output).toContain('archived file name must be');
+  });
+
   it('flags an invalid calendar date in the front matter', () => {
     const root = makeRepo();
     writeFileSync(

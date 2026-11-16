@@ -132,3 +132,10 @@ reading policy above are unchanged; statements in this record that describe
 the seal are historical.
 
 **Amended by ADR 44:** Descriptions replace thematic tags; folder-based context priority and rejection retention remain unchanged.
+
+**Amended by ADR 55:** `archived/` is no longer frozen — a record leaves it
+through `adrkit delete` under the same reference checks as numbered decisions,
+withdrawing the alternative above that rejected deletability. The reading
+posture for archives that remain ("not read by default") and the
+durable-rejection rule for `rejected/` stand unchanged; statements here that
+describe the frozen archive are historical.
