@@ -68,7 +68,7 @@ requirements in ADR 3 and ADR 18: preserve a complete session tree with a
 qualifying record; if none qualifies, summarize in conversation without a record.
 ADR 4 remains active for its upstream pin and drift gate. ADR 1's adapted skill,
 ADR 7's tree grammar, ADR 18/20/30's lifecycle, ADR 21's capture surfaces and note
-buffer, ADR 24/35's user-owned standing orders, and ADR 32's objective-validation
+buffer, ADR 24's user-owned standing orders, and ADR 32's objective-validation
 boundary remain. No semantic CLI validator, new field, lifecycle state, dependency,
 or automatic retirement mechanism is introduced.
 

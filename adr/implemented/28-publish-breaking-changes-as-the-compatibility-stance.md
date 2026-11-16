@@ -33,8 +33,8 @@ say plainly what is not — stayed implicit while the premise did the arguing.
   keep working.
 - **A break is a user-facing change.** A change to the record format or the
   command surface states itself where users meet it — the record-format
-  reference, the README upgrade section, and the standing orders — and
-  `adrkit validate` names the exact fix.
+  reference, the README stability note and the upgrade guide, and the
+  standing orders — and `adrkit validate` names the exact fix.
 - **Upgrading is the supported path, not compatibility.** Agents upgrade the
   package, migrate active records where the change is mechanical, and report a
   record that cannot be carried over instead of forcing a rewrite (ADR 30). A
@@ -50,7 +50,7 @@ say plainly what is not — stayed implicit while the premise did the arguing.
   Rejected: adoption is already visible in npm traffic and in the known 0.18.1
   repository, and the premise was doing real work — it made breaks look free.
 - **Add compatibility shims or a deprecation window now that users exist.**
-  Rejected: ADR 3, ADR 18, and ADR 25 already declined forward compatibility,
+  Rejected: ADR 3 and ADR 18 already declined forward compatibility,
   and a pre-stable tool that maintains two formats pays a permanent cost for a
   temporary courtesy.
 - **Let the README carry the whole stance.** Rejected: the reader who meets the
@@ -61,7 +61,7 @@ say plainly what is not — stayed implicit while the premise did the arguing.
   promise would need machinery this project does not carry and would be broken
   by the first format change anyway.
 - **Announce breaks only in the changelog.** Rejected: a changelog entry is
-  read after the failure, not before it; the upgrade section and validation
+  read after the failure, not before it; the upgrade guide and validation
   errors are where the reader already is.
 - **Promise that every break has a migration.** Rejected: a migration is only
   mechanical when the shape moved. A semantic change can leave records to be
@@ -91,12 +91,3 @@ say plainly what is not — stayed implicit while the premise did the arguing.
 3. The stance now lives in prose rather than being enforced by a version
    policy; a future release that wants a compatibility promise must add the
    machinery, not just the sentence.
-
-### Later changes
-
-**Amended by ADR 43:** the running break notes moved from the README upgrade
-section to `docs/upgrading.md` and `docs/zh/upgrading.md`, and both READMEs
-keep a short Stability note carrying the stance above, placed after the Record
-format section. The surfaces are now the record-format reference, the README
-stability note and the upgrade guide, and the standing orders; the
-announcement duty is unchanged.

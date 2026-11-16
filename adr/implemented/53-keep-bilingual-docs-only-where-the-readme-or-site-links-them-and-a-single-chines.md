@@ -46,8 +46,8 @@ Everything else under `docs/` keeps a single copy in Chinese: the index
 already exist stay as they are — this rule governs new files and the pairs
 collapsed here, not a retroactive translation of history. The docs index is
 collapsed accordingly: its Chinese content lives at `docs/README.md`, the
-`docs/zh/README.md` duplicate is deleted, and ADR 43's `paths:` entry and its
-one structural sentence are refreshed mechanically.
+`docs/zh/README.md` duplicate is deleted, and the stale `paths:` entries that
+named it are refreshed mechanically.
 
 The four bilingual pairs keep drifting as a known risk; the docs test ties
 each pair to the same required facts, so a translation that misses a release
@@ -76,8 +76,8 @@ note fails the suite rather than shipping silently.
   the four bilingual references at their `docs/zh/` paths.
 - The four bilingual pairs and both READMEs keep their structure and pass the
   docs tests, which now also assert the single-copy index rule.
-- `adrkit validate --all` passes: ADR 43's `paths:` entry for the retired
-  index is removed, so no record names a deleted file.
+- `adrkit validate --all` passes: the retired
+  index's stale `paths:` entry is removed, so no record names a deleted file.
 - `AGENTS.md` states the audience rule so a future agent adds a translation
   only for a linked document.
 

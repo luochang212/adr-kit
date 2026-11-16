@@ -61,7 +61,9 @@ pinned to its build commit. The Pages workflow rebuilds when `adr/`, the
 renderer, the resource, the site, or the CLI changes, and installs the root
 dependencies and build before the site build.
 
-This partially extends ADRs 9, 12, and 13: the basic graph and single-record
+This partially extends the visualization records it builds on (ADR 9's map and
+the delivery and routing rules consolidated under `adrkit-visualize`): the basic
+graph and single-record
 tree remain available, and ordinary agent work still does not automatically
 generate HTML. The maintainer requested the public atlas and approved automatic
 regeneration; the agent chose the build-time renderer and shared slot mechanism.
@@ -118,14 +120,13 @@ and the example now publish archived bodies in full, keeping the
 archived/current distinction visible; the metadata-only rule and the
 empty-body verification above are historical.
 
-**Amended by ADR 34:** the atlas is published in both site languages —
-`index.html` in Chinese and `en.html` in English, cross-linked in the
-footer — replacing the Chinese-only showcase above; the `ui.ts` copy rule
-stays inapplicable.
+**Amended by ADR 41:** the atlas is published in both site languages from
+one shared template and translation table, replacing the Chinese-only
+showcase above; the `ui.ts` copy rule stays inapplicable.
 
-A later presentation decision removed the footer cross-links named above:
-atlas footers keep only the generator attribution and the pinned commit;
-the home and sibling-language links, and the redundant current-records
-phrase, are gone.
+A later presentation decision removed the footer cross-links an interim
+bilingual publication carried: atlas footers keep only the generator
+attribution and the pinned commit; the home and sibling-language links,
+and the redundant current-records phrase, are gone.
 
 **Amended by ADR 44:** Atlas payloads carry descriptions instead of tags. Directory summaries, reader introductions and local search use the description; shared generation, source links and commit provenance remain unchanged.

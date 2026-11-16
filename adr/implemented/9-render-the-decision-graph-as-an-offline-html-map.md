@@ -65,8 +65,9 @@ decisions and cut supersede and reference edges through them.
   pages) before the map exists, and couples the graph renderer to the card
   tree. Deferred, not rejected.
 - **Exclude deliberation-bearing decisions from the map**: rejected. Grilling is
-  not a record type (ADR 3), and excluding ADRs 3, 5, 6, 7, and 8 would delete
-  central decisions and break the 5→8 and 6→7 supersede edges.
+  not a record type (ADR 3), and excluding ADRs 3, 7, and 8 — with the two
+  records they had superseded — would delete central decisions and break the
+  supersede edges through them.
 - **Give the map its own command (`adrkit map` or `adrkit viz`)**: rejected. The
   scope is already `graph`; a new output format is a smaller surface than a new
   command, and `graph --html` mirrors `tree --html`.

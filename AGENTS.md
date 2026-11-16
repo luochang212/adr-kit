@@ -50,8 +50,7 @@ over a patch rather than share the working tree.
   notes. Preserve the user-owned AGENTS.md boundary: CLI commands read it but
   never rewrite it.
 - This repository dogfoods its own records: `adr/` is tracked, and a change
-  that settles a long-lived choice is recorded there first. The tracked tree
-  and this convention carry ADR 2's historical governance note.
+  that settles a long-lived choice is recorded there first.
 - The `adrkit-grill` method is adapted from `mattpocock/skills` (MIT). The
   upstream grilling directory is vendored under `assets/upstream/grilling/`
   and pinned in `MANIFEST.json`; CI hard-fails (`npm run check:upstream`) when
@@ -96,8 +95,8 @@ over a patch rather than share the working tree.
   English-only files that already exist stay as they are (ADR 53).
 - `openspec/` is frozen history, not a second spec system: the current rules
   live in `adr/` and `docs/`. `openspec/specs/` predates ADR 30, 33, and 36 and
-  must not drive implementation; `openspec/changes/archive/` is retained only
-  because records cite it as deliberation evidence.
+  must not drive implementation; `openspec/changes/archive/` is retained as
+  frozen deliberation history.
 - Design for the future, not for compatibility: ADR Kit is pre-stable and ships
   breaking changes deliberately — forward-compatibility shims, deprecation
   windows, grandfather markers, and migration commands are not carried, and no
@@ -113,7 +112,7 @@ over a patch rather than share the working tree.
 
 The homepage's default entry selects language from an explicit `?lang=en|zh`
 switch, then the saved `adr-kit.language` preference, then the browser's
-language list (any Chinese entry means Chinese, ADR 38; otherwise English). A
+language list (any Chinese entry means Chinese; otherwise English). A
 direct `/zh/` link stays Chinese. Keep the switch usable when local storage is
 unavailable.
 
@@ -135,7 +134,7 @@ when command output changes. `tools/build-decision-atlas.mjs` regenerates
 `SITE_PREVIEW_PAGES` adds the theme gallery at `index.html` / `en.html`. These pages
 are generated and ignored by Git; the four atlas pages are pinned to the build commit. The build writes
 all six before removing obsolete generated HTML. The four atlases share one template and
-translation table (ADR 34), so they stay outside the `ui.ts` copy rule. The
+translation table (ADR 29, 41), so they stay outside the `ui.ts` copy rule. The
 homepage's atlas link lives in `Graph.astro` and opens Signal in the current language;
 each README keeps the theme gallery entry and both named previews in its own language.
 Both themes follow

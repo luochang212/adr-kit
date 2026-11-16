@@ -27,7 +27,7 @@ Scope retrieval extends ADR 22, preserving ADR 20's authority groups and minimal
 
 Directory retrieval retains its 2,000-file budget and known exclusions. Truncation and filesystem errors return useful matches with explicit diagnostics and a non-zero CLI exit. A missing explicit path still represents a planned file; other inspection errors do not silently become missing files. Git/ref failures and malformed/unreadable active records are fatal, with no partial corpus presented as complete. Archived files are not read by this active query. Active records lacking paths are counted and named as a coverage limitation, not a runtime failure: `list` and full reading remain necessary even when scoped records match.
 
-The user requested and authorized both implementation batches. The agent chose this input and failure contract; raised-by human records the requested work, and decided-by agent records the design judgment. This is a partial extension of ADR 22, not a replacement. Evidence guidance remains in existing skill/Markdown surfaces under ADRs 1, 3, 19 and 21; no additional evidence schema is chosen.
+The user requested and authorized both implementation batches. The agent chose this input and failure contract; raised-by human records the requested work, and decided-by agent records the design judgment. This is a partial extension of ADR 22, not a replacement. Evidence guidance remains in existing skill/Markdown surfaces under ADRs 1, 3, and 21; no additional evidence schema is chosen.
 
 ## Alternatives considered
 

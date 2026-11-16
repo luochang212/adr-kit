@@ -67,7 +67,7 @@ single command was the product.
   relationship map inside it, and the deliberation tree is one record's
   appendix view. The tree's term is used as written; there is no second
   Chinese alias.
-- This record amends the command surfaces of ADRs 8, 9, 13, and 14. Their
+- This record amends the command surfaces of ADRs 8, 9, and 14. Their
   rendering, layout, routing, and link-resolution decisions stand; ADR 14's
   mechanism runs under `--format html --out`.
 
@@ -121,7 +121,7 @@ and the card tree remains `atlas --record --diagram`.
 
 ### Consolidated guidance
 
-ADR 13 is archived; its still-current delivery and routing rules
+The separate visualization skill's still-current delivery and routing rules
 live here. A request for an existing record's visualization opens the generated
 file in the default browser and returns a clickable link; an explicit file-only
 or no-open instruction overrides that default, and a failed open keeps the
@@ -138,7 +138,7 @@ positionals and names object/format in file receipts. The single-command and
 rendering decisions above remain active; the earlier routing examples describe
 the command surface before ADR 36.
 
-**Amended by ADR 43:** the replacements are named in `docs/upgrading.md` and
+**Later change:** the replacements are named in `docs/upgrading.md` and
 the READMEs' Stability note; the README upgrade section named above no longer
 exists.
 

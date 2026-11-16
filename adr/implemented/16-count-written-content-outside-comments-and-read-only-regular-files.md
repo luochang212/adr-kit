@@ -30,7 +30,7 @@ resolved to: a FIFO blocked forever, hanging `list` and `show` (the two
 commands `AGENTS.md` tells every agent to run at task start) along with
 `status`, `validate`, `instructions`, `decide`, `graph`, and `tree`, and a
 symlink to `/dev/zero`, which git can carry as mode 120000, read without end at
-~420 MB RSS after 12 s. ADR 2 makes `validate` this repository's real gate and
+~420 MB RSS after 12 s. The dogfooded `validate` is this repository's real gate and
 `AGENTS.md` calls validation failures success signals; a gate a marker passes
 and a file can wedge is neither.
 

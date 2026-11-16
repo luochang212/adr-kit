@@ -64,14 +64,12 @@ the maintainer approved the prototype and changed the proposed automatic export
 policy to on-demand generation, then selected default file-link delivery.
 ### Later changes
 
-**Amended by ADR 13:** browser opening became the default for a
-visualization request, and routing moved from `adrkit-grill` to
-`adrkit-visualize`; on-request generation, the file link, and the no-open
-opt-out are unchanged.
-
 **Amended by ADR 33:** the CLI is consolidated under `adrkit atlas`, and this
-record's card tree runs as `atlas --record <name> --diagram`. The rendering,
-the annotated grammar, and the on-request rule above are unchanged.
+record's card tree runs as `atlas --record <name> --diagram`. Delivering a
+visualization opens the generated file in the browser by default and routes
+through a separate `adrkit-visualize` skill; the CLI itself never opens a
+browser. The rendering, the annotated grammar, and the on-request rule above
+are unchanged.
 
 ## Deliberation
 

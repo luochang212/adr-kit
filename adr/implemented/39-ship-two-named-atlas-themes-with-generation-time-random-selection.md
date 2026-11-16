@@ -28,8 +28,8 @@ The maintainer wants both the existing dark archive and the new light editorial
 archive distributed in the npm package, with equal functionality. They explicitly
 rejected system light/dark selection and in-page switching: these are distinct
 visual themes, and the generating agent should choose one or roll a random choice.
-ADR 29 currently owns one shared offline template; ADRs 31/34 preserve complete
-archived text and bilingual generation. None owns theme selection.
+ADR 29 currently owns one shared offline template; ADR 31 preserves complete
+archived text, and ADR 41 publishes the atlas bilingually. None owns theme selection.
 
 ## Decision
 

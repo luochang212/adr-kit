@@ -92,7 +92,7 @@ manifest, and this repository's `adr/archived/MANIFEST.json` is deleted.
 - The format-drift remedy remains: upgrade the package, migrate records where
   mechanical, report records that cannot be carried over, and re-run
   `adrkit validate --all`; there is no automatic migration command.
-- This record supersedes ADRs 19 and 27. ADR 20's folder contract remains in
+- ADR 20's folder contract remains in
   force; only its seal sentence is historical.
 
 ## Alternatives considered
@@ -136,10 +136,3 @@ manifest, and this repository's `adr/archived/MANIFEST.json` is deleted.
   bytes in a normal commit; reviewers treat it like any deliberate change.
 - **Simpler commands and data.** The seal transaction, manifest parsing,
   identity inventory, and special validation paths are gone.
-
-### Later changes
-
-**Amended by ADR 43:** the manifest-removal migration note now lives in
-`docs/upgrading.md` and the READMEs' Stability note; the README upgrade
-section this trade-off named is gone. The duty to state the migration where
-users meet it is unchanged.

@@ -69,7 +69,7 @@ The maintainer determined explicit selection and accepted unified defaults,
 strict argument handling and named receipts. The agent chose the `--map`
 spelling. This partially replaces ADR 33's format-driven routing; its single
 command, distinct capabilities and removal of graph/tree entry points remain
-active. ADR 13's explicit workflow subsets and ADR 14's link rules are unchanged.
+active. ADR 14's link rules are unchanged.
 
 ## Alternatives considered
 

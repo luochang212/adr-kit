@@ -83,7 +83,8 @@ a decision the session settled.
 - The record format breaks: `raised-by` becomes required on durable records,
   so `adr.ts`, `validate.ts`, `templates.ts`, `record`/`implement`/
   `supersede`, README, `docs/record-format.md` (English and Chinese), and
-  tests change together, and ADR 1, 2, and this record are migrated.
+  tests change together, and every record then in the inventory (ADR 1 and
+  this record) is migrated.
 - A new `adrkit tree` command renders `## Deliberation`; the init reading
   rule, `docs/workflow.md` (English and Chinese), and this repository's
   `AGENTS.md` carve the appendix out as optional.
@@ -91,7 +92,7 @@ a decision the session settled.
   remains a supported exception.
 - The `adrkit-grill` skill drops `propose`, declares `raised-by`, and writes
   the deliberation appendix.
-- This is a breaking change to a 0.x package. Per ADR 2's dogfooding and the
+- This is a breaking change to a 0.x package. Per this repository's dogfooding and the
   project's 0-star, self-only use, compatibility is not a constraint; it ships
   as a minor changeset rather than a migration shim.
 ### Later changes

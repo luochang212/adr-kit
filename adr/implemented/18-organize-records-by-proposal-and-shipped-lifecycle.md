@@ -58,7 +58,8 @@ deliberation, stable decision numbers, and graph.
 - `propose` creates a dated, unnumbered proposal. `reject` requires a reason
   and preserves the proposal in `rejected/`. `implement` promotes a shipped
   proposal, rewrites proposal-era sections as present-tense decision and
-  consequences, and assigns the next number. `record` writes an
+  consequences — acceptance criteria become `### Verification`, risks become
+  `### Trade-offs` — and assigns the next number. `record` writes an
   already-shipped decision directly into `implemented/`. The CLI does not
   infer that work shipped; the caller declares the move.
 - A grilling session records every choice it settles, but an unshipped result
@@ -116,11 +117,6 @@ to check, anti-pattern to check, and lowest-value history read only when
 cited — and made a rejection durable until another record owns its warning.
 
 ### Later changes
-
-**Amended by ADR 25:** promotion emits `### Verification` and `### Trade-offs`
-under `## Consequences`, and validation rejects the proposal-era
-`### Acceptance criteria` and `### Risks` headings there in implemented
-records. The four folders, shipping boundary, and numbering are unchanged.
 
 **Amended by ADR 44:** Descriptions replace theme tags as discovery metadata. The four lifecycle folders, numbering and shipping boundaries are unchanged.
 
