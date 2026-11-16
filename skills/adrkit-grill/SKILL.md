@@ -24,7 +24,7 @@ Ground factual observations in code you inspected (file:line or a symbol), a sou
 
 ## When to record
 
-Preserve important context missing from existing sources, especially context held only in a user conversation. Honor explicit user requests to preserve a choice without making similar edits record-worthy.
+Preserve important context missing from existing sources, especially context held only in a user conversation. Honor explicit user requests to preserve a choice without making similar edits record-worthy; a user-ruled interface form or interaction detail is still code-held — record the ruling when it changes a recorded choice or closes a class of future work, not when it sets a value.
 
 Before creating or shaping a record, answer these four questions:
 
@@ -33,6 +33,8 @@ Before creating or shaping a record, answer these four questions:
 3. **Is the constraint or reason behind it hidden and durable enough to guide future choices?** If no, it is not an ADR.
 4. **Is this a routine upgrade, naming change, format migration, visual tweak, or process ritual?** If yes, it is not an ADR.
 
+Then name the concrete future change this record would veto. Every record is read in full by later tasks, so it earns that cost only by stopping work: if nothing comes to mind that a failing test or the compiler would not stop anyway, the reason is taste or completion, not constraint — do not record it.
+
 Use judgment, not a score or an all-must-pass checklist. If nothing meaningful would be lost, or forgetting it would cost nothing, skip without a justification field, user approval, or deferred note. Notes are candidates, not commitments to ADRs.
 
 | Usually leave to existing sources | Potentially worth preserving |
@@ -40,6 +42,8 @@ Use judgment, not a score or an all-must-pass checklist. If nothing meaningful w
 | Upgraded adr-kit to a new version; Git and the lockfile retain the event | A user-only constraint requires tools to work without public-network access, governing future dependencies and upgrades |
 | Adjusted a button's spacing or shadow; styles and visual checks own the result | A durable accessibility constraint limits future visual changes, and its reason is otherwise hidden |
 | Selected a library; the manifest already shows which one | A deployment restriction explains why an otherwise attractive library or runtime mechanism is unsuitable |
+| Unified widths, tab bindings, or motion boundaries across pages; shared classes, constants, and tests hold the values | A ruling closes a whole class of future work — say, never building model-side tool loops — and its reason lives only in conversation |
+| Reported what a shipped feature does with its verification list; the commit message and tests are that record | A production failure mode explains why the feature is shaped against it and would otherwise be rebuilt past it |
 
 Judge information, not topic names; an existing record is not precedent for recording similar edits. Update only claims made false by a change; keep required paths and references valid. If volatile details force repeated synchronization, report the burden and suggest moving details to their existing owner or authorized archival when the rationale no longer guides work. Do not silently rewrite choices, ignore constraints, delete a record, or archive it without authorization.
 

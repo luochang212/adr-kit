@@ -304,16 +304,19 @@ describe('pre-commit hook management', () => {
     expect(result.output).not.toContain('strands its literal paths entry');
   });
 
-  it('fails on a staged deletion of an archived decision', () => {
+  it('lets a stranded-reference-free archived deletion pass and fails one that strands a citation', () => {
     const root = makeRepo();
     write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
     write(join(root, 'adr', 'archived', '1-old.md'), decision(['src/a.ts']).replace('1 Test', '1 Old'));
     git(root, 'add', '-A');
     git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the archived decision');
     git(root, 'rm', '-q', 'adr/archived/1-old.md');
+    expect(hookRunCommand(root).ok).toBe(true);
+    write(join(root, 'src', 'a.ts'), `${cite(1)}export const a = 1;\n`);
+    git(root, 'add', 'src/a.ts');
     const result = hookRunCommand(root);
     expect(result.ok).toBe(false);
-    expect(result.output).toContain('adr/archived/1-old.md: staged deletion of an archived decision');
+    expect(result.output).toContain('cites the deleted ADR 1');
   });
 
   it('allows a staged rename that keeps the decision number', () => {

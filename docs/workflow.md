@@ -27,6 +27,20 @@ live in those skills and the CLI reference; this page does not repeat them.
 
 `adrkit-visualize` owns browsing, including its optional example atlas.
 
+## Regrade the inventory
+
+A raised recording bar applies to new choices only; the stock recorded under
+an older bar keeps sitting in `implemented/` until someone regrades it. After
+upgrading to a release whose recording guidance changed — the upgrade guide
+names such releases — read every implemented record once and give it one of
+three outcomes: keep (it vetoes work the code and tests would not), supersede
+or archive (a later choice replaced it, or current behavior has another
+authoritative owner), or `adrkit delete` (below the line and vetoing nothing
+— bookkeeping). The command refuses a deletion that would strand a citation
+or a prose reference, so clean those first. Judge each record by its content;
+the inventory total that `adrkit list` and `adrkit status` report is the
+budget this regrade is spending.
+
 ## Keep records and shipped code aligned
 
 The procedure is split across the installed skills: `adrkit-propose` searches

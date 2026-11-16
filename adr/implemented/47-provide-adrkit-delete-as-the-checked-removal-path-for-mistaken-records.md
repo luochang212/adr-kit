@@ -130,3 +130,9 @@ freed number is withdrawn — decision numbers form an append-only journal
 (`adr/.decision-sequence`) that removals also append to, so allocation behaves
 identically with or without deletions. The preflight and refusal design of
 this record stand unchanged.
+
+**Amended by ADR 55:** the refusal list is narrowed by one entry — archived
+records are now removable through the same preflight instead of being refused
+outright, and the hook checks staged archived deletions for stranded
+references rather than failing them categorically. The preflight, the stranding
+refusals, and the durable-rejection warning stand unchanged.

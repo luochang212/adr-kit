@@ -1,6 +1,6 @@
 import type { AdrRecord } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
-import { listRecords } from '../core/repository.js';
+import { inventoryTotalsLine, listRecords } from '../core/repository.js';
 import { formatIssues, validateRepository } from '../core/validate.js';
 
 export interface StatusResult {
@@ -25,6 +25,9 @@ export function statusCommand(cwd: string): StatusResult {
   const lines = ['Lifecycle', ''];
   for (const folder of ['proposed', 'implemented', 'rejected', 'archived'] as const) {
     lines.push(`  ${folder}: ${counts[folder]}`);
+  }
+  if (records.length > 0) {
+    lines.push(`  ${inventoryTotalsLine(records)}`);
   }
   lines.push('');
   lines.push(issues.length === 0 ? 'validation: OK' : `validation: ${formatIssues(issues)}`);

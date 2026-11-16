@@ -12,25 +12,22 @@ import {
 } from '../core/repository.js';
 import { proseReferenceNumbers, recordsReferencing } from '../core/validate.js';
 
-// @adr 47 — this command is the checked removal path: deletion is permitted
-// only when it strands nothing, extending the retirement refusal pattern to
-// removal (ADR 46) under ADR 20's durable-rejection and frozen-archive rules.
+// @adr 47, 55 — this command is the checked removal path: deletion is
+// permitted only when it strands nothing, extending the retirement refusal
+// pattern to removal (ADR 46) under ADR 20's durable-rejection rule; ADR 55
+// opens it to archived records, whose guardrails are these same checks.
 /**
  * Remove a record that should never have existed — noise, a duplicate, a
- * routine change recorded as a decision. This is neither a lifecycle stage
- * nor a retirement: `reject` and `archive` keep their meanings. The command
- * refuses while code cites the record or another record references it, so
- * `adrkit validate` passes after every successful deletion. Git history
- * retains the removed bytes, as it retains every archived record (ADR 30).
+ * routine change recorded as a decision, or bookkeeping a re-grade retired.
+ * This is neither a lifecycle stage nor a retirement: `reject` and `archive`
+ * keep their meanings. The command refuses while code cites the record or
+ * another record references it, so `adrkit validate` passes after every
+ * successful deletion. Git history retains the removed bytes, as it retains
+ * every archived record (ADR 30).
  */
 export function deleteCommand(query: string, cwd: string): string {
   const root = requireRoot(cwd);
   const record = resolveRecord(root, query);
-  if (record.folder === 'archived') {
-    throw new Error(
-      `"${query}" is archived; archived records are frozen history and are never deleted — retire current guidance with "adrkit archive" or "adrkit supersede" instead`,
-    );
-  }
   if (record.number !== undefined) {
     const citing = citationsTo(root, record.number);
     if (citing.length > 0) {

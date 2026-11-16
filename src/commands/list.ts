@@ -1,5 +1,5 @@
 import { installedWithNotice, joinNotices, readConfigSafe, requireRoot, withNotice } from '../core/config.js';
-import { displayName, listRecords, relativePath } from '../core/repository.js';
+import { displayName, inventoryTotalsLine, listRecords, relativePath } from '../core/repository.js';
 import { unshapedNotesLine } from '../core/notes.js';
 import { VERSION } from '../version.js';
 
@@ -34,6 +34,9 @@ export function listCommand(cwd: string): string {
     }
     lines.push('');
   }
+  // The inventory's reading cost, stated where records get chosen: later
+  // tasks read implemented records in full, so that part is named separately.
+  lines.push(inventoryTotalsLine(records), '');
   if (notes.length > 0) lines.push(notes, '');
   return withNotice(lines.join('\n').trimEnd(), notice);
 }

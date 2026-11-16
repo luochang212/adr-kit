@@ -25,27 +25,27 @@ records describe shipped decisions and receive stable ADR numbers. A rejection
 is a durable terminal record of a declined proposal: it is removed only when
 another record owns the warning it blocks, never for appearing stale —
 rejections are unnumbered, so removing a redundant one cannot reuse a number.
-Archived records are frozen history, not current authority. They are ordinary
+Archived records are retired history, not current authority. They are ordinary
 Git-tracked records: adrkit validate checks them like the rest of the
 inventory, and Git history shows any later change.
 
-Never delete a numbered decision: its stable N may be referenced elsewhere.
 Implemented records may refresh facts they actually claim; changes within a
 decision's implementation freedom need no update. Existing records are not
 precedent for recording similar edits. A changed recorded choice needs a new
-record. Archive or supersede rather than erase it.
+record. Supersede a replaced decision; retire one whose current behavior has
+another authoritative owner.
 
-The exception is the record that should never have existed — noise, a
-duplicate, a routine change recorded as a decision. Remove it with
-adrkit delete, never by hand: the command refuses while code cites the
-record or another record references it, so the repository stays valid after
-every deletion. Decision numbers form an append-only journal at
-adr/.decision-sequence: allocation and removal both append to it, so a removed
-number is never reallocated and deleting even the highest number cannot hand
-it to a later decision. Removing a rejection is a
-deliberate edit: its warning must be owned by another record first (ADR 20).
-Archived records are never deleted. Git history retains every removed record,
-as it retains every archived one.
+A record earns its reading cost by vetoing work: it must name a future change
+it would stop that the code and tests would not stop anyway. A record that
+vetoes nothing is bookkeeping — delete it rather than archive it. Deletion
+always goes through adrkit delete, never by hand: the command refuses while
+code cites the record or another record references it, archived records
+included, so the repository stays valid after every deletion. Decision numbers
+form an append-only journal at adr/.decision-sequence: allocation and removal
+both append to it, so a removed number is never reallocated and deleting even
+the highest number cannot hand it to a later decision. Removing a rejection is
+a deliberate edit: its warning must be owned by another record first (ADR 20).
+Git history retains every removed record, as it retains every archived one.
 
 The canonical header includes status, date, and created: YYYY-MM-DD (the
 birth date, never re-stamped). Numbered records declare raised-by: human | agent

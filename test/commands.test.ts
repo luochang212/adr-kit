@@ -143,21 +143,21 @@ describe('initCommand', () => {
     const root = makeRepo();
     const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
     expect(readme).not.toContain('current truth');
-    expect(readme).toContain('frozen history');
+    expect(readme).toContain('retired history');
   });
 
-  it('states the no-deletion invariant the decision numbering depends on', () => {
+  it('states the record-worthiness bar and the checked deletion path in the generated README', () => {
     const root = makeRepo();
     const readme = readFileSync(join(root, 'adr', 'README.md'), 'utf8');
-    // The README keeps the default forbidden and points at the commands that
-    // retire a decision without deleting it; ADR 48 reserves removed numbers,
-    // so the README must also name the ledger that makes deletion safe.
-    expect(readme).toContain('Never delete a numbered decision');
+    // The bar tells a new agent what belongs here before the rules do, and the
+    // deletion paragraph names the ledger that keeps removed numbers safe.
+    expect(readme).toContain('vetoing work');
+    expect(readme).toContain('is bookkeeping — delete it rather than archive it');
     expect(readme).toContain('adrkit supersede');
-    // The mistaken-record exception names the checked removal path and keeps
-    // the frozen-history boundary.
-    expect(readme).toContain('adrkit delete');
-    expect(readme).toContain('Archived records are never deleted');
+    expect(readme).toContain('adrkit delete, never by hand');
+    expect(readme).toContain('adr/.decision-sequence');
+    expect(readme).not.toContain('Archived records are never deleted');
+    expect(readme).toContain('archived records\nincluded');
   });
 
   it('documents the created and description fields in the generated README', () => {
@@ -581,14 +581,16 @@ describe('deleteCommand', () => {
     expect(listProposals(root)).toHaveLength(0);
   });
 
-  it('refuses an archived record: frozen history is never deleted', () => {
+  it('deletes an archived record under the same reference checks', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
     fillDraft(root);
     implementCommand('Use SQLite', root, 'human', 'human');
     archiveCommand('1', 'no longer needed', root);
-    expect(() => deleteCommand('1', root)).toThrow('archived records are frozen history');
-    expect(existsSync(join(root, 'adr', 'archived', '1-use-sqlite.md'))).toBe(true);
+    const output = deleteCommand('1', root);
+    expect(output).toContain('deleted adr/archived/1-use-sqlite.md');
+    expect(existsSync(join(root, 'adr', 'archived', '1-use-sqlite.md'))).toBe(false);
+    expect(validateCommand(root).valid).toBe(true);
   });
 
   it('refuses while code cites the record, then deletes once the citation is gone', () => {

@@ -137,24 +137,17 @@ export function hookCheck(cwd: string): HookCheckResult {
     if (deletions.has(path)) {
       const number = numberedPath(path);
       if (number !== undefined && !keptNumbers.has(number)) {
-        if (path.startsWith(`${ADR_DIR}/archived/`)) {
-          issues.push({
-            path,
-            message:
-              'staged deletion of an archived decision; archived records are frozen history and are never deleted',
-          });
-        } else {
-          // A deletion is a defect only when it strands something: adrkit
-          // delete refuses the same references before removing the record, so
-          // a removal that went through it passes here, and a manual rm that
-          // left references behind fails with their list. Objective defects
-          // only — the deletion itself is the committer's deliberate move.
-          for (const site of citationsTo(root, number)) {
-            issues.push({ path: site.path, message: `line ${site.line}: cites the deleted ADR ${number}` });
-          }
-          for (const site of recordsReferencing(root, records, number)) {
-            issues.push({ path: site.path, message: `${site.message}, which this commit deletes` });
-          }
+        // A deletion is a defect only when it strands something: adrkit
+        // delete refuses the same references before removing the record, so
+        // a removal that went through it passes here, and a manual rm that
+        // left references behind fails with their list. Archived records are
+        // checked identically (ADR 55). Objective defects only — the deletion
+        // itself is the committer's deliberate move.
+        for (const site of citationsTo(root, number)) {
+          issues.push({ path: site.path, message: `line ${site.line}: cites the deleted ADR ${number}` });
+        }
+        for (const site of recordsReferencing(root, records, number)) {
+          issues.push({ path: site.path, message: `${site.message}, which this commit deletes` });
         }
       }
       continue;

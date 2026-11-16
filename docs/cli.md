@@ -21,7 +21,7 @@ explicit `--tools none` opt-out stays quiet. The CLI never rewrites
 | `adrkit reject <name> --reason <text>` | Record a declined proposal's anti-pattern in `rejected/` |
 | `adrkit archive <name> --reason <text>` | Retire implemented guidance to `archived/` |
 | `adrkit supersede <old> --by <new>` | Replace and archive a fully superseded implemented decision |
-| `adrkit delete <name>` | Remove a record that should never have existed; refuses while code cites it or other records reference it, refuses archived records |
+| `adrkit delete <name>` | Remove a record that should never have existed; refuses while code cites it or other records reference it, archived records included |
 | `adrkit list` | List records grouped by lifecycle |
 | `adrkit relevant [<path>... | --base <git-ref> | --staged]` | Retrieve scoped records for explicit paths, an exact base-to-working-tree change, or staged files; input modes are exclusive |
 | `adrkit show <name>` | Show a record's main content, omitting `## Deliberation`, by title, filename, slug, or ADR number |
@@ -30,7 +30,7 @@ explicit `--tools none` opt-out stays quiet. The CLI never rewrites
 | `adrkit validate [<name> \| --all]` | Validate one record, or the whole repository with its closed lifecycle inventory; a name and `--all` are exclusive |
 | `adrkit update [--tools <list>] [--workflows <list>]` | Refresh installed agent integrations |
 | `adrkit config` | Show current config |
-| `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, on a staged deletion that strands a numbered decision's references, on one that strands a record's literal `paths` entry, and on any staged deletion of an archived record, then show which active decisions govern the staged files |
+| `adrkit hook <install\|uninstall\|run>` | Install, remove, or run the managed pre-commit check: fail on invalid staged records and citations, on a staged deletion that strands a decision's references — archived records included — on one that strands a record's literal `paths` entry, then show which active decisions govern the staged files |
 | `adrkit atlas [--out <path>] [--map \| --record <name>] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--format <mermaid\|dot\|text\|html>] [--formal-only]` | Write the decision atlas; no flags writes the full atlas (English chrome by default, `--lang zh` for Chinese), `--record` is one deliberation tree, and `--map` selects the decision map. `--format` sets the selected object's format; the full atlas supports only HTML |
 | `adrkit completion <bash\|zsh\|fish>` | Print shell completion |
 | `adrkit version` | Print version |

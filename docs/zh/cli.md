@@ -19,7 +19,7 @@ npm 包名是 `adr-kit`，安装的命令是 `adrkit`。
 | `adrkit reject <name> --reason <text>` | 把否决提案记为 `rejected/` 中的反例 |
 | `adrkit archive <name> --reason <text>` | 将不再指导工作的已交付记录归档 |
 | `adrkit supersede <old> --by <new>` | 完整替代并归档旧决策 |
-| `adrkit delete <name>` | 删除一条本不该存在的记录；代码仍在引用或其他记录仍提及它时拒绝执行，归档记录一律拒绝删除 |
+| `adrkit delete <name>` | 删除一条本不该存在的记录；代码仍在引用或其他记录仍提及它时拒绝执行，归档记录同样受此检查 |
 | `adrkit list` | 按生命周期列出记录 |
 | `adrkit relevant [<path>... | --base <git-ref> | --staged]` | 检索作用域记录：显式路径、指定提交到工作区的变化或暂存区文件；三种输入互斥 |
 | `adrkit show <name>` | 按标题、文件名、slug 或编号显示记录主体，省略 `## Deliberation` |
@@ -28,7 +28,7 @@ npm 包名是 `adr-kit`，安装的命令是 `adrkit`。
 | `adrkit validate [<name> \| --all]` | 校验单条记录，或整个仓库（含闭合的生命周期清单）；名称与 `--all` 互斥 |
 | `adrkit update [--tools <list>] [--workflows <list>]` | 刷新 agent 集成 |
 | `adrkit config` | 显示配置 |
-| `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错、暂存删除搁浅编号决策的引用、暂存删除某记录字面 `paths` 条目指名的文件、或暂存删除任何归档记录时失败，否则列出管辖这些改动的生效决策 |
+| `adrkit hook <install\|uninstall\|run>` | 安装、移除或运行托管的 pre-commit 检查：暂存记录或引用有错、暂存删除搁浅决策的引用（归档记录同样受查）、暂存删除某记录字面 `paths` 条目指名的文件时失败，否则列出管辖这些改动的生效决策 |
 | `adrkit atlas [--out <path>] [--map \| --record <name>] [--lang <en\|zh>] [--theme <folio\|signal\|random>] [--format <mermaid\|dot\|text\|html>] [--formal-only]` | 写出决策档案；无参数是完整档案（界面默认英文，`--lang zh` 为中文），`--record` 是单条决策的 deliberation tree（卡片视图），`--map` 显式选择决策地图；`--format` 只设置已选对象的格式，完整档案只支持 HTML |
 | `adrkit completion <bash\|zsh\|fish>` | 输出 shell 补全 |
 | `adrkit version` | 输出版本 |
