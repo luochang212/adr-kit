@@ -10,6 +10,7 @@ paths:
   - skills/**
   - docs/workflow.md
   - docs/zh/workflow.md
+  - docs/recording-evaluation.md
 ---
 
 # ADR: 54 Name the veto test in the recording guidance and hedge user-ruled values
@@ -51,12 +52,14 @@ The shared `RECORDING_GUIDANCE` (single editing source
 - The user-request sentence now states its boundary: a user-ruled interface
   form or interaction detail is still code-held; the ruling is recorded when
   it changes a recorded choice or closes a class of future work, not when it
-  sets a value.
+  sets a value. The recording-evaluation case narrows to the same boundary.
 - The leave-to-sources table gains the observed flood rows: unified widths,
   tab bindings, and motion boundaries on the left; a conversation-only ruling
   that closes a whole class of future work on the right; feature-spec
   write-ups with verification lists on the left; a production failure mode
   that shaped the feature on the right.
+- `adrkit-propose` names the close-out duty: a dead proposal is rejected or
+  deleted in the change that kills it.
 
 `docs/workflow.md` gains the counterpart procedure: after a release that
 raises the bar, regrade the stock — keep, supersede or archive, or delete —
