@@ -989,8 +989,8 @@ describe('list output', () => {
     const root = makeRepo();
     recordCommand('Use SQLite', root, 'human', 'human');
     const output = listCommand(root);
-    expect(output).toContain('1 of 1 records are implemented guidance');
-    expect(output).toContain('the part every task reads in full');
+    expect(output).toContain('Implemented guidance:');
+    expect(output).toContain('across 1 of 1 records — read in full when it governs');
   });
 
   it('points a fresh repository at the two creation commands', () => {
@@ -1391,7 +1391,7 @@ ${reason}${scope}---
     expect(output).toContain('Implemented — current authority');
     expect(output).toContain('[1] Use SQLite');
     expect(output).toContain('[src/core/**]');
-    expect(output).toContain('Archived records are frozen history');
+    expect(output).toContain('Archived records are retired history');
   });
 
   it('groups scoped proposals and rejections under their reading posture', () => {

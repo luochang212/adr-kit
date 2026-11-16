@@ -75,7 +75,7 @@ export function relevantCommand(
     lines.push('Resolve the diagnostics or pass narrower paths before relying on this result.');
   }
   lines.push('\nScope matches are not exhaustive architectural context; use "adrkit list" and read relevant records in full.',
-    'Archived records are frozen history and are not searched by default.');
+    'Archived records are retired history and are not searched by default.');
   return {
     output: withNotice(lines.join('\n').trimEnd(), notice),
     complete: result.diagnostics.length === 0,

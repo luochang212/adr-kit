@@ -17,7 +17,7 @@
   <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
-ADR Kit stores architecture decisions as plain Markdown across four lifecycle directories. It is an independent, agent-friendly decision-record tool: proposals are unshipped, implemented records describe shipped choices, rejections keep the anti-patterns worth avoiding, and archives preserve frozen history.
+ADR Kit stores architecture decisions as plain Markdown across four lifecycle directories. It is an independent, agent-friendly decision-record tool: proposals are unshipped, implemented records describe shipped choices, rejections keep the anti-patterns worth avoiding, and archives preserve retired history.
 
 - Plain Markdown and YAML front matter
 - One choice per file, with explicit alternatives
@@ -66,7 +66,7 @@ adr/
 ├── proposed/       # dated, unnumbered, unshipped
 ├── implemented/    # numbered, shipped, active guidance
 ├── rejected/       # dated, unnumbered, anti-patterns to avoid
-└── archived/       # numbered, frozen history
+└── archived/       # numbered, retired history
 ```
 
 An uncommitted proposal is a local working-tree draft; committing it shares it. There is no separate `.drafts/`. A choice settled by discussion remains proposed until shipped. `adrkit reject --reason` records a declined proposal's anti-pattern as a durable terminal: keep it, and remove it only when another record owns the warning it blocks (rejections are unnumbered, so removing a redundant one frees no reusable number). `adrkit supersede --by` archives a fully replaced implemented decision; `adrkit archive --reason` retires one whose current behavior has another authoritative owner. Never archive by age or quota. A record that should never have existed — noise, a duplicate, a routine change recorded as a decision, or bookkeeping a re-grade retired — is removed with `adrkit delete`, which refuses while code cites the record or another record references it, archived records included. Partial replacement leaves still-relevant guidance active. Both moves write the archived record as ordinary Git-tracked history; there is no separate seal or manifest. `adrkit validate` checks it like any other record, and Git records later changes.

@@ -17,7 +17,7 @@
   <img src="./assets/readme-banner.png" alt="ADR Kit" width="100%" />
 </p>
 
-ADR Kit 用纯 Markdown 记录架构决策，并以四个目录表示完整生命周期：`proposed/` 是未交付提案，`implemented/` 是已交付且仍有指导意义的决策，`rejected/` 保存待避免的反例（正式否决），`archived/` 保存最低价值的冻结历史。它是独立的、面向人与 agent 的决策记录工具。
+ADR Kit 用纯 Markdown 记录架构决策，并以四个目录表示完整生命周期：`proposed/` 是未交付提案，`implemented/` 是已交付且仍有指导意义的决策，`rejected/` 保存待避免的反例（正式否决），`archived/` 保存最低价值的已退役历史。它是独立的、面向人与 agent 的决策记录工具。
 
 - 纯 Markdown 与 YAML front matter
 - 一个选择一个文件，含明确的备选
@@ -66,7 +66,7 @@ adr/
 ├── proposed/       # 按日期命名，未编号，尚未交付
 ├── implemented/    # 已编号、已交付，当前指导
 ├── rejected/       # 按日期命名，待避免的反例
-└── archived/       # 保留编号，冻结历史
+└── archived/       # 保留编号，已退役历史
 ```
 
 未提交的提案只是本地工作树草稿；Git 提交后成为共享提案，不另设 `.drafts/`。讨论已定方向但尚未交付时仍在 `proposed/`。正式否决用 `adrkit reject --reason` 记为稳定的反例终态：保留它，只有当另一条记录接管了它挡住的错误时才移除（否决记录无编号，因此移除一条多余的否决不会腾出可复用的编号）。完整替代用 `adrkit supersede --by` 并自动归档旧记录；当现状已有其他权威来源、原决策不再指导未来时，可用 `adrkit archive --reason` 归档。不要按年龄或配额归档； 一条本不该存在的记录——噪声、重复、把常规修改误记成决策、重评后退役的记账条目——用 `adrkit delete` 删除：代码仍在引用或其他记录仍提及它时命令会拒绝执行，归档记录同样受此检查。部分替代仍保留有效的现行记录。两次转移都把归档记录当作普通的 Git 跟踪历史；既没有封存仪式，也没有单独的封存清单。`adrkit validate` 像检查其他记录一样检查它，后续修改由 Git 记录。

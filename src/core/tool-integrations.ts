@@ -90,7 +90,7 @@ Before creating or shaping a record, answer these four questions:
 3. **Is the constraint or reason behind it hidden and durable enough to guide future choices?** If no, it is not an ADR.
 4. **Is this a routine upgrade, naming change, format migration, visual tweak, or process ritual?** If yes, it is not an ADR.
 
-Then name the concrete future change this record would veto. Every record is read in full by later tasks, so it earns that cost only by stopping work: if nothing comes to mind that a failing test or the compiler would not stop anyway, the reason is taste or completion, not constraint — do not record it.
+Then name the concrete future change this record would veto. Implemented records are read in full when they govern a task, so a record earns that cost only by stopping work: if nothing comes to mind that a failing test or the compiler would not stop anyway, the reason is taste or completion, not constraint — do not record it.
 
 Use judgment, not a score or an all-must-pass checklist. If nothing meaningful would be lost, or forgetting it would cost nothing, skip without a justification field, user approval, or deferred note. Notes are candidates, not commitments to ADRs.
 
@@ -360,7 +360,7 @@ Read the proposal and check its alternatives. Run \`adrkit reject <name> --reaso
 
 Archiving keeps the active set small enough to actually be read: guidance that stopped earning its context budget retires to archived history.
 
-Confirm the record has shipped, its distinct rationale no longer guides future work, and current behavior has another authoritative owner. Do not archive by age or quota. Run \`adrkit archive <name> --reason "<owner and why retired>"\`. The numbered record moves from \`implemented/\` to \`archived/\` — the lowest-value folder: frozen history, not current authority, and not read by default. Its number and history remain. Validate afterward. Git records later changes; a format or path issue is a normal migration commit rather than an unfixable frozen record. If a newer implemented decision fully replaces it, use \`adrkit supersede --by\` instead; partial replacement leaves the still-relevant record active.`,
+Confirm the record has shipped, its distinct rationale no longer guides future work, and current behavior has another authoritative owner. Do not archive by age or quota. Run \`adrkit archive <name> --reason "<owner and why retired>"\`. The numbered record moves from \`implemented/\` to \`archived/\` — the lowest-value folder: retired history, not current authority, and not read by default. Its number and history remain. Validate afterward. Git records later changes; a format or path issue is a normal migration commit rather than an unfixable record. If a newer implemented decision fully replaces it, use \`adrkit supersede --by\` instead; partial replacement leaves the still-relevant record active.`,
   },
   {
     name: "adrkit-supersede",
@@ -369,7 +369,7 @@ Confirm the record has shipped, its distinct rationale no longer guides future w
 
 Supersession turns a changed decision into an explicit handover instead of a silent contradiction between old and new guidance.
 
-First record or implement the replacement and validate it. Confirm it fully replaces the old decision; partial overlap calls for prose links while the old record remains active. Run \`adrkit supersede <old> --by <new>\`. Both records must be implemented; the command stamps \`superseded-by\`, moves the old numbered file into \`archived/\` (lowest-value frozen history), and preserves its provenance and number. Run \`adrkit validate\` to check the chain. Git records later changes; a format or path issue is a normal migration commit. Do not edit the archived choice or rationale silently.`,
+First record or implement the replacement and validate it. Confirm it fully replaces the old decision; partial overlap calls for prose links while the old record remains active. Run \`adrkit supersede <old> --by <new>\`. Both records must be implemented; the command stamps \`superseded-by\`, moves the old numbered file into \`archived/\` (lowest-value retired history), and preserves its provenance and number. Run \`adrkit validate\` to check the chain. Git records later changes; a format or path issue is a normal migration commit. Do not edit the archived choice or rationale silently.`,
   },
 ];
 

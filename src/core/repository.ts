@@ -18,21 +18,18 @@ import { readRegularText } from './files.js';
 export const FOLDERS: AdrFolder[] = ['proposed', 'implemented', 'rejected', 'archived'];
 
 /**
- * One line stating the inventory's reading cost: every later task reads
- * implemented records in full and checks the rest, so the sizes are named
- * where records get chosen and kept rather than buried in per-file listing.
+ * One line stating the inventory's reading cost: implemented records are read
+ * in full when they govern a task, so the sizes are named where records get
+ * chosen and kept rather than buried in per-file listing.
  */
 export function inventoryTotalsLine(records: AdrRecord[]): string {
   const size = (n: number): string => (n >= 1000 ? `~${(n / 1000).toFixed(1)}k` : `${n}`);
   const chars = (record: AdrRecord): number =>
     (record.introProse?.length ?? 0) + record.sections.reduce((sum, section) => sum + section.body.length, 0);
+  const sum = (list: readonly AdrRecord[]): number => list.reduce((total, record) => total + chars(record), 0);
   const implemented = records.filter((record) => record.folder === 'implemented');
-  const active = implemented.reduce((sum, record) => sum + chars(record), 0);
-  const total = records.reduce((sum, record) => sum + chars(record), 0);
-  return (
-    `${implemented.length} of ${records.length} records are implemented guidance ` +
-    `(${size(active)} of ${size(total)} characters) — the part every task reads in full`
-  );
+  return `Implemented guidance: ${size(sum(implemented))} of ${size(sum(records))} characters ` +
+    `across ${implemented.length} of ${records.length} records — read in full when it governs`;
 }
 
 export interface InitResult {
@@ -90,7 +87,7 @@ Records follow the lifecycle folders proposed/, implemented/, rejected/, and
 archived/. The folders are a context budget as well as a lifecycle:
 implemented/ is current authority and is read in full; proposed/ is intent and
 is checked; rejected/ is anti-pattern memory and is checked;
-archived/ is lowest-value frozen history and is not read by default. The four
+archived/ is lowest-value retired history and is not read by default. The four
 folders are the whole record inventory: no other folder may sit under adr/ or
 inside one of them, and a Markdown record at the adr/ root fails validation
 rather than disappearing from the list command.

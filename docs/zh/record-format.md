@@ -7,20 +7,20 @@ ADR Kit 用 YAML front matter 加 Markdown 正文，并按生命周期分目录�
 | `adr/proposed/` | `proposed` | `YYYY-MM-DD-slug.md` | 未交付提案 |
 | `adr/implemented/` | `implemented` | `N-slug.md` | 已交付、仍指导当前工作 |
 | `adr/rejected/` | `rejected` | `YYYY-MM-DD-slug.md` | 正式否决（反例库） |
-| `adr/archived/` | `implemented` 或 `superseded` | `N-slug.md` | 冻结历史 |
+| `adr/archived/` | `implemented` 或 `superseded` | `N-slug.md` | 已退役历史 |
 
 front matter 的规范顺序是 `status`、`date`、`description`、`raised-by`、
 `decided-by`、`created`、`superseded-by`、`reason`、
 `archived`、`archive-reason`、`paths`，只写适用字段。`date` 在每次生命周期
 转移时由机器写入；`created` 保留出生日期，必填、须为真实日历日期且不得晚于 `date`；`archived` 是归档日期，
-进入冻结历史时与 `date` 相同。记录不携带 git 出处：原 `commit` 字段已移除，
+归档时与 `date` 相同。记录不携带 git 出处：原 `commit` 字段已移除，
 决策落在哪个提交由 Git 历史来讲述。
 头部后必须空一行，再写 `# ADR: <标题>`；已编号决策为
 `# ADR: N <标题>`。
 
 四个目录也是一份上下文预算：`implemented/` 是现行权威、需完整阅读；
 `proposed/` 是意图、需检查；`rejected/` 是反例、需检查；`archived/`
-是最低价值的冻结历史、默认不读。
+是最低价值的已退役历史、默认不读。
 
 提案需要 `Problem`、`Proposal`、`Alternatives considered`、
 `Acceptance criteria`、`Risks`。已实施决策需要 `Problem`、
@@ -70,7 +70,7 @@ deliberation tree：`- Q: <问题> [settled]` 与 `- <选项> [rejected] (recomm
 glob，使用正斜杠；`**` 跨目录分隔符，`*` 不跨目录，`?` 匹配单个字符，
 其余字节按字面匹配（不支持大括号展开与字符类）；以 `*` 开头的条目在
 YAML flow 写法中需要引号（`paths: ["**/*.ts"]`）。`adrkit relevant
-<path>...` 按阅读姿态列出管辖给定文件或目录的记录；归档记录是冻结历史、
+<path>...` 按阅读姿态列出管辖给定文件或目录的记录；归档记录是已退役历史、
 默认不检索，没有 `paths` 的记录永不匹配，因为范围检索不是全文搜索。该字段
 在每次生命周期转移和提案晋升时保留。`adrkit validate` 拒绝空条目、重复
 条目、绝对路径、含 `..` 的条目、反斜杠、尾斜杠（目录范围请写 `src/**`；

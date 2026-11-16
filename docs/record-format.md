@@ -15,7 +15,7 @@ The canonical front matter order is `status`, `date`, `description`, `raised-by`
 `date` is machine-stamped at every lifecycle move; `created` preserves the
 record's birth date — it is required on every record, a real calendar date,
 and never after `date`. `archived` is the archival date and matches `date`
-when a record enters frozen history. Records carry no git provenance: the
+when a record is retired. Records carry no git provenance: the
 former `commit` field is removed, and where a decision landed is Git
 history's to tell.
 The header is followed by a blank line and `# ADR: <title>` (or
@@ -42,7 +42,7 @@ continues the entry above it is not a separate entry and passes; ordinary text
 before the first valid entry fails. The folders
 are also a context budget: `implemented/` is current authority and is read
 in full; `proposed/` is intent and is checked; `rejected/` is anti-pattern
-memory that is checked; `archived/` is lowest-value frozen history that is
+memory that is checked; `archived/` is lowest-value retired history that is
 not read by default. A rejected proposal keeps its problem, proposal, and
 alternatives and adds a non-empty `reason` field naming the tempting mistake
 it blocks; the record is durable and is removed only when another record owns
@@ -96,7 +96,7 @@ slashes; `**` crosses directory separators, `*` stays within one segment,
 expansion, no character classes); an entry that starts with `*` needs
 quotes in YAML flow style (`paths: ["**/*.ts"]`). `adrkit relevant <path>...` lists the
 records whose scopes govern the given file or directory, grouped by
-lifecycle posture; archived records are frozen history and are not searched
+lifecycle posture; archived records are retired history and are not searched
 by default, and a record without `paths` never matches, because scope retrieval is
 not full-text search. The field survives every lifecycle move and the
 proposal-to-decision promotion. `adrkit validate` rejects an empty or

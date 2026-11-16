@@ -130,7 +130,7 @@ export interface AdrRecord {
   /** For superseded decisions: the number of the decision that replaced this one. */
   /** Immediate historical successor; validation follows the chain to an implemented record. */
   supersededBy?: number;
-  /** Date a shipped record entered frozen history. */
+  /** Date a shipped record was retired. */
   archived?: string;
   /** Why a shipped record no longer needs to be active guidance. */
   archiveReason?: string;

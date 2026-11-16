@@ -33,7 +33,7 @@ Before creating or shaping a record, answer these four questions:
 3. **Is the constraint or reason behind it hidden and durable enough to guide future choices?** If no, it is not an ADR.
 4. **Is this a routine upgrade, naming change, format migration, visual tweak, or process ritual?** If yes, it is not an ADR.
 
-Then name the concrete future change this record would veto. Every record is read in full by later tasks, so it earns that cost only by stopping work: if nothing comes to mind that a failing test or the compiler would not stop anyway, the reason is taste or completion, not constraint — do not record it.
+Then name the concrete future change this record would veto. Implemented records are read in full when they govern a task, so a record earns that cost only by stopping work: if nothing comes to mind that a failing test or the compiler would not stop anyway, the reason is taste or completion, not constraint — do not record it.
 
 Use judgment, not a score or an all-must-pass checklist. If nothing meaningful would be lost, or forgetting it would cost nothing, skip without a justification field, user approval, or deferred note. Notes are candidates, not commitments to ADRs.
 

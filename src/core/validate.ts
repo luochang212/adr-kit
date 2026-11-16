@@ -532,7 +532,7 @@ function supersedeReferenceIssues(
     previous = next;
     // An accepted-then-archived terminal is a valid end, so only the status is
     // checked, not the folder: `archive` may retire a decision nothing
-    // replaced, and the chain then leads into frozen history by design. Code
+    // replaced, and the chain then leads into retired history by design. Code
     // citations (`@adr`) are the surface that must name current authority.
     if (target.status === 'implemented') return [];
     if (target.status !== 'superseded') {

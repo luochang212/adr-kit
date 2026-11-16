@@ -43,7 +43,7 @@ const ui = {
     'lifecycle.eyebrow': 'Lifecycle',
     'lifecycle.title': 'One decision, one file, one state machine',
     'lifecycle.lead':
-      "Four committed folders are a context budget: implemented guidance to read, proposals to check, rejected anti-patterns to avoid, and frozen history to leave alone.",
+      "Four committed folders are a context budget: implemented guidance to read, proposals to check, rejected anti-patterns to avoid, and retired history to leave alone.",
     'lifecycle.proposed': "An unshipped, dated proposal. A settled direction stays here until the work actually ships.",
     'lifecycle.implemented': "A shipped, numbered decision that still guides work.",
     'lifecycle.rejected': "A formally declined proposal, kept as a durable anti-pattern to avoid, removed only when another record owns its warning, with no ADR number.",
@@ -131,7 +131,7 @@ const ui = {
 
     'lifecycle.eyebrow': '生命周期',
     'lifecycle.title': '一个决策，一个文件，一台状态机',
-    'lifecycle.lead': "四个纳入 Git 的目录是一份上下文预算：已交付指导要读，提案要检查，否决反例要避开，冻结历史不用看。",
+    'lifecycle.lead': "四个纳入 Git 的目录是一份上下文预算：已交付指导要读，提案要检查，否决反例要避开，已退役历史不用看。",
     'lifecycle.proposed': "按日期命名的未交付提案；讨论定向后仍留在这里，直到实际交付。",
     'lifecycle.implemented': "已交付、已编号，仍指导工作的决策。",
     'lifecycle.rejected': "正式否决的提案，作为稳定的反例保留，只有当另一条记录接管其警示时才移除，不分配 ADR 编号。",

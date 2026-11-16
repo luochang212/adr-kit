@@ -15,7 +15,7 @@ Records follow the lifecycle folders proposed/, implemented/, rejected/, and
 archived/. The folders are a context budget as well as a lifecycle:
 implemented/ is current authority and is read in full; proposed/ is intent and
 is checked; rejected/ is anti-pattern memory and is checked;
-archived/ is lowest-value frozen history and is not read by default. The four
+archived/ is lowest-value retired history and is not read by default. The four
 folders are the whole record inventory: no other folder may sit under adr/ or
 inside one of them, and a Markdown record at the adr/ root fails validation
 rather than disappearing from the list command.

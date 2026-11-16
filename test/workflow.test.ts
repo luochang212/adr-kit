@@ -35,9 +35,9 @@ describe('statusCommand', () => {
 
   it('states the inventory reading cost only when records exist', () => {
     const root = makeRepo();
-    expect(statusCommand(root).output).not.toContain('implemented guidance');
+    expect(statusCommand(root).output).not.toContain('Implemented guidance');
     recordCommand('Use SQLite', root, 'human', 'human');
-    expect(statusCommand(root).output).toContain('1 of 1 records are implemented guidance');
+    expect(statusCommand(root).output).toContain('across 1 of 1 records');
   });
 
   it('reports the invalid decision and its count in the text status', () => {

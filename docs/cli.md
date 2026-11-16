@@ -96,11 +96,11 @@ creation order and a lower-numbered successor can only write a backwards chain.
 `delete` removes a record that should never have existed — noise, a duplicate, a
 routine change recorded as a decision. It is not a lifecycle stage: `reject`
 keeps a declined direction and `archive` retires guidance that once governed.
-`delete` applies the retirement rule to removal: while code cites a numbered
-record it refuses with the `path:line` list, and while another record names the
-number in prose or `superseded-by` it refuses with the record list; update or
-remove the references first, then re-run. It never deletes an archived record,
-and it deletes a rejection only after printing that a rejection is durable and
+`delete` applies the retirement rule to removal: while code cites the record
+it refuses with the `path:line` list, and while another record names the number
+in prose or `superseded-by` it refuses with the record list; update or remove
+the references first, then re-run. Archived records follow the same checks.
+It deletes a rejection only after printing that a rejection is durable and
 must be owned by another record first (ADR 20). Mentions it cannot verify —
 `AGENTS.md` and `adr/notes.md` — are reported as notes, never rewritten. Decision
 numbers form an append-only journal at `adr/.decision-sequence`: allocation and
