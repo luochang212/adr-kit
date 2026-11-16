@@ -593,6 +593,19 @@ describe('deleteCommand', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 
+  it('refuses while code cites an archived record, then deletes once the citation is gone', () => {
+    const root = makeRepo();
+    proposeCommand('Use SQLite', root);
+    fillDraft(root);
+    implementCommand('Use SQLite', root, 'human', 'human');
+    archiveCommand('1', 'no longer needed', root);
+    // The citation marker is split so this test file is not itself a citation.
+    writeFileSync(join(root, 'src.ts'), `// @${'adr'} 1\nexport const a = 1;\n`);
+    expect(() => deleteCommand('1', root)).toThrow(/cited in code[\s\S]*src\.ts:1/);
+    rmSync(join(root, 'src.ts'));
+    expect(deleteCommand('1', root)).toContain('deleted adr/archived/1-use-sqlite.md');
+  });
+
   it('refuses while code cites the record, then deletes once the citation is gone', () => {
     const root = makeRepo();
     proposeCommand('Use SQLite', root);
@@ -970,6 +983,14 @@ describe('list output', () => {
     expect(output).toContain('adr/implemented/1-use-sqlite.md');
     expect(output).toContain('Proposed');
     expect(output).toContain('adr/proposed/');
+  });
+
+  it('states the inventory reading cost where records get chosen', () => {
+    const root = makeRepo();
+    recordCommand('Use SQLite', root, 'human', 'human');
+    const output = listCommand(root);
+    expect(output).toContain('1 of 1 records are implemented guidance');
+    expect(output).toContain('the part every task reads in full');
   });
 
   it('points a fresh repository at the two creation commands', () => {

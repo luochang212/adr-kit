@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { initCommand } from '../src/commands/init.js';
 import { instructionsCommand } from '../src/commands/instructions.js';
 import { proposeCommand } from '../src/commands/propose.js';
+import { recordCommand } from '../src/commands/record.js';
 import { statusCommand } from '../src/commands/status.js';
 import { folderPath, listProposals } from '../src/core/repository.js';
 
@@ -30,6 +31,13 @@ describe('statusCommand', () => {
     expect(result.valid).toBe(true);
     expect(result.output).toContain('implemented: 0');
     expect(result.output).toContain('proposed: 0');
+  });
+
+  it('states the inventory reading cost only when records exist', () => {
+    const root = makeRepo();
+    expect(statusCommand(root).output).not.toContain('implemented guidance');
+    recordCommand('Use SQLite', root, 'human', 'human');
+    expect(statusCommand(root).output).toContain('1 of 1 records are implemented guidance');
   });
 
   it('reports the invalid decision and its count in the text status', () => {

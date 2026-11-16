@@ -22,6 +22,28 @@ change only through a deliberate, explained commit.
 
 Newest first. Each note names what changed and what to do.
 
+### After 0.37.0: the recording guidance ends in a veto test and archived records become deletable
+
+The shared recording guidance (refresh integrations with `adrkit update`)
+now asks for the concrete future change a record would veto before one is
+written: a reason that stops nothing a failing test or the compiler would
+not stop anyway is taste or completion, not constraint, and is not
+recorded, and user-ruled interface forms and interaction details stay
+code-held (ADR 54).
+
+`adrkit delete` now removes archived records under the same reference
+checks as numbered ones, retiring the frozen-archive refusal 0.34.0
+documented (ADR 55): it refuses while a code citation, a `superseded-by`
+field, or another record's prose still references the number, and the
+pre-commit hook checks a staged archived deletion for stranded references
+instead of failing it categorically. The `adr/README.md` template now
+states the record-worthiness bar and names `adrkit delete` as the only
+deletion path; a repository whose copy still says the archive is never
+deleted can delete that file and re-run `adrkit init` to regenerate it.
+Stock recorded under an older bar can be regraded through the checked
+path — the workflow guide names deletion as the below-line outcome — and
+`adrkit list` and `adrkit status` report the inventory's reading cost.
+
 ### After 0.35.0: the AGENTS.md section is awareness-only, multilingual, and unmarked
 
 The section your agent pastes into `AGENTS.md` no longer mandates reading:
