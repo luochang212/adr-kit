@@ -44,7 +44,7 @@ included, so the repository stays valid after every deletion. Decision numbers
 form an append-only journal at adr/.decision-sequence: allocation and removal
 both append to it, so a removed number is never reallocated and deleting even
 the highest number cannot hand it to a later decision. Removing a rejection is
-a deliberate edit: its warning must be owned by another record first (ADR 20).
+a deliberate edit: its warning must be owned by another record first.
 Git history retains every removed record, as it retains every archived one.
 
 The canonical header includes status, date, and created: YYYY-MM-DD (the

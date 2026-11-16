@@ -15,6 +15,7 @@ import { ADR_DIR, CONFIG_FILE, inspectConfig } from './config.js';
 import { staticPrefix } from './glob.js';
 import { citationIssues } from './markers.js';
 import { FOLDERS, listRecords } from './repository.js';
+import { SLUG_CHARACTERS } from './slug.js';
 
 export interface ValidationIssue {
   path: string;
@@ -23,6 +24,9 @@ export interface ValidationIssue {
 
 const DECISION_REQUIRED = ['Problem', 'Decision', 'Alternatives considered', 'Consequences'];
 const PROPOSED_REQUIRED = ['Problem', 'Proposal', 'Alternatives considered', 'Acceptance criteria', 'Risks'];
+
+/** Proposal file names carry the same slug alphabet the writer produces. */
+const PROPOSAL_FILE_NAME_PATTERN = new RegExp(`^(\\d{4})-(\\d{2})-(\\d{2})-[${SLUG_CHARACTERS}]+\\.md$`);
 
 
 function calendarDateIsValid(year: number, month: number, day: number): boolean {
@@ -193,10 +197,10 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
   const numbered = record.folder === 'implemented' || record.folder === 'archived';
   if (numbered) {
     if (!NUMBERED_FILE_NAME_PATTERN.test(record.fileName)) {
-      issues.push({ path, message: 'implemented file name must be "N-slug.md"' });
+      issues.push({ path, message: `${record.folder} file name must be "N-slug.md"` });
     }
     if (record.number === undefined) {
-      issues.push({ path, message: 'implemented title must be "# ADR: N <title>"' });
+      issues.push({ path, message: `${record.folder} title must be "# ADR: N <title>"` });
     } else if (!record.fileName.startsWith(`${record.number}-`)) {
       issues.push({ path, message: `file name number must match title number ${record.number}` });
     }
@@ -219,7 +223,7 @@ export function validateRecord(root: string, record: AdrRecord): ValidationIssue
       }
     }
   } else {
-    const match = record.fileName.match(/^(\d{4})-(\d{2})-(\d{2})-[a-z0-9一-鿿-]+\.md$/);
+    const match = record.fileName.match(PROPOSAL_FILE_NAME_PATTERN);
     if (match === null) {
       issues.push({ path, message: 'proposal file name must be "YYYY-MM-DD-slug.md"' });
     } else if (!calendarDateIsValid(Number(match[1]), Number(match[2]), Number(match[3]))) {

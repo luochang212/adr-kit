@@ -3,7 +3,7 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { decisionNumberFromFileName, parseAdrText, type AdrFolder, type AdrRecord } from './adr.js';
 import { ADR_DIR, findRoot, requireRoot } from './config.js';
 import { gitChangedPaths, gitListedFiles, gitStagedDeletions, runGit } from './git.js';
-import { citationProblem, citationsTo, findCitations, isCitationScanPath } from './markers.js';
+import { citationProblem, citationsTo, findCitations, isCitationScanPath, readText } from './markers.js';
 import { relevantRecords } from './relevant.js';
 import { displayName, FOLDERS, listRecords } from './repository.js';
 import {
@@ -51,6 +51,22 @@ function stagedText(root: string, prefix: string, path: string): string | undefi
   } catch {
     return undefined;
   }
+}
+
+/**
+ * The commit's bytes for a file: the index blob for anything tracked, where a
+ * staged fix counts and an unstaged one does not, falling back to the worktree
+ * copy for files Git does not index — the surface the post-commit validate
+ * scans. This is the deletion checks' reader, so a removal is judged in the
+ * same world the staged-citation loop below already uses.
+ */
+function commitWorldText(root: string, prefix: string): (file: string) => string | undefined {
+  return (file) => {
+    const path = relative(root, file).split(sep).join('/');
+    const blob = stagedText(root, prefix, path);
+    if (blob !== undefined) return blob.includes('\0') ? undefined : blob;
+    return readText(file);
+  };
 }
 
 function shellQuote(value: string): string {
@@ -118,6 +134,12 @@ export function hookCheck(cwd: string): HookCheckResult {
       const record = parseAdrText(text, join(root, path));
       record.folder = path.split('/')[1] as AdrFolder;
       if (record.number !== undefined) byNumber.set(record.number, record);
+      // The index blob is what this commit leaves behind, so the survivor list
+      // the deletion checks read holds the staged copy, not a worktree twin an
+      // unstaged edit could have changed.
+      const worktree = records.findIndex((candidate) => candidate.path === record.path);
+      if (worktree === -1) records.push(record);
+      else records[worktree] = record;
     } catch {
       // The staged-record loop below reports unparseable records.
     }
@@ -143,7 +165,7 @@ export function hookCheck(cwd: string): HookCheckResult {
         // left references behind fails with their list. Archived records are
         // checked identically (ADR 55). Objective defects only — the deletion
         // itself is the committer's deliberate move.
-        for (const site of citationsTo(root, number)) {
+        for (const site of citationsTo(root, number, commitWorldText(root, prefix))) {
           issues.push({ path: site.path, message: `line ${site.line}: cites the deleted ADR ${number}` });
         }
         for (const site of recordsReferencing(root, records, number)) {

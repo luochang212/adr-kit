@@ -1,8 +1,9 @@
-import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { hasMeaningfulBody, parseAdrText, section, type DecidedBy, type RaisedBy } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
-import { folderPath, listRecords, nextDecisionNumber, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
+import { readRegularText } from '../core/files.js';
+import { folderPath, listRecords, nextDecisionNumber, readRecord, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
 import { droppedSections, proposalToDecision } from '../core/templates.js';
 import { formatIssues, validateRecord, validateRecordReferences } from '../core/validate.js';
 
@@ -53,7 +54,7 @@ export function implementCommand(
     record.title === `${record.number} ${proposal.title}`);
   if (prior !== undefined) {
     const staged = proposalToDecision(proposal, prior.number!, prior.decidedBy!, prior.raisedBy!, prior.date);
-    if (staged === readFileSync(prior.path, 'utf8')) {
+    if (staged === readRecord(prior)) {
       removeRecord(proposal);
       return `resumed an interrupted implement: adr/proposed/${proposal.fileName} had already landed as adr/implemented/${prior.fileName}; removed the proposal`;
     }
@@ -95,7 +96,7 @@ export function implementCommand(
     // Roll back only bytes this call staged: a concurrent move may have
     // staged its own record under the same name after ours.
     try {
-      if (readFileSync(path, 'utf8') === content) rmSync(path, { force: true });
+      if (readRegularText(path, 'record') === content) rmSync(path, { force: true });
     } catch {
       // A file we cannot read back is not ours to delete.
     }

@@ -644,7 +644,7 @@ describe('deleteCommand', () => {
     fillDraft(root);
     rejectCommand('Use SQLite', 'the temptation passed', root);
     const output = deleteCommand('use-sqlite', root);
-    expect(output).toContain('a rejection is durable (ADR 20)');
+    expect(output).toContain('a rejection is durable');
     expect(output).toContain('deleted adr/rejected/');
     expect(listRecords(root)).toEqual([]);
   });

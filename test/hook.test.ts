@@ -342,6 +342,38 @@ describe('pre-commit hook management', () => {
     expect(result.output).toContain('cites ADR 99');
   });
 
+  it('fails a staged deletion whose citation fix is left unstaged', () => {
+    const root = makeRepo();
+    write(join(root, 'src', 'a.ts'), `${cite(1)}export const a = 1;\n`);
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
+    git(root, 'add', '-A');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
+    git(root, 'rm', '-q', 'adr/implemented/1-test.md');
+    // Fix the citing file without staging the fix: the commit would carry the
+    // stranded citation, so the deletion check must judge the index, not the
+    // worktree the fix lives in.
+    writeFileSync(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('cites the deleted ADR 1');
+  });
+
+  it('passes a staged deletion whose reference fix is staged but reverted in the worktree', () => {
+    const root = makeRepo();
+    write(join(root, 'src', 'a.ts'), `${cite(1)}export const a = 1;\n`);
+    write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));
+    git(root, 'add', '-A');
+    git(root, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add the decision');
+    git(root, 'rm', '-q', 'adr/implemented/1-test.md');
+    // Stage the citation fix, then undo it in the worktree: the commit is
+    // clean, so the unstaged worktree copy must not fail it.
+    write(join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+    git(root, 'add', 'src/a.ts');
+    writeFileSync(join(root, 'src', 'a.ts'), `${cite(1)}export const a = 1;\n`);
+    const result = hookRunCommand(root);
+    expect(result.ok).toBe(true);
+  });
+
   it('counts a staged record the worktree lost when resolving citations', () => {
     const root = makeRepo();
     write(join(root, 'adr', 'implemented', '1-test.md'), decision(['src/a.ts']));

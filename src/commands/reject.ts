@@ -1,7 +1,8 @@
-import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { todayStamp } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
+import { readRegularText } from '../core/files.js';
 import { folderPath, readRecord, removeRecord, resolveProposed, writeRecord } from '../core/repository.js';
 import { isStagedLifecycleMove, stampLifecycleMove } from '../core/templates.js';
 import { formatIssues, validateRecord } from '../core/validate.js';
@@ -37,7 +38,7 @@ export function rejectCommand(query: string, reason: string, cwd: string): strin
     // every lifecycle move does — finish only this move's own staged copy.
     let staged: string | undefined;
     try {
-      staged = readFileSync(target, 'utf8');
+      staged = readRegularText(target, 'record');
     } catch {
       staged = undefined;
     }
@@ -65,7 +66,7 @@ export function rejectCommand(query: string, reason: string, cwd: string): strin
     // creation prevents other CLI moves replacing the staged destination;
     // preserve any intervening manual edits when rolling it back.
     try {
-      if (readFileSync(target, 'utf8') === content) rmSync(target, { force: true });
+      if (readRegularText(target, 'record') === content) rmSync(target, { force: true });
     } catch {
       // A file we cannot read back is not ours to delete.
     }

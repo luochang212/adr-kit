@@ -1,14 +1,13 @@
-import { readFileSync } from 'node:fs';
 import { markdownLines } from '../core/adr.js';
 import { requireRoot } from '../core/config.js';
-import { relativePath, resolveRecord } from '../core/repository.js';
+import { readRecord, relativePath, resolveRecord } from '../core/repository.js';
 import { displayWidth } from '../core/view-text.js';
 
 export function showCommand(query: string, cwd: string): string {
   const root = requireRoot(cwd);
   const record = resolveRecord(root, query);
   const path = relativePath(record);
-  const content = readFileSync(record.path, 'utf8');
+  const content = readRecord(record);
   // Keep the original text and line endings; scan only Markdown, not YAML.
   const lines = content.split(/(?<=\n)/);
   const bodyStart = lines.findIndex((line, index) => index > 0 && line.replace(/\r?\n$/, '') === '---') + 1;

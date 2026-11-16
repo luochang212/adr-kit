@@ -47,7 +47,7 @@ export function deleteCommand(query: string, cwd: string): string {
   const lines: string[] = [];
   if (record.folder === 'rejected') {
     lines.push(
-      'note: a rejection is durable (ADR 20): it leaves only when another record owns the warning it blocks; confirm that warning is preserved before relying on this deletion.',
+      'note: a rejection is durable: it leaves only when another record owns the warning it blocks; confirm that warning is preserved before relying on this deletion.',
     );
   }
   // Removal is the one number event that lowers the surviving-file maximum,

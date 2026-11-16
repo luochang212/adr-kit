@@ -1,6 +1,7 @@
 import { basename } from 'node:path';
 import { parse } from 'yaml';
 import { readRegularText } from './files.js';
+import { SLUG_CHARACTERS } from './slug.js';
 
 export type AdrStatus = 'proposed' | 'implemented' | 'rejected' | 'superseded';
 /**
@@ -47,7 +48,7 @@ export type AdrFolder = 'proposed' | 'implemented' | 'rejected' | 'archived';
 export const FRONT_MATTER_ORDER = ['status', 'date', 'description', 'raised-by', 'decided-by', 'created', 'superseded-by', 'reason', 'archived', 'archive-reason', 'paths'] as const;
 
 /** File name of a numbered record in implemented/ or archived/: `N-slug.md`. */
-export const NUMBERED_FILE_NAME_PATTERN = /^[1-9]\d*-[a-z0-9一-鿿-]+\.md$/;
+export const NUMBERED_FILE_NAME_PATTERN = new RegExp(`^[1-9]\\d*-[${SLUG_CHARACTERS}]+\\.md$`);
 
 /**
  * The decision number a record file name carries, or undefined. Single-sourced

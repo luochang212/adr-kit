@@ -128,13 +128,19 @@ export interface CitationSite {
  * before retiring a decision: moving the record would strand each of these
  * citations, which the next validation would then report. Reading the same
  * corpus as validation is what makes the refusal and that report agree.
+ * `readFile` swaps the byte source — the pre-commit hook reads index blobs so
+ * the check judges the commit's world, not the worktree's.
  */
-export function citationsTo(root: string, number: number): CitationSite[] {
+export function citationsTo(
+  root: string,
+  number: number,
+  readFile: (file: string) => string | undefined = readText,
+): CitationSite[] {
   const sites: CitationSite[] = [];
   for (const file of scannedFiles(root, [])) {
     let text: string | undefined;
     try {
-      text = readText(file);
+      text = readFile(file);
     } catch {
       continue;
     }
@@ -228,7 +234,8 @@ function* walkFiles(root: string, issues: ValidationIssue[]): Generator<string> 
   }
 }
 
-function readText(file: string): string | undefined {
+/** The worktree byte source; exported for the hook's index-first fallback. */
+export function readText(file: string): string | undefined {
   if (statSync(file).size > MAX_FILE_BYTES) return undefined;
   const bytes = readFileSync(file);
   // A NUL byte marks binary content that cannot hold a citation.
