@@ -287,13 +287,16 @@ for (const language of ['zh', 'en']) {
     await expect(reader).not.toHaveCSS('scrollbar-width', 'none');
   });
   test(`${theme} / ${language}: reader groups provenance separately from navigable references`, async ({ page }) => {
+    // ADR 18 is the most-referenced hub record, so its reader has reference
+    // pills in both directions regardless of how the rest of the inventory
+    // shifts.
     await page.goto(artifact(language, theme));
-    await page.locator('.decision-card[data-record="11"]').click();
+    await page.locator('.decision-card[data-record="18"]').click();
     await expect(page.locator('.ctx-facts dt')).toHaveText(language === 'zh'
       ? ['提出', '决定', '创建'] : ['Raised', 'Decided', 'Created']);
     await expect(page.locator('.ctx-facts dd')).toHaveText(language === 'zh'
-      ? ['人', '人', '2026-09-22'] : ['Human', 'Human', '2026-09-22']);
-    await expect(page.locator('.ctx-facts time')).toHaveAttribute('datetime', '2026-09-22');
+      ? ['人', '人', '2026-09-24'] : ['Human', 'Human', '2026-09-24']);
+    await expect(page.locator('.ctx-facts time')).toHaveAttribute('datetime', '2026-09-24');
     const facts = await page.locator('.ctx-facts>div').evaluateAll(elements => elements.map(el => ({
       top: el.getBoundingClientRect().top,
       labelBottom: el.querySelector('dt').getBoundingClientRect().bottom,
@@ -303,7 +306,7 @@ for (const language of ['zh', 'en']) {
     expect(facts.every(item => item.valueTop > item.labelBottom)).toBe(true);
     let visibleRows = 0;
     for (const [index, direction] of ['from', 'to'].entries()) {
-      const count = await page.locator(`.edge.reference[data-${direction}="11"]`).count();
+      const count = await page.locator(`.edge.reference[data-${direction}="18"]`).count();
       if (!count) continue;
       const row = page.locator('.ctx-relations>div').nth(visibleRows++);
       await expect(row.locator('dt')).toHaveText((language === 'zh'
@@ -429,11 +432,11 @@ for (const language of ['zh', 'en']) {
   test(`${theme} / ${language}: search, history, record navigation and scrolling over the map`, async ({ page }) => {
     await page.goto(artifact(language, theme));
     const count = await page.locator('.decision-card').count();
-    await page.locator('#directory-search').fill('translated or edited project rules');
+    await page.locator('#directory-search').fill('decision-sequence journal');
     await expect(page.locator('.decision-card')).toHaveCount(1);
-    await expect(page.locator('.decision-card')).toHaveAttribute('data-record', '35');
+    await expect(page.locator('.decision-card')).toHaveAttribute('data-record', '48');
     await page.locator('.decision-card').click();
-    await expect(page.locator('#reader-description')).toContainText('translated or edited project rules');
+    await expect(page.locator('#reader-description')).toContainText('decision-sequence journal');
     await page.locator('#close-reader').click();
     await expect(page.locator('#reader')).not.toBeVisible();
     await page.locator('#directory-search').fill('#31');
@@ -697,8 +700,14 @@ test(`${theme}: preserves the original insight height budget`, async ({ page }) 
       };
     });
   });
-  expect(panels[1].visible).toBeGreaterThanOrEqual(3);
-  expect(panels[0].height).toBeLessThan(panels[1].height);
+  // Sections activate only with data: the hub panel always fills from the
+  // current records, while the replacements panel disappears once no archived
+  // record carries a successor link (the 2026-11 regrade removed them all).
+  expect(panels.length).toBeGreaterThanOrEqual(1);
+  expect(panels[0].visible).toBeGreaterThanOrEqual(3);
+  if (panels.length > 1) {
+    expect(panels[0].height).toBeLessThan(panels[1].height);
+  }
   // Each panel fills to the closest row count around the 40rem target; the gap
   // between them therefore follows platform font metrics, so the budget is
   // "within one row of the target" rather than a fixed pixel difference.
