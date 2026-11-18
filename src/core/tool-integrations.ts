@@ -213,8 +213,8 @@ statistics at the bottom of its hero. Taller content can scroll.
 
 
 Display ADR identifiers, chapter numbers and question numbers as natural
-integers without leading zeros (ADR 3, chapter 2, QUESTION 1), including visible
-labels and accessible names. Date/time fields retain their standard formats.
+integers without leading zeros, including visible labels and accessible names.
+Date/time fields retain their standard formats.
 
 Signal's built-in hero is a shuffled desk of real decision files, not a static
 illustration. Generate it with \`adrkit atlas --theme signal --out "<path>.html"\`
