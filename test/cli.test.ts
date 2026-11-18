@@ -257,13 +257,26 @@ describe('positional arity', () => {
     errorSpy.mockRestore();
   });
 
-  it.each(['list', 'status', 'instructions', 'config'])('rejects any positional argument on %s', (command) => {
+  // help and version answer before dispatch, but a stray word after them is
+  // still a mistake to report: docs/cli.md promises extras fail rather than
+  // being ignored, on every command.
+  it.each(['list', 'status', 'instructions', 'config', 'help', 'version'])('rejects any positional argument on %s', (command) => {
     const root = makeRepo();
     process.chdir(root);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     main([command, 'stray']);
     expect(process.exitCode).toBe(1);
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining(`adrkit ${command} takes no positional arguments`));
+    errorSpy.mockRestore();
+  });
+
+  it.each(['', '  '])('rejects an empty --by value on supersede', (empty) => {
+    const root = makeRepo();
+    process.chdir(root);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    main(['supersede', '1', '--by', empty]);
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('supersede requires --by <name>'));
     errorSpy.mockRestore();
   });
 

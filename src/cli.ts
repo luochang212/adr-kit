@@ -155,10 +155,12 @@ export function main(argv: string[]): void {
         return;
       }
       case 'help': {
+        noPositionals(rest, 'help');
         console.log(HELP);
         return;
       }
       case 'version': {
+        noPositionals(rest, 'version');
         console.log(VERSION);
         return;
       }
@@ -210,7 +212,9 @@ export function main(argv: string[]): void {
       }
       case 'supersede': {
         const by = values.by;
-        if (by === undefined) {
+        // An empty value is a missing value: resolveRecord would answer the
+        // bare string with "no ADR matches", so name the actual mistake.
+        if (by === undefined || by.trim().length === 0) {
           throw new Error('supersede requires --by <name>');
         }
         console.log(supersedeCommand(oneName(rest, 'supersede'), by, process.cwd()));
