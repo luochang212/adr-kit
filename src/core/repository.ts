@@ -543,7 +543,16 @@ export function removeRecord(record: AdrRecord): void {
 
 export function resolveProposed(root: string, query: string): AdrRecord {
   const needle = query.trim();
-  const candidates = listRecords(root).filter((record) =>
+  let records: AdrRecord[];
+  try {
+    records = listRecords(root);
+  } catch {
+    // Same corrupt-tree fallback as resolveRecord and resolveRecordForRetirement:
+    // a query for a healthy proposal still resolves when an unrelated record
+    // elsewhere fails to parse.
+    records = listRecordsForResolve(root, needle);
+  }
+  const candidates = records.filter((record) =>
     record.folder === 'proposed' &&
     (fileNameMatchesQuery(record.fileName, needle) ||
       record.title === needle ||

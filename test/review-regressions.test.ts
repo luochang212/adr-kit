@@ -327,3 +327,28 @@ describe('comments beginning on section headings', () => {
     expect(validateCommand(root).valid).toBe(true);
   });
 });
+
+describe('corrupt-tree resolution', () => {
+  const corrupt = (root: string): void => {
+    fs.writeFileSync(join(root, 'adr/implemented/9-broken.md'), 'not a record\n');
+  };
+
+  it('rejects a healthy proposal while an unrelated record is corrupt', () => {
+    // The resolve-fallback contract listRecordsForResolve documents — a query
+    // for a healthy record still resolves — covers every resolver alike.
+    const root = repo(); putProposal(root); corrupt(root);
+    const output = rejectCommand('choice', 'no longer wanted', root);
+    expect(output).toContain('rejected adr/proposed/2026-10-20-choice.md as adr/rejected/2026-10-20-choice.md');
+  });
+
+  it('still refuses a promotion in a corrupt tree, naming the corrupt record', () => {
+    // A promotion allocates a number from the parsed inventory, so a corrupt
+    // record cannot be skipped without risking a colliding allocation; the
+    // refusal names the file the human has to fix.
+    const root = repo(); putProposal(root); corrupt(root);
+    expect(() => implementCommand('choice', root, 'human', 'human')).toThrow(
+      /failed to parse adr\/implemented\/9-broken\.md/,
+    );
+    expect(fs.readdirSync(join(root, 'adr/proposed'))).toContain('2026-10-20-choice.md');
+  });
+});
