@@ -1,16 +1,23 @@
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { stringify } from 'yaml';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { FRONT_MATTER_ORDER, parseAdrFile, writtenHeadings, type AdrSection } from '../src/core/adr.js';
+
+const tempDirs: string[] = [];
 
 function write(relative: string, content: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'adrkit-adr-'));
+  tempDirs.push(dir);
   const path = join(dir, relative);
   writeFileSync(path, content);
   return path;
 }
+
+afterAll(() => {
+  for (const dir of tempDirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+});
 
 /** Test-only renderer mirroring the canonical front matter field order. */
 function renderAdr(options: {
