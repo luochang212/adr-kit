@@ -344,10 +344,12 @@ describe('corrupt-tree resolution', () => {
   it('still refuses a promotion in a corrupt tree, naming the corrupt record', () => {
     // A promotion allocates a number from the parsed inventory, so a corrupt
     // record cannot be skipped without risking a colliding allocation; the
-    // refusal names the file the human has to fix.
+    // refusal names the file the human has to fix. The message spells the
+    // path with the platform separator (it comes from node:path math), so
+    // the pattern accepts both spellings.
     const root = repo(); putProposal(root); corrupt(root);
     expect(() => implementCommand('choice', root, 'human', 'human')).toThrow(
-      /failed to parse adr\/implemented\/9-broken\.md/,
+      /failed to parse adr[/\\]implemented[/\\]9-broken\.md/,
     );
     expect(fs.readdirSync(join(root, 'adr/proposed'))).toContain('2026-10-20-choice.md');
   });
