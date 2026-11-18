@@ -1,3 +1,4 @@
+import { renameSync } from 'node:fs';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -7,7 +8,7 @@ import { proposeCommand } from '../src/commands/propose.js';
 import { implementCommand } from '../src/commands/implement.js';
 import { validateCommand } from '../src/commands/validate.js';
 import { folderPath, listProposals } from '../src/core/repository.js';
-import { formatIssues, validateRecord } from '../src/core/validate.js';
+import { formatIssues, validateRecord, validateRepository } from '../src/core/validate.js';
 
 const tempDirs: string[] = [];
 
@@ -1342,5 +1343,133 @@ describe('paths scope validation', () => {
     writeFileSync(join(folderPath(root, 'archived'), '1-archived.md'), archived);
     expect(validateCommand(root).valid).toBe(false);
     expect(validateCommand(root).output).toContain('gone/long-ago/**');
+  });
+});
+
+// Pins for rules that had live code but no failing fixture anywhere in the
+// suite: a refactor dropping any of these requirements used to leave the
+// tests green. Each case asserts the exact message, per the doctrine that
+// validation failures are success signals.
+describe('rule coverage pins', () => {
+  it('fails an unshipped proposal whose title carries an ADR number', () => {
+    const root = makeRepo();
+    proposeCommand('Numbered intent', root);
+    const path = join(folderPath(root, 'proposed'), listProposals(root)[0]!.fileName);
+    writeFileSync(path, readFileSync(path, 'utf8').replace('# ADR: Numbered intent', '# ADR: 3 Numbered intent'));
+    expect(validateCommand(root).output).toContain('unshipped records must not have an ADR number');
+  });
+
+  it('fails a proposal file whose name is not "YYYY-MM-DD-slug.md"', () => {
+    const root = makeRepo();
+    proposeCommand('Oddly named', root);
+    const before = join(folderPath(root, 'proposed'), listProposals(root)[0]!.fileName);
+    const after = join(folderPath(root, 'proposed'), 'proposal.md');
+    renameSync(before, after);
+    expect(validateCommand(root).output).toContain('proposal file name must be "YYYY-MM-DD-slug.md"');
+  });
+
+  it('fails a proposal file name carrying an invalid calendar date', () => {
+    const root = makeRepo();
+    proposeCommand('Impossibly dated', root);
+    const before = join(folderPath(root, 'proposed'), listProposals(root)[0]!.fileName);
+    const after = join(folderPath(root, 'proposed'), '2026-02-30-impossibly-dated.md');
+    renameSync(before, after);
+    expect(validateCommand(root).output).toContain('file name contains an invalid calendar date');
+  });
+
+  it('fails an archived record missing its archived and archive-reason fields', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'archived'), '1-gone.md'),
+      decision('1 Gone', ACCEPTED),
+    );
+    const output = validateCommand(root).output;
+    expect(output).toContain('archived record must include "archived"');
+    expect(output).toContain('archived record must include "archive-reason"');
+  });
+
+  it('fails an archived record whose archived date is not a real day', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'archived'), '1-gone.md'),
+      decision('1 Gone', {
+        ...ACCEPTED,
+        archived: '2026-02-30',
+        'archive-reason': 'no longer needed',
+      }),
+    );
+    expect(validateCommand(root).output).toContain('archived contains an invalid calendar date');
+  });
+
+  it('fails an archived record retired before its creation date', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'archived'), '1-gone.md'),
+      decision('1 Gone', {
+        status: 'implemented',
+        date: '2026-08-19',
+        created: '2026-09-01',
+        archived: '2026-08-19',
+        'archive-reason': 'no longer needed',
+      }),
+    );
+    expect(validateCommand(root).output).toContain('archived date must not precede creation');
+  });
+
+  it('fails archive metadata outside archived/', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-active.md'),
+      decision('1 Active', { ...ACCEPTED, archived: '2026-08-19', 'archive-reason': 'mistake' }),
+    );
+    expect(validateCommand(root).output).toContain('archive metadata is only allowed in archived/');
+  });
+
+  it('fails a file name whose number disagrees with the title number', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '2-choice.md'),
+      decision('3 Choice', ACCEPTED),
+    );
+    expect(validateCommand(root).output).toContain('file name number must match title number 3');
+  });
+
+  it('fails an unnumbered folder whose status disagrees with the directory', () => {
+    // A rejected status cannot reach this check: the parser refuses a
+    // rejection without its reason first, so implemented is the disagreeing
+    // status the parser accepts.
+    const root = makeRepo();
+    proposeCommand('Redirected', root);
+    const path = join(folderPath(root, 'proposed'), listProposals(root)[0]!.fileName);
+    writeFileSync(path, readFileSync(path, 'utf8').replace('status: proposed', 'status: implemented'));
+    expect(validateCommand(root).output).toContain('status "implemented" must match proposed/');
+  });
+
+  it('fails an empty paths entry', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-scoped.md'),
+      decision('1 Scoped', { ...ACCEPTED, paths: '[""]' }),
+    );
+    expect(validateCommand(root).output).toContain('path entries must not be empty');
+  });
+
+  it('fails the whole repository while config.yaml is missing', () => {
+    // validateRepository directly: the CLI commands guard with requireRoot
+    // first, whose repair advice names the same missing file; the instruction
+    // surface reaches this check through findRoot instead.
+    const root = makeRepo();
+    rmSync(join(root, 'adr', 'config.yaml'));
+    const issues = validateRepository(root);
+    expect(issues.some((issue) => issue.message === 'missing config file')).toBe(true);
+  });
+
+  it('fails a duplicate section through the validate command itself', () => {
+    const root = makeRepo();
+    writeFileSync(
+      join(folderPath(root, 'implemented'), '1-dup.md'),
+      decision('1 Dup', ACCEPTED) + '\n## Decision\n\nSecond copy.\n',
+    );
+    expect(validateCommand(root).output).toContain('duplicate section "## Decision"');
   });
 });
